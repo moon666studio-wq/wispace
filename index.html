@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Situs Streaming Gw</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Warna latar belakang persis YouTube Dark Mode */
+        body { background-color: #0f0f0f; color: white; }
+    </style>
+    </head>
+<body class="h-screen flex flex-col font-sans">
+
+    <nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <button class="text-white p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h1 class="text-xl font-bold tracking-tighter">📺 MyTube</h1> 
+        </div>
+
+        <div class="hidden md:flex flex-1 max-w-2xl mx-8">
+            <input type="text" placeholder="Telusuri" class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white">
+            <button class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">
+                🔍
+            </button>
+        </div>
+
+        <div>
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold">A</div>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 hidden lg:block overflow-y-auto bg-[#0f0f0f] p-3 space-y-2">
+            <a href="#" class="flex items-center gap-4 p-3 bg-[#272727] rounded-lg hover:bg-gray-800">
+                🏠 <span class="text-sm font-medium">Beranda</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800">
+                🔥 <span class="text-sm font-medium">Trending</span>
+            </a>
+            <hr class="border-gray-700 my-2">
+            <h3 class="text-gray-400 font-bold px-3 py-2 text-sm">Kategori</h3>
+            <a href="#" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800">
+                🎬 <span class="text-sm font-medium">Film Action</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800">
+                😂 <span class="text-sm font-medium">Komedi</span>
+            </a>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-4 md:p-6">
+            <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                </div>
+        </main>
+    </div>
+
+    <script>
+        // Mengambil data dari file data.json
+        fetch('data.json')
+            .then(res => res.json())
+            .then(data => {
+                const grid = document.getElementById('video-grid');
+                data.forEach(vid => {
+                    grid.innerHTML += `
+                        <a href="watch.html?id=${vid.id}" class="group cursor-pointer">
+                            <div class="relative rounded-xl overflow-hidden mb-3 aspect-video">
+                                <img src="${vid.thumb}" alt="${vid.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                                <span class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded">${vid.duration}</span>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="w-9 h-9 rounded-full bg-gray-700 flex-shrink-0">
+                                    <img src="${vid.channel_avatar}" class="w-full h-full rounded-full object-cover">
+                                </div>
+                                <div class="flex flex-col">
+                                    <h3 class="text-white text-sm md:text-base font-semibold line-clamp-2">${vid.title}</h3>
+                                    <p class="text-gray-400 text-xs md:text-sm mt-1">${vid.channel_name}</p>
+                                    <p class="text-gray-400 text-xs md:text-sm">${vid.views} x ditonton • ${vid.upload_time}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                });
+            })
+            .catch(err => console.error("Error mengambil data:", err));
+    </script>
+</body>
+</html>

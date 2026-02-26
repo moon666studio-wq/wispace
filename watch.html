@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sedang Menonton - MyTube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f0f0f; color: white; }
+    </style>
+</head>
+<body class="font-sans">
+
+    <nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50 border-b border-gray-800">
+        <a href="index.html" class="text-xl font-bold tracking-tighter flex items-center gap-2 hover:text-gray-300">
+            📺 MyTube
+        </a>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto p-4 lg:p-6 flex flex-col lg:flex-row gap-6">
+        
+        <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%]">
+            <div class="aspect-video bg-black rounded-xl overflow-hidden shadow-lg relative">
+                 <iframe id="player" src="" class="w-full h-full absolute top-0 left-0" frameborder="0" allowfullscreen scrolling="no"></iframe>
+            </div>
+
+            <h1 id="video-title" class="text-xl md:text-2xl font-bold mt-4 mb-2">Memuat Judul...</h1>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <img id="channel-avatar" src="" class="w-10 h-10 rounded-full object-cover bg-gray-700">
+                    <div>
+                        <h3 id="channel-name" class="font-bold text-[15px]">Memuat Channel...</h3>
+                        <p class="text-gray-400 text-xs">1,2 jt subscriber</p>
+                    </div>
+                    <button class="bg-white text-black font-bold px-4 py-2 rounded-full ml-4 hover:bg-gray-200 transition">Subscribe</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-[30%] xl:w-[25%] lg:min-w-[350px]">
+            <h3 class="font-bold mb-4 text-lg">Berikutnya</h3>
+            <div id="recommendation-list" class="flex flex-col gap-3">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const vidId = urlParams.get('id');
+
+        fetch('data.json')
+            .then(res => res.json())
+            .then(data => {
+                const currentVideo = data.find(v => v.id === vidId);
+                
+                if(currentVideo) {
+                    document.getElementById('video-title').innerText = currentVideo.title;
+                    document.getElementById('channel-name').innerText = currentVideo.channel_name;
+                    document.getElementById('channel-avatar').src = currentVideo.channel_avatar;
+                    
+                    // INI KODE YANG BENER BUAT MANGGIL LINKNYA:
+                    document.getElementById('player').src = currentVideo.embed_url;
+                } else {
+                    document.getElementById('video-title').innerText = "Video tidak ditemukan!";
+                }
+
+                const recList = document.getElementById('recommendation-list');
+                const recommendedVideos = data.filter(v => v.id !== vidId);
+                
+                recommendedVideos.forEach(vid => {
+                    recList.innerHTML += `
+                        <a href="watch.html?id=${vid.id}" class="flex gap-2 group">
+                            <div class="w-40 min-w-[160px] relative rounded-lg overflow-hidden aspect-video">
+                                <img src="${vid.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                            </div>
+                            <div class="flex flex-col">
+                                <h4 class="text-sm font-semibold line-clamp-2 group-hover:text-blue-400">${vid.title}</h4>
+                            </div>
+                        </a>
+                    `;
+                });
+            })
+            .catch(err => console.error("Error ngambil data:", err));
+    </script>
+</body>
+</html>
