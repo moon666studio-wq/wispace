@@ -3,87 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situs Streaming Gw</title>
+    <title>WiSpace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Warna latar belakang persis YouTube Dark Mode */
         body { background-color: #0f0f0f; color: white; }
     </style>
     </head>
 <body class="h-screen flex flex-col font-sans">
 
-    <nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50">
+    <nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50 border-b border-gray-800">
         <div class="flex items-center gap-4">
-            <button class="text-white p-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <h1 class="text-xl font-bold tracking-tighter">📺 MyTube</h1> 
+           <img src="https://i.postimg.cc/8zfWBd9V/wispaceweb-logo.png" alt="Logo WiSpace" class="h-10 cursor-pointer hover:opacity-80 transition" onclick="filterCategory('Semua')">
         </div>
-
+        
         <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-            <input type="text" placeholder="Telusuri" class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white">
-            <button class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">
-                🔍
-            </button>
+            <input id="search-input" oninput="cariVideo()" type="text" placeholder="Telusuri judul video..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white">
+            <button onclick="cariVideo()" class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">🔍</button>
         </div>
 
         <div>
-            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold">A</div>
+            <div class="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:opacity-80 border border-gray-600">
+        <img src="https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png" alt="logo" class="w-full h-full object-cover">
+    </div>
         </div>
     </nav>
 
     <div class="flex flex-1 overflow-hidden">
         <aside class="w-64 hidden lg:block overflow-y-auto bg-[#0f0f0f] p-3 space-y-2">
-            <a href="#" class="flex items-center gap-4 p-3 bg-[#272727] rounded-lg hover:bg-gray-800">
-                🏠 <span class="text-sm font-medium">Beranda</span>
-            </a>
-            <a href="#" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800">
-                🔥 <span class="text-sm font-medium">Trending</span>
-            </a>
+            <button onclick="filterCategory('Semua')" class="w-full text-left flex items-center gap-4 p-3 bg-[#272727] rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+                🏠 <span class="text-sm font-medium">All Videos</span>
+            </button>
             <hr class="border-gray-700 my-2">
             <h3 class="text-gray-400 font-bold px-3 py-2 text-sm">Kategori</h3>
-            <a href="#" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800">
-                🎬 <span class="text-sm font-medium">Film Action</span>
-            </a>
-            <a href="#" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800">
-                😂 <span class="text-sm font-medium">Komedi</span>
-            </a>
+            <button onclick="filterCategory('Music Concert')" class="w-full text-left flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+                🎵 <span class="text-sm font-medium">Music Concert</span>
+            </button>
+            <button onclick="filterCategory('Music Film')" class="w-full text-left flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+                🎬 <span class="text-sm font-medium">Music Film</span>
+            </button>
+            <button onclick="filterCategory('Documenter')" class="w-full text-left flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+                📚 <span class="text-sm font-medium">Documenter</span>
+            </button>
         </aside>
 
         <main class="flex-1 overflow-y-auto p-4 md:p-6">
+            <h2 id="judul-halaman" class="text-xl font-bold mb-4">Semua Video</h2>
             <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 </div>
         </main>
     </div>
 
     <script>
-        // Mengambil data dari file data.json
+        let semuaVideo = [];
+
+        // 1. Ambil Data
         fetch('data.json')
             .then(res => res.json())
             .then(data => {
-                const grid = document.getElementById('video-grid');
-                data.forEach(vid => {
-                    grid.innerHTML += `
-                        <a href="watch.html?id=${vid.id}" class="group cursor-pointer">
-                            <div class="relative rounded-xl overflow-hidden mb-3 aspect-video">
-                                <img src="${vid.thumb}" alt="${vid.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
-                                <span class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded">${vid.duration}</span>
+                semuaVideo = data;
+                renderVideos(semuaVideo);
+            });
+
+        // 2. Tampilkan Video
+        function renderVideos(videos) {
+            const grid = document.getElementById('video-grid');
+            grid.innerHTML = ''; 
+            
+            if(videos.length === 0) {
+                grid.innerHTML = '<p class="text-gray-400">Video tidak ditemukan.</p>';
+                return;
+            }
+
+            videos.forEach(vid => {
+                grid.innerHTML += `
+                    <a href="watch.html?id=${vid.id}" class="group cursor-pointer">
+                        <div class="relative rounded-xl overflow-hidden mb-3 aspect-video">
+                            <img src="${vid.thumb}" alt="${vid.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                            <span class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded">${vid.duration}</span>
+                            <span class="absolute top-2 left-2 bg-blue-600 bg-opacity-90 text-white text-[10px] px-2 py-1 rounded font-bold">${vid.category}</span>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="w-9 h-9 rounded-full bg-gray-700 flex-shrink-0 overflow-hidden">
+                                <img src="${vid.channel_avatar}" class="w-full h-full object-cover">
                             </div>
-                            <div class="flex gap-3">
-                                <div class="w-9 h-9 rounded-full bg-gray-700 flex-shrink-0">
-                                    <img src="${vid.channel_avatar}" class="w-full h-full rounded-full object-cover">
-                                </div>
-                                <div class="flex flex-col">
-                                    <h3 class="text-white text-sm md:text-base font-semibold line-clamp-2">${vid.title}</h3>
-                                    <p class="text-gray-400 text-xs md:text-sm mt-1">${vid.channel_name}</p>
-                                    <p class="text-gray-400 text-xs md:text-sm">${vid.views} x ditonton • ${vid.upload_time}</p>
-                                </div>
+                            <div class="flex flex-col">
+                                <h3 class="text-white text-sm md:text-base font-semibold line-clamp-2">${vid.title}</h3>
+                                <p class="text-gray-400 text-xs md:text-sm mt-1">${vid.channel_name}</p>
                             </div>
-                        </a>
-                    `;
-                });
-            })
-            .catch(err => console.error("Error mengambil data:", err));
+                        </div>
+                    </a>
+                `;
+            });
+        }
+
+        // 3. Fitur Kategori (Udah Di-upgrade buat 2 kategori)
+        function filterCategory(kategori) {
+            // Kosongin kolom pencarian
+            document.getElementById('search-input').value = ''; 
+            
+            document.getElementById('judul-halaman').innerText = kategori === 'Semua' ? 'Semua Video' : 'Kategori: ' + kategori;
+            
+            if(kategori === 'Semua') {
+                renderVideos(semuaVideo);
+            } else {
+                // UPDATE DI SINI: Pakai .includes() biar bisa baca kategori ganda kayak "Action, Komedi"
+                const videoDisaring = semuaVideo.filter(vid => vid.category.includes(kategori));
+                renderVideos(videoDisaring);
+            }
+        }
+        // 4. FITUR PENCARIAN (Baru)
+        function cariVideo() {
+            // Ambil teks yang diketik, ubah ke huruf kecil semua biar gampang dicocokin
+            const kataKunci = document.getElementById('search-input').value.toLowerCase();
+            
+            // Saring video yang judulnya mengandung kata kunci tersebut
+            const hasilCari = semuaVideo.filter(vid => vid.title.toLowerCase().includes(kataKunci));
+            
+            // Ubah judul halaman biar pengunjung tau lagi nyari apa
+            if (kataKunci === '') {
+                document.getElementById('judul-halaman').innerText = 'Semua Video';
+            } else {
+                document.getElementById('judul-halaman').innerText = 'Hasil pencarian: "' + kataKunci + '"';
+            }
+            
+            // Tampilkan hasilnya
+            renderVideos(hasilCari);
+        }
     </script>
 </body>
 </html>
