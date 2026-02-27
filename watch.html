@@ -7,7 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f0f0f; color: white; }
-    </style>
+    </style>   
+    <script src="https://pl28806200.effectivegatecpm.com/e0/7d/1b/e07d1bead323bf4d932a697f8cd0da03.js"></script>
     </head>
 <body class="font-sans">
     
@@ -93,11 +94,29 @@
                     `;
                 });
 
-                // --- SCRIPT FB COMMENTS (Otomatis render kotak komentarnya) ---
+               // --- KODE FB COMMENTS VERSI ANTI-GAGAL ---
                 const urlVideoSaatIni = window.location.href;
-                document.getElementById('fb-comment-box').innerHTML = `
-                    <div class="fb-comments" data-href="${urlVideoSaatIni}" data-width="100%" data-numposts="5" data-colorscheme="dark"></div>
-                `;
+                const commentBox = document.getElementById('fb-comment-box');
+                
+                // Kita masukin kodenya secara manual ke dalam div
+                commentBox.innerHTML = `<div class="fb-comments" data-href="${urlVideoSaatIni}" data-width="100%" data-numposts="5" data-colorscheme="dark"></div>`;
+                
+                // Kita panggil Facebook buat ngerender ulang kotaknya
+                window.fbAsyncInit = function() {
+                    FB.init({
+                        status: true,
+                        xfbml: true,
+                        version: 'v19.0'
+                    });
+                };
+
+                // Paksa render setelah 1.5 detik biar aman
+                setTimeout(() => {
+                    if (typeof FB !== 'undefined') {
+                        FB.XFBML.parse(commentBox);
+                        console.log("FB Comment Rendered!");
+                    }
+                }, 1500);
                 
               // Trik jeda 1 detik biar mesin Facebook nggak balapan sama data video lo
                 setTimeout(() => {

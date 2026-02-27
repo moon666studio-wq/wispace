@@ -3,60 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiSpace</title>
+    <title>Situs Streaming Gw - WiSpace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f0f0f; color: white; }
+        /* Kode buat ngilangin scrollbar jelek di HP tapi tetep bisa digeser */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
     </head>
-<body class="h-screen flex flex-col font-sans">
+<body class="h-screen flex flex-col font-sans overflow-hidden">
 
-    <nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50 border-b border-gray-800">
+    <nav class="flex flex-wrap justify-between items-center p-4 bg-[#0f0f0f] z-50 border-b border-gray-800 gap-y-4">
+        
         <div class="flex items-center gap-4">
-           <img src="https://i.postimg.cc/8zfWBd9V/wispaceweb-logo.png" alt="Logo WiSpace" class="h-10 cursor-pointer hover:opacity-80 transition" onclick="filterCategory('Semua')">
+            <h1 class="text-xl font-bold tracking-tighter cursor-pointer" onclick="filterCategory('Semua')"><nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50 border-b border-gray-800">
+    <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition">
+        <img src="https://i.postimg.cc/8zfWBd9V/wispaceweb-logo.png" alt="Logo Web Gw" class="h-10">
+    </a>
+</nav></h1> 
         </div>
         
-        <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-            <input id="search-input" oninput="cariVideo()" type="text" placeholder="Telusuri judul video..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white">
+        
+
+        <div class="flex flex-1 w-full md:w-auto md:max-w-2xl mx-0 md:mx-8 order-3 md:order-2">
+            <input id="search-input" oninput="cariVideo()" type="text" placeholder="Telusuri judul video..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white text-sm">
             <button onclick="cariVideo()" class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">🔍</button>
         </div>
 
-        <div>
-            <div class="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:opacity-80 border border-gray-600">
-        <img src="https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png" alt="logo" class="w-full h-full object-cover">
-    </div>
-        </div>
     </nav>
 
-    <div class="flex flex-1 overflow-hidden">
-        <aside class="w-64 hidden lg:block overflow-y-auto bg-[#0f0f0f] p-3 space-y-2">
-            <button onclick="filterCategory('Semua')" class="w-full text-left flex items-center gap-4 p-3 bg-[#272727] rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+    <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        
+        <aside class="w-full lg:w-64 overflow-x-auto lg:overflow-y-auto flex lg:flex-col bg-[#0f0f0f] p-3 gap-2 border-b border-gray-800 lg:border-none flex-shrink-0 hide-scrollbar">
+            
+            <button onclick="filterCategory('All Videos')" class="whitespace-nowrap lg:w-full text-left flex items-center gap-2 lg:gap-4 px-4 py-1.5 lg:p-3 bg-[#272727] rounded-full lg:rounded-lg hover:bg-gray-800 transition">
                 🏠 <span class="text-sm font-medium">All Videos</span>
             </button>
-            <hr class="border-gray-700 my-2">
-            <h3 class="text-gray-400 font-bold px-3 py-2 text-sm">Kategori</h3>
-            <button onclick="filterCategory('Music Concert')" class="w-full text-left flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+            
+            <div class="hidden lg:block border-t border-gray-700 my-2"></div>
+            <h3 class="hidden lg:block text-gray-400 font-bold px-3 py-2 text-sm">Kategori</h3>
+            
+            <button onclick="filterCategory('Music Concert')" class="whitespace-nowrap lg:w-full text-left flex items-center gap-2 lg:gap-4 px-4 py-1.5 lg:p-3 bg-[#121212] lg:bg-transparent border border-gray-700 lg:border-none rounded-full lg:rounded-lg hover:bg-gray-800 transition">
                 🎵 <span class="text-sm font-medium">Music Concert</span>
             </button>
-            <button onclick="filterCategory('Music Film')" class="w-full text-left flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+            
+            <button onclick="filterCategory('Music Film')" class="whitespace-nowrap lg:w-full text-left flex items-center gap-2 lg:gap-4 px-4 py-1.5 lg:p-3 bg-[#121212] lg:bg-transparent border border-gray-700 lg:border-none rounded-full lg:rounded-lg hover:bg-gray-800 transition">
                 🎬 <span class="text-sm font-medium">Music Film</span>
             </button>
-            <button onclick="filterCategory('Documenter')" class="w-full text-left flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 focus:bg-gray-700">
+            
+            <button onclick="filterCategory('Documenter')" class="whitespace-nowrap lg:w-full text-left flex items-center gap-2 lg:gap-4 px-4 py-1.5 lg:p-3 bg-[#121212] lg:bg-transparent border border-gray-700 lg:border-none rounded-full lg:rounded-lg hover:bg-gray-800 transition">
                 📚 <span class="text-sm font-medium">Documenter</span>
             </button>
+
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-4 md:p-6">
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 pb-20">
             <h2 id="judul-halaman" class="text-xl font-bold mb-4">Semua Video</h2>
             <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 </div>
         </main>
+
     </div>
 
     <script>
         let semuaVideo = [];
 
-        // 1. Ambil Data
         fetch('data.json')
             .then(res => res.json())
             .then(data => {
@@ -64,7 +76,6 @@
                 renderVideos(semuaVideo);
             });
 
-        // 2. Tampilkan Video
         function renderVideos(videos) {
             const grid = document.getElementById('video-grid');
             grid.innerHTML = ''; 
@@ -96,37 +107,27 @@
             });
         }
 
-        // 3. Fitur Kategori (Udah Di-upgrade buat 2 kategori)
         function filterCategory(kategori) {
-            // Kosongin kolom pencarian
             document.getElementById('search-input').value = ''; 
-            
             document.getElementById('judul-halaman').innerText = kategori === 'Semua' ? 'Semua Video' : 'Kategori: ' + kategori;
             
             if(kategori === 'Semua') {
                 renderVideos(semuaVideo);
             } else {
-                // UPDATE DI SINI: Pakai .includes() biar bisa baca kategori ganda kayak "Action, Komedi"
                 const videoDisaring = semuaVideo.filter(vid => vid.category.includes(kategori));
                 renderVideos(videoDisaring);
             }
         }
-        // 4. FITUR PENCARIAN (Baru)
+
         function cariVideo() {
-            // Ambil teks yang diketik, ubah ke huruf kecil semua biar gampang dicocokin
             const kataKunci = document.getElementById('search-input').value.toLowerCase();
-            
-            // Saring video yang judulnya mengandung kata kunci tersebut
             const hasilCari = semuaVideo.filter(vid => vid.title.toLowerCase().includes(kataKunci));
             
-            // Ubah judul halaman biar pengunjung tau lagi nyari apa
             if (kataKunci === '') {
                 document.getElementById('judul-halaman').innerText = 'Semua Video';
             } else {
                 document.getElementById('judul-halaman').innerText = 'Hasil pencarian: "' + kataKunci + '"';
             }
-            
-            // Tampilkan hasilnya
             renderVideos(hasilCari);
         }
     </script>
