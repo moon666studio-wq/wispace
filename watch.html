@@ -99,11 +99,17 @@
                     <div class="fb-comments" data-href="${urlVideoSaatIni}" data-width="100%" data-numposts="5" data-colorscheme="dark"></div>
                 `;
                 
-                if (typeof FB !== 'undefined') {
-                    FB.XFBML.parse();
-                }
+               // Trik jeda 1 detik biar mesin Facebook nggak balapan sama data video lo
+                setTimeout(() => {
+                    if (typeof FB !== 'undefined') {
+                        FB.XFBML.parse();
+                    } else {
+                        document.getElementById('fb-comment-box').innerHTML = '<p class="text-gray-400 text-sm">Gagal memuat komentar. Pastikan Adblock / Anti-Tracker di browser lo dimatikan.</p>';
+                    }
+                }, 1000);
             })
             .catch(err => console.error("Error ngambil data:", err));
     </script>
 </body>
+
 </html>
