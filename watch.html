@@ -105,21 +105,26 @@
                 const videoSesuai = data.find(vid => vid.id == idVideo);
                 
                 if(videoSesuai) {
-                    // Update teks ke layar
+                    // 1. Tampilkan Judul Video
                     document.getElementById('video-title').innerText = videoSesuai.title;
-                    document.getElementById('channel-name').innerText = videoSesuai.channelName || "WiSpace";
-                    document.getElementById('views-date').innerText = `${videoSesuai.views} views • ${videoSesuai.uploadDate}`;
                     
-                    if(videoSesuai.channelAvatar) {
-                        document.getElementById('channel-avatar').src = videoSesuai.channelAvatar;
-                        document.getElementById('channel-avatar').classList.remove('hidden');
+                    // 2. Tampilkan Nama Channel (Udah disesuaikan jadi channel_name)
+                    document.getElementById('channel-name').innerText = videoSesuai.channel_name || "WiSpace";
+                    
+                    // 3. Tampilkan Logo Channel (Udah disesuaikan jadi channel_avatar)
+                    if(videoSesuai.channel_avatar) {
+                        document.getElementById('channel-avatar').src = videoSesuai.channel_avatar;
+                        document.getElementById('channel-avatar').classList.remove('hidden'); // Munculin logo
                     }
 
-                    // Suntik Video dari GDrive
+                    // CATATAN: Baris kode buat nampilin "views" dan "uploadDate" 
+                    // UDAH GUE HAPUS TOTAL di sini biar nggak muncul 'undefined' lagi.
+
+                    // 4. Suntik Video dari GDrive
                     const gdriveDirectLink = `https://www.googleapis.com/drive/v3/files/${videoSesuai.videoUrl}?alt=media&key=${API_KEY}`;
                     document.getElementById('player').src = gdriveDirectLink;
 
-                    // Bikin Sidebar Rekomendasi Video
+                    // 5. Bikin Sidebar Rekomendasi Video
                     const rekomenList = document.getElementById('recommendation-list');
                     const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 8); 
                     
@@ -132,7 +137,7 @@
                                 </div>
                                 <div class="flex flex-col overflow-hidden py-1">
                                     <h4 class="font-bold text-[14px] leading-tight mb-1 group-hover:text-[#24A1DE] transition line-clamp-2">${vid.title}</h4>
-                                    <p class="text-gray-400 text-[12px] truncate">${vid.channelName || "WiSpace"}</p>
+                                    <p class="text-gray-400 text-[12px] truncate">${vid.channel_name || "WiSpace"}</p>
                                 </div>
                             </a>
                         `;
