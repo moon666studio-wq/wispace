@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situs Streaming Gw - WiSpace</title>
+    <title>WiSpace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f0f0f; color: white; }
@@ -13,21 +13,18 @@
     </style>
     </head>
 <body class="h-screen flex flex-col font-sans overflow-hidden">
-
-    <nav class="flex flex-wrap justify-between items-center p-4 bg-[#0f0f0f] z-50 border-b border-gray-800 gap-y-4">
+<nav class="flex flex-wrap justify-between items-center p-4 bg-[#0f0f0f] z-50 border-b border-gray-800 gap-y-4">
         
         <div class="flex items-center gap-4">
-            <h1 class="text-xl font-bold tracking-tighter cursor-pointer" onclick="filterCategory('Semua')"><nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50 border-b border-gray-800">
+            <h1 class="text-xl font-bold tracking-tighter cursor-pointer" onclick="filterCategory('Semua')"><nav class="flex justify-between items-center p-4 bg-[#0f0f0f] sticky top-0 z-50">
     <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition">
-        <img src="https://i.postimg.cc/8zfWBd9V/wispaceweb-logo.png" alt="Logo Web Gw" class="h-10">
+        <img src="https://i.postimg.cc/8zfWBd9V/wispaceweb-logo.png" alt="WiSpace" class="h-10">
     </a>
-</nav></h1> 
+</nav>
         </div>
         
-        
-
         <div class="flex flex-1 w-full md:w-auto md:max-w-2xl mx-0 md:mx-8 order-3 md:order-2">
-            <input id="search-input" oninput="cariVideo()" type="text" placeholder="Telusuri judul video..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white text-sm">
+            <input id="search-input" oninput="cariVideo()" type="text" placeholder="Search Video..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white text-sm">
             <button onclick="cariVideo()" class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">🔍</button>
         </div>
 
@@ -73,17 +70,31 @@
             .then(res => res.json())
             .then(data => {
                 semuaVideo = data;
-                renderVideos(semuaVideo);
+                
+                // Cek apakah ada lemparan pencarian dari URL (contoh: index.html?cari=muse)
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryCari = urlParams.get('cari');
+                
+                if (queryCari) {
+                    // Kalau ada, otomatis isi kotak search dan jalankan pencarian
+                    document.getElementById('search-input').value = queryCari;
+                    cariVideo(); 
+                } else {
+                    // Kalau nggak ada, tampilkan semua video normal
+                    renderVideos(semuaVideo);
+                }
             });
-
-        function renderVideos(videos) {
+      function renderVideos(videos) {
             const grid = document.getElementById('video-grid');
             grid.innerHTML = ''; 
             
+            // Ubah pesan error ini jadi bahasa Inggris
             if(videos.length === 0) {
-                grid.innerHTML = '<p class="text-gray-400">Video tidak ditemukan.</p>';
+                grid.innerHTML = '<p class="text-gray-400 text-center w-full col-span-full mt-10">No videos found. Try another keyword.</p>';
                 return;
             }
+
+            // ... (kode yang vid.forEach biarin aja jangan diubah) ...
 
             videos.forEach(vid => {
                 grid.innerHTML += `
@@ -109,9 +120,16 @@
 
         function filterCategory(kategori) {
             document.getElementById('search-input').value = ''; 
-            document.getElementById('judul-halaman').innerText = kategori === 'Semua' ? 'Semua Video' : 'Kategori: ' + kategori;
             
-            if(kategori === 'Semua') {
+            // Ganti teks judul otomatis di atas video
+            if(kategori === 'All Videos') {
+                document.getElementById('judul-halaman').innerText = 'All Videos';
+            } else {
+                document.getElementById('judul-halaman').innerText = 'Category: ' + kategori;
+            }
+            
+            // Ini mesin pencocokannya bro, harus sama persis huruf besar-kecilnya
+            if(kategori === 'All Videos') {
                 renderVideos(semuaVideo);
             } else {
                 const videoDisaring = semuaVideo.filter(vid => vid.category.includes(kategori));
@@ -123,11 +141,13 @@
             const kataKunci = document.getElementById('search-input').value.toLowerCase();
             const hasilCari = semuaVideo.filter(vid => vid.title.toLowerCase().includes(kataKunci));
             
+            // Ubah teks judul pas lagi nyari
             if (kataKunci === '') {
-                document.getElementById('judul-halaman').innerText = 'Semua Video';
+                document.getElementById('judul-halaman').innerText = 'All Videos';
             } else {
-                document.getElementById('judul-halaman').innerText = 'Hasil pencarian: "' + kataKunci + '"';
+                document.getElementById('judul-halaman').innerText = 'Search results for: "' + kataKunci + '"';
             }
+            
             renderVideos(hasilCari);
         }
     </script>
