@@ -46,6 +46,17 @@
             Klik ikon <strong>CC</strong> di pojok kanan bawah video ➔ Klik ikon <strong>Gear (Setting) ⚙️</strong> ➔ Pilih <strong>Auto-translate</strong> ➔ Scroll dan pilih <strong>Indonesian</strong>.
         </p>
     </div>
+    <div class="flex items-center gap-3 mt-4 mb-4 border-b border-gray-700 pb-4">
+    <button id="like-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
+        <span id="like-icon">🤍</span>
+        <span id="like-text">Suka</span>
+    </button>
+    
+    <button id="share-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
+        <span>🔗</span>
+        <span>Bagikan</span>
+    </button>
+</div>
 </div>
             <h1 id="video-title" class="text-xl md:text-2xl font-bold mt-4 mb-4">Memuat Judul...</h1>
             
@@ -163,6 +174,54 @@ document.getElementById('gdrive-player').src = embedLink;
                 }
             })
             .catch(err => console.error("Error ngambil data:", err));
+            // --- MESIN TOMBOL LIKE & SHARE ---
+const likeBtn = document.getElementById('like-btn');
+const likeIcon = document.getElementById('like-icon');
+const likeText = document.getElementById('like-text');
+let isLiked = false;
+
+// Logika klik tombol Like
+if (likeBtn) {
+    likeBtn.addEventListener('click', () => {
+        isLiked = !isLiked;
+        if (isLiked) {
+            likeIcon.innerText = '❤️'; // Berubah jadi merah
+            likeText.innerText = 'Disukai';
+            likeBtn.classList.add('text-pink-500');
+        } else {
+            likeIcon.innerText = '🤍'; // Balik putih lagi
+            likeText.innerText = 'Suka';
+            likeBtn.classList.remove('text-pink-500');
+        }
+    });
+}
+
+// Logika klik tombol Share
+const shareBtn = document.getElementById('share-btn');
+if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+        // Data yang mau di-share
+        const shareData = {
+            title: document.title,
+            text: 'Cek tontonan keren ini di WiSpace bro!',
+            url: window.location.href
+        };
+        
+        try {
+            // Kalau browser/HP support fitur Share bawaan
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Kalau main di PC/Browser lama, otomatis Copy Link
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link video berhasil di-copy! Tinggal paste ke temen lo bro 🚀');
+            }
+        } catch (err) {
+            console.log('Batal share atau ada error:', err);
+        }
+    });
+}
+// ---------------------------------
     </script>
 </body>
 </html>
