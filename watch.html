@@ -37,13 +37,15 @@
         
         <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%] min-w-0">
             
-            <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 relative">
+           <div class="w-full aspect-video bg-black shadow-lg border border-gray-800 relative z-10 rounded-xl">
                 <iframe id="gdrive-player" 
-                    class="absolute top-0 left-0 w-full h-full" 
+                    class="absolute top-0 left-0 w-full h-full rounded-xl" 
                     src="" 
                     frameborder="0" 
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
-                    allowfullscreen>
+                    allowfullscreen="true" 
+                    webkitallowfullscreen="true" 
+                    mozallowfullscreen="true">
                 </iframe>
             </div>
             
