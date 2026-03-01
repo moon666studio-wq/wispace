@@ -73,7 +73,7 @@
             </div>
 
            <div class="mb-2 w-full flex justify-center">
-                <div class="transform scale-50 md:scale-90 origin-top w-full max-w-3xl flex justify-center">
+                <div class="transform scale-35 md:scale-90 origin-top w-full max-w-3xl flex justify-center">
                     <div class="p-2 border border-dashed border-gray-700 rounded-xl text-center text-gray-500 text-xs bg-[#121212] inline-block">
                         <script async="async" data-cfasync="false" src="https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js"></script>
                         <div id="container-c7cff8ba29baa58b686117866fd1c5e3"></div>
@@ -136,9 +136,11 @@
                                 <source src="${videoSesuai.videoUrl}" type="video/mp4" />
                             </video>
                         `;
+                     // Tambahin mantra fullscreen iosNative: true
                         new Plyr('#plyr-player', {
                             controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
-                            settings: ['captions', 'quality', 'speed', 'loop']
+                            settings: ['captions', 'quality', 'speed', 'loop'],
+                            fullscreen: { iosNative: true, fallback: true } // INI OBATNYA BRO!
                         });
                     } else {
                         videoContainer.innerHTML = `
