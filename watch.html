@@ -115,14 +115,16 @@
 
                    // --- SUNTIK VIDEO MESIN MULTI-SERVER ---
                     let embedLink = "";
-                    
-                    if (videoSesuai.server === "febbox") {
-                        // Kalau server Febbox, langsung pakai link full dari data.json
-                        embedLink = videoSesuai.videoUrl;
-                    } else {
-                        // Kalau nggak ditulis (default) atau "gdrive", pakai mesin Google
-                        embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
-                    }
+
+if (videoSesuai.server === "febbox") {
+    // Mesin ini bakal ngambil link utuh Febbox lo
+    embedLink = videoSesuai.videoUrl;
+} else {
+    // Mesin ini buat video Google Drive lo yang lain
+    embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
+}
+
+document.getElementById('gdrive-player').src = embedLink;
 
                     document.getElementById('gdrive-player').src = embedLink;
                     // ----------------------------------------
