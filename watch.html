@@ -29,8 +29,8 @@
         
         <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%] min-w-0">
             
-            <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800">
-                <video id="player" playsinline controls></video>
+            <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 relative">
+                <iframe id="gdrive-player" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
             </div>
 
             <h1 id="video-title" class="text-xl md:text-2xl font-bold mt-4 mb-4">Memuat Judul...</h1>
@@ -88,15 +88,8 @@
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
     <script>
-        const API_KEY = 'AIzaSyAjfsBk1HEAMMFKZAwhyR7h4TL9CAvCYAw'; 
-        const urlParams = new URLSearchParams(window.location.search);
+       const urlParams = new URLSearchParams(window.location.search);
         const idVideo = urlParams.get('id');
-
-        // Nyalain mesin Plyr
-        const player = new Plyr('#player', {
-            ratio: '16:9',
-            controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen']
-        });
 
         // Ambil data.json
         fetch('data.json')
@@ -105,36 +98,20 @@
                 const videoSesuai = data.find(vid => vid.id == idVideo);
                 
                 if(videoSesuai) {
-                    // 1. Tampilkan Judul Video
+                    // Update teks ke layar
                     document.getElementById('video-title').innerText = videoSesuai.title;
-                    
-                    // 2. Tampilkan Nama Channel (Udah disesuaikan jadi channel_name)
                     document.getElementById('channel-name').innerText = videoSesuai.channel_name || "WiSpace";
                     
-                    // 3. Tampilkan Logo Channel (Udah disesuaikan jadi channel_avatar)
                     if(videoSesuai.channel_avatar) {
                         document.getElementById('channel-avatar').src = videoSesuai.channel_avatar;
-                        document.getElementById('channel-avatar').classList.remove('hidden'); // Munculin logo
+                        document.getElementById('channel-avatar').classList.remove('hidden');
                     }
 
-                    // CATATAN: Baris kode buat nampilin "views" dan "uploadDate" 
-                    // UDAH GUE HAPUS TOTAL di sini biar nggak muncul 'undefined' lagi.
+                    // SUNTIK VIDEO PAKE JALUR VVIP GOOGLE DRIVE
+                    const embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
+                    document.getElementById('gdrive-player').src = embedLink;
 
-                    // 4. Suntik Video dari GDrive pakai standar Plyr
-const gdriveDirectLink = `https://www.googleapis.com/drive/v3/files/${videoSesuai.videoUrl}?alt=media&key=${API_KEY}`;
-
-player.source = {
-    type: 'video',
-    title: videoSesuai.title,
-    sources: [
-        {
-            src: gdriveDirectLink,
-            type: 'video/mp4',
-        }
-    ]
-};
-
-                    // 5. Bikin Sidebar Rekomendasi Video
+                    // Bikin Sidebar Rekomendasi Video
                     const rekomenList = document.getElementById('recommendation-list');
                     const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 8); 
                     
@@ -158,20 +135,6 @@ player.source = {
                 }
             })
             .catch(err => console.error("Error ngambil data:", err));
-
-        // Fungsi Search Bar
-        function cariDariWatch() {
-            const kataKunci = document.getElementById('search-input-watch').value;
-            if(kataKunci.trim() !== '') {
-                window.location.href = `index.html?cari=${encodeURIComponent(kataKunci)}`;
-            }
-        }
-
-        function handleEnter(event) {
-            if (event.key === 'Enter') {
-                cariDariWatch();
-            }
-        }
     </script>
 </body>
 </html>
