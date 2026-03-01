@@ -30,7 +30,13 @@
         <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%] min-w-0">
             
             <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 relative">
-                <iframe id="gdrive-player" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
+             <iframe id="gdrive-player" 
+        class="absolute top-0 left-0 w-full h-full" 
+        src="" 
+        frameborder="0" 
+        allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
+        allowfullscreen>
+</iframe>
             </div>
 
             <h1 id="video-title" class="text-xl md:text-2xl font-bold mt-4 mb-4">Memuat Judul...</h1>
@@ -107,10 +113,22 @@
                         document.getElementById('channel-avatar').classList.remove('hidden');
                     }
 
-                    // SUNTIK VIDEO PAKE JALUR VVIP GOOGLE DRIVE
-                    const embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
-                    document.getElementById('gdrive-player').src = embedLink;
+                   // --- SUNTIK VIDEO MESIN MULTI-SERVER ---
+                    let embedLink = "";
+                    
+                    if (videoSesuai.server === "febbox") {
+                        // Kalau server Febbox, langsung pakai link full dari data.json
+                        embedLink = videoSesuai.videoUrl;
+                    } else {
+                        // Kalau nggak ditulis (default) atau "gdrive", pakai mesin Google
+                        embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
+                    }
 
+                    document.getElementById('gdrive-player').src = embedLink;
+                    // ----------------------------------------
+
+                    // Masukin link yang udah bener ke Layar TV
+                    document.getElementById('gdrive-player').src = embedLink;
                     // Bikin Sidebar Rekomendasi Video
                     const rekomenList = document.getElementById('recommendation-list');
                     const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 8); 

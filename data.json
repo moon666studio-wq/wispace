@@ -4,6 +4,7 @@
     "title": "Radiohead Glastonbury 2017",
     "thumbnail": "https://i.postimg.cc/wTqdSgdr/radiohead-glastonbury-2017.jpg",
     "videoUrl": "1r1CuNrF1wduxzNZVmlXWDxhAjcCFW0TD",
+    "server": "gdrive",
     "duration": "2:09:57",
     "channel_name": "WiSpace",
     "channel_avatar": "https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png",
@@ -14,9 +15,32 @@
     "title": "Muse Drones World Tour",
     "thumbnail": "https://i.postimg.cc/ZYrTGwBD/muse-1280.png",
     "videoUrl": "1DW1_n92A7SxhaVCPwtXt5s3gdwULhzIV",
+    "server": "gdrive",
     "duration": "1:25:20",
     "channel_name": "WiSpace",
     "channel_avatar": "https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png",
     "category": "Music Film"
+  },
+   {
+    "id": "3",
+    "title": "Deftones Area4 Festival 2011",
+    "thumbnail": "https://i.ytimg.com/vi/ysdA7SRVh00/0.jpg",
+    "videoUrl": "17-OcUpiZ9g6FLL5BVTrcujeD5AquKIPV",
+    "server": "gdrive",
+    "duration": "56:41",
+    "channel_name": "WiSpace",
+    "channel_avatar": "https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png",
+    "category": "Music Concert"
+  },
+  {
+    "id": "4",
+    "title": "Kurt Cobain Montage of Heck",
+    "thumbnail": "https://www.vertigoposters.com/cdn/shop/files/IMG_3559_1024x1024.jpg",
+    "videoUrl": "hhttps://www.febbox.com/share/CRY4QZAZ",
+    "server": "febbox",
+    "duration": "2:12:20",
+    "channel_name": "WiSpace",
+    "channel_avatar": "https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png",
+    "category": "Documenter"
   }
 ]
