@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="WiSpace - Nonton Konser & Dokumenter Musik">
+    <meta property="og:description" content="Tonton koleksi dokumenter musik dan konser legendaris dengan kualitas mantap cuma di WiSpace!">
+    <meta property="og:image" content="https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png"> 
+    <meta property="og:type" content="website">
+    
     <title>Sedang Menonton - WiSpace</title>
+    
+    <link rel="icon" href="https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png" type="image/png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f0f0f; color: white; }
@@ -11,13 +19,6 @@
     </style>   
     <script src="https://pl28813515.effectivegatecpm.com/ab/d7/9b/abd79b571ba0638a333dbf679a304053.js"></script>
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiSpace</title>
-    
-    <link rel="icon" href="https://i.postimg.cc/BnCg1BKG/wispaceweb-logo-bulat-bckground-putih.png" type="image/png">
-</head>
 </head>
 <body class="font-sans antialiased">               
 
@@ -37,48 +38,55 @@
         <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%] min-w-0">
             
             <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 relative">
-             <iframe id="gdrive-player" 
-        class="absolute top-0 left-0 w-full h-full" 
-        src="" 
-        frameborder="0" 
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
-        allowfullscreen>
-</iframe>
+                <iframe id="gdrive-player" 
+                    class="absolute top-0 left-0 w-full h-full" 
+                    src="" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
             </div>
-             <div class="flex items-center gap-3 mt-4 mb-4 border-b border-gray-700 pb-4">
-    <button id="like-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
-        <span id="like-icon">🤍</span>
-        <span id="like-text">Suka</span>
-    </button>
-    
-    <button id="share-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
-        <span>🔗</span>
-        <span>Bagikan</span>
-    </button>
-</div>
-<div class="mt-4 bg-gray-800 border border-gray-700 rounded-lg p-4 flex items-start gap-3">
-    <div class="text-2xl">💡</div>
-    <div>
-        <h4 class="text-white font-semibold text-sm md:text-base">Tips Nonton Pakai Subtitle Indonesia</h4>
-        <p class="text-gray-400 text-xs md:text-sm mt-1">
-            Klik ikon <strong>CC</strong> di pojok kanan bawah video ➔ Klik ikon <strong>Gear (Setting) ⚙️</strong> ➔ Pilih <strong>Auto-translate</strong> ➔ Scroll dan pilih <strong>Indonesian</strong>.
-        </p>
-    </div>
-   
-</div>
-            <h1 id="video-title" class="text-xl md:text-2xl font-bold mt-4 mb-4">Memuat Judul...</h1>
             
-            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-                <div class="flex items-center gap-3">
-                    <img id="channel-avatar" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover bg-gray-700 border border-gray-500 hidden">
-                    <div>
-                        <h3 id="channel-name" class="font-bold text-[15px]">Memuat Channel...</h3>
-                        <p id="views-date" class="text-gray-400 text-[13px]"></p>
+            <div class="mt-4 mb-6 border-b border-gray-800 pb-4">
+                
+                <h1 id="video-title" class="text-xl md:text-2xl font-bold mb-4">Memuat Judul...</h1>
+                
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    
+                    <div class="flex items-center gap-3">
+                        <img id="channel-avatar" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover bg-gray-700 border border-gray-500 hidden">
+                        <div>
+                            <h3 id="channel-name" class="font-bold text-[15px]">Memuat Channel...</h3>
+                            <p id="views-date" class="text-gray-400 text-[13px]">WiSpace</p>
+                        </div>
                     </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="like-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
+                            <span id="like-icon">🤍</span>
+                            <span id="like-text">Suka</span>
+                        </button>
+                        
+                        <button id="share-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
+                            <span>🔗</span>
+                            <span>Bagikan</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
-            <div class="mt-6 w-full flex justify-center overflow-hidden">
+            <div class="mb-6 bg-gray-800 border border-gray-700 rounded-lg p-4 flex items-start gap-3">
+                <div class="text-2xl">💡</div>
+                <div>
+                    <h4 class="text-white font-semibold text-sm md:text-base">Tips Nonton Pakai Subtitle Indonesia</h4>
+                    <p class="text-gray-400 text-xs md:text-sm mt-1">
+                        Klik ikon <strong>CC</strong> di pojok kanan bawah video ➔ Klik ikon <strong>Gear (Setting) ⚙️</strong> ➔ Pilih <strong>Auto-translate</strong> ➔ Scroll dan pilih <strong>Indonesian</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-8 w-full flex justify-center overflow-hidden">
                 <div class="transform scale-90 sm:scale-100 origin-top w-full max-w-full">
                     <div class="p-4 border border-dashed border-gray-700 rounded-xl text-center text-gray-500 text-sm bg-[#121212]">
                         <script async="async" data-cfasync="false" src="https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js"></script>
@@ -87,7 +95,7 @@
                 </div>
             </div>
             
-            <div class="mt-8 border-t border-gray-800 pt-6">
+            <div class="border-t border-gray-800 pt-6">
                 <h3 class="text-lg font-bold mb-4">Diskusi & Request</h3>
                 <div class="bg-[#121212] p-6 rounded-xl border border-gray-800 text-center">
                     <div class="flex justify-center mb-4">
@@ -119,9 +127,8 @@
     </div>
 
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
-
     <script>
-       const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
         const idVideo = urlParams.get('id');
 
         // Ambil data.json
@@ -140,24 +147,15 @@
                         document.getElementById('channel-avatar').classList.remove('hidden');
                     }
 
-                   // --- SUNTIK VIDEO MESIN MULTI-SERVER ---
+                    // --- SUNTIK VIDEO MESIN MULTI-SERVER ---
                     let embedLink = "";
-
-if (videoSesuai.server === "febbox") {
-    // Mesin ini bakal ngambil link utuh Febbox lo
-    embedLink = videoSesuai.videoUrl;
-} else {
-    // Mesin ini buat video Google Drive lo yang lain
-    embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
-}
-
-document.getElementById('gdrive-player').src = embedLink;
-
+                    if (videoSesuai.server === "febbox") {
+                        embedLink = videoSesuai.videoUrl;
+                    } else {
+                        embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
+                    }
                     document.getElementById('gdrive-player').src = embedLink;
-                    // ----------------------------------------
 
-                    // Masukin link yang udah bener ke Layar TV
-                    document.getElementById('gdrive-player').src = embedLink;
                     // Bikin Sidebar Rekomendasi Video
                     const rekomenList = document.getElementById('recommendation-list');
                     const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 8); 
@@ -182,54 +180,48 @@ document.getElementById('gdrive-player').src = embedLink;
                 }
             })
             .catch(err => console.error("Error ngambil data:", err));
-            // --- MESIN TOMBOL LIKE & SHARE ---
-const likeBtn = document.getElementById('like-btn');
-const likeIcon = document.getElementById('like-icon');
-const likeText = document.getElementById('like-text');
-let isLiked = false;
 
-// Logika klik tombol Like
-if (likeBtn) {
-    likeBtn.addEventListener('click', () => {
-        isLiked = !isLiked;
-        if (isLiked) {
-            likeIcon.innerText = '❤️'; // Berubah jadi merah
-            likeText.innerText = 'Disukai';
-            likeBtn.classList.add('text-pink-500');
-        } else {
-            likeIcon.innerText = '🤍'; // Balik putih lagi
-            likeText.innerText = 'Suka';
-            likeBtn.classList.remove('text-pink-500');
-        }
-    });
-}
+        // --- MESIN TOMBOL LIKE & SHARE ---
+        const likeBtn = document.getElementById('like-btn');
+        const likeIcon = document.getElementById('like-icon');
+        const likeText = document.getElementById('like-text');
+        let isLiked = false;
 
-// Logika klik tombol Share
-const shareBtn = document.getElementById('share-btn');
-if (shareBtn) {
-    shareBtn.addEventListener('click', async () => {
-        // Data yang mau di-share
-        const shareData = {
-            title: document.title,
-            text: 'Cek tontonan keren ini di WiSpace bro!',
-            url: window.location.href
-        };
-        
-        try {
-            // Kalau browser/HP support fitur Share bawaan
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                // Kalau main di PC/Browser lama, otomatis Copy Link
-                navigator.clipboard.writeText(window.location.href);
-                alert('Link video berhasil di-copy! Tinggal paste ke temen lo bro 🚀');
-            }
-        } catch (err) {
-            console.log('Batal share atau ada error:', err);
+        if (likeBtn) {
+            likeBtn.addEventListener('click', () => {
+                isLiked = !isLiked;
+                if (isLiked) {
+                    likeIcon.innerText = '❤️'; 
+                    likeText.innerText = 'Disukai';
+                    likeBtn.classList.add('text-pink-500');
+                } else {
+                    likeIcon.innerText = '🤍'; 
+                    likeText.innerText = 'Suka';
+                    likeBtn.classList.remove('text-pink-500');
+                }
+            });
         }
-    });
-}
-// ---------------------------------
+
+        const shareBtn = document.getElementById('share-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                const shareData = {
+                    title: document.title,
+                    text: 'Cek tontonan keren ini di WiSpace bro!',
+                    url: window.location.href
+                };
+                try {
+                    if (navigator.share) {
+                        await navigator.share(shareData);
+                    } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('Link video berhasil di-copy! Tinggal paste ke temen lo bro 🚀');
+                    }
+                } catch (err) {
+                    console.log('Batal share atau ada error:', err);
+                }
+            });
+        }
     </script>
 </body>
 </html>
