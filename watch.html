@@ -30,7 +30,7 @@
         <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%] min-w-0">
             
             <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800">
-                <video id="player" playsinline controls crossorigin></video>
+                <video id="player" playsinline controls></video>
             </div>
 
             <h1 id="video-title" class="text-xl md:text-2xl font-bold mt-4 mb-4">Memuat Judul...</h1>
@@ -120,9 +120,19 @@
                     // CATATAN: Baris kode buat nampilin "views" dan "uploadDate" 
                     // UDAH GUE HAPUS TOTAL di sini biar nggak muncul 'undefined' lagi.
 
-                    // 4. Suntik Video dari GDrive
-                    const gdriveDirectLink = `https://www.googleapis.com/drive/v3/files/${videoSesuai.videoUrl}?alt=media&key=${API_KEY}`;
-                    document.getElementById('player').src = gdriveDirectLink;
+                    // 4. Suntik Video dari GDrive pakai standar Plyr
+const gdriveDirectLink = `https://www.googleapis.com/drive/v3/files/${videoSesuai.videoUrl}?alt=media&key=${API_KEY}`;
+
+player.source = {
+    type: 'video',
+    title: videoSesuai.title,
+    sources: [
+        {
+            src: gdriveDirectLink,
+            type: 'video/mp4',
+        }
+    ]
+};
 
                     // 5. Bikin Sidebar Rekomendasi Video
                     const rekomenList = document.getElementById('recommendation-list');
