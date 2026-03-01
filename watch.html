@@ -15,46 +15,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f0f0f; color: white; }
-        :root { --plyr-color-main: #24A1DE; } /* Warna biru player */
+        :root { --plyr-color-main: #24A1DE; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>   
     <script src="https://pl28813515.effectivegatecpm.com/ab/d7/9b/abd79b571ba0638a333dbf679a304053.js"></script>
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 </head>
-<body class="font-sans antialiased">               
+<body class="font-sans antialiased pb-20">               
 
-    <nav class="flex flex-wrap justify-between items-center p-4 bg-[#0f0f0f] z-50 border-b border-gray-800 gap-y-4">
+    <nav class="flex flex-wrap justify-between items-center p-4 bg-[#0f0f0f] z-50 border-b border-gray-800 gap-y-4 sticky top-0">
         <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition">
             <img src="https://i.postimg.cc/8zfWBd9V/wispaceweb-logo.png" alt="Home" class="h-10">
         </a>
-
         <div class="flex flex-1 w-full md:w-auto md:max-w-2xl mx-0 md:mx-8 order-3 md:order-2">
-            <input id="search-input-watch" type="text" placeholder="Search videos..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white text-sm" onkeypress="handleEnter(event)">
-            <button onclick="cariDariWatch()" class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">🔍</button>
+            <input id="search-input-watch" type="text" placeholder="Search videos..." class="w-full bg-[#121212] border border-gray-700 rounded-l-full px-4 py-2 focus:outline-none focus:border-blue-500 text-white text-sm">
+            <button class="bg-[#222222] border border-l-0 border-gray-700 rounded-r-full px-5 py-2 hover:bg-gray-700">🔍</button>
         </div>
     </nav>
 
-    <div class="max-w-[1600px] mx-auto p-4 lg:p-6 flex flex-col lg:flex-row gap-6">
+    <div class="max-w-[1600px] mx-auto p-4 lg:p-6 flex flex-col lg:flex-row gap-6 relative">
         
         <div class="flex-1 lg:max-w-[70%] xl:max-w-[75%] min-w-0">
             
-           <div class="w-full aspect-video bg-black shadow-lg border border-gray-800 relative z-10 rounded-xl">
-                <iframe id="gdrive-player" 
-                    class="absolute top-0 left-0 w-full h-full rounded-xl" 
-                    src="" 
-                    frameborder="0" 
-                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
-                    allowfullscreen="true" 
-                    webkitallowfullscreen="true" 
-                    mozallowfullscreen="true">
-                </iframe>
-            </div>
+            <div id="video-container" class="w-full aspect-video bg-black shadow-lg border border-gray-800 relative z-10 rounded-xl overflow-hidden">
+                </div>
             
             <div class="mt-4 mb-6 border-b border-gray-800 pb-4">
-                
                 <h1 id="video-title" class="text-xl md:text-2xl font-bold mb-4">Memuat Judul...</h1>
-                
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                    
                     <div class="flex items-center gap-3">
                         <img id="channel-avatar" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover bg-gray-700 border border-gray-500 hidden">
                         <div>
@@ -62,19 +51,14 @@
                             <p id="views-date" class="text-gray-400 text-[13px]">WiSpace</p>
                         </div>
                     </div>
-
                     <div class="flex items-center gap-2">
                         <button id="like-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
-                            <span id="like-icon">🤍</span>
-                            <span id="like-text">Suka</span>
+                            <span id="like-icon">🤍</span> <span id="like-text">Suka</span>
                         </button>
-                        
                         <button id="share-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
-                            <span>🔗</span>
-                            <span>Bagikan</span>
+                            <span>🔗</span> <span>Bagikan</span>
                         </button>
                     </div>
-
                 </div>
             </div>
 
@@ -88,9 +72,9 @@
                 </div>
             </div>
 
-            <div class="mb-8 w-full flex justify-center overflow-hidden">
-                <div class="transform scale-90 sm:scale-100 origin-top w-full max-w-full">
-                    <div class="p-4 border border-dashed border-gray-700 rounded-xl text-center text-gray-500 text-sm bg-[#121212]">
+            <div class="mb-2 w-full flex justify-center overflow-hidden">
+                <div class="transform scale-75 origin-top w-full max-w-3xl">
+                    <div class="p-2 border border-dashed border-gray-700 rounded-xl text-center text-gray-500 text-xs bg-[#121212]">
                         <script async="async" data-cfasync="false" src="https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js"></script>
                         <div id="container-c7cff8ba29baa58b686117866fd1c5e3"></div>
                     </div>
@@ -103,15 +87,12 @@
                     <div class="flex justify-center mb-4">
                         <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20">
                             <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
                         </div>
                     </div>
                     <h4 class="text-xl font-bold mb-2">Mau Request atau Tanya-tanya?</h4>
-                    <p class="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-                        Gabung ke grup Telegram WiSpace buat ngobrol langsung sama admin!
-                    </p>
+                    <p class="text-gray-400 text-sm mb-6 max-w-md mx-auto">Gabung ke grup Telegram WiSpace buat ngobrol langsung sama admin!</p>
                     <a href="https://t.me/+kt4HLaL6IT85NDI1" target="_blank" class="inline-flex items-center gap-2 bg-[#24A1DE] hover:bg-[#1e87bb] text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 active:scale-95 shadow-lg">
                         Join Group Telegram
                     </a>
@@ -120,9 +101,9 @@
             
         </div> 
 
-        <div class="w-full lg:w-[30%] xl:w-[25%] lg:min-w-[350px] flex-shrink-0">
-            <h3 class="font-bold mb-4 text-lg">Berikutnya</h3>
-            <div id="recommendation-list" class="flex flex-col gap-3">
+        <div class="w-full lg:w-[30%] xl:w-[25%] lg:min-w-[350px] flex-shrink-0 lg:sticky lg:top-[80px] lg:h-[calc(100vh-100px)] flex flex-col">
+            <h3 class="font-bold mb-4 text-lg flex-shrink-0">Berikutnya</h3>
+            <div id="recommendation-list" class="flex flex-col gap-3 overflow-y-auto hide-scrollbar pb-10">
                 </div>
         </div>
 
@@ -133,14 +114,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const idVideo = urlParams.get('id');
 
-        // Ambil data.json
         fetch('data.json')
             .then(res => res.json())
             .then(data => {
                 const videoSesuai = data.find(vid => vid.id == idVideo);
                 
                 if(videoSesuai) {
-                    // Update teks ke layar
                     document.getElementById('video-title').innerText = videoSesuai.title;
                     document.getElementById('channel-name').innerText = videoSesuai.channel_name || "WiSpace";
                     
@@ -149,18 +128,32 @@
                         document.getElementById('channel-avatar').classList.remove('hidden');
                     }
 
-                    // --- SUNTIK VIDEO MESIN MULTI-SERVER ---
-                    let embedLink = "";
-                    if (videoSesuai.server === "febbox") {
-                        embedLink = videoSesuai.videoUrl;
-                    } else {
-                        embedLink = `https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview`;
-                    }
-                    document.getElementById('gdrive-player').src = embedLink;
+                    const videoContainer = document.getElementById('video-container');
 
-                    // Bikin Sidebar Rekomendasi Video
+                    if (videoSesuai.server === "febbox" || (videoSesuai.videoUrl && videoSesuai.videoUrl.includes('.mp4'))) {
+                        videoContainer.innerHTML = `
+                            <video id="plyr-player" playsinline controls data-poster="${videoSesuai.thumbnail}" class="w-full h-full">
+                                <source src="${videoSesuai.videoUrl}" type="video/mp4" />
+                            </video>
+                        `;
+                        new Plyr('#plyr-player', {
+                            controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+                            settings: ['captions', 'quality', 'speed', 'loop']
+                        });
+                    } else {
+                        videoContainer.innerHTML = `
+                            <iframe id="gdrive-player" 
+                                class="absolute top-0 left-0 w-full h-full" 
+                                src="https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview" 
+                                frameborder="0" 
+                                allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
+                                allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true">
+                            </iframe>
+                        `;
+                    }
+
                     const rekomenList = document.getElementById('recommendation-list');
-                    const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 8); 
+                    const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 15); 
                     
                     videoLain.forEach(vid => {
                         rekomenList.innerHTML += `
@@ -183,7 +176,6 @@
             })
             .catch(err => console.error("Error ngambil data:", err));
 
-        // --- MESIN TOMBOL LIKE & SHARE ---
         const likeBtn = document.getElementById('like-btn');
         const likeIcon = document.getElementById('like-icon');
         const likeText = document.getElementById('like-text');
