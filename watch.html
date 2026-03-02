@@ -109,8 +109,7 @@
 
     </div>
 
-    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
-    <script>
+   <script>
         const urlParams = new URLSearchParams(window.location.search);
         const idVideo = urlParams.get('id');
 
@@ -120,6 +119,7 @@
                 const videoSesuai = data.find(vid => vid.id == idVideo);
                 
                 if(videoSesuai) {
+                    // Update judul dan channel
                     document.getElementById('video-title').innerText = videoSesuai.title;
                     document.getElementById('channel-name').innerText = videoSesuai.channel_name || "WiSpace";
                     
@@ -128,32 +128,31 @@
                         document.getElementById('channel-avatar').classList.remove('hidden');
                     }
 
+                    // --- BAGIAN PLAYER YANG BARU (BUNNY.NET) ---
                     const videoContainer = document.getElementById('video-container');
 
-                    if (videoSesuai.server === "febbox" || (videoSesuai.videoUrl && videoSesuai.videoUrl.includes('.mp4'))) {
+                    // Kita asumsikan di data.json sekarang pakainya "iframe_url"
+                    // Tapi kalau lu masih pake key "videoUrl" di JSON buat nyimpen link iframe Bunny, ganti aja iframe_url jadi videoUrl di bawah ini ya bro.
+                    if (videoSesuai.iframe_url || videoSesuai.videoUrl) {
+                        const linkEmbed = videoSesuai.iframe_url ? videoSesuai.iframe_url : videoSesuai.videoUrl;
+                        
                         videoContainer.innerHTML = `
-                            <video id="plyr-player" playsinline controls data-poster="${videoSesuai.thumbnail}" class="w-full h-full">
-                                <source src="${videoSesuai.videoUrl}" type="video/mp4" />
-                            </video>
+                            <div style="position:relative;padding-top:56.25%;">
+                                <iframe 
+                                    src="${linkEmbed}" 
+                                    loading="lazy" 
+                                    style="border:none;position:absolute;top:0;left:0;height:100%;width:100%;" 
+                                    allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" 
+                                    allowfullscreen="true">
+                                </iframe>
+                            </div>
                         `;
-                     // Tambahin mantra fullscreen iosNative: true
-                        new Plyr('#plyr-player', {
-                            controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
-                            settings: ['captions', 'quality', 'speed', 'loop'],
-                            fullscreen: { iosNative: true, fallback: true } // INI OBATNYA BRO!
-                        });
                     } else {
-                        videoContainer.innerHTML = `
-                            <iframe id="gdrive-player" 
-                                class="absolute top-0 left-0 w-full h-full" 
-                                src="https://drive.google.com/file/d/${videoSesuai.videoUrl}/preview" 
-                                frameborder="0" 
-                                allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
-                                allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true">
-                            </iframe>
-                        `;
+                        videoContainer.innerHTML = '<p class="text-white text-center py-10">Link video belum tersedia.</p>';
                     }
+                    // --- SELESAI BAGIAN PLAYER ---
 
+                    // Bagian Rekomendasi Video (Tetap sama)
                     const rekomenList = document.getElementById('recommendation-list');
                     const videoLain = data.filter(vid => vid.id != idVideo).slice(0, 15); 
                     
@@ -178,6 +177,7 @@
             })
             .catch(err => console.error("Error ngambil data:", err));
 
+        // Tombol Like (Tetap sama)
         const likeBtn = document.getElementById('like-btn');
         const likeIcon = document.getElementById('like-icon');
         const likeText = document.getElementById('like-text');
@@ -198,6 +198,7 @@
             });
         }
 
+        // Tombol Share (Tetap sama)
         const shareBtn = document.getElementById('share-btn');
         if (shareBtn) {
             shareBtn.addEventListener('click', async () => {
