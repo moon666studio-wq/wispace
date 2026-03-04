@@ -122,16 +122,20 @@ function renderVideoTerbaru(dataVideos) {
         let batasTampil = 8; // TAMPILIN 8 VIDEO AJA DI AWAL
 
         // Ambil Data dari JSON
-      fetch('data.json?v=' + new Date().getTime())
+     // Ambil data JSON saat halaman dimuat
+fetch('data.json?v=' + new Date().getTime())
     .then(res => res.json())
     .then(data => {
-        semuaVideo = data;
-        videoAktif = data; 
+        semuaVideo = data; // Simpan data asli (berurutan) ke memori utama
         
-        // PANGGIL FUNGSI VIDEO TERBARU DI SINI
+        // 1. Render Video Terbaru pakai data ASLI (Biar yang baru tetep di atas)
         renderVideoTerbaru(data);
         
-        // Cek apakah ada lemparan pencarian dari URL (kode lama kamu)
+        // 2. Bikin copy-an data khusus untuk diacak (Shuffle)
+        let dataAcak = [...data].sort(() => 0.5 - Math.random());
+        videoAktif = dataAcak; // Masukin data yang udah diacak buat grid bawah
+        
+        // 3. Cek apakah ada lemparan pencarian dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const queryCari = urlParams.get('cari');
         
@@ -139,6 +143,7 @@ function renderVideoTerbaru(dataVideos) {
             document.getElementById('search-input').value = queryCari;
             cariVideo(); 
         } else {
+            // Tampilkan grid bawah dengan susunan acak
             renderVideos();
         }
     })
