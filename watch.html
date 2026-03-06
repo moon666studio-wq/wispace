@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:title" content="WiSpace - Nonton Konser & Dokumenter Musik">
@@ -293,6 +296,31 @@ function munculinToast() {
         setTimeout(() => { toast.style.visibility = "hidden"; }, 400); // Sembunyiin setelah animasinya kelar
     }, 3000);
 }
+</script>
+<div class="giscus mt-10 px-4 max-w-4xl mx-auto"></div>
+
+<script>
+  // Ambil ID video dari URL (?id=...)
+  const videoId = urlParams.get('id') || 'umum';
+
+  const giscusScript = document.createElement('script');
+  giscusScript.src = "https://giscus.app/client.js";
+  giscusScript.setAttribute('data-repo', 'moon666studio-wq/wispace');
+  giscusScript.setAttribute('data-repo-id', 'R_kgDORZnQQQ'); // Kode lu udah bener
+  giscusScript.setAttribute('data-category', 'General');
+  giscusScript.setAttribute('data-category-id', 'DIC_kwDORZnQQc4C30XO'); // GANTI PAKE KODE DARI WEB GISCUS
+  giscusScript.setAttribute('data-mapping', 'specific');
+  giscusScript.setAttribute('data-term', videoId); // Biar komen gak nyampur
+  giscusScript.setAttribute('data-strict', '0');
+  giscusScript.setAttribute('data-reactions-enabled', '1');
+  giscusScript.setAttribute('data-emit-metadata', '0');
+  giscusScript.setAttribute('data-input-position', 'top'); // Kotak komen di atas
+  giscusScript.setAttribute('data-theme', 'dark'); // Biar item keren
+  giscusScript.setAttribute('data-lang', 'id');
+  giscusScript.setAttribute('crossorigin', 'anonymous');
+  giscusScript.async = true;
+
+  document.body.appendChild(giscusScript);
 </script>
 </body>
 </html>
