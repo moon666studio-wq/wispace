@@ -275,6 +275,44 @@
             }
         });
     }
+    // Fungsi ini dipanggil pas tombol Share diklik
+function bagikanVideo() {
+    // 1. Ambil ID video yang lagi ditonton sekarang
+    const urlParams = new URLSearchParams(window.location.search);
+    const idVideo = urlParams.get('id');
+    
+    // 2. Rangkai link sakti versi API
+    const linkSakti = `https://wispace.my.id/api/watch?id=${idVideo}`;
+    
+    // 3. Deteksi kalau dibuka di HP (pakai fitur Share bawaan HP)
+    if (navigator.share) {
+        navigator.share({
+            title: 'Nonton di WiSpace',
+            text: 'Cek video keren ini bro!',
+            url: linkSakti
+        }).catch(console.error);
+    } else {
+        // 4. Kalau di PC, otomatis Copy ke Clipboard
+        navigator.clipboard.writeText(linkSakti).then(() => {
+            alert("✅ Link berhasil di-copy! Tinggal paste di WhatsApp/Sosmed.");
+        }).catch(err => {
+            console.error('Gagal copy link: ', err);
+        });
+    }
+}
+function munculinToast() {
+    const toast = document.getElementById("toast-copy");
+    toast.style.visibility = "visible";
+    toast.style.opacity = "1";
+    toast.style.bottom = "40px"; // Animasi naik sedikit
+
+    // Otomatis hilang setelah 3 detik
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.bottom = "20px"; // Turun lagi
+        setTimeout(() => { toast.style.visibility = "hidden"; }, 400); // Sembunyiin setelah animasinya kelar
+    }, 3000);
+}
 </script>
 </body>
 </html>
