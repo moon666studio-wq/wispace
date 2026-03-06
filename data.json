@@ -72,7 +72,7 @@
     "description":""
  },
   {
-    "id": "Radiohead-Glastonbury-2017",
+    "id": "radiohead-glastonbury-2017",
     "title": "Radiohead Glastonbury 2017",
     "thumbnail": "https://i.postimg.cc/6ppx36rv/Radiohead-Glastonbury-2017.jpg",
     "animated_thumbnail":"https://vz-f4c8002e-f49.b-cdn.net/d8474a47-4ea7-4299-b6c7-e31692fb6739/preview.webp?v=1772705007",
@@ -84,7 +84,7 @@
     "description":"Gideon Coe with Radiohead's full live set from Glastonbury 2017"
   },
   {
-    "id": "Grunge-De-Musique-De-Rage-2021",
+    "id": "grunge-de-musique-de-rage-2021",
     "title": "Grunge De Musique De Rage 2021",
     "thumbnail": "https://i.postimg.cc/jqHp4nvH/Grunge-De-Musique-De-Rage-2021.webp",
     "animated_thumbnail":"https://vz-f4c8002e-f49.b-cdn.net/7d263926-e546-430a-aba6-0d44c8861447/preview.webp?v=1772705199",  
@@ -409,3 +409,4 @@
   }
 
 ]
+
