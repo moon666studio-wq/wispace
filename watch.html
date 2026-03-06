@@ -64,9 +64,9 @@
                         <button id="like-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
                             <span id="like-icon">🤍</span> <span id="like-text">Like</span>
                         </button>
-                        <button id="share-btn" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
-                            <span>🔗</span> <span>Share</span>
-                        </button>
+                       <button id="share-btn" onclick="bagikanVideo()" class="flex items-center gap-2 text-gray-400 hover:text-white transition px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 font-medium text-sm">
+    <span>🔗</span> <span>Share</span>
+</button>
                         
                     </div>
                       <div class="p-2 border border-dashed border-gray-700 rounded-lg text-gray-500 text-xs bg-[#121212] p-4 mb-6">
@@ -254,27 +254,7 @@
         });
     }
 
-    // Tombol Share
-    const shareBtn = document.getElementById('share-btn');
-    if (shareBtn) {
-        shareBtn.addEventListener('click', async () => {
-            const shareData = {
-                title: document.title,
-                text: 'Cek tontonan keren ini di WiSpace bro!',
-                url: window.location.href
-            };
-            try {
-                if (navigator.share) {
-                    await navigator.share(shareData);
-                } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert('Link video berhasil di-copy! Tinggal paste ke temen lo bro 🚀');
-                }
-            } catch (err) {
-                console.log('Batal share atau ada error:', err);
-            }
-        });
-    }
+
     // Fungsi ini dipanggil pas tombol Share diklik
 function bagikanVideo() {
     // 1. Ambil ID video yang lagi ditonton sekarang
