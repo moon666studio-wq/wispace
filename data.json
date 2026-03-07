@@ -432,7 +432,7 @@
     "description": "Jim Morrison's life, from his LA film student days to his death in Paris. Val Kilmer delivers an uncanny portrayal, with vocals indistinguishable from Morrison's originals. It depicts Morrison's journey as the iconic 60s rock frontman."
  },
   {
-    "id": "8-mile-eminem", blm
+    "id": "8-mile-eminem",
     "title": "8 Mile : Eminem",
     "thumbnail": "https://wispace.my.id/Image/8-mile-eminem.jpg",
     "animated_thumbnail":"https://vz-f4c8002e-f49.b-cdn.net/48ce2f2e-3380-4c45-a1a9-9ae670b93969/preview.webp?v=1772959459",
@@ -444,5 +444,6 @@
     "description": "For Jimmy Smith, Jr., life is a daily fight just to keep hope alive. Feeding his dreams in Detroit's vibrant music scene, Jimmy wages an extraordinary personal struggle to find his own voice - and earn a place in a world where rhymes rule, legends are born and every moment… is another chance."
   }
 ]
+
 
 
