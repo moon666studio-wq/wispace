@@ -1,22 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta property="og:title" content="WiSpace - Nonton Konser & Dokumenter Musik">
+<meta property="og:description" content="Tonton koleksi dokumenter musik dan konser legendaris...">
+<meta property="og:image" content="https://wispace.my.id/Image/ss-index.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WiSpace - Home</title>
+    
     <link rel="icon" href="https://wispace.my.id/Image/wispaceweb-logo-bulat-bckground-putih.png" type="image/png">
-
-    <meta property="og:title" content="WiSpace - Tempat Nonton Konser & Dokumenter Musik">
-    <meta property="og:description" content="Streaming video konser band favorit dan film dokumenter musik paling keren. Tonton sekarang di WiSpace!">
-    <meta property="og:image" content="https://wispace.my.id/Image/ss-index.png">
-    <meta property="og:url" content="https://wispace.my.id/">
-    <meta property="og:type" content="website">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="WiSpace - Tempat Nonton Konser & Dokumenter Musik">
-    <meta name="twitter:description" content="Streaming video konser band favorit dan film dokumenter musik paling keren.">
-    <meta name="twitter:image" content="https://wispace.my.id/Image/ss-index.png">
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f0f0f; color: white; }
@@ -24,10 +17,10 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         /* Percantik scrollbar horizontal untuk video terbaru */
-        .custom-x-scrollbar::-webkit-scrollbar { height: 8px; }
-        .custom-x-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
-        .custom-x-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
-        .custom-x-scrollbar::-webkit-scrollbar-thumb:hover { background: #24A1DE; }
+.custom-x-scrollbar::-webkit-scrollbar { height: 8px; }
+.custom-x-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+.custom-x-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+.custom-x-scrollbar::-webkit-scrollbar-thumb:hover { background: #24A1DE; }
     </style>
 </head>
 
@@ -243,8 +236,26 @@ fetch('data.json?v=' + new Date().getTime())
             renderVideos();
         }
     </script>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-[#1a1a1a] border border-gray-800 rounded-3xl p-8 md:p-12 text-center flex flex-col items-center justify-center relative overflow-hidden group">
+            
+            <div class="absolute inset-0 bg-gradient-to-r from-yellow-500/5 via-transparent to-[#24A1DE]/5 opacity-50 pointer-events-none"></div>
+
+            <div class="z-10 flex flex-col items-center max-w-2xl">
+                <div class="w-16 h-16 flex items-center justify-center bg-[#252525] border border-gray-700 rounded-full text-3xl mb-4 shadow-inner">
+                    ☕
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">Dukung Terus WiSpace!</h2>
+                <p class="text-gray-400 text-sm md:text-base mb-8 leading-relaxed">
+                    Nikmati streaming ribuan jam konser dan dokumenter musik . Bantu admin bayar server dan nambah koleksi video dengan traktir segelas kopi!
+                </p>
+                
+                <a href="https://saweria.co/wispace" target="_blank" class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3.5 px-8 rounded-full transition-all text-sm md:text-base z-10 shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] hover:-translate-y-1">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
+                    Traktir Kopi Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
 </body>
-
 </html>
-
-

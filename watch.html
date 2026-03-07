@@ -27,7 +27,7 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
-       <script src="https://pl28813515.effectivegatecpm.com/ab/d7/9b/abd79b571ba0638a333dbf679a304053.js"></script>
+  
 </head>
 <body>
 
@@ -55,11 +55,28 @@
                 <p class="text-gray-500">Memuat video...</p>
             </div>
 
-            <div id="video-description" class="bg-gray-900/40 rounded-xl p-5 text-gray-300 text-sm leading-relaxed border border-gray-800 mt-6 mb-8">
+            <div id="video-description" class="bg-gray-900/40 rounded-xl p-5 text-gray-300 text-sm leading-relaxed border border-gray-800 mt-6 mb-4">
                 </div>
-                <div id="ad-container" class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-2 text-center mb-8 flex items-center justify-center min-h-[90px]">
-    <span class="text-gray-500 text-xs font-medium"><script async="async" data-cfasync="false" src="https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js"></script>
-<div id="container-c7cff8ba29baa58b686117866fd1c5e3"></div>
+                <div class="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 text-center mb-5 flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden group">
+                
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl group-hover:bg-yellow-500/20 transition-all duration-500 pointer-events-none"></div>
+
+                <div class="flex items-center gap-4 text-left z-10">
+                    <div class="w-14 h-14 flex items-center justify-center bg-[#252525] border border-gray-700 rounded-full text-2xl flex-shrink-0 shadow-inner">
+                        ☕
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Suka dengan WiSpace?</h3>
+                        <p class="text-gray-400 text-sm mt-1">Bantu admin tetap melek ngoding & nambahin video baru dengan traktir kopi!</p>
+                    </div>
+                </div>
+                
+                <a href="https://saweria.co/wispace" target="_blank" class="flex-shrink-0 flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2.5 px-6 rounded-full transition-all text-sm z-10 shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)]">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
+                    Traktir Kopi Admin
+                </a>
+       
+              
 </span>
             
             </div>
@@ -75,6 +92,7 @@
                     Join Group
                 </a>
             </div>
+            
 
             <div class="flex items-center gap-2 mb-6">
                 <span class="text-xl">💬</span>
@@ -114,7 +132,7 @@
 
                 if (!videoSesuai) return;
 
-                // 1. RENDER PLAYER, JUDUL, & TOMBOL (Ala Screenshot)
+               // 1. RENDER PLAYER, JUDUL, & TOMBOL (Ala Screenshot)
                 document.getElementById('video-container').innerHTML = `
                     <div class="relative w-full aspect-video overflow-hidden bg-black mb-4">
                         <iframe src="${videoSesuai.iframe_url}" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
@@ -123,6 +141,7 @@
                     <h1 class="text-2xl font-bold text-white mb-4">${videoSesuai.title}</h1>
                     
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        
                         <div class="flex items-center gap-3">
                             <img src="${videoSesuai.channel_avatar || 'https://wispace.my.id/Image/wispaceweb-logo-bulat-bckground-putih.png'}" class="w-10 h-10 rounded-full bg-gray-800">
                             <div>
@@ -131,11 +150,17 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2">
-                        
-                            <button onclick="bagikanVideo()" class="bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white px-5 py-2 rounded-full text-sm font-medium transition flex items-center gap-2">
+                        <div class="flex items-center gap-3">
+                            
+                            <a href="https://saweria.co/wispace" target="_blank" class="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black border border-yellow-500/30 hover:border-yellow-500 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
+                                <span class="text-base">☕</span>
+                                <span class="hidden sm:block">Traktir Kopi</span>
+                            </a>
+                            
+                            <button onclick="bagikanVideo()" class="bg-[#1a1a1a] hover:bg-[#2a2a2a] border border-gray-800 text-white px-5 py-2 rounded-full text-sm font-medium transition flex items-center gap-2">
                                 🔗 Share
                             </button>
+                            
                         </div>
                     </div>
                 `;
@@ -153,7 +178,7 @@ document.getElementById('video-description').innerHTML = `
                 loadGiscus(videoId);
             });
 
-        // FUNGSI RENDER SIDEBAR
+      // FUNGSI RENDER SIDEBAR (Udah pakai Adsterra & Iframe Anti-Badai)
         function renderSidebar(videos) {
             const wadah = document.getElementById('next-videos-list');
             if(videos.length === 0) {
@@ -162,9 +187,11 @@ document.getElementById('video-description').innerHTML = `
             }
             
             let html = '';
-            videos.forEach(video => {
+            // Tambahin 'index' buat ngitung urutan video
+            videos.forEach((video, index) => {
+                // 1. Cetak kotak video lu seperti biasa
                 html += `
-                    <a href="watch.html?id=${video.id}" class="flex gap-3 group">
+                    <a href="watch.html?id=${video.id}" class="flex gap-3 group mb-4">
                         <div class="w-32 aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
                             <img src="${video.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                             <div class="absolute bottom-1 right-1 bg-black/90 text-white text-[10px] px-1 py-0.5 rounded">${video.duration}</div>
@@ -175,9 +202,44 @@ document.getElementById('video-description').innerHTML = `
                         </div>
                     </a>
                 `;
+
+                // 2. SUNTIK IFRAME IKLAN SETELAH VIDEO KE-3 (Index 2)
+                if (index === 2) {
+                    html += `
+                        <div class="bg-[#1a1a1a] border border-gray-800 rounded-xl p-3 my-4 flex flex-col relative w-full overflow-hidden">
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest absolute top-1 right-2 z-10 bg-black/50 px-1 rounded">Ad</span>
+                            
+                            <iframe src="iklan.html" class="w-full h-[250px] border-none mt-2 overflow-hidden" scrolling="no"></iframe>
+                        </div>
+                    `;
+                }
             });
+            
             wadah.innerHTML = html;
+            // 3. Gak perlu lagi naruh script js adsterra di bawah sini, 
+            // karena udah diurus murni sama file iklan.html
         }
+
+            // 3. PANGGIL SCRIPT IKLAN (Biar muncul gambarnya)
+            // Cuma dipanggil kalau videonya lebih dari 3 (wadahnya ada)
+           if (videos.length >= 3) 
+                // Kita kasih jeda setengah detik (500ms) biar browser napas 
+                // dan selesai nggambar kotaknya di layar dulu
+                setTimeout(() => {
+                    const adContainer = document.getElementById('container-c7cff8ba29baa58b686117866fd1c5e3');
+                    
+                    // Kalau kotaknya ketemu dan masih kosong, baru kita masukin script-nya
+                    if (adContainer && adContainer.innerHTML.trim() === '') {
+                        const adScript = document.createElement('script');
+                        adScript.async = true;
+                        adScript.dataset.cfasync = "false";
+                        adScript.src = "https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js";
+                        
+                        // Scriptnya ditempel langsung DI DALAM kotaknya, bukan di luar
+                        adContainer.appendChild(adScript);
+                    }
+                }, 500);
+            
 
         // FUNGSI LIVE SEARCH UNTUK SIDEBAR
         document.getElementById('searchInput').addEventListener('input', function(e) {
