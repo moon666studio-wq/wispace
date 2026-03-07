@@ -102,12 +102,12 @@
 
         </div>
 
-        <div class="lg:col-span-1">
-            <h3 id="sidebar-title" class="text-xl font-bold mb-4 text-white">Next</h3>
-            
-           <div id="next-videos-list" class="flex flex-col gap-3 max-h-[195vh] overflow-y-auto pr-2 pb-10">
-    </div>
+      <div class="lg:col-span-1">
+    <h3 id="sidebar-title" class="text-xl font-bold mb-4 text-white">Next</h3>
+    
+    <div id="next-videos-list" class="flex flex-col gap-3 max-h-[195vh] overflow-y-auto pr-2 pb-10">
         </div>
+</div>
 
     </div>
 
@@ -115,7 +115,7 @@
         ✅ Link video berhasil disalin!
     </div>
 
-    <script>
+   <script>
         const urlParams = new URLSearchParams(window.location.search);
         const videoId = urlParams.get('id');
 
@@ -123,6 +123,7 @@
 
         let dataVideoGlobal = [];
 
+        // AMBIL DATA VIDEO
         fetch('data.json')
             .then(res => res.json())
             .then(data => {
@@ -132,7 +133,7 @@
 
                 if (!videoSesuai) return;
 
-               // 1. RENDER PLAYER, JUDUL, & TOMBOL (Ala Screenshot)
+                // 1. RENDER PLAYER, JUDUL, & TOMBOL
                 document.getElementById('video-container').innerHTML = `
                     <div class="relative w-full aspect-video overflow-hidden bg-black mb-4">
                         <iframe src="${videoSesuai.iframe_url}" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
@@ -141,7 +142,6 @@
                     <h1 class="text-2xl font-bold text-white mb-4">${videoSesuai.title}</h1>
                     
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        
                         <div class="flex items-center gap-3">
                             <img src="${videoSesuai.channel_avatar || 'https://wispace.my.id/Image/wispaceweb-logo-bulat-bckground-putih.png'}" class="w-10 h-10 rounded-full bg-gray-800">
                             <div>
@@ -151,34 +151,32 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-                            
                             <a href="https://saweria.co/wispace" target="_blank" class="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black border border-yellow-500/30 hover:border-yellow-500 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
                                 <span class="text-base">☕</span>
                                 <span class="hidden sm:block">Traktir Kopi</span>
                             </a>
-                            
                             <button onclick="bagikanVideo()" class="bg-[#1a1a1a] hover:bg-[#2a2a2a] border border-gray-800 text-white px-5 py-2 rounded-full text-sm font-medium transition flex items-center gap-2">
                                 🔗 Share
                             </button>
-                            
                         </div>
                     </div>
                 `;
 
-             // 2. RENDER DESKRIPSI (Sekarang ada judul "Deskripsi:")
-document.getElementById('video-description').innerHTML = `
-    <h4 class="font-bold text-white text-base mb-2">Description:</h4>
-    <p class="text-gray-300">${videoSesuai.description}</p>
-`;
+                // 2. RENDER DESKRIPSI
+                document.getElementById('video-description').innerHTML = `
+                    <h4 class="font-bold text-white text-base mb-2">Description:</h4>
+                    <p class="text-gray-300">${videoSesuai.description}</p>
+                `;
 
-                // 3. RENDER SIDEBAR AWAL ("Next")
+                // 3. RENDER SIDEBAR
                 renderSidebar(videoLainnya);
 
                 // 4. JALANKAN GISCUS
                 loadGiscus(videoId);
-            });
+            })
+            .catch(err => console.error("Gagal load data:", err));
 
-      // FUNGSI RENDER SIDEBAR (Udah pakai Adsterra & Iframe Anti-Badai)
+        // FUNGSI RENDER SIDEBAR (Sudah include Iklan Iframe yang bisa di-scroll)
         function renderSidebar(videos) {
             const wadah = document.getElementById('next-videos-list');
             if(videos.length === 0) {
@@ -187,9 +185,7 @@ document.getElementById('video-description').innerHTML = `
             }
             
             let html = '';
-            // Tambahin 'index' buat ngitung urutan video
             videos.forEach((video, index) => {
-                // 1. Cetak kotak video lu seperti biasa
                 html += `
                     <a href="watch.html?id=${video.id}" class="flex gap-3 group mb-4">
                         <div class="w-32 aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative">
@@ -203,45 +199,21 @@ document.getElementById('video-description').innerHTML = `
                     </a>
                 `;
 
-                // 2. SUNTIK IFRAME IKLAN SETELAH VIDEO KE-3 (Index 2)
+                // NYELIPIN IKLAN DI URUTAN KE-3
+              // 2. NYELIPIN IKLAN VERSI SLIM (Tanpa Teks AD & Tanpa Padding)
                 if (index === 2) {
                     html += `
-                        <div class="bg-[#1a1a1a] border border-gray-800 rounded-xl p-3 my-4 flex flex-col relative w-full overflow-hidden">
-                            <span class="text-[10px] text-gray-500 uppercase tracking-widest absolute top-1 right-2 z-10 bg-black/50 px-1 rounded">Ad</span>
-                            
-                            <iframe src="iklan.html" class="w-full h-[250px] border-none mt-2 overflow-hidden" scrolling="no"></iframe>
+                        <div class="mb-2 flex flex-col items-start justify-center w-full overflow-hidden" style="min-height: 140px;">
+                            <iframe src="iklan.html" style="width: 95%; height: 250px; border: none; background: transparent;" scrolling="no"></iframe>
                         </div>
                     `;
                 }
             });
             
             wadah.innerHTML = html;
-            // 3. Gak perlu lagi naruh script js adsterra di bawah sini, 
-            // karena udah diurus murni sama file iklan.html
         }
 
-            // 3. PANGGIL SCRIPT IKLAN (Biar muncul gambarnya)
-            // Cuma dipanggil kalau videonya lebih dari 3 (wadahnya ada)
-           if (videos.length >= 3) 
-                // Kita kasih jeda setengah detik (500ms) biar browser napas 
-                // dan selesai nggambar kotaknya di layar dulu
-                setTimeout(() => {
-                    const adContainer = document.getElementById('container-c7cff8ba29baa58b686117866fd1c5e3');
-                    
-                    // Kalau kotaknya ketemu dan masih kosong, baru kita masukin script-nya
-                    if (adContainer && adContainer.innerHTML.trim() === '') {
-                        const adScript = document.createElement('script');
-                        adScript.async = true;
-                        adScript.dataset.cfasync = "false";
-                        adScript.src = "https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js";
-                        
-                        // Scriptnya ditempel langsung DI DALAM kotaknya, bukan di luar
-                        adContainer.appendChild(adScript);
-                    }
-                }, 500);
-            
-
-        // FUNGSI LIVE SEARCH UNTUK SIDEBAR
+        // FUNGSI LIVE SEARCH
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const keyword = e.target.value.toLowerCase();
             const judulSidebar = document.getElementById('sidebar-title');
@@ -258,8 +230,7 @@ document.getElementById('video-description').innerHTML = `
             }
         });
 
-        // FUNGSI SHARE & TOAST
-        // FUNGSI SHARE & TOAST
+        // FUNGSI SHARE
         function bagikanVideo() {
             const linkSakti = `https://wispace.my.id/api/watch?id=${videoId}`;
             navigator.clipboard.writeText(linkSakti).then(() => {
@@ -272,6 +243,7 @@ document.getElementById('video-description').innerHTML = `
                 }, 3000);
             });
         }
+
         // FUNGSI GISCUS
         function loadGiscus(id) {
             const script = document.createElement('script');
@@ -279,13 +251,9 @@ document.getElementById('video-description').innerHTML = `
             script.setAttribute('data-repo', 'moon666studio-wq/wispace');
             script.setAttribute('data-repo-id', 'R_kgDORZnQQQ');
             script.setAttribute('data-category', 'General');
-            script.setAttribute('data-category-id', 'DIC_kwDORZnQQc4C30XO'); // <-- JANGAN LUPA GANTI KODE INI BRO
+            script.setAttribute('data-category-id', 'DIC_kwDORZnQQc4C30XO'); 
             script.setAttribute('data-mapping', 'specific');
             script.setAttribute('data-term', id);
-            script.setAttribute('data-strict', '0');
-            script.setAttribute('data-reactions-enabled', '1');
-            script.setAttribute('data-emit-metadata', '0');
-            script.setAttribute('data-input-position', 'top');
             script.setAttribute('data-theme', 'dark');
             script.setAttribute('data-lang', 'id');
             script.setAttribute('crossorigin', 'anonymous');
