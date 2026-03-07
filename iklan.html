@@ -4,9 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ad</title>
-    <style>
-        body { margin: 0; padding: 0; background: transparent; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-    </style>
+  <style>
+    body { 
+        margin: 0; 
+        padding: 0; 
+        background: transparent; 
+        display: flex; 
+        /* DEFAULT: TENGAH (BUAT HP) */
+        justify-content: center; 
+        align-items: center; 
+        overflow: hidden; 
+    }
+
+    /* KALAU LAYAR LEBAR (LAPTOP/SIDEBAR), PINDAH KE KIRI */
+    @media (min-width: 1024px) {
+        body {
+            justify-content: flex-start;
+        }
+    }
+</style>
 </head>
 <body>
     <script async="async" data-cfasync="false" src="https://pl28813519.effectivegatecpm.com/c7cff8ba29baa58b686117866fd1c5e3/invoke.js"></script>

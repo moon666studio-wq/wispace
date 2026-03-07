@@ -105,8 +105,8 @@
       <div class="lg:col-span-1">
     <h3 id="sidebar-title" class="text-xl font-bold mb-4 text-white">Next</h3>
     
-    <div id="next-videos-list" class="flex flex-col gap-3 max-h-[195vh] overflow-y-auto pr-2 pb-10">
-        </div>
+   <div id="next-videos-list" class="flex flex-col gap-3 lg:max-h-[195vh] lg:overflow-y-auto pr-2 pb-10">
+    </div>
 </div>
 
     </div>
@@ -201,10 +201,13 @@
 
                 // NYELIPIN IKLAN DI URUTAN KE-3
               // 2. NYELIPIN IKLAN VERSI SLIM (Tanpa Teks AD & Tanpa Padding)
-                if (index === 2) {
+             if (index === 2) {
                     html += `
-                        <div class="mb-2 flex flex-col items-start justify-center w-full overflow-hidden" style="min-height: 140px;">
-                            <iframe src="iklan.html" style="width: 95%; height: 250px; border: none; background: transparent;" scrolling="no"></iframe>
+                       
+                        <div class="mb-2 lg:mb-2 flex flex-col items-center lg:items-start w-full overflow-hidden" style="min-height: 135px; margin-top: -5px;">
+                            
+                            <iframe src="iklan.html" style="width: 90%; height: 250px; border: none; background: transparent; display: block;" scrolling="no"></iframe>
+                            
                         </div>
                     `;
                 }
