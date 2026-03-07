@@ -418,5 +418,18 @@
     "channel_avatar": "https://wispace.my.id/Image/wispaceweb-logo-bulat-bckground-putih.png",
     "iframe_url": "https://player.mediadelivery.net/embed/609219/d8888ed3-cb33-4348-9290-3fa19f375185",
     "description": "Footage of a concert performed by the legendary Bob Marley"
+  },
+  {
+    "id": "The-Doors-1991",
+    "title": "The Doors 1991",
+    "thumbnail": "https://wispace.my.id/Image/the-doors-1991.jpg",
+    "animated_thumbnail":"https://vz-f4c8002e-f49.b-cdn.net/f323e46a-6740-4dde-8fe8-bd28f2cc5c46/preview.webp?v=1772955954",
+    "duration": "2:20:39",
+    "category": "Documenter",
+    "channel_name": "WiSpace",
+    "channel_avatar": "https://wispace.my.id/Image/wispaceweb-logo-bulat-bckground-putih.png",
+    "iframe_url": "https://player.mediadelivery.net/embed/609219/f323e46a-6740-4dde-8fe8-bd28f2cc5c46",
+    "description": "Jim Morrison's life, from his LA film student days to his death in Paris. Val Kilmer delivers an uncanny portrayal, with vocals indistinguishable from Morrison's originals. It depicts Morrison's journey as the iconic 60s rock frontman."
   }
 ]
+
