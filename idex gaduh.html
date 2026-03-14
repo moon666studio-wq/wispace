@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gaduh | SUPERNOVA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap');
+
+        .font-oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .font-logo { font-family: 'Fredoka', sans-serif; letter-spacing: -0.05em; }
+        .font-album { font-family: 'Cinzel', serif; letter-spacing: 0.2em; text-transform: uppercase; }
+        
+        /* Bikin scrollbar jadi gelap ala web premium */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="bg-black text-white font-sans overflow-x-hidden">
+
+   <nav class="w-full p-6 sm:p-8 flex justify-between items-center fixed top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        
+        <a href="https://wa.me/6289672260260" target="_blank" class="text-xs font-oswald tracking-[0.2em] text-white hover:text-gray-400 hover:scale-105 transition-all duration-300">
+            CONTACT US
+        </a>
+        
+        <a href="https://wispace.my.id/Image/coveralbumgaduhsupernova.pdf" target="_blank" class="text-xs font-oswald tracking-[0.2em] text-white hover:text-gray-400 hover:scale-105 transition-all duration-300">
+            ALBUM INFO
+        </a>
+
+    </nav>
+
+    <header class="relative min-h-screen flex justify-center items-center">
+        <div class="absolute inset-0 z-0 bg-black">
+            <img src="https://i.postimg.cc/CLVhD48R/Copy-of-SUPERNOVA-20250713-090957-0000.png" alt="Supernova Cover" class="w-full h-full object-cover opacity-60">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80"></div>
+        </div>
+
+        <div class="z-10 text-center flex flex-col items-center px-4 mt-8">
+            <img src="https://i.postimg.cc/d1b5D3Lh/logo-gaduh.png" alt="Logo Gaduh" class="w-64 sm:w-80 md:w-[28rem] h-auto object-contain drop-shadow-2xl mb-0 transition-transform duration-700 hover:scale-105">
+            
+            <div class="mt-2 flex flex-col items-center gap-1 sm:gap-2">
+                <span class="text-gray-300 tracking-[0.4em] text-[10px] sm:text-xs font-oswald">THE NEW ALBUM</span>
+                <h2 class="text-3xl sm:text-5xl font-album text-orange-100 drop-shadow-[0_0_15px_rgba(251,146,60,0.5)]">
+                    ✦ SUPERNOVA ✦
+                </h2>
+                <a href="#music" class="mt-6 border border-white/50 bg-black/30 backdrop-blur-sm px-10 py-3 text-xs font-oswald tracking-[0.2em] text-white hover:bg-white hover:text-black hover:border-white transition-all duration-300">
+                    LISTEN NOW ON SPOTIFY
+                </a>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-10 animate-bounce text-gray-500 text-2xl z-10">↓</div>
+    </header>
+
+    <section id="bio" class="w-full relative bg-black overflow-hidden border-t border-white/5">
+        
+        <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed opacity-40 filter grayscale" style="background-image: url(https://i.postimg.cc/CMXkk9ML/Untitled-1.jpg);"></div>
+        
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-black/30 to-black z-0"></div>
+
+        <div class="relative z-10 max-w-4xl mx-auto px-6 py-32 md:py-40 text-center">
+            <h3 class="text-sm font-oswald tracking-[0.3em] text-orange-100 mb-8">WHO WE ARE</h3>
+            <p class="text-lg md:text-2xl text-gray-200 leading-relaxed font-light drop-shadow-md">
+              <span class="font-logo font-bold text-white hover:text-orange-200 transition">gaduh</span> Dibentuk di Bogor pada Juni 2019, Gaduh adalah band trio alternative rock dan dengan formasi terbarunya sejak Agustus 2023 hingga sekarang, kini beranggotakan Wijaya Kusuma (lead vocals & guitars), Choirul Anwar 'Ilunk' (bass, backing vocals) dan Bonny Anggawijaya (drums, synth).
+
+Dengan formasi tersebut, Gaduh merampungkan album perdana bertajuk Supernova yang dirilis bersama label Rockland Records pada tanggal 8 Februari 2025 lalu di semua Digital Streaming Platform, dengan single andalan berjudul "Gaza Menyala" dalam format video klip yang digarap oleh Rockland TV dan sudah ditayangkan di YouTube.</p>
+        </div>
+    </section>
+
+    <section id="video" class="w-full bg-[#0a0a0a] py-32 border-y border-white/5">
+        <div class="max-w-6xl mx-auto px-6">
+            <h3 class="text-sm font-oswald tracking-[0.3em] text-center text-orange-100 mb-16">VISUALS</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                <div class="w-full aspect-video bg-black border border-gray-800 relative group overflow-hidden">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/vNne6R3FZP4?si=WNZN_X18i7Q5_lMf" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="w-full aspect-video bg-black border border-gray-800 relative group overflow-hidden">
+                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/KgDT3YA5zf8?si=YY3D9A-82EBRfaqQ" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   <section id="music" class="max-w-3xl mx-auto px-6 py-32">
+        <h3 class="text-sm font-oswald tracking-[0.3em] text-center text-orange-100 mb-16">STREAM "SUPERNOVA"</h3>
+        
+        <div class="w-full bg-black/40 p-2 sm:p-4 rounded-2xl border border-white/5 shadow-2xl transition-transform hover:scale-[1.02] duration-500">
+            
+            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/album/52SFZwcxfDJJ2XPjiZJPtt?utm_source=generator&theme=0"  width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            
+        </div>
+    </section>
+
+    <footer class="w-full text-center py-12 border-t border-white/5 bg-black flex flex-col items-center gap-6">
+        <div class="flex gap-8">
+            <a href="#" class="text-xs font-oswald tracking-widest text-gray-500 hover:text-white transition">INSTAGRAM</a>
+            <a href="#" class="text-xs font-oswald tracking-widest text-gray-500 hover:text-white transition">SPOTIFY</a>
+            <a href="#" class="text-xs font-oswald tracking-widest text-gray-500 hover:text-white transition">YOUTUBE</a>
+        </div>
+        <p class="text-[10px] text-gray-700 font-oswald tracking-widest">© 2026 GADUH. ALL RIGHTS RESERVED.</p>
+    </footer>
+
+    <script>
+        let currentAudio = null;
+        let currentBtn = null;
+
+        function playTrack(audioId, btnElement) {
+            const audio = document.getElementById(audioId);
+            
+            // Kalau ada lagu lain yang lagi nyala, matiin dulu
+            if (currentAudio && currentAudio !== audio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentBtn.innerText = "PLAY";
+                currentBtn.classList.remove('bg-white', 'text-black');
+            }
+
+            // Toggle Play / Pause
+            if (audio.paused) {
+                audio.play();
+                btnElement.innerText = "PAUSE";
+                btnElement.classList.add('bg-white', 'text-black');
+                currentAudio = audio;
+                currentBtn = btnElement;
+            } else {
+                audio.pause();
+                btnElement.innerText = "PLAY";
+                btnElement.classList.remove('bg-white', 'text-black');
+            }
+
+            // Kalau lagu habis, otomatis balik ke tulisan PLAY
+            audio.onended = function() {
+                btnElement.innerText = "PLAY";
+                btnElement.classList.remove('bg-white', 'text-black');
+            };
+        }
+    </script>
+</body>
+</html>
