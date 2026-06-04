@@ -31,10 +31,11 @@ const getGigMeta = (gig, key, fallback = '') => {
   }
 };
 const getGigGenre = (gig) => (gig?.genre || 'Indie').split('::')[0] || 'Indie';
-const getGigRequestType = (gig) => (gig?.genre || '').includes('::request=exclusive') ? 'exclusive' : 'free';
+const getGigRequestType = (gig) => gig?.request_type || ((gig?.genre || '').includes('::request=exclusive') ? 'exclusive' : 'free');
 const getGigDate = (gig) => gig?.date || getGigMeta(gig, 'date', 'Tanggal menyusul');
 const getGigHtm = (gig) => gig?.htm || getGigMeta(gig, 'htm', 'Info HTM menyusul');
 const getGigCp = (gig) => gig?.cp || getGigMeta(gig, 'cp', 'CP menyusul');
+const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('could not find') || error?.message?.toLowerCase().includes('schema cache');
 
 export default function App() {
   // 1. STATE MANAGEMENT & SCROLL SENSOR
@@ -420,16 +421,21 @@ export default function App() {
       return;
     }
 
-    const { error } = await supabase.from('gigs').insert([
-      { 
-        title: newTitle, 
-        city: newCity, 
-        genre: encodeGigGenre(newGenre, newGigRequestType, { date: newDate, htm: newHtm, cp: newCp }), 
-        date: newDate,
-        image: newPosterImage,
-        status: 'pending' 
-      }
-    ]);
+    const gigPayload = { 
+      title: newTitle, 
+      city: newCity, 
+      genre: encodeGigGenre(newGenre, newGigRequestType, { date: newDate, htm: newHtm, cp: newCp }), 
+      date: newDate,
+      htm: newHtm,
+      cp: newCp,
+      request_type: newGigRequestType,
+      image: newPosterImage,
+      status: 'pending' 
+    };
+    const { error: firstError } = await supabase.from('gigs').insert([gigPayload]);
+    const error = isMissingColumnError(firstError)
+      ? (await supabase.from('gigs').insert([{ title: gigPayload.title, city: gigPayload.city, genre: gigPayload.genre, date: gigPayload.date, image: gigPayload.image, status: gigPayload.status }])).error
+      : firstError;
     if (error) alert(error.message);
     else { 
       setNewTitle(''); setNewCity(''); setNewGenre(''); setNewDate(''); setNewHtm(''); setNewCp('');
@@ -498,7 +504,15 @@ export default function App() {
   };
 
   const handleGigModeration = async (id, status) => {
-    const { error } = await supabase.from('gigs').update({ status }).eq('id', id);
+    const approvedUntil = new Date();
+    approvedUntil.setDate(approvedUntil.getDate() + 10);
+    const updatePayload = status === 'approved_exclusive'
+      ? { status, approved_until: approvedUntil.toISOString().slice(0, 10) }
+      : { status };
+    const { error: firstError } = await supabase.from('gigs').update(updatePayload).eq('id', id);
+    const error = isMissingColumnError(firstError)
+      ? (await supabase.from('gigs').update({ status }).eq('id', id)).error
+      : firstError;
     if (error) alert("Gagal update status pamflet: " + error.message);
     else {
       const message = status === 'approved_free'
