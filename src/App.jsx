@@ -257,10 +257,6 @@ export default function App() {
     saveUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, user, agreement);
   }, [userSession]);
 
-  const premiumBanners = [
-    { id: "b1", title: "FESTIVAL DISTORSI LINTAS WILAYAH 2026", type: "EXCLUSIVE EVENT 01", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80", desc: "PANGGUNG AKBAR PENYATUAN SELURUH SKENA INDEPENDEN TANAH AIR. BERSIAPLAH MENGAMBIL ALIH RUANG!" },
-    { id: "b2", title: "MEDAN DEATH CONVERGENCY VOL. 6", type: "EXCLUSIVE EVENT 02", image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80", desc: "HANTAMAN DISTORSI MAKSIMAL DI UTARA SUMATERA. PERTEMUAN TAHANAN MATI GENERASI BARU." }
-  ];
   const exclusiveEventBanners = [
     ...gigs
       .filter((gig) => gig.status === 'approved_exclusive')
@@ -269,12 +265,13 @@ export default function App() {
         id: `exclusive-${gig.id}`,
         title: gig.title,
         type: `EXCLUSIVE EVENT ${String(index + 1).padStart(2, '0')}`,
-        image: gig.image || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80',
+        image: gig.image || '',
         desc: `${gig.city || 'WiSpace'} / ${getGigDate(gig)} / ${getGigHtm(gig)}`,
         sourceGig: gig
-      })),
-    ...premiumBanners
+      }))
   ].slice(0, 15);
+  const currentExclusiveBannerIndex = exclusiveEventBanners[activeBanner] ? activeBanner : 0;
+  const currentExclusiveBanner = exclusiveEventBanners[currentExclusiveBannerIndex];
 
   // RADAR STATUS LOGIN AUTOMATIC
   useEffect(() => {
@@ -397,6 +394,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (exclusiveEventBanners.length === 0) return undefined;
+
     timerRef.current = window.setInterval(() => {
       setActiveBanner((current) => (current + 1) % exclusiveEventBanners.length);
     }, 6500);
@@ -926,6 +925,15 @@ export default function App() {
       </span>
     </>
   );
+  const renderGigPosterImage = (gig, style, label = 'NO PAMFLET') => (
+    gig?.image ? (
+      <img src={gig.image} alt="" style={style} />
+    ) : (
+      <div style={{ ...style, display: 'grid', placeItems: 'center', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', color: '#333', fontSize: '10px', fontWeight: '900', textAlign: 'center' }}>
+        {label}
+      </div>
+    )
+  );
 
   const openProfileModal = () => {
     if (isBandAccount) {
@@ -1073,55 +1081,68 @@ export default function App() {
           </header>
 
           {/* BANNER SLIDER ROTATION */}
-          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-            <img key={activeBanner} src={exclusiveEventBanners[activeBanner].image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, top: 0, zIndex: 10, background: 'linear-gradient(to top, rgba(3, 3, 3, 1) 0%, rgba(3, 3, 3, 0.4) 50%, rgba(0, 0, 0, 0) 100%)', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-              <span style={{ backgroundColor: 'rgba(0,210,255,0.15)', border: '1px solid #00d2ff', color: '#00d2ff', fontSize: '11px', fontWeight: '900', padding: '4px 10px', borderRadius: '2px', width: 'fit-content', marginBottom: '16px' }}>{exclusiveEventBanners[activeBanner].type}</span>
-              <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 12px 0', color: '#fff', maxWidth: '950px', lineHeight: '0.9' }}>{exclusiveEventBanners[activeBanner].title}</h2>
-              <p style={{ color: '#bbb', fontSize: '15px', maxWidth: '700px', margin: '0 0 28px 0', lineHeight: '1.5' }}>{exclusiveEventBanners[activeBanner].desc}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
-                <button onClick={() => setSelectedGigDetail(exclusiveEventBanners[activeBanner].sourceGig ? { ...exclusiveEventBanners[activeBanner].sourceGig, fromHero: true } : { id: exclusiveEventBanners[activeBanner].id, title: exclusiveEventBanners[activeBanner].title, city: 'WiSpace', image: exclusiveEventBanners[activeBanner].image, date: 'Info menyusul', htm: 'Info menyusul', cp: 'Info menyusul', status: 'approved_exclusive', fromHero: true })} style={{ ...glassButtonStyle, padding: '12px 32px', width: 'fit-content', fontSize: '13px' }}>LIHAT DETAIL EVENT</button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-                  {exclusiveEventBanners.map((banner, index) => {
-                    const isActiveSlide = activeBanner === index;
+          {exclusiveEventBanners.length > 0 ? (
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              {currentExclusiveBanner.image && (
+                <img key={currentExclusiveBannerIndex} src={currentExclusiveBanner.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, top: 0, zIndex: 10, background: 'linear-gradient(to top, rgba(3, 3, 3, 1) 0%, rgba(3, 3, 3, 0.4) 50%, rgba(0, 0, 0, 0) 100%)', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <span style={{ backgroundColor: 'rgba(0,210,255,0.15)', border: '1px solid #00d2ff', color: '#00d2ff', fontSize: '11px', fontWeight: '900', padding: '4px 10px', borderRadius: '2px', width: 'fit-content', marginBottom: '16px' }}>{currentExclusiveBanner.type}</span>
+                <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 12px 0', color: '#fff', maxWidth: '950px', lineHeight: '0.9' }}>{currentExclusiveBanner.title}</h2>
+                <p style={{ color: '#bbb', fontSize: '15px', maxWidth: '700px', margin: '0 0 28px 0', lineHeight: '1.5' }}>{currentExclusiveBanner.desc}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
+                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromHero: true })} style={{ ...glassButtonStyle, padding: '12px 32px', width: 'fit-content', fontSize: '13px' }}>LIHAT DETAIL EVENT</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                    {exclusiveEventBanners.map((banner, index) => {
+                      const isActiveSlide = currentExclusiveBannerIndex === index;
 
-                    return (
-                      <button
-                        key={banner.id}
-                        type="button"
-                        onClick={() => setActiveBanner(index)}
-                        aria-label={`Buka slide event ${index + 1}`}
-                        style={{
-                          minWidth: '28px',
-                          height: '32px',
-                          border: 'none',
-                          borderBottom: isActiveSlide ? '2px solid #00d2ff' : '2px solid transparent',
-                          background: 'transparent',
-                          color: isActiveSlide ? '#ffffff' : 'rgba(255,255,255,0.48)',
-                          textShadow: isActiveSlide ? '0 0 16px rgba(0, 210, 255, 0.95)' : 'none',
-                          boxShadow: 'none',
-                          cursor: 'pointer',
-                          fontFamily: "'League Spartan'",
-                          fontSize: '12px',
-                          fontWeight: '900',
-                          lineHeight: 1,
-                          transition: 'all 0.25s ease'
-                        }}
-                      >
-                        {String(index + 1).padStart(2, '0')}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={banner.id}
+                          type="button"
+                          onClick={() => setActiveBanner(index)}
+                          aria-label={`Buka slide event ${index + 1}`}
+                          style={{
+                            minWidth: '28px',
+                            height: '32px',
+                            border: 'none',
+                            borderBottom: isActiveSlide ? '2px solid #00d2ff' : '2px solid transparent',
+                            background: 'transparent',
+                            color: isActiveSlide ? '#ffffff' : 'rgba(255,255,255,0.48)',
+                            textShadow: isActiveSlide ? '0 0 16px rgba(0, 210, 255, 0.95)' : 'none',
+                            boxShadow: 'none',
+                            cursor: 'pointer',
+                            fontFamily: "'League Spartan'",
+                            fontSize: '12px',
+                            fontWeight: '900',
+                            lineHeight: 1,
+                            transition: 'all 0.25s ease'
+                          }}
+                        >
+                          {String(index + 1).padStart(2, '0')}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#030303', display: 'flex', alignItems: 'flex-end' }}>
+              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(0,210,255,0.18)', backgroundColor: '#030303' }} />
+              <div style={{ position: 'relative', zIndex: 10, padding: '40px' }}>
+                <span style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.5px' }}>EXCLUSIVE EVENT EMPTY</span>
+                <h2 style={{ color: '#fff', fontSize: '52px', fontWeight: '900', lineHeight: 0.95, margin: '14px 0 12px 0', maxWidth: '800px' }}>BELUM ADA PAMFLET APPROVED</h2>
+                <p style={{ color: '#888', fontSize: '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {!loading && selectedGigDetail?.fromHero && (
         <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: '120px 1fr auto', gap: '16px', alignItems: 'start' }}>
-          <img src={selectedGigDetail.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=300&q=80"} alt="" style={{ width: '120px', height: '150px', objectFit: 'cover', borderRadius: '12px' }} />
+          {renderGigPosterImage(selectedGigDetail, { width: '120px', height: '150px', objectFit: 'cover', borderRadius: '12px' })}
           <div>
             <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>DETAIL EVENT</p>
             <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>{selectedGigDetail.title?.toUpperCase()}</h3>
@@ -1192,7 +1213,7 @@ export default function App() {
                 const isExclusiveRequest = requestType === 'exclusive';
                 return (
                 <div key={gig.id} style={{ ...glassStyle(`admin-${gig.id}`), padding: '14px', backgroundColor: '#090909' }}>
-                  <img src={gig.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=400&q=80"} alt="" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px', marginBottom: '14px' }} />
+                  {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px', marginBottom: '14px' })}
                   <p style={{ color: '#ffcc00', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>STATUS: PENDING REVIEW</p>
                   <p style={{ color: isExclusiveRequest ? '#00d2ff' : '#39ff14', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>REQUEST: {isExclusiveRequest ? 'EXCLUSIVE SLIDE' : 'FREE BULLETIN'}</p>
                   <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0', color: '#fff' }}>{gig.title?.toUpperCase()}</h3>
@@ -1230,7 +1251,7 @@ export default function App() {
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {group.items.map((gig) => (
                       <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', alignItems: 'center' }}>
-                        <img src={gig.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=200&q=80"} alt="" style={{ width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' }} />
+                        {renderGigPosterImage(gig, { width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' })}
                         <div>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
                           <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>APPROVE: <span style={{ color: '#fff' }}>{getGigApprovedAt(gig) || '-'}</span></p>
@@ -1674,7 +1695,7 @@ export default function App() {
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {filteredPublicGigs.slice(0, 5).map((gig) => (
                       <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                        <img src={gig.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=300&q=80"} alt="" style={{ width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' }} />
+                        {renderGigPosterImage(gig, { width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' })}
                         <div>
                           <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</h4>
                           <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)} / {getGigHtm(gig)}</p>
@@ -2218,7 +2239,7 @@ export default function App() {
                   </div>
                 )}
 
-                <img src={gig.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=400&q=80"} alt="" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px', marginBottom: '14px' }} />
+                {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px', marginBottom: '14px' })}
                 <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#fff' }}>{gig.title.toUpperCase()}</h3>
                 <p style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '700', margin: 0 }}>📍 {gig.city.toUpperCase()}</p>
                 
