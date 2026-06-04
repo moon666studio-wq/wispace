@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck } from 'lucide-react';
 
@@ -800,6 +800,11 @@ export default function App() {
 
   return (
     <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: '20px', fontFamily: "'League Spartan', sans-serif", boxSizing: 'border-box' }}>
+      {!isSupabaseConfigured && (
+        <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(255,51,51,0.12)', border: '1px solid rgba(255,51,51,0.45)', borderRadius: '14px', color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(0,0,0,0.45)' }}>
+          SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
+        </div>
+      )}
       
       {/* ========================================================
           FIXED FLOATING BADGE (IKON CYBER-LINE & KONTROL SMART ROLE)
