@@ -42,6 +42,41 @@ const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig
 const getGigApprovedAt = (gig) => formatDisplayDate(gig?.approved_at || gig?.updated_at || gig?.created_at);
 const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_exclusive'].includes(gig?.status);
 const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('could not find') || error?.message?.toLowerCase().includes('schema cache');
+const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
+const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
+
+const readLocalJson = (key) => {
+  try {
+    const storedValue = window.localStorage.getItem(key);
+    return storedValue ? JSON.parse(storedValue) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getUserStorageKeys = (prefix, user) => {
+  const keys = [];
+  if (user?.id) keys.push(`${prefix}_${user.id}`);
+  if (user?.email) keys.push(`${prefix}_${user.email}`);
+  if (!keys.length) keys.push(`${prefix}_guest`);
+  return [...new Set(keys)];
+};
+
+const loadUserScopedData = (prefix, user) => {
+  if (typeof window === 'undefined') return null;
+  for (const key of getUserStorageKeys(prefix, user)) {
+    const value = readLocalJson(key);
+    if (value) return value;
+  }
+  return null;
+};
+
+const saveUserScopedData = (prefix, user, value) => {
+  if (typeof window === 'undefined') return;
+  getUserStorageKeys(prefix, user).forEach((key) => {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  });
+};
 
 export default function App() {
   // 1. STATE MANAGEMENT & SCROLL SENSOR
@@ -193,6 +228,12 @@ export default function App() {
     if (user?.id) window.localStorage.setItem(`wispace_role_${user.id}`, role);
     if (user?.email) window.localStorage.setItem(`wispace_role_${user.email}`, role);
   }, []);
+  const persistBandProfileLocal = useCallback((profile, user = userSession) => {
+    saveUserScopedData(BAND_PROFILE_STORAGE_PREFIX, user, profile);
+  }, [userSession]);
+  const persistBandAgreementLocal = useCallback((agreement, user = userSession) => {
+    saveUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, user, agreement);
+  }, [userSession]);
 
   const premiumBanners = [
     { id: "b1", title: "FESTIVAL DISTORSI LINTAS WILAYAH 2026", type: "EXCLUSIVE EVENT 01", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80", desc: "PANGGUNG AKBAR PENYATUAN SELURUH SKENA INDEPENDEN TANAH AIR. BERSIAPLAH MENGAMBIL ALIH RUANG!" },
@@ -228,6 +269,32 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, [resolveUserRole]);
+
+  useEffect(() => {
+    if (!userSession) return;
+
+    const restoreTimer = window.setTimeout(() => {
+      const storedProfile = loadUserScopedData(BAND_PROFILE_STORAGE_PREFIX, userSession);
+      const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, userSession);
+
+      if (storedProfile) {
+        setBandProfile((current) => ({
+          ...current,
+          ...storedProfile,
+          slug: storedProfile.slug || createSlug(storedProfile.name || current.name || '')
+        }));
+      }
+
+      if (storedAgreement?.accepted) {
+        setHasSignedContract(true);
+        setSignatureName((current) => current || storedAgreement.signatureName || storedProfile?.name || '');
+        setUserRole('musisi');
+        persistUserRole('musisi', userSession);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(restoreTimer);
+  }, [persistUserRole, userSession]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -345,9 +412,12 @@ export default function App() {
       const savedRole = resolveUserRole(data.user);
       setShowAuthModal(false); setAuthEmail(''); setAuthPassword('');
       if (savedRole === 'musisi') {
+        const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, data.user);
         setUserRole('musisi');
         persistUserRole('musisi', data.user);
-        setActivePage(hasSignedContract ? 'band_public' : 'home');
+        setHasSignedContract(Boolean(storedAgreement?.accepted));
+        setSignatureName((current) => current || storedAgreement?.signatureName || '');
+        setActivePage(storedAgreement?.accepted ? 'band_public' : 'home');
         return;
       }
       if (savedRole === 'audience') {
@@ -403,18 +473,28 @@ export default function App() {
     e.preventDefault();
     if(!signatureName.trim()) return alert("Ketik nama band lu sebagai tanda tangan digital sah!");
     const signedBandName = signatureName.trim();
+    const signedAt = new Date().toISOString();
     setHasSignedContract(true);
     setUserRole('musisi');
     persistUserRole('musisi', userSession);
+    persistBandAgreementLocal({
+      signatureName: signedBandName,
+      signedAt,
+      accepted: true
+    }, userSession);
     if (userSession) {
       supabase.auth.updateUser({ data: { role: 'musisi' } });
     }
-    setBandProfile((current) => ({
-      ...current,
-      name: current.name || signedBandName,
-      slug: current.slug || createSlug(signedBandName),
-      isPublished: true
-    }));
+    setBandProfile((current) => {
+      const nextProfile = {
+        ...current,
+        name: current.name || signedBandName,
+        slug: current.slug || createSlug(signedBandName),
+        isPublished: true
+      };
+      persistBandProfileLocal(nextProfile, userSession);
+      return nextProfile;
+    });
     setShowAuthModal(false);
     setActivePage('band_public');
     alert(`⚡ KONTRAK SAH! Selamat datang Backstage, ${signedBandName.toUpperCase()}!`);
@@ -548,11 +628,21 @@ export default function App() {
   const handleBandPhotoImport = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Foto profile harus file gambar ya bro.');
+      event.target.value = '';
+      return;
+    }
 
-    setBandProfile((current) => {
-      if (current.photoPreview) URL.revokeObjectURL(current.photoPreview);
-      return { ...current, photoName: file.name, photoPreview: URL.createObjectURL(file) };
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBandProfile((current) => {
+        const nextProfile = { ...current, photoName: file.name, photoPreview: reader.result };
+        persistBandProfileLocal(nextProfile);
+        return nextProfile;
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAudiencePhotoImport = (event) => {
@@ -568,11 +658,21 @@ export default function App() {
   const handleBandCoverImport = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Cover band harus file gambar ya bro.');
+      event.target.value = '';
+      return;
+    }
 
-    setBandProfile((current) => {
-      if (current.coverPreview) URL.revokeObjectURL(current.coverPreview);
-      return { ...current, coverName: file.name, coverPreview: URL.createObjectURL(file) };
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBandProfile((current) => {
+        const nextProfile = { ...current, coverName: file.name, coverPreview: reader.result };
+        persistBandProfileLocal(nextProfile);
+        return nextProfile;
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAlbumCoverImport = (event) => {
@@ -610,12 +710,16 @@ export default function App() {
     event.preventDefault();
     if (!bandProfile.name.trim()) return alert('Isi nama band dulu bro.');
 
-    setBandProfile((current) => ({
-      ...current,
-      slug: current.slug || createSlug(current.name),
-      isPublished: true
-    }));
-    alert('Profile band tersimpan sebagai draft publish. Nanti step berikutnya kita sambungkan ke Supabase Storage + table band_profiles.');
+    setBandProfile((current) => {
+      const nextProfile = {
+        ...current,
+        slug: current.slug || createSlug(current.name),
+        isPublished: true
+      };
+      persistBandProfileLocal(nextProfile);
+      return nextProfile;
+    });
+    alert('Profile band tersimpan dan aman saat refresh di browser ini. Step production berikutnya: sambungkan ke Supabase Storage + table band_profiles.');
   };
 
   const handleAlbumDraftSubmit = (event) => {
