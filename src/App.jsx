@@ -44,6 +44,9 @@ const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_e
 const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('could not find') || error?.message?.toLowerCase().includes('schema cache');
 const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
 const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
+const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
+const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
+const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 
 const readLocalJson = (key) => {
   try {
@@ -73,10 +76,29 @@ const loadUserScopedData = (prefix, user) => {
 
 const saveUserScopedData = (prefix, user, value) => {
   if (typeof window === 'undefined') return;
-  getUserStorageKeys(prefix, user).forEach((key) => {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  });
+  try {
+    const serializedValue = JSON.stringify(value);
+    getUserStorageKeys(prefix, user).forEach((key) => {
+      window.localStorage.setItem(key, serializedValue);
+    });
+  } catch (error) {
+    console.warn('WiSpace local save skipped:', error);
+  }
 };
+
+const isImageTooLarge = (file, maxSize) => file.size > maxSize;
+
+const formatFileSize = (size) => `${(size / (1024 * 1024)).toFixed(1)}MB`;
+
+const clearFileInput = (event) => {
+  event.target.value = '';
+};
+
+const trimOversizedBandPreview = (profile) => ({
+  ...profile,
+  photoPreview: profile?.photoPreview?.length > BAND_PREVIEW_MAX_CHARS ? '' : profile?.photoPreview || '',
+  coverPreview: profile?.coverPreview?.length > BAND_PREVIEW_MAX_CHARS ? '' : profile?.coverPreview || ''
+});
 
 export default function App() {
   // 1. STATE MANAGEMENT & SCROLL SENSOR
@@ -278,10 +300,14 @@ export default function App() {
       const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, userSession);
 
       if (storedProfile) {
+        const safeStoredProfile = trimOversizedBandPreview(storedProfile);
+        if (safeStoredProfile.photoPreview !== storedProfile.photoPreview || safeStoredProfile.coverPreview !== storedProfile.coverPreview) {
+          persistBandProfileLocal(safeStoredProfile, userSession);
+        }
         setBandProfile((current) => ({
           ...current,
-          ...storedProfile,
-          slug: storedProfile.slug || createSlug(storedProfile.name || current.name || '')
+          ...safeStoredProfile,
+          slug: safeStoredProfile.slug || createSlug(safeStoredProfile.name || current.name || '')
         }));
       }
 
@@ -294,7 +320,7 @@ export default function App() {
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
-  }, [persistUserRole, userSession]);
+  }, [persistBandProfileLocal, persistUserRole, userSession]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -630,7 +656,12 @@ export default function App() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       alert('Foto profile harus file gambar ya bro.');
-      event.target.value = '';
+      clearFileInput(event);
+      return;
+    }
+    if (isImageTooLarge(file, BAND_PHOTO_MAX_SIZE)) {
+      alert(`Foto profile maksimal ${formatFileSize(BAND_PHOTO_MAX_SIZE)} dulu bro. Compress/crop dulu biar tidak bikin halaman berat.`);
+      clearFileInput(event);
       return;
     }
 
@@ -660,7 +691,12 @@ export default function App() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       alert('Cover band harus file gambar ya bro.');
-      event.target.value = '';
+      clearFileInput(event);
+      return;
+    }
+    if (isImageTooLarge(file, BAND_COVER_MAX_SIZE)) {
+      alert(`Banner band maksimal ${formatFileSize(BAND_COVER_MAX_SIZE)} dulu bro. Idealnya 1600 x 600 px, JPG/WEBP yang sudah dikompres.`);
+      clearFileInput(event);
       return;
     }
 
