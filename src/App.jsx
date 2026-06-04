@@ -35,6 +35,10 @@ const getGigRequestType = (gig) => gig?.request_type || ((gig?.genre || '').incl
 const getGigDate = (gig) => gig?.date || getGigMeta(gig, 'date', 'Tanggal menyusul');
 const getGigHtm = (gig) => gig?.htm || getGigMeta(gig, 'htm', 'Info HTM menyusul');
 const getGigCp = (gig) => gig?.cp || getGigMeta(gig, 'cp', 'CP menyusul');
+const formatDisplayDate = (value) => value
+  ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
+  : '';
+const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig.approved_until) : '';
 const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('could not find') || error?.message?.toLowerCase().includes('schema cache');
 
 export default function App() {
@@ -1024,6 +1028,9 @@ export default function App() {
                     <div>Tanggal: <span style={{ color: '#fff' }}>{getGigDate(gig)}</span></div>
                     <div>HTM: <span style={{ color: '#fff' }}>{getGigHtm(gig)}</span></div>
                     <div>CP: <span style={{ color: '#fff' }}>{getGigCp(gig)}</span></div>
+                    {gig.status === 'approved_exclusive' && (
+                      <div>Tayang sampai: <span style={{ color: '#00d2ff' }}>{getGigApprovedUntil(gig) || 'Belum ada, approve ulang setelah SQL upgrade'}</span></div>
+                    )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                     <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>FREE</button>
@@ -1445,6 +1452,9 @@ export default function App() {
                         <div>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{gig.title?.toUpperCase()}</p>
                           <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
+                          {gig.status === 'approved_exclusive' && (
+                            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>TAYANG SAMPAI: {getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</p>
+                          )}
                         </div>
                         <span style={{ color: gig.status === 'approved' || gig.status === 'approved_free' ? '#39ff14' : gig.status === 'approved_exclusive' ? '#00d2ff' : gig.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '10px', fontWeight: '900' }}>{(gig.status || 'pending').replace('approved_', '').toUpperCase()}</span>
                       </div>
@@ -2018,6 +2028,11 @@ export default function App() {
                       <div style={{ color: getGigHtm(gig).toLowerCase() === 'free' ? '#39ff14' : '#00d2ff', fontWeight: '900' }}>
                         <span style={{ color: '#666', fontWeight: 'normal' }}>🎟️ HTM:</span> {getGigHtm(gig).toUpperCase()}
                       </div>
+                      {gig.status === 'approved_exclusive' && (
+                        <div style={{ color: '#00d2ff', fontWeight: '900' }}>
+                          <span style={{ color: '#666', fontWeight: 'normal' }}>⏱ TAYANG SAMPAI:</span> {(getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE').toUpperCase()}
+                        </div>
+                      )}
                       <div style={{ borderTop: '1px solid #141414', paddingTop: '6px', marginTop: '4px', color: '#fff', fontWeight: '700' }}>
                         <span style={{ color: '#666', fontWeight: 'normal' }}>📞 CP INFO:</span> {getGigCp(gig)}
                       </div>
