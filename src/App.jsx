@@ -113,7 +113,9 @@ export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [activePage, setActivePage] = useState('home');
+  const [exploreTab, setExploreTab] = useState('rilisan');
   const [bandProfileTab, setBandProfileTab] = useState('profile');
+  const [isViewingOwnBandProfile, setIsViewingOwnBandProfile] = useState(true);
   const [adminPassword, setAdminPassword] = useState('');
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [adminError, setAdminError] = useState('');
@@ -538,6 +540,7 @@ export default function App() {
       return nextProfile;
     });
     setShowAuthModal(false);
+    setIsViewingOwnBandProfile(true);
     setActivePage('band_public');
     alert(`⚡ KONTRAK SAH! Selamat datang Backstage, ${signedBandName.toUpperCase()}!`);
   };
@@ -927,8 +930,15 @@ export default function App() {
 
   const approvedFreeGigs = gigs.filter((gig) => gig.status === 'approved' || gig.status === 'approved_free');
   const approvedExclusiveGigs = gigs.filter((gig) => gig.status === 'approved_exclusive');
-  const filteredGigs = approvedFreeGigs.filter(gig => gig.title.toLowerCase().includes(searchTerm.toLowerCase()) || gig.city.toLowerCase().includes(searchTerm.toLowerCase()));
-  const filteredPublicGigs = [...approvedExclusiveGigs, ...approvedFreeGigs].filter(gig => gig.title.toLowerCase().includes(searchTerm.toLowerCase()) || gig.city.toLowerCase().includes(searchTerm.toLowerCase()));
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const matchesSearch = (...values) => !normalizedSearchTerm || values.some((value) => String(value || '').toLowerCase().includes(normalizedSearchTerm));
+  const filteredGigs = approvedFreeGigs.filter(gig => matchesSearch(gig.title, gig.city, getGigGenre(gig), getGigDate(gig), getGigHtm(gig)));
+  const filteredPublicGigs = [...approvedExclusiveGigs, ...approvedFreeGigs].filter(gig => matchesSearch(gig.title, gig.city, getGigGenre(gig), getGigDate(gig), getGigHtm(gig)));
+  const filteredAlbums = albumItems.filter((album) => matchesSearch(album.title, album.bandName, album.genre, album.city, album.description));
+  const filteredTracks = top10Tracks.filter((track) => matchesSearch(track.title, track.band));
+  const filteredMerchItems = merchItems.filter((item) => matchesSearch(item.name, item.description, bandProfile.name, bandProfile.genre));
+  const filteredArticles = articleItems.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName));
+  const bandMatchesSearch = matchesSearch(bandProfile.name, signatureName, bandProfile.genre, bandProfile.city, bandProfile.headline, bandProfile.bio);
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -946,6 +956,8 @@ export default function App() {
   const isArticlesPage = activePage === 'articles';
   const hasBandIdentity = hasSignedContract || signatureName.trim() || bandProfile.name.trim();
   const isBandAccount = userRole === 'musisi' || hasBandIdentity;
+  const showBandOwnerControls = isBandAccount && isViewingOwnBandProfile;
+  const showBandContactForm = !showBandOwnerControls;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
   const accountDisplayName = isBandAccount
@@ -980,6 +992,7 @@ export default function App() {
     if (isBandAccount) {
       if (hasSignedContract) {
         setShowAuthModal(false);
+        setIsViewingOwnBandProfile(true);
         setActivePage('band_public');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
@@ -1037,7 +1050,6 @@ export default function App() {
           <div style={{ ...glassStyle('floating-badge'), display: 'flex', alignItems: 'center', padding: '8px 16px', backgroundColor: 'rgba(10, 10, 10, 0.9)', border: '1px solid #00d2ff', borderRadius: '16px' }}>
             <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: '16px', cursor: 'pointer' }}>WI.ID ↑</span>
             <button onClick={() => { setActivePage('explore'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>EXPLORE</button>
-            <button onClick={() => { setActivePage('merch_market'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>MERCH</button>
             <button onClick={() => { setActivePage('articles'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>ARTIKEL</button>
             
             {!userSession ? (
@@ -1069,7 +1081,6 @@ export default function App() {
         <div style={{ position: 'fixed', top: '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box' }}>
           <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>WISPACE</button>
           <button onClick={() => { setActivePage('explore'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>EXPLORE</button>
-          <button onClick={() => { setActivePage('merch_market'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>MERCH</button>
           <button onClick={() => { setActivePage('articles'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>ARTIKEL</button>
           <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>LIBRARY</button>
           <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>
@@ -1108,7 +1119,6 @@ export default function App() {
 
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
               <button onClick={() => { setActivePage('explore'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>EXPLORE</button>
-              <button onClick={() => { setActivePage('merch_market'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>MERCH</button>
               <button onClick={() => { setActivePage('articles'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>ARTIKEL</button>
               {!userSession ? (
                 <>
@@ -1335,9 +1345,26 @@ export default function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
             <div>
               <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE EXPLORE</p>
-              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>RILISAN, BAND & MERCH</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>Halaman katalog buat audience nemu album digital, profile band, preview lagu 30 detik, dan merchandise skena indie.</p>
+              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>RILISAN, BAND, ARTIKEL & MERCH</h2>
+              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>Halaman katalog buat audience nemu album digital, profile band, artikel skena, preview lagu 30 detik, dan merchandise indie.</p>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+            {[
+              ['rilisan', 'RILISAN'],
+              ['band', 'BAND'],
+              ['artikel', 'ARTIKEL'],
+              ['merch', 'MERCH']
+            ].map(([tab, label]) => (
+              <button
+                key={tab}
+                onClick={() => setExploreTab(tab)}
+                style={{ padding: '10px 16px', backgroundColor: exploreTab === tab ? '#00d2ff' : '#000', color: exploreTab === tab ? '#000' : '#fff', border: exploreTab === tab ? 'none' : '1px solid #222', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '26px' }}>
@@ -1355,11 +1382,11 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
             <div>
               <section style={{ marginBottom: '26px' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0', letterSpacing: '1px' }}>LATEST DIGITAL RELEASES</h3>
-                {albumItems.length === 0 ? (
+                {filteredAlbums.length === 0 ? (
                   <div style={{ ...glassStyle('explore-empty-albums'), padding: '24px', backgroundColor: '#090909' }}>
                     <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ALBUM DRAFT</h4>
                     <p style={{ color: '#666', fontSize: '13px', margin: '0 0 16px 0', lineHeight: 1.5 }}>Masuk ke Backstage Musisi, buka Upload Album Digital, lalu submit draft. Rilisannya akan muncul di sini.</p>
@@ -1367,7 +1394,7 @@ export default function App() {
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px' }}>
-                    {albumItems.map((album) => (
+                    {filteredAlbums.map((album) => (
                       <article key={album.id} style={{ ...glassStyle(`album-${album.id}`), padding: '14px', backgroundColor: '#090909' }}>
                         <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '14px', border: '1px solid rgba(255,255,255,0.07)' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
@@ -1388,10 +1415,10 @@ export default function App() {
               <section>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0', letterSpacing: '1px' }}>30 SECOND PREVIEW TRACKS</h3>
                 <div style={{ ...glassStyle('explore-tracks'), padding: '18px', backgroundColor: '#090909' }}>
-                  {top10Tracks.length === 0 ? (
+                  {filteredTracks.length === 0 ? (
                     <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
                   ) : (
-                    top10Tracks.map(track => (
+                    filteredTracks.map(track => (
                       <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
                         <div>
                           <h4 style={{ fontSize: '14px', color: '#fff', margin: '0 0 3px 0' }}>{track.title.toUpperCase()}</h4>
@@ -1414,7 +1441,7 @@ export default function App() {
                   </div>
                   <div>
                     <button
-                      onClick={() => { setActivePage('band_public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      onClick={() => { setIsViewingOwnBandProfile(false); setActivePage('band_public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                       style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: "'League Spartan'", textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(0,210,255,0.65)', textUnderlineOffset: '4px' }}
                     >
                       {(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}
@@ -1429,13 +1456,13 @@ export default function App() {
               <section style={{ ...glassStyle('explore-merch'), padding: '18px', backgroundColor: '#090909' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                   <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: 0 }}>MERCH HIGHLIGHT</h3>
-                  <button onClick={() => { setActivePage('merch_market'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>LIHAT SEMUA</button>
+                  <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>LIHAT SEMUA</button>
                 </div>
-                {merchItems.length === 0 ? (
+                {filteredMerchItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
-                    {merchItems.slice(0, 4).map(item => (
+                    {filteredMerchItems.slice(0, 4).map(item => (
                       <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                         <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
@@ -1451,6 +1478,72 @@ export default function App() {
               </section>
             </aside>
           </div>
+
+          {exploreTab === 'band' && (
+            <section style={{ ...glassStyle('explore-band-tab'), padding: '22px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#00d2ff', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0' }}>BAND DIRECTORY</h3>
+              {bandMatchesSearch ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '86px 1fr auto', gap: '16px', alignItems: 'center', padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
+                  <div style={{ width: '86px', height: '86px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
+                    {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                  </div>
+                  <div>
+                    <h4 style={{ color: '#fff', fontSize: '20px', fontWeight: '900', margin: '0 0 6px 0' }}>{(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</h4>
+                    <p style={{ color: '#777', fontSize: '13px', margin: '0 0 6px 0' }}>{(bandProfile.genre || 'INDIE').toUpperCase()} / {(bandProfile.city || 'INDONESIA').toUpperCase()}</p>
+                    <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>{bandProfile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
+                  </div>
+                  <button onClick={() => { setIsViewingOwnBandProfile(false); setActivePage('band_public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>LIHAT PROFILE</button>
+                </div>
+              ) : (
+                <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
+              )}
+            </section>
+          )}
+
+          {exploreTab === 'artikel' && (
+            <section style={{ ...glassStyle('explore-article-tab'), padding: '22px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#00d2ff', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0' }}>ARTIKEL SKENA</h3>
+              {filteredArticles.length === 0 ? (
+                <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok. Band bisa tulis artikel dari Band Studio.</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+                  {filteredArticles.map((article) => (
+                    <article key={article.id} style={{ padding: '16px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
+                      <h4 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h4>
+                      <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {exploreTab === 'merch' && (
+            <section style={{ ...glassStyle('explore-merch-tab'), padding: '22px', backgroundColor: '#090909' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <h3 style={{ color: '#00d2ff', fontSize: '15px', fontWeight: '900', margin: 0 }}>MERCH BAND</h3>
+                {isBandAccount && <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>UPLOAD MERCH</button>}
+              </div>
+              {filteredMerchItems.length === 0 ? (
+                <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok. Merch sekarang dikumpulkan di Explore, bukan menu terpisah.</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '18px' }}>
+                  {filteredMerchItems.map((item) => (
+                    <article key={item.id} style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
+                      <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', marginBottom: '14px' }}>
+                        {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
+                      </div>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
+                      <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>{item.name.toUpperCase()}</h4>
+                      <p style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                      <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </section>
       )}
 
@@ -1611,12 +1704,13 @@ export default function App() {
 
           <div style={{ padding: '24px 28px 34px', display: 'grid', gridTemplateColumns: 'minmax(280px, 1.25fr) minmax(260px, 0.75fr)', gap: '24px', alignItems: 'start' }}>
             <main>
-              <div style={{ ...glassStyle('band-owner-actions'), padding: '14px', backgroundColor: '#090909', marginBottom: '24px' }}>
+              <div style={{ ...glassStyle('band-owner-actions'), padding: '14px', backgroundColor: '#090909', marginBottom: '24px', display: showBandOwnerControls ? 'block' : 'none' }}>
                 <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>OWNER ACTIONS</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
                   <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>EDIT PROFILE</button>
                   <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>UPLOAD ALBUM</button>
                   <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>MERCHANDISE</button>
+                  <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>TULIS ARTIKEL</button>
                   <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>UPLOAD PAMFLET GIGS</button>
                   <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>JADWAL MANGGUNG</button>
                   <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>DASHBOARD KEUANGAN</button>
@@ -1675,14 +1769,20 @@ export default function App() {
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#fff' }}>{bandProfile.cp || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#fff' }}>{bandProfile.email || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#fff' }}>{bandProfile.instagram || '-'}</span></p>
-                <form onSubmit={handleMessageSubmit} style={{ display: 'grid', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
-                  <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(bandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
-                  <input type="text" placeholder="NAMA PENGIRIM" value={messageDraft.sender} onChange={(e) => setMessageDraft({ ...messageDraft, sender: e.target.value })} required style={formInputStyle} />
-                  <input type="text" placeholder="KONTAK BALASAN" value={messageDraft.contact} onChange={(e) => setMessageDraft({ ...messageDraft, contact: e.target.value })} required style={formInputStyle} />
-                  <input type="text" placeholder="SUBJEK" value={messageDraft.subject} onChange={(e) => setMessageDraft({ ...messageDraft, subject: e.target.value })} required style={formInputStyle} />
-                  <textarea placeholder="ISI PESAN / AJAKAN KOLABORASI / UNDANGAN GIGS" value={messageDraft.body} onChange={(e) => setMessageDraft({ ...messageDraft, body: e.target.value })} required rows={5} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
-                  <button type="submit" style={{ ...glassButtonStyle, width: '100%', padding: '12px', fontSize: '12px' }}>KIRIM MESSAGE</button>
-                </form>
+                {showBandContactForm ? (
+                  <form onSubmit={handleMessageSubmit} style={{ display: 'grid', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
+                    <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(bandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
+                    <input type="text" placeholder="NAMA PENGIRIM" value={messageDraft.sender} onChange={(e) => setMessageDraft({ ...messageDraft, sender: e.target.value })} required style={formInputStyle} />
+                    <input type="text" placeholder="KONTAK BALASAN" value={messageDraft.contact} onChange={(e) => setMessageDraft({ ...messageDraft, contact: e.target.value })} required style={formInputStyle} />
+                    <input type="text" placeholder="SUBJEK" value={messageDraft.subject} onChange={(e) => setMessageDraft({ ...messageDraft, subject: e.target.value })} required style={formInputStyle} />
+                    <textarea placeholder="ISI PESAN / AJAKAN KOLABORASI / UNDANGAN GIGS" value={messageDraft.body} onChange={(e) => setMessageDraft({ ...messageDraft, body: e.target.value })} required rows={5} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                    <button type="submit" style={{ ...glassButtonStyle, width: '100%', padding: '12px', fontSize: '12px' }}>KIRIM MESSAGE</button>
+                  </form>
+                ) : (
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
+                    <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Ini profile band lu sendiri, jadi form kirim pesan disembunyikan.</p>
+                  </div>
+                )}
               </section>
 
               <section style={{ ...glassStyle('band-public-merch'), padding: '18px', backgroundColor: '#090909' }}>
