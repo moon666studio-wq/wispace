@@ -1,0 +1,24 @@
+/* Reset total semua margin, padding, dan border bawaan browser/Vite */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #030303;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+}
+
+#app, #root {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #030303;
+  margin: 0;
+  padding: 0;
+  border: none !important; /* Memaksa menghapus border tersembunyi */
+  box-shadow: none !important;
+}
