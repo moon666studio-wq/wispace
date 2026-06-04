@@ -148,6 +148,7 @@ export default function App() {
 
   // STATE BARU UNTUK POP-DRAWER DETAIL GIGS
   const [selectedGigDetail, setSelectedGigDetail] = useState(null);
+  const [selectedPosterPreview, setSelectedPosterPreview] = useState(null);
   const [selectedMerchDetail, setSelectedMerchDetail] = useState(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
@@ -1141,8 +1142,14 @@ export default function App() {
       )}
 
       {!loading && selectedGigDetail?.fromHero && (
-        <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: '120px 1fr auto', gap: '16px', alignItems: 'start' }}>
-          {renderGigPosterImage(selectedGigDetail, { width: '120px', height: '150px', objectFit: 'cover', borderRadius: '12px' })}
+        <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start' }}>
+          <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+            {selectedGigDetail.image ? (
+              <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            ) : (
+              <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>NO PAMFLET</span>
+            )}
+          </div>
           <div>
             <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>DETAIL EVENT</p>
             <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>{selectedGigDetail.title?.toUpperCase()}</h3>
@@ -1213,7 +1220,16 @@ export default function App() {
                 const isExclusiveRequest = requestType === 'exclusive';
                 return (
                 <div key={gig.id} style={{ ...glassStyle(`admin-${gig.id}`), padding: '14px', backgroundColor: '#090909' }}>
-                  {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px', marginBottom: '14px' })}
+                  <button
+                    type="button"
+                    onClick={() => gig.image && setSelectedPosterPreview(gig)}
+                    disabled={!gig.image}
+                    title={gig.image ? 'Klik buat cek pamflet utuh' : 'Belum ada gambar pamflet'}
+                    style={{ width: '100%', padding: 0, margin: '0 0 14px 0', border: 'none', background: 'transparent', cursor: gig.image ? 'zoom-in' : 'default', fontFamily: "'League Spartan'" }}
+                  >
+                    {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px' })}
+                    {gig.image && <span style={{ display: 'block', color: '#00d2ff', fontSize: '10px', fontWeight: '900', marginTop: '8px', textAlign: 'left' }}>KLIK GAMBAR UNTUK PREVIEW UTUH</span>}
+                  </button>
                   <p style={{ color: '#ffcc00', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>STATUS: PENDING REVIEW</p>
                   <p style={{ color: isExclusiveRequest ? '#00d2ff' : '#39ff14', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>REQUEST: {isExclusiveRequest ? 'EXCLUSIVE SLIDE' : 'FREE BULLETIN'}</p>
                   <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0', color: '#fff' }}>{gig.title?.toUpperCase()}</h3>
@@ -2284,6 +2300,30 @@ export default function App() {
           <div style={{ ...glassStyle('c2'), padding: '24px', backgroundColor: '#090909' }}><h3 style={{ fontSize: '14px', color: '#00d2ff', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={14}/> 10 ARTIKEL BAND TERBARU</h3></div>
           <div style={{ ...glassStyle('c3'), padding: '24px', backgroundColor: '#090909' }}><h3 style={{ fontSize: '14px', color: '#00d2ff', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShoppingBag size={14}/> DISTRO BAND MERCHANDISE</h3></div>
         </section>
+      )}
+
+      {selectedPosterPreview && (
+        <div
+          onClick={() => setSelectedPosterPreview(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1300, backgroundColor: 'rgba(0,0,0,0.94)', display: 'grid', placeItems: 'center', padding: '24px', boxSizing: 'border-box' }}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: 'min(1100px, 96vw)', maxHeight: '92vh', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.32)', borderRadius: '16px', padding: '16px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>PREVIEW PAMFLET UTUH</p>
+                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPosterPreview.title?.toUpperCase()}</h3>
+              </div>
+              <button onClick={() => setSelectedPosterPreview(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>CLOSE</button>
+            </div>
+            <div style={{ width: '100%', maxHeight: '74vh', overflow: 'auto', backgroundColor: '#000', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
+              <img src={selectedPosterPreview.image} alt="" style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
+            </div>
+            <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPosterPreview.city} / {getGigDate(selectedPosterPreview)} / {getGigHtm(selectedPosterPreview)} / {getGigCp(selectedPosterPreview)}</p>
+          </div>
+        </div>
       )}
 
       {/* POPUP SAKRAL MULTIFUNGSI SECURITY CREDENTIAL & PROFILE SYSTEM */}
