@@ -2,6 +2,7 @@ alter table public.gigs
   add column if not exists htm text,
   add column if not exists cp text,
   add column if not exists request_type text not null default 'free',
+  add column if not exists approved_at date,
   add column if not exists approved_until date,
   add column if not exists band_id uuid;
 
@@ -32,3 +33,8 @@ update public.gigs
 set approved_until = current_date + interval '10 days'
 where status in ('approved', 'approved_free', 'approved_exclusive')
   and approved_until is null;
+
+update public.gigs
+set approved_at = coalesce(approved_at, created_at::date, current_date)
+where status in ('approved', 'approved_free', 'approved_exclusive')
+  and approved_at is null;

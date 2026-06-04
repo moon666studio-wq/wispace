@@ -39,6 +39,7 @@ const formatDisplayDate = (value) => value
   ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
   : '';
 const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig.approved_until) : '';
+const getGigApprovedAt = (gig) => formatDisplayDate(gig?.approved_at || gig?.updated_at || gig?.created_at);
 const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_exclusive'].includes(gig?.status);
 const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('could not find') || error?.message?.toLowerCase().includes('schema cache');
 
@@ -206,7 +207,8 @@ export default function App() {
         title: gig.title,
         type: `EXCLUSIVE EVENT ${String(index + 1).padStart(2, '0')}`,
         image: gig.image || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80',
-        desc: `${gig.city || 'WiSpace'} / ${getGigDate(gig)} / ${getGigHtm(gig)}`
+        desc: `${gig.city || 'WiSpace'} / ${getGigDate(gig)} / ${getGigHtm(gig)}`,
+        sourceGig: gig
       })),
     ...premiumBanners
   ].slice(0, 15);
@@ -511,8 +513,9 @@ export default function App() {
   const handleGigModeration = async (id, status) => {
     const approvedUntil = new Date();
     approvedUntil.setDate(approvedUntil.getDate() + 10);
+    const approvedAt = new Date().toISOString().slice(0, 10);
     const updatePayload = status === 'approved_exclusive' || status === 'approved_free'
-      ? { status, approved_until: approvedUntil.toISOString().slice(0, 10) }
+      ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10) }
       : { status };
     const { error: firstError } = await supabase.from('gigs').update(updatePayload).eq('id', id);
     const error = isMissingColumnError(firstError)
@@ -526,6 +529,18 @@ export default function App() {
           ? 'Pamflet disetujui sebagai exclusive event dan masuk slot slide besar homepage selama 10 hari.'
           : 'Pamflet ditolak dan tidak akan tampil.';
       alert(message);
+      fetchData();
+    }
+  };
+
+  const handleGigRemove = async (id) => {
+    const confirmed = window.confirm('Remove pamflet ini dari tayangan publik WiSpace?');
+    if (!confirmed) return;
+
+    const { error } = await supabase.from('gigs').update({ status: 'removed' }).eq('id', id);
+    if (error) alert('Gagal remove pamflet: ' + error.message);
+    else {
+      alert('Pamflet sudah diremove dari list free/exclusive.');
       fetchData();
     }
   };
@@ -925,7 +940,7 @@ export default function App() {
               <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 12px 0', color: '#fff', maxWidth: '950px', lineHeight: '0.9' }}>{exclusiveEventBanners[activeBanner].title}</h2>
               <p style={{ color: '#bbb', fontSize: '15px', maxWidth: '700px', margin: '0 0 28px 0', lineHeight: '1.5' }}>{exclusiveEventBanners[activeBanner].desc}</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
-                <button style={{ ...glassButtonStyle, padding: '12px 32px', width: 'fit-content', fontSize: '13px' }}>LIHAT DETAIL EVENT</button>
+                <button onClick={() => setSelectedGigDetail(exclusiveEventBanners[activeBanner].sourceGig ? { ...exclusiveEventBanners[activeBanner].sourceGig, fromHero: true } : { id: exclusiveEventBanners[activeBanner].id, title: exclusiveEventBanners[activeBanner].title, city: 'WiSpace', image: exclusiveEventBanners[activeBanner].image, date: 'Info menyusul', htm: 'Info menyusul', cp: 'Info menyusul', status: 'approved_exclusive', fromHero: true })} style={{ ...glassButtonStyle, padding: '12px 32px', width: 'fit-content', fontSize: '13px' }}>LIHAT DETAIL EVENT</button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
                   {exclusiveEventBanners.map((banner, index) => {
                     const isActiveSlide = activeBanner === index;
@@ -962,6 +977,24 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {!loading && selectedGigDetail?.fromHero && (
+        <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: '120px 1fr auto', gap: '16px', alignItems: 'start' }}>
+          <img src={selectedGigDetail.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=300&q=80"} alt="" style={{ width: '120px', height: '150px', objectFit: 'cover', borderRadius: '12px' }} />
+          <div>
+            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>DETAIL EVENT</p>
+            <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>{selectedGigDetail.title?.toUpperCase()}</h3>
+            <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px', lineHeight: 1.45 }}>
+              <span>DATE: <strong style={{ color: '#fff' }}>{getGigDate(selectedGigDetail)}</strong></span>
+              <span>VENUE: <strong style={{ color: '#fff' }}>{selectedGigDetail.city?.toUpperCase()}</strong></span>
+              <span>HTM: <strong style={{ color: '#00d2ff' }}>{getGigHtm(selectedGigDetail).toUpperCase()}</strong></span>
+              <span>CP INFO: <strong style={{ color: '#fff' }}>{getGigCp(selectedGigDetail)}</strong></span>
+              {isApprovedHomepageGig(selectedGigDetail) && <span>TAYANG SAMPAI: <strong style={{ color: '#ffcc00' }}>{getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong></span>}
+            </div>
+          </div>
+          <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>CLOSE</button>
+        </section>
       )}
 
       {/* ADMIN MODERATION PANEL */}
@@ -1043,6 +1076,34 @@ export default function App() {
               })}
             </div>
           )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
+            {[
+              { title: 'FREE BULLETIN LIVE', items: approvedFreeGigs, color: '#39ff14' },
+              { title: 'EXCLUSIVE SLIDE LIVE', items: approvedExclusiveGigs, color: '#00d2ff' }
+            ].map((group) => (
+              <section key={group.title} style={{ ...glassStyle(group.title), padding: '18px', backgroundColor: '#090909' }}>
+                <h3 style={{ color: group.color, fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>{group.title}</h3>
+                {group.items.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada pamflet di list ini.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {group.items.map((gig) => (
+                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', alignItems: 'center' }}>
+                        <img src={gig.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=200&q=80"} alt="" style={{ width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' }} />
+                        <div>
+                          <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
+                          <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>APPROVE: <span style={{ color: '#fff' }}>{getGigApprovedAt(gig) || '-'}</span></p>
+                          <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>HABIS: <span style={{ color: '#ffcc00' }}>{getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</span></p>
+                        </div>
+                        <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '9px 11px', backgroundColor: 'rgba(255,51,51,0.1)', color: '#ff3333', border: '1px solid rgba(255,51,51,0.35)', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>REMOVE</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            ))}
+          </div>
             </>
           )}
         </section>
