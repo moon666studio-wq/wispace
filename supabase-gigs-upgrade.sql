@@ -28,3 +28,7 @@ set
   )
 where genre like '%::request=%';
 
+update public.gigs
+set approved_until = current_date + interval '10 days'
+where status in ('approved', 'approved_free', 'approved_exclusive')
+  and approved_until is null;
