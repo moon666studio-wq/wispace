@@ -1543,15 +1543,18 @@ export default function App() {
 
   // STYLING INTERFACE ASYMMETRIC ROUNDED `16PX`
   const glassStyle = (id) => ({
-    background: 'rgba(20, 20, 20, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-    borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.05)',
-    boxShadow: hoveredCard === id ? '0 0 30px rgba(0, 210, 255, 0.3)' : '0 4px 30px rgba(0, 0, 0, 0.5)',
-    transition: 'all 0.3s ease-in-out'
+    background: 'linear-gradient(180deg, rgba(18, 18, 18, 0.78), rgba(8, 8, 8, 0.88))',
+    backdropFilter: 'blur(18px)',
+    WebkitBackdropFilter: 'blur(18px)',
+    borderRadius: '14px',
+    border: hoveredCard === id ? '1px solid rgba(0, 210, 255, 0.34)' : '1px solid rgba(255, 255, 255, 0.075)',
+    boxShadow: hoveredCard === id ? '0 22px 70px rgba(0, 0, 0, 0.72), 0 0 28px rgba(0, 210, 255, 0.18)' : '0 18px 48px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255,255,255,0.035)',
+    transition: 'border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease'
   });
 
   const glassButtonStyle = {
-    background: 'rgba(0, 210, 255, 0.08)', border: '1px solid rgba(0, 210, 255, 0.2)', color: '#00d2ff',
-    cursor: 'pointer', borderRadius: '16px', fontWeight: '900', letterSpacing: '0.5px', fontFamily: FONT_STACK, transition: 'all 0.2s ease'
+    background: 'rgba(255, 255, 255, 0.035)', border: '1px solid rgba(0, 210, 255, 0.28)', color: '#00d2ff',
+    cursor: 'pointer', borderRadius: '12px', fontWeight: '900', letterSpacing: '0.5px', fontFamily: FONT_STACK, transition: 'all 0.2s ease'
   };
 
   const formInputStyle = {
@@ -1577,7 +1580,7 @@ export default function App() {
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
   const homeShellPadding = isTinyLayout ? '12px' : '20px';
-  const homeHeroHeight = isTinyLayout ? 'calc(100vh - 24px)' : 'calc(100vh - 40px)';
+  const homeHeroHeight = isTinyLayout ? 'calc(100vh - 88px)' : 'calc(100vh - 96px)';
   const homeHeaderStyle = {
     position: 'absolute',
     top: isTinyLayout ? '16px' : '30px',
@@ -1645,9 +1648,9 @@ export default function App() {
     flexWrap: isTinyLayout ? 'wrap' : 'nowrap',
     gap: isTinyLayout ? '6px' : '0',
     padding: isTinyLayout ? '8px 10px' : '8px 16px',
-    backgroundColor: 'rgba(10, 10, 10, 0.9)',
-    border: '1px solid #00d2ff',
-    borderRadius: '16px',
+    background: 'linear-gradient(180deg, rgba(7,7,7,0.92), rgba(0,0,0,0.86))',
+    border: '1px solid rgba(0,210,255,0.32)',
+    borderRadius: '14px',
     width: isTinyLayout ? '100%' : 'auto',
     boxSizing: 'border-box'
   };
@@ -1658,8 +1661,8 @@ export default function App() {
     right: 0,
     top: 0,
     zIndex: 10,
-    background: 'linear-gradient(to top, rgba(3, 3, 3, 1) 0%, rgba(3, 3, 3, 0.4) 50%, rgba(0, 0, 0, 0) 100%)',
-    padding: isTinyLayout ? '24px 18px' : '40px',
+    background: 'radial-gradient(circle at 18% 72%, rgba(0,210,255,0.18), transparent 28%), linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.36) 54%, rgba(0,0,0,0.12) 100%), linear-gradient(to top, rgba(3,3,3,0.98) 0%, rgba(3,3,3,0.45) 56%, rgba(0,0,0,0.06) 100%)',
+    padding: isTinyLayout ? '24px 18px' : '46px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-end'
@@ -1683,11 +1686,12 @@ export default function App() {
       };
   const bulletinCardStyle = {
     padding: isTinyLayout ? '10px' : '14px',
-    backgroundColor: '#090909',
+    background: 'linear-gradient(180deg, rgba(14,14,14,0.92), rgba(4,4,4,0.98))',
     position: 'relative',
     cursor: 'pointer',
     scrollSnapAlign: 'start',
-    minWidth: 0
+    minWidth: 0,
+    borderRadius: '12px'
   };
   const ownerActionsPanelStyle = {
     ...glassStyle('band-owner-actions'),
@@ -1714,8 +1718,8 @@ export default function App() {
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
     padding: innerPagePadding,
-    background: 'linear-gradient(180deg, #060606 0%, #030303 100%)',
-    border: '1px solid rgba(0,210,255,0.16)',
+    background: 'linear-gradient(180deg, rgba(7,7,7,0.96) 0%, rgba(2,2,2,0.98) 100%)',
+    border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '14px',
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)'
   };
@@ -1732,7 +1736,7 @@ export default function App() {
   };
 
   const eyebrowStyle = {
-    color: '#00d2ff',
+    color: '#a8f1ff',
     fontSize: '11px',
     fontWeight: '900',
     letterSpacing: '1.4px',
@@ -1760,7 +1764,7 @@ export default function App() {
     fontSize: '15px',
     fontWeight: '900',
     margin: '0 0 16px 0',
-    letterSpacing: '0.8px'
+    letterSpacing: '1px'
   };
 
   const exploreCopy = {
@@ -1789,7 +1793,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
+    <div style={{ background: 'radial-gradient(circle at 18% 0%, rgba(0,210,255,0.08), transparent 28%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.045), transparent 24%), linear-gradient(180deg, #040404 0%, #010101 100%)', color: '#ffffff', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
       {!isSupabaseConfigured && (
         <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(255,51,51,0.12)', border: '1px solid rgba(255,51,51,0.45)', borderRadius: '14px', color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(0,0,0,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
@@ -1891,7 +1895,7 @@ export default function App() {
 
       {/* HEADER UTAMA BINGKAI ATAS */}
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
-        <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '28px' : '40px', borderRadius: isTinyLayout ? '14px' : '16px', overflow: 'hidden', backgroundColor: '#000' }}>
+        <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '30px' : '46px', borderRadius: isTinyLayout ? '14px' : '18px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.075)', boxShadow: '0 28px 90px rgba(0,0,0,0.74), inset 0 1px 0 rgba(255,255,255,0.045)' }}>
           <header style={homeHeaderStyle}>
             <div style={homeBrandWrapStyle}><h1 onClick={() => setSearchTerm('')} style={{ fontSize: isTinyLayout ? '22px' : '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE</h1></div>
 
@@ -1926,14 +1930,14 @@ export default function App() {
           {exclusiveEventBanners.length > 0 ? (
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
               {currentExclusiveBanner.image && (
-                <img key={currentExclusiveBannerIndex} src={currentExclusiveBanner.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img key={currentExclusiveBannerIndex} src={currentExclusiveBanner.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(0.92) contrast(1.08) brightness(0.86)' }} />
               )}
               <div style={homeHeroContentStyle}>
-                <span style={{ backgroundColor: 'rgba(0,210,255,0.15)', border: '1px solid #00d2ff', color: '#00d2ff', fontSize: '11px', fontWeight: '900', padding: '4px 10px', borderRadius: '2px', width: 'fit-content', marginBottom: '16px' }}>{currentExclusiveBanner.type}</span>
-                <h2 style={{ fontSize: isTinyLayout ? '34px' : '56px', fontWeight: '900', margin: '0 0 12px 0', color: '#fff', maxWidth: '950px', lineHeight: isTinyLayout ? 1 : 0.9 }}>{currentExclusiveBanner.title}</h2>
-                <p style={{ color: '#bbb', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '700px', margin: '0 0 28px 0', lineHeight: '1.5' }}>{currentExclusiveBanner.desc}</p>
+                <span style={{ backgroundColor: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.18)', color: '#f5f5f5', fontSize: '10px', fontWeight: '900', padding: '6px 10px', borderRadius: '9999px', width: 'fit-content', marginBottom: '16px', letterSpacing: '1px' }}>{currentExclusiveBanner.type}</span>
+                <h2 style={{ fontSize: isTinyLayout ? '36px' : 'clamp(54px, 7vw, 88px)', fontWeight: '900', margin: '0 0 14px 0', color: '#fff', maxWidth: '1040px', lineHeight: isTinyLayout ? 0.98 : 0.88 }}>{currentExclusiveBanner.title}</h2>
+                <p style={{ color: '#c7c7c7', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '720px', margin: '0 0 30px 0', lineHeight: '1.55', fontWeight: '700' }}>{currentExclusiveBanner.desc}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
-                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromHero: true })} style={{ ...glassButtonStyle, padding: isTinyLayout ? '11px 18px' : '12px 32px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px' }}>LIHAT DETAIL EVENT</button>
+                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromHero: true })} style={{ ...glassButtonStyle, background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.72)', color: '#000', padding: isTinyLayout ? '11px 18px' : '12px 32px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px', boxShadow: '0 18px 36px rgba(0,0,0,0.35)' }}>LIHAT DETAIL EVENT</button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: isTinyLayout ? '10px' : '18px', maxWidth: '100%', overflowX: 'auto' }}>
                     {exclusiveEventBanners.map((banner, index) => {
                       const isActiveSlide = currentExclusiveBannerIndex === index;
@@ -1971,10 +1975,10 @@ export default function App() {
             </div>
           ) : (
             <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#030303', display: 'flex', alignItems: 'flex-end' }}>
-              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(0,210,255,0.18)', backgroundColor: '#030303' }} />
+              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(255,255,255,0.08)', background: 'radial-gradient(circle at 18% 72%, rgba(0,210,255,0.16), transparent 30%), linear-gradient(135deg, #050505 0%, #0b171a 46%, #000 100%)' }} />
               <div style={{ position: 'relative', zIndex: 10, padding: isTinyLayout ? '24px 18px' : '40px' }}>
-                <span style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.5px' }}>EXCLUSIVE EVENT EMPTY</span>
-                <h2 style={{ color: '#fff', fontSize: isTinyLayout ? '34px' : '52px', fontWeight: '900', lineHeight: isTinyLayout ? 1 : 0.95, margin: '14px 0 12px 0', maxWidth: '800px' }}>BELUM ADA PAMFLET APPROVED</h2>
+                <span style={{ color: '#fff', fontSize: '10px', fontWeight: '900', letterSpacing: '1.5px' }}>WISPACE EXCLUSIVE BOARD</span>
+                <h2 style={{ color: '#fff', fontSize: isTinyLayout ? '34px' : 'clamp(52px, 6vw, 76px)', fontWeight: '900', lineHeight: isTinyLayout ? 1 : 0.9, margin: '14px 0 12px 0', maxWidth: '900px' }}>BELUM ADA PAMFLET APPROVED</h2>
                 <p style={{ color: '#888', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
               </div>
             </div>
@@ -1983,7 +1987,7 @@ export default function App() {
       )}
 
       {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromHero && (
-        <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start' }}>
+        <section style={{ margin: '0 0 34px 0', padding: '18px', background: 'linear-gradient(180deg, rgba(10,10,10,0.94), rgba(3,3,3,0.98))', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start', boxShadow: '0 20px 64px rgba(0,0,0,0.54)' }}>
           <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
             {selectedGigDetail.image ? (
               <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
@@ -1992,7 +1996,7 @@ export default function App() {
             )}
           </div>
           <div>
-            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>DETAIL EVENT</p>
+            <p style={{ color: '#a8f1ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>DETAIL EVENT</p>
             <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>{selectedGigDetail.title?.toUpperCase()}</h3>
             <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px', lineHeight: 1.45 }}>
               <span>DATE: <strong style={{ color: '#fff' }}>{getGigDate(selectedGigDetail)}</strong></span>
@@ -3411,7 +3415,7 @@ export default function App() {
       {/* BULLETIN MADING GIGS */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ marginBottom: '60px' }}>
-          <h2 style={{ fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', color: '#00d2ff', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.5px', display: 'flex', alignItems: 'center', gap: '8px' }}> UPDATED GIGS BULLETIN BOARD</h2>
+          <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#f5f5f5', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
           <div style={bulletinGridStyle}>
             {filteredGigs.map(gig => (
               <div 
@@ -3483,8 +3487,8 @@ export default function App() {
       {/* INTERACTIVE 3 COLUMNS LOWER ROW */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={{ ...glassStyle('c1'), padding: '24px', backgroundColor: '#090909' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#00d2ff', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><Radio size={14}/> RADIO TOP 10 INDIE CLOUD</h3>
+          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={{ ...glassStyle('c1'), padding: isTinyLayout ? '18px' : '24px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><Radio size={14} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
             {top10Tracks.map(track => (
               <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
                 <div><h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '12px', color: '#666', margin: 0 }}>{track.band.toUpperCase()}</p></div>
@@ -3492,9 +3496,9 @@ export default function App() {
               </div>
             ))}
           </div>
-          <div style={{ ...glassStyle('c2'), padding: '24px', backgroundColor: '#090909' }}>
+          <div style={{ ...glassStyle('c2'), padding: isTinyLayout ? '18px' : '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '14px', color: '#00d2ff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={14}/> 10 ARTIKEL BAND TERBARU</h3>
+              <h3 style={{ fontSize: '14px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><FileText size={14} color="#a8f1ff"/> 10 ARTIKEL BAND TERBARU</h3>
               <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
             {articleItems.length === 0 ? (
@@ -3510,7 +3514,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <div style={{ ...glassStyle('c3'), padding: '24px', backgroundColor: '#090909' }}><h3 style={{ fontSize: '14px', color: '#00d2ff', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShoppingBag size={14}/> DISTRO BAND MERCHANDISE</h3></div>
+          <div style={{ ...glassStyle('c3'), padding: isTinyLayout ? '18px' : '24px' }}><h3 style={{ fontSize: '14px', color: '#f5f5f5', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><ShoppingBag size={14} color="#a8f1ff"/> DISTRO BAND MERCHANDISE</h3></div>
         </section>
       )}
 
