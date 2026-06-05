@@ -1130,7 +1130,8 @@ export default function App() {
     right: isTinyLayout ? '16px' : '30px',
     zIndex: 100,
     display: isTinyLayout ? 'grid' : 'flex',
-    gridTemplateColumns: isTinyLayout ? '1fr' : undefined,
+    gridTemplateColumns: isTinyLayout ? 'auto minmax(0, 1fr)' : undefined,
+    gridTemplateAreas: isTinyLayout ? '"brand nav" "search search"' : undefined,
     justifyContent: 'space-between',
     alignItems: isTinyLayout ? 'stretch' : 'center',
     gap: isTinyLayout ? '12px' : '20px',
@@ -1139,23 +1140,33 @@ export default function App() {
     pointerEvents: isScrolled ? 'none' : 'auto',
     transition: 'opacity 0.4s ease-in-out'
   };
+  const homeBrandWrapStyle = {
+    gridArea: isTinyLayout ? 'brand' : undefined,
+    display: 'flex',
+    alignItems: 'center',
+    minWidth: 0
+  };
   const homeSearchWrapStyle = {
     position: isTinyLayout ? 'relative' : 'absolute',
+    gridArea: isTinyLayout ? 'search' : undefined,
     left: isTinyLayout ? 'auto' : '50%',
     transform: isTinyLayout ? 'none' : 'translateX(-50%)',
     width: '100%',
     maxWidth: isTinyLayout ? 'none' : '360px',
     display: 'flex',
     alignItems: 'center',
+    gap: isTinyLayout ? '8px' : '0',
     minWidth: 0
   };
   const homeNavStyle = {
+    gridArea: isTinyLayout ? 'nav' : undefined,
     display: 'flex',
     gap: isTinyLayout ? '8px' : '20px',
     alignItems: 'center',
-    justifyContent: isTinyLayout ? 'space-between' : 'flex-end',
+    justifyContent: 'flex-end',
     width: isTinyLayout ? '100%' : 'auto',
-    flexWrap: 'wrap'
+    flexWrap: 'nowrap',
+    minWidth: 0
   };
   const homeFloatingWrapStyle = {
     position: 'fixed',
@@ -1197,6 +1208,31 @@ export default function App() {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'flex-end'
+  };
+  const bulletinGridStyle = isTinyLayout
+    ? {
+        display: 'grid',
+        gridAutoFlow: 'column',
+        gridAutoColumns: 'calc((100vw - 48px) / 2)',
+        gridTemplateRows: '1fr',
+        gap: '12px',
+        overflowX: 'auto',
+        paddingBottom: '8px',
+        scrollSnapType: 'x mandatory',
+        scrollbarWidth: 'none'
+      }
+    : {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+        gap: '24px'
+      };
+  const bulletinCardStyle = {
+    padding: isTinyLayout ? '10px' : '14px',
+    backgroundColor: '#090909',
+    position: 'relative',
+    cursor: 'pointer',
+    scrollSnapAlign: 'start',
+    minWidth: 0
   };
 
   const pageShellStyle = {
@@ -1366,12 +1402,15 @@ export default function App() {
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '28px' : '40px', borderRadius: isTinyLayout ? '14px' : '16px', overflow: 'hidden', backgroundColor: '#000' }}>
           <header style={homeHeaderStyle}>
-            <div><h1 onClick={() => setSearchTerm('')} style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE</h1></div>
+            <div style={homeBrandWrapStyle}><h1 onClick={() => setSearchTerm('')} style={{ fontSize: isTinyLayout ? '22px' : '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE</h1></div>
 
             {/* CYBER SEARCH BAR INTEGRATION */}
             <div style={homeSearchWrapStyle}>
               <Search size={14} color="#666" style={{ position: 'absolute', left: '16px' }} />
-              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#fff', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
+              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: isTinyLayout ? 'auto' : '100%', flex: isTinyLayout ? '1 1 0' : undefined, minWidth: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#fff', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
+              {userSession && isTinyLayout && (
+                <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '44%', flex: '0 0 auto' }}>{renderProfileChip(22, '94px')}</button>
+              )}
             </div>
 
             <div style={homeNavStyle}>
@@ -1383,8 +1422,10 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>{renderProfileChip(22, '130px')}</button>
-                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>LOGOUT</button>
+                  {!isTinyLayout && (
+                    <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>{renderProfileChip(22, '130px')}</button>
+                  )}
+                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGOUT</button>
                 </>
               )}
             </div>
@@ -2682,22 +2723,22 @@ export default function App() {
       {/* BULLETIN MADING GIGS */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ marginBottom: '60px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#00d2ff', marginBottom: '24px', letterSpacing: '1.5px', display: 'flex', alignItems: 'center', gap: '8px' }}> UPDATED GIGS BULLETIN BOARD</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }}>
+          <h2 style={{ fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', color: '#00d2ff', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.5px', display: 'flex', alignItems: 'center', gap: '8px' }}> UPDATED GIGS BULLETIN BOARD</h2>
+          <div style={bulletinGridStyle}>
             {filteredGigs.map(gig => (
               <div 
                 key={gig.id} 
                 onMouseEnter={() => setHoveredCard(gig.id)} 
                 onMouseLeave={() => setHoveredCard(null)} 
                 onClick={() => setSelectedGigDetail(selectedGigDetail?.id === gig.id ? null : gig)} // Klik buat buka/tutup laci
-                style={{ ...glassStyle(gig.id), padding: '14px', backgroundColor: '#090909', position: 'relative', cursor: 'pointer' }}
+                style={{ ...glassStyle(gig.id), ...bulletinCardStyle }}
               >
                 <button
                   onClick={(event) => {
                     event.stopPropagation();
                     setShowReportMenu(showReportMenu === gig.id ? null : gig.id);
                   }}
-                  style={{ position: 'absolute', top: '22px', right: '22px', zIndex: 2, width: '34px', height: '34px', borderRadius: '9999px', border: '1px solid rgba(255, 51, 51, 0.35)', backgroundColor: 'rgba(0, 0, 0, 0.72)', color: '#ff3333', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+                  style={{ position: 'absolute', top: isTinyLayout ? '14px' : '22px', right: isTinyLayout ? '14px' : '22px', zIndex: 2, width: isTinyLayout ? '28px' : '34px', height: isTinyLayout ? '28px' : '34px', borderRadius: '9999px', border: '1px solid rgba(255, 51, 51, 0.35)', backgroundColor: 'rgba(0, 0, 0, 0.72)', color: '#ff3333', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
                   aria-label="Laporkan acara"
                 >
                   <AlertTriangle size={16} />
@@ -2721,9 +2762,9 @@ export default function App() {
                   </div>
                 )}
 
-                {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px', marginBottom: '14px' })}
-                <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#fff' }}>{gig.title.toUpperCase()}</h3>
-                <p style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '700', margin: 0 }}>📍 {gig.city.toUpperCase()}</p>
+                {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: isTinyLayout ? '10px' : '12px', marginBottom: isTinyLayout ? '10px' : '14px' })}
+                <h3 style={{ fontSize: isTinyLayout ? '12px' : '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#fff', lineHeight: 1.15 }}>{gig.title.toUpperCase()}</h3>
+                <p style={{ color: '#00d2ff', fontSize: isTinyLayout ? '10px' : '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>📍 {gig.city.toUpperCase()}</p>
                 
                 {/* LACI GESER DETAIL (POP-DRAWER GAYA 3) - MUNCUL DI BAWAH POSTER YANG DIKLIK */}
                 {selectedGigDetail?.id === gig.id && (
