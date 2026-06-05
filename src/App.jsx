@@ -352,6 +352,9 @@ export default function App() {
     setAuthError('');
     setSearchTerm('');
     setIsSearchExpanded(false);
+    if (window.location.pathname.startsWith('/band/')) {
+      window.history.pushState({ page: 'home' }, '', '/');
+    }
     setActivePage('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -370,6 +373,9 @@ export default function App() {
 
   const closeAdminGate = () => {
     setSearchTerm('');
+    if (window.location.pathname !== '/') {
+      window.history.pushState({ page: 'home' }, '', '/');
+    }
     setActivePage('home');
     setAdminPassword('');
     setAdminError('');
@@ -465,11 +471,19 @@ export default function App() {
       setShowAuthModal(false); setAuthEmail(''); setAuthPassword('');
       if (savedRole === 'musisi') {
         const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, data.user);
+        const storedProfile = loadUserScopedData(BAND_PROFILE_STORAGE_PREFIX, data.user);
         setUserRole('musisi');
         persistUserRole('musisi', data.user);
         setHasSignedContract(Boolean(storedAgreement?.accepted));
         setSignatureName((current) => current || storedAgreement?.signatureName || '');
-        setActivePage(storedAgreement?.accepted ? 'band_public' : 'home');
+        if (storedAgreement?.accepted) {
+          const loginBandSlug = storedProfile?.slug || createSlug(storedProfile?.name || storedAgreement?.signatureName || 'band-wispace');
+          window.history.pushState({ page: 'band_public', slug: loginBandSlug }, '', `/band/${loginBandSlug}`);
+          setIsViewingOwnBandProfile(true);
+          setActivePage('band_public');
+          return;
+        }
+        setActivePage('home');
         return;
       }
       if (savedRole === 'audience') {
@@ -521,6 +535,43 @@ export default function App() {
     alert('Profile audience tersimpan sebagai draft privat. Nanti ini kita sambungkan ke table audience_profiles di Supabase.');
   };
 
+  const getBandProfileSlug = (profile = bandProfile) => (
+    profile.slug || createSlug(profile.name || signatureName || 'band-wispace')
+  );
+
+  const getBandProfilePath = (profile = bandProfile) => `/band/${getBandProfileSlug(profile)}`;
+
+  const openBandPublicProfile = (isOwnerView = false, profile = bandProfile) => {
+    const bandPath = getBandProfilePath(profile);
+    if (window.location.pathname !== bandPath) {
+      window.history.pushState({ page: 'band_public', slug: getBandProfileSlug(profile) }, '', bandPath);
+    }
+    setShowAuthModal(false);
+    setIsViewingOwnBandProfile(isOwnerView);
+    setActivePage('band_public');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateInternalPage = (page, options = {}) => {
+    if (window.location.pathname.startsWith('/band/')) {
+      window.history.pushState({ page }, '', '/');
+    }
+    setActivePage(page);
+    if (options.exploreTab) setExploreTab(options.exploreTab);
+    if (options.clearSearch) setSearchTerm('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const copyBandProfileLink = async () => {
+    const profileUrl = `${window.location.origin}${getBandProfilePath()}`;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      alert('Link profile band sudah dicopy bro.');
+    } catch {
+      window.prompt('Copy link profile band:', profileUrl);
+    }
+  };
+
   const handleContractSignature = (e) => {
     e.preventDefault();
     if(!signatureName.trim()) return alert("Ketik nama band lu sebagai tanda tangan digital sah!");
@@ -548,8 +599,11 @@ export default function App() {
       return nextProfile;
     });
     setShowAuthModal(false);
-    setIsViewingOwnBandProfile(true);
-    setActivePage('band_public');
+    openBandPublicProfile(true, {
+      ...bandProfile,
+      name: bandProfile.name || signedBandName,
+      slug: bandProfile.slug || createSlug(signedBandName)
+    });
     alert(`⚡ KONTRAK SAH! Selamat datang Backstage, ${signedBandName.toUpperCase()}!`);
   };
 
@@ -968,6 +1022,25 @@ export default function App() {
   const showBandContactForm = !showBandOwnerControls;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
+
+  useEffect(() => {
+    const syncBandRoute = () => {
+      const bandRouteMatch = window.location.pathname.match(/^\/band\/([^/]+)/);
+      if (!bandRouteMatch) return;
+
+      const routeSlug = decodeURIComponent(bandRouteMatch[1]);
+      const ownSlug = createSlug(bandProfile.slug || bandProfile.name || signatureName || '');
+      setShowAuthModal(false);
+      setSearchTerm('');
+      setIsViewingOwnBandProfile(Boolean(ownSlug && routeSlug === ownSlug && isBandAccount));
+      setActivePage('band_public');
+    };
+
+    syncBandRoute();
+    window.addEventListener('popstate', syncBandRoute);
+    return () => window.removeEventListener('popstate', syncBandRoute);
+  }, [bandProfile.name, bandProfile.slug, isBandAccount, signatureName]);
+
   const accountDisplayName = isBandAccount
     ? (bandProfile.name || signatureName || 'BAND')
     : (audienceProfile.displayName || userSession?.email?.split('@')[0] || 'USER');
@@ -999,10 +1072,7 @@ export default function App() {
   const openProfileModal = () => {
     if (isBandAccount) {
       if (hasSignedContract) {
-        setShowAuthModal(false);
-        setIsViewingOwnBandProfile(true);
-        setActivePage('band_public');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        openBandPublicProfile(true);
         return;
       }
 
@@ -1144,7 +1214,7 @@ export default function App() {
         <div style={{ position: 'fixed', top: '30px', right: '30px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', opacity: isScrolled ? 1 : 0, transform: isScrolled ? 'translateY(0)' : 'translateY(-20px)', pointerEvents: isScrolled ? 'auto' : 'none', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
           <div style={{ ...glassStyle('floating-badge'), display: 'flex', alignItems: 'center', padding: '8px 16px', backgroundColor: 'rgba(10, 10, 10, 0.9)', border: '1px solid #00d2ff', borderRadius: '16px' }}>
             <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: '16px', cursor: 'pointer' }}>WI.ID ↑</span>
-            <button onClick={() => { setActivePage('explore'); setExploreTab('rilisan'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>EXPLORE</button>
+            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>EXPLORE</button>
             
             {!userSession ? (
               <>
@@ -1173,7 +1243,7 @@ export default function App() {
       {/* FLOATING MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '6px' : '10px', padding: isTinyLayout ? '7px 8px' : '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
+          <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
             ['band', 'BAND'],
@@ -1182,7 +1252,7 @@ export default function App() {
           ].map(([tab, label]) => (
             <button
               key={tab}
-              onClick={() => { setActivePage('explore'); setExploreTab(tab); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onClick={() => navigateInternalPage('explore', { exploreTab: tab, clearSearch: true })}
               style={{ background: activePage === 'explore' && exploreTab === tab ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(0,210,255,0.32)' : '1px solid transparent', borderRadius: '10px', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px' }}
             >
               {label}
@@ -1190,8 +1260,8 @@ export default function App() {
           ))}
           {userSession && (
             <>
-              <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
-              <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>
+              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
+              <button onClick={() => { navigateInternalPage('message_center'); markMessagesAsRead(); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>
                 MESSAGES
                 {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
               </button>
@@ -1228,7 +1298,7 @@ export default function App() {
             </div>
 
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-              <button onClick={() => { setActivePage('explore'); setExploreTab('rilisan'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>EXPLORE</button>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>EXPLORE</button>
               {!userSession ? (
                 <>
                   <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>LOGIN</button>
@@ -1518,7 +1588,7 @@ export default function App() {
                   </div>
                   <div>
                     <button
-                      onClick={() => { setIsViewingOwnBandProfile(false); setActivePage('band_public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      onClick={() => openBandPublicProfile(false)}
                       style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(0,210,255,0.65)', textUnderlineOffset: '4px' }}
                     >
                       {(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}
@@ -1569,7 +1639,7 @@ export default function App() {
                     <p style={{ color: '#777', fontSize: '13px', margin: '0 0 6px 0' }}>{(bandProfile.genre || 'INDIE').toUpperCase()} / {(bandProfile.city || 'INDONESIA').toUpperCase()}</p>
                     <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>{bandProfile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
                   </div>
-                  <button onClick={() => { setIsViewingOwnBandProfile(false); setActivePage('band_public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>LIHAT PROFILE</button>
+                  <button onClick={() => openBandPublicProfile(false)} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>LIHAT PROFILE</button>
                 </div>
               ) : (
                 <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
@@ -1656,7 +1726,7 @@ export default function App() {
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TAMBAH MERCH PERTAMA</button>
                 ) : (
-                  <button onClick={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE BAND DULU</button>
+                  <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE BAND DULU</button>
                 )}
               </div>
             </div>
@@ -1774,7 +1844,8 @@ export default function App() {
                 <p style={eyebrowStyle}>PUBLIC BAND PROFILE</p>
                 <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
                 <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{bandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
-                <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id/band/{bandProfile.slug || 'nama-band'}</p>
+                <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath()}</p>
+                <button onClick={copyBandProfileLink} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content' }}>COPY PROFILE LINK</button>
               </div>
             </div>
           </div>
@@ -2077,7 +2148,7 @@ export default function App() {
               <section style={{ ...glassStyle('audience-actions'), padding: '20px', backgroundColor: '#090909' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>QUICK ACTIONS</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
-                  <button onClick={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>EXPLORE RILISAN</button>
+                  <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>EXPLORE RILISAN</button>
                   <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY LIBRARY</button>
                   <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MESSAGES</button>
                 </div>
@@ -2147,7 +2218,7 @@ export default function App() {
             <div style={{ ...glassStyle('library-empty'), padding: '28px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>LIBRARY MASIH KOSONG</h3>
               <p style={{ color: '#666', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, pilih album digital, lalu klik beli. Untuk sekarang masih mock purchase dulu.</p>
-              <button onClick={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: libraryDetailGridColumns, gap: '24px', alignItems: 'start' }}>
@@ -2209,7 +2280,7 @@ export default function App() {
                   <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>INBOX MASIH KOSONG</h4>
                   <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px 0' }}>{isBandAccount ? 'Belum ada pesan baru dari audience, promotor, atau band lain.' : 'Belum ada pesan masuk untuk akun audience ini.'}</p>
                   {!isBandAccount && (
-                    <button onClick={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>CARI BAND DI EXPLORE</button>
+                    <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>CARI BAND DI EXPLORE</button>
                   )}
                 </div>
               ) : (
@@ -2336,7 +2407,7 @@ export default function App() {
                 </div>
               </div>
               <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PUBLIC BAND PAGE PREVIEW</p>
-              <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id/band/{bandProfile.slug || (bandProfile.name ? createSlug(bandProfile.name) : 'nama-band')}</p>
+              <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id{getBandProfilePath()}</p>
               <p style={{ color: '#fff', fontSize: '14px', fontWeight: '900', lineHeight: 1.35, margin: '0 0 10px 0' }}>{bandProfile.headline || 'Headline singkat band akan tampil di sini.'}</p>
               <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''}</p>
               <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band akan tampil di sini. Audience bisa lihat cerita singkat, karakter musik, dan info rilisan band.'}</p>
