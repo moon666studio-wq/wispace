@@ -1049,8 +1049,7 @@ export default function App() {
         <div style={{ position: 'fixed', top: '30px', right: '30px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', opacity: isScrolled ? 1 : 0, transform: isScrolled ? 'translateY(0)' : 'translateY(-20px)', pointerEvents: isScrolled ? 'auto' : 'none', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
           <div style={{ ...glassStyle('floating-badge'), display: 'flex', alignItems: 'center', padding: '8px 16px', backgroundColor: 'rgba(10, 10, 10, 0.9)', border: '1px solid #00d2ff', borderRadius: '16px' }}>
             <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: '16px', cursor: 'pointer' }}>WI.ID ↑</span>
-            <button onClick={() => { setActivePage('explore'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>EXPLORE</button>
-            <button onClick={() => { setActivePage('articles'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>ARTIKEL</button>
+            <button onClick={() => { setActivePage('explore'); setExploreTab('rilisan'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>EXPLORE</button>
             
             {!userSession ? (
               <>
@@ -1080,13 +1079,29 @@ export default function App() {
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
         <div style={{ position: 'fixed', top: '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box' }}>
           <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>WISPACE</button>
-          <button onClick={() => { setActivePage('explore'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>EXPLORE</button>
-          <button onClick={() => { setActivePage('articles'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>ARTIKEL</button>
-          <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>LIBRARY</button>
-          <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>
-            MESSAGES
-            {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
-          </button>
+          {[
+            ['rilisan', 'RILISAN'],
+            ['band', 'BAND'],
+            ['artikel', 'ARTIKEL'],
+            ['merch', 'MERCH']
+          ].map(([tab, label]) => (
+            <button
+              key={tab}
+              onClick={() => { setActivePage('explore'); setExploreTab(tab); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              style={{ background: 'transparent', border: 'none', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}
+            >
+              {label}
+            </button>
+          ))}
+          {userSession && (
+            <>
+              <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>LIBRARY</button>
+              <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>
+                MESSAGES
+                {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
+              </button>
+            </>
+          )}
           <div style={{ position: 'relative', width: '190px', maxWidth: '30vw' }}>
             <Search size={12} color="#666" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#fff', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
@@ -1118,8 +1133,7 @@ export default function App() {
             </div>
 
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-              <button onClick={() => { setActivePage('explore'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>EXPLORE</button>
-              <button onClick={() => { setActivePage('articles'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>ARTIKEL</button>
+              <button onClick={() => { setActivePage('explore'); setExploreTab('rilisan'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>EXPLORE</button>
               {!userSession ? (
                 <>
                   <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>LOGIN</button>
@@ -1347,38 +1361,6 @@ export default function App() {
               <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE EXPLORE</p>
               <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>RILISAN, BAND, ARTIKEL & MERCH</h2>
               <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>Halaman katalog buat audience nemu album digital, profile band, artikel skena, preview lagu 30 detik, dan merchandise indie.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
-            {[
-              ['rilisan', 'RILISAN'],
-              ['band', 'BAND'],
-              ['artikel', 'ARTIKEL'],
-              ['merch', 'MERCH']
-            ].map(([tab, label]) => (
-              <button
-                key={tab}
-                onClick={() => setExploreTab(tab)}
-                style={{ padding: '10px 16px', backgroundColor: exploreTab === tab ? '#00d2ff' : '#000', color: exploreTab === tab ? '#000' : '#fff', border: exploreTab === tab ? 'none' : '1px solid #222', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '26px' }}>
-            <div style={{ ...glassStyle('explore-album-stat'), padding: '16px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>ALBUM DIGITAL</p>
-              <strong style={{ color: '#00d2ff', fontSize: '28px', fontWeight: '900' }}>{albumItems.length}</strong>
-            </div>
-            <div style={{ ...glassStyle('explore-track-stat'), padding: '16px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK PREVIEW</p>
-              <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{top10Tracks.length}</strong>
-            </div>
-            <div style={{ ...glassStyle('explore-merch-stat'), padding: '16px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>MERCHANDISE</p>
-              <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{merchItems.length}</strong>
             </div>
           </div>
 
