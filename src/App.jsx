@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
-import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck } from 'lucide-react';
+import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
 const fetchCloudData = async () => {
   const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
@@ -48,10 +48,39 @@ const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
 const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
 const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
 const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
+const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
+const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
+
+const createEmptyAudienceProfile = () => ({
+  displayName: '',
+  city: '',
+  favoriteGenre: '',
+  contact: '',
+  photoName: '',
+  photoPreview: ''
+});
+
+const createEmptyBandProfile = () => ({
+  name: '',
+  slug: '',
+  headline: '',
+  city: '',
+  genre: '',
+  formedYear: '',
+  cp: '',
+  email: '',
+  instagram: '',
+  bio: '',
+  coverName: '',
+  coverPreview: '',
+  photoName: '',
+  photoPreview: '',
+  isPublished: false
+});
 
 const readLocalJson = (key) => {
   try {
@@ -147,14 +176,7 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [hasSignedContract, setHasSignedContract] = useState(false);
   const [signatureName, setSignatureName] = useState('');
-  const [audienceProfile, setAudienceProfile] = useState({
-    displayName: '',
-    city: '',
-    favoriteGenre: '',
-    contact: '',
-    photoName: '',
-    photoPreview: ''
-  });
+  const [audienceProfile, setAudienceProfile] = useState(createEmptyAudienceProfile);
   
   // STATE INPUT AUTH & FORM
   const [authEmail, setAuthEmail] = useState('');
@@ -194,23 +216,7 @@ export default function App() {
   const [bandScheduleItems, setBandScheduleItems] = useState([]);
 
   // STATE PAGE PROFILE BAND & UPLOAD ALBUM
-  const [bandProfile, setBandProfile] = useState({
-    name: '',
-    slug: '',
-    headline: '',
-    city: '',
-    genre: '',
-    formedYear: '',
-    cp: '',
-    email: '',
-    instagram: '',
-    bio: '',
-    coverName: '',
-    coverPreview: '',
-    photoName: '',
-    photoPreview: '',
-    isPublished: false
-  });
+  const [bandProfile, setBandProfile] = useState(createEmptyBandProfile);
   const [albumDraft, setAlbumDraft] = useState({
     title: '',
     price: '',
@@ -250,6 +256,8 @@ export default function App() {
     body: ''
   });
   const [selectedLibraryItemId, setSelectedLibraryItemId] = useState(null);
+  const [playerQueue, setPlayerQueue] = useState([]);
+  const [playerQueueIndex, setPlayerQueueIndex] = useState(0);
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyDraft, setReplyDraft] = useState('');
   const [messages, setMessages] = useState([
@@ -301,6 +309,12 @@ export default function App() {
   const persistBandSubscriptionsLocal = useCallback((subscriptions, user = userSession) => {
     saveUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, user, subscriptions);
   }, [userSession]);
+  const persistAudienceProfileLocal = useCallback((profile, user = userSession) => {
+    saveUserScopedData(AUDIENCE_PROFILE_STORAGE_PREFIX, user, profile);
+  }, [userSession]);
+  const persistAudienceLibraryLocal = useCallback((library, user = userSession) => {
+    saveUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, user, library);
+  }, [userSession]);
 
   const exclusiveEventBanners = [
     ...gigs
@@ -342,6 +356,8 @@ export default function App() {
       const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, userSession);
       const storedArticles = loadUserScopedData(BAND_ARTICLES_STORAGE_PREFIX, userSession);
       const storedSubscriptions = loadUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, userSession);
+      const storedAudienceProfile = loadUserScopedData(AUDIENCE_PROFILE_STORAGE_PREFIX, userSession);
+      const storedAudienceLibrary = loadUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, userSession);
 
       if (storedProfile) {
         const safeStoredProfile = trimOversizedBandPreview(storedProfile);
@@ -369,10 +385,28 @@ export default function App() {
       if (Array.isArray(storedSubscriptions)) {
         setSubscribedBands(storedSubscriptions);
       }
+
+      if (storedAudienceProfile) {
+        setAudienceProfile({ ...createEmptyAudienceProfile(), ...storedAudienceProfile });
+      }
+
+      if (Array.isArray(storedAudienceLibrary)) {
+        setPurchasedAlbums(storedAudienceLibrary);
+      }
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
   }, [persistBandProfileLocal, persistUserRole, userSession]);
+
+  const stopAudioPlayback = () => {
+    window.clearTimeout(audioPreviewTimerRef.current);
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    setIsPlaying(false);
+    setActiveTrack(null);
+    setPlayerQueue([]);
+    setPlayerQueueIndex(0);
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -381,12 +415,19 @@ export default function App() {
       return;
     }
 
+    stopAudioPlayback();
     setShowAuthModal(false);
     setAuthType('');
     setAuthError('');
     setSearchTerm('');
     setIsSearchExpanded(false);
+    setUserRole(null);
+    setHasSignedContract(false);
+    setSignatureName('');
     setSubscribedBands([]);
+    setAudienceProfile(createEmptyAudienceProfile());
+    setPurchasedAlbums([]);
+    setSelectedLibraryItemId(null);
     if (window.location.pathname.startsWith('/band/')) {
       window.history.pushState({ page: 'home' }, '', '/');
     }
@@ -524,6 +565,8 @@ export default function App() {
       if (savedRole === 'audience') {
         setUserRole('audience');
         persistUserRole('audience', data.user);
+        setHasSignedContract(false);
+        setSignatureName('');
         setActivePage('audience_profile');
         return;
       }
@@ -561,12 +604,15 @@ export default function App() {
     }
 
     setShowAuthModal(false);
+    setHasSignedContract(false);
+    setSignatureName('');
     setActivePage('audience_profile');
     alert('Selamat! Akun kasta Audience lu siap berburu rilisan!');
   };
 
   const handleAudienceProfileSave = (event) => {
     event.preventDefault();
+    persistAudienceProfileLocal(audienceProfile);
     alert('Profile audience tersimpan sebagai draft privat. Nanti ini kita sambungkan ke table audience_profiles di Supabase.');
   };
 
@@ -854,10 +900,21 @@ export default function App() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setAudienceProfile((current) => {
-      if (current.photoPreview) URL.revokeObjectURL(current.photoPreview);
-      return { ...current, photoName: file.name, photoPreview: URL.createObjectURL(file) };
-    });
+    if (file.size > BAND_PHOTO_MAX_SIZE) {
+      alert('Foto profile maksimal 1MB dulu bro, biar app tetap ringan.');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAudienceProfile((current) => {
+        const nextProfile = { ...current, photoName: file.name, photoPreview: reader.result };
+        persistAudienceProfileLocal(nextProfile);
+        return nextProfile;
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleBandCoverImport = (event) => {
@@ -1004,7 +1061,11 @@ export default function App() {
       return;
     }
 
-    setPurchasedAlbums((current) => [{ ...album, purchasedAt: 'Baru saja' }, ...current]);
+    setPurchasedAlbums((current) => {
+      const nextLibrary = [{ ...album, purchasedAt: 'Baru saja' }, ...current];
+      persistAudienceLibraryLocal(nextLibrary);
+      return nextLibrary;
+    });
     alert(`${album.title} masuk ke Audience Library. Nanti ini diganti checkout/payment beneran.`);
   };
 
@@ -1024,20 +1085,24 @@ export default function App() {
       return;
     }
 
-    setPurchasedAlbums((current) => [
-      {
-        ...album,
-        id: trackPurchaseId,
-        title: track.title,
+    setPurchasedAlbums((current) => {
+      const nextLibrary = [
+        {
+          ...album,
+          id: trackPurchaseId,
+          title: track.title,
         price: track.price,
         trackCount: 1,
         purchaseType: 'track',
         parentAlbumTitle: album.title,
-        tracks: [track],
-        purchasedAt: 'Baru saja'
-      },
-      ...current
-    ]);
+          tracks: [track],
+          purchasedAt: 'Baru saja'
+        },
+        ...current
+      ];
+      persistAudienceLibraryLocal(nextLibrary);
+      return nextLibrary;
+    });
     alert(`${track.title} masuk ke Audience Library sebagai pembelian per track.`);
   };
 
@@ -1133,7 +1198,7 @@ export default function App() {
   };
 
   // PLAYER SYSTEM
-  const handlePlayTrack = (track) => {
+  const handlePlayTrack = (track, queue = []) => {
     if (!track?.url) {
       alert('File audio belum tersedia buat preview bro.');
       return;
@@ -1141,9 +1206,18 @@ export default function App() {
 
     window.clearTimeout(audioPreviewTimerRef.current);
 
-    if (activeTrack?.id === track.id && isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    const nextQueue = queue.length ? queue : (playerQueue.length ? playerQueue : [track]);
+    const nextQueueIndex = Math.max(0, nextQueue.findIndex((item) => item.id === track.id));
+
+    if (activeTrack?.id === track.id) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+        return;
+      }
+
+      audioRef.current.play();
+      setIsPlaying(true);
       return;
     }
 
@@ -1152,6 +1226,8 @@ export default function App() {
     audioRef.current.play();
     setActiveTrack(track);
     setIsPlaying(true);
+    setPlayerQueue(nextQueue);
+    setPlayerQueueIndex(nextQueueIndex);
 
     audioRef.current.onended = () => setIsPlaying(false);
 
@@ -1164,14 +1240,43 @@ export default function App() {
     }
   };
 
-  const handlePlayLibraryTrack = (track, libraryItem = selectedLibraryItem) => {
+  const buildLibraryPlaybackTrack = (track, libraryItem = selectedLibraryItem) => ({
+    ...track,
+    id: `library-${libraryItem?.id || 'item'}-${track.id}`,
+    albumTitle: libraryItem?.parentAlbumTitle || libraryItem?.title || track.albumTitle,
+    albumCover: libraryItem?.coverPreview || track.albumCover,
+    freeFull: true
+  });
+
+  const handlePlayLibraryTrack = (track, libraryItem = selectedLibraryItem, tracks = selectedLibraryTracks) => {
+    const libraryQueue = (tracks.length ? tracks : [track]).map((item) => buildLibraryPlaybackTrack(item, libraryItem));
     handlePlayTrack({
       ...track,
       id: `library-${libraryItem?.id || 'item'}-${track.id}`,
       albumTitle: libraryItem?.parentAlbumTitle || libraryItem?.title || track.albumTitle,
       albumCover: libraryItem?.coverPreview || track.albumCover,
       freeFull: true
-    });
+    }, libraryQueue);
+  };
+
+  const handleToggleActiveTrack = () => {
+    if (!activeTrack) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    audioRef.current.play();
+    setIsPlaying(true);
+  };
+
+  const handlePlayerStep = (direction) => {
+    if (playerQueue.length <= 1) return;
+    const nextIndex = (playerQueueIndex + direction + playerQueue.length) % playerQueue.length;
+    const nextTrack = playerQueue[nextIndex];
+    setPlayerQueueIndex(nextIndex);
+    handlePlayTrack(nextTrack, playerQueue);
   };
 
   const approvedFreeGigs = gigs.filter((gig) => gig.status === 'approved' || gig.status === 'approved_free');
@@ -1222,8 +1327,7 @@ export default function App() {
   const isExplorePage = activePage === 'explore';
   const isMerchMarketPage = activePage === 'merch_market';
   const isArticlesPage = activePage === 'articles';
-  const hasBandIdentity = hasSignedContract || signatureName.trim() || bandProfile.name.trim();
-  const isBandAccount = userRole === 'musisi' || hasBandIdentity;
+  const isBandAccount = userRole === 'musisi';
   const showBandOwnerControls = isBandAccount && isViewingOwnBandProfile;
   const showBandContactForm = !showBandOwnerControls;
   const currentBandSlug = getBandProfileSlug();
@@ -1640,6 +1744,21 @@ export default function App() {
         </div>
       )}
 
+      {activeTrack && !loading && (
+        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '12px' : '20px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(520px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '9px 10px' : '10px 12px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', backgroundColor: 'rgba(5,5,5,0.92)', border: '1px solid rgba(0,210,255,0.32)', borderRadius: '16px', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 18px 48px rgba(0,0,0,0.55)' }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ color: isPlaying ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>{isPlaying ? 'NOW PLAYING' : 'PAUSED'}</p>
+            <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 3px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
+            <p style={{ color: '#666', fontSize: '11px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(activeTrack.albumTitle || activeTrack.band || activeTrack.bandName || 'WISPACE PLAYER').toUpperCase()}</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '32px', height: '32px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipBack size={14} /></button>
+            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '38px', height: '38px', borderRadius: '9999px', border: '1px solid rgba(0,210,255,0.38)', backgroundColor: '#00d2ff', color: '#000', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 0 24px rgba(0,210,255,0.24)' }}>{isPlaying ? <Pause size={17} fill="#000" /> : <Play size={17} fill="#000" />}</button>
+            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '32px', height: '32px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipForward size={14} /></button>
+          </div>
+        </div>
+      )}
+
       {/* HEADER UTAMA BINGKAI ATAS */}
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '28px' : '40px', borderRadius: isTinyLayout ? '14px' : '16px', overflow: 'hidden', backgroundColor: '#000' }}>
@@ -1942,7 +2061,7 @@ export default function App() {
                           <h4 style={{ fontSize: '14px', color: '#fff', margin: '0 0 3px 0' }}>{track.title.toUpperCase()}</h4>
                           <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>{track.band.toUpperCase()}</p>
                         </div>
-                        <button onClick={() => handlePlayTrack(track)} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PREVIEW'}</button>
+                        <button onClick={() => handlePlayTrack(track, filteredTracks)} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PREVIEW'}</button>
                       </div>
                     ))
                   )}
@@ -2239,18 +2358,20 @@ export default function App() {
 
           <div style={{ padding: isTinyLayout ? '20px 16px 24px' : '30px', display: 'grid', gridTemplateColumns: splitGridColumns, gap: '24px', alignItems: 'start' }}>
             <main>
-              <div style={ownerActionsPanelStyle}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>OWNER ACTIONS</p>
-                <div style={ownerActionsGridStyle}>
-                  <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>EDIT PROFILE</button>
-                  <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>UPLOAD ALBUM</button>
-                  <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>MERCH</button>
-                  <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>ARTIKEL</button>
-                  <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>PAMFLET</button>
-                  <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>JADWAL</button>
-                  <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
+              {showBandOwnerControls && (
+                <div style={ownerActionsPanelStyle}>
+                  <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>OWNER ACTIONS</p>
+                  <div style={ownerActionsGridStyle}>
+                    <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>EDIT PROFILE</button>
+                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>UPLOAD ALBUM</button>
+                    <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>MERCH</button>
+                    <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>ARTIKEL</button>
+                    <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>PAMFLET</button>
+                    <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>JADWAL</button>
+                    <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {showBandOwnerControls && (
                 <section style={{ ...glassStyle('band-subscribe-notifications'), padding: '14px', backgroundColor: '#090909', marginBottom: '18px' }}>
@@ -2309,7 +2430,7 @@ export default function App() {
                             <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
                             <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
                           </div>
-                          <button onClick={() => handlePlayTrack(track)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '9px' : '10px 14px', fontSize: '11px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>{isActive ? 'PAUSE' : 'PLAY'}</button>
+                          <button onClick={() => handlePlayTrack(track, bandPublicTracks)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '9px' : '10px 14px', fontSize: '11px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>{isActive ? 'PAUSE' : 'PLAY'}</button>
                         </div>
                       );
                     })}
@@ -2703,7 +2824,7 @@ export default function App() {
                         onClick={(event) => {
                           event.stopPropagation();
                           setSelectedLibraryItemId(album.id);
-                          if (firstTrack) handlePlayLibraryTrack(firstTrack, album);
+                          if (firstTrack) handlePlayLibraryTrack(firstTrack, album, album.tracks || [firstTrack]);
                         }}
                         style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}
                       >
@@ -2717,17 +2838,21 @@ export default function App() {
 
               <aside style={{ ...glassStyle('library-player'), padding: '20px', backgroundColor: '#090909' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
-                <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '16px', backgroundColor: '#000', border: '1px solid #141414', display: 'grid', placeItems: 'center', marginBottom: '16px', overflow: 'hidden' }}>
-                  {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>PLAYER</span>}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <div>
-                    <h4 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
-                    <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '96px 1fr' : '118px 1fr', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '14px', backgroundColor: '#000', border: '1px solid #141414', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+                    {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '11px', fontWeight: '900' }}>PLAYER</span>}
                   </div>
-                  <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', color: '#fff', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <h4 style={{ color: '#fff', fontSize: '17px', fontWeight: '900', margin: '0 0 6px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
+                        <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
+                      </div>
+                      <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', color: '#fff', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
+                    </div>
+                    <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Secret encrypted access. Full playback buat archive yang sudah dibeli.</p>
+                  </div>
                 </div>
-                <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.5, margin: '0 0 16px 0' }}>File berada di secret encrypted folder. Audience bisa access/download pribadi, tapi tidak boleh redistribusi ulang.</p>
                 <div style={{ display: 'grid', gap: '9px', marginBottom: '16px' }}>
                   {selectedLibraryTracks.map((track, index) => {
                     const libraryTrackId = `library-${selectedLibraryItem?.id || 'item'}-${track.id}`;
@@ -2929,10 +3054,7 @@ export default function App() {
                   <span>INSTAGRAM</span><strong style={{ color: '#fff', textAlign: 'right' }}>{bandProfile.instagram || '-'}</strong>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
-                <button onClick={() => { setActivePage('message_center'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px', fontSize: '11px' }}>MESSAGE</button>
-                <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', fontFamily: FONT_STACK }}>FOLLOW</button>
-              </div>
+              <button onClick={() => openBandPublicProfile(true)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px', marginBottom: '18px' }}>BUKA PUBLIC PREVIEW</button>
               <div style={{ borderTop: '1px solid #141414', paddingTop: '14px', marginBottom: '14px' }}>
                 <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
                 {bandPublicTracks.length === 0 ? (
@@ -3225,7 +3347,7 @@ export default function App() {
             {top10Tracks.map(track => (
               <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
                 <div><h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '12px', color: '#666', margin: 0 }}>{track.band.toUpperCase()}</p></div>
-                <button onClick={() => handlePlayTrack(track)} style={{ ...glassButtonStyle, padding: '6px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
+                <button onClick={() => handlePlayTrack(track, top10Tracks)} style={{ ...glassButtonStyle, padding: '6px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
               </div>
             ))}
           </div>
