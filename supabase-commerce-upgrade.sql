@@ -48,6 +48,7 @@ create table if not exists public.sales_transactions (
   release_id uuid references public.releases(id) on delete set null,
   track_id uuid references public.release_tracks(id) on delete set null,
   merch_item_id uuid references public.merch_items(id) on delete set null,
+  gig_id uuid references public.gigs(id) on delete set null,
   gross_amount integer not null default 0,
   platform_fee integer not null default 0,
   band_net integer not null default 0,
@@ -106,6 +107,9 @@ on public.sales_transactions (seller_band_slug, created_at desc);
 
 create index if not exists sales_transactions_buyer_idx
 on public.sales_transactions (buyer_user_id, created_at desc);
+
+create index if not exists sales_transactions_gig_idx
+on public.sales_transactions (gig_id, created_at desc);
 
 create index if not exists merch_orders_transaction_idx
 on public.merch_orders (transaction_id);
