@@ -52,11 +52,14 @@ const isMissingColumnError = (error) => {
 const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
 const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
 const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
+const BAND_MERCH_STORAGE_PREFIX = 'wispace_band_merch';
 const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
 const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
 const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
 const PUBLIC_BAND_REGISTRY_STORAGE_KEY = 'wispace_public_band_registry';
 const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
+const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
+const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -145,6 +148,24 @@ const savePublicReleaseRegistry = (releases) => {
   window.localStorage.setItem(PUBLIC_RELEASE_REGISTRY_STORAGE_KEY, JSON.stringify(releases));
 };
 
+const loadPublicArticleRegistry = () => {
+  const registry = readLocalJson(PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY);
+  return Array.isArray(registry) ? registry : [];
+};
+
+const savePublicArticleRegistry = (articles) => {
+  window.localStorage.setItem(PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY, JSON.stringify(articles));
+};
+
+const loadPublicMerchRegistry = () => {
+  const registry = readLocalJson(PUBLIC_MERCH_REGISTRY_STORAGE_KEY);
+  return Array.isArray(registry) ? registry : [];
+};
+
+const savePublicMerchRegistry = (merch) => {
+  window.localStorage.setItem(PUBLIC_MERCH_REGISTRY_STORAGE_KEY, JSON.stringify(merch));
+};
+
 const mapBandProfileFromRow = (row = {}) => ({
   ...createEmptyBandProfile(),
   name: row.name || '',
@@ -209,6 +230,7 @@ const mapReleaseFromRow = (row = {}) => {
         freeFull: Boolean(track.free_full)
       })),
     bandName: row.band_name || 'Band WiSpace',
+    bandSlug: row.band_slug || createSlug(row.band_name || 'Band WiSpace'),
     city: row.city || 'Indonesia',
     genre: row.genre || 'Indie',
     signedBy: row.signed_by || row.band_name || 'Band WiSpace',
@@ -359,6 +381,8 @@ export default function App() {
   const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
   const [bandNotifications, setBandNotifications] = useState([]);
   const [publicBandProfiles, setPublicBandProfiles] = useState(loadPublicBandRegistry);
+  const [publicArticleItems, setPublicArticleItems] = useState(loadPublicArticleRegistry);
+  const [publicMerchItems, setPublicMerchItems] = useState(loadPublicMerchRegistry);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -417,6 +441,9 @@ export default function App() {
   const persistBandArticlesLocal = useCallback((articles, user = userSession) => {
     saveUserScopedData(BAND_ARTICLES_STORAGE_PREFIX, user, articles);
   }, [userSession]);
+  const persistBandMerchLocal = useCallback((merch, user = userSession) => {
+    saveUserScopedData(BAND_MERCH_STORAGE_PREFIX, user, merch);
+  }, [userSession]);
   const persistBandSubscriptionsLocal = useCallback((subscriptions, user = userSession) => {
     saveUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, user, subscriptions);
   }, [userSession]);
@@ -465,6 +492,7 @@ export default function App() {
     const publicRelease = {
       ...release,
       id: releaseId,
+      bandSlug: release.bandSlug || bandProfile.slug || createSlug(release.bandName || bandProfile.name || signatureName || 'band-wispace'),
       isPublished: true,
       updatedAt: new Date().toISOString()
     };
@@ -524,6 +552,48 @@ export default function App() {
     return publicRelease;
   }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
 
+  const publishPublicMerch = useCallback((item) => {
+    const merchId = item.id || createClientId();
+    const bandName = bandProfile.name || signatureName || item.bandName || 'Band WiSpace';
+    const publicItem = {
+      ...item,
+      id: merchId,
+      bandName,
+      bandSlug: bandProfile.slug || createSlug(bandName),
+      genre: bandProfile.genre || item.genre || 'Indie',
+      city: bandProfile.city || item.city || 'Indonesia',
+      updatedAt: new Date().toISOString()
+    };
+    const nextItems = [
+      publicItem,
+      ...loadPublicMerchRegistry().filter((registryItem) => String(registryItem.id) !== String(merchId))
+    ];
+    savePublicMerchRegistry(nextItems);
+    setPublicMerchItems(nextItems);
+    return publicItem;
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName]);
+
+  const publishPublicArticle = useCallback((article) => {
+    const articleId = article.id || createClientId();
+    const bandName = bandProfile.name || signatureName || article.bandName || 'Band WiSpace';
+    const publicArticle = {
+      ...article,
+      id: articleId,
+      bandName,
+      bandSlug: bandProfile.slug || createSlug(bandName),
+      genre: bandProfile.genre || article.genre || 'Indie',
+      city: bandProfile.city || article.city || 'Indonesia',
+      updatedAt: new Date().toISOString()
+    };
+    const nextArticles = [
+      publicArticle,
+      ...loadPublicArticleRegistry().filter((registryArticle) => String(registryArticle.id) !== String(articleId))
+    ];
+    savePublicArticleRegistry(nextArticles);
+    setPublicArticleItems(nextArticles);
+    return publicArticle;
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName]);
+
   const exclusiveEventBanners = [
     ...gigs
       .filter((gig) => gig.status === 'approved_exclusive')
@@ -563,6 +633,7 @@ export default function App() {
       const storedProfile = loadUserScopedData(BAND_PROFILE_STORAGE_PREFIX, userSession);
       const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, userSession);
       const storedArticles = loadUserScopedData(BAND_ARTICLES_STORAGE_PREFIX, userSession);
+      const storedMerch = loadUserScopedData(BAND_MERCH_STORAGE_PREFIX, userSession);
       const storedSubscriptions = loadUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, userSession);
       const storedAudienceProfile = loadUserScopedData(AUDIENCE_PROFILE_STORAGE_PREFIX, userSession);
       const storedAudienceLibrary = loadUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, userSession);
@@ -596,6 +667,12 @@ export default function App() {
 
       if (Array.isArray(storedArticles)) {
         setArticleItems(storedArticles);
+        storedArticles.forEach((article) => publishPublicArticle(article));
+      }
+
+      if (Array.isArray(storedMerch)) {
+        setMerchItems(storedMerch);
+        storedMerch.forEach((item) => publishPublicMerch(item));
       }
 
       if (Array.isArray(storedSubscriptions)) {
@@ -612,7 +689,7 @@ export default function App() {
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
-  }, [persistBandProfileLocal, persistUserRole, publishPublicBandProfile, userSession]);
+  }, [persistBandProfileLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
 
   const stopAudioPlayback = () => {
     window.clearTimeout(audioPreviewTimerRef.current);
@@ -1412,11 +1489,19 @@ export default function App() {
   const handleMerchDraftSubmit = (event) => {
     event.preventDefault();
     const nextItem = {
-      id: Date.now(),
+      id: createClientId(),
       ...merchDraft,
     };
 
-    setMerchItems((current) => [nextItem, ...current]);
+    const publicItem = publishPublicMerch(nextItem);
+    setMerchItems((current) => {
+      const nextItems = [
+        publicItem,
+        ...current.filter((item) => String(item.id) !== String(publicItem.id))
+      ];
+      persistBandMerchLocal(nextItems);
+      return nextItems;
+    });
     setMerchDraft({
       name: '',
       price: '',
@@ -1434,15 +1519,19 @@ export default function App() {
     if (!articleDraft.excerpt.trim()) return alert('Isi ringkasan artikel dulu bro.');
 
     const nextArticle = {
-      id: Date.now(),
+      id: createClientId(),
       ...articleDraft,
       bandName: bandProfile.name || signatureName || 'Band WiSpace',
       category: articleDraft.category || 'Update Band',
       createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
     };
 
+    const publicArticle = publishPublicArticle(nextArticle);
     setArticleItems((current) => {
-      const nextItems = [nextArticle, ...current];
+      const nextItems = [
+        publicArticle,
+        ...current.filter((article) => String(article.id) !== String(publicArticle.id))
+      ];
       persistBandArticlesLocal(nextItems);
       return nextItems;
     });
@@ -1603,9 +1692,33 @@ export default function App() {
   ].filter((profile, index, profiles) => (
     profile.name && profiles.findIndex((item) => (item.slug || createSlug(item.name)) === (profile.slug || createSlug(profile.name))) === index
   ));
+  const publicMerchList = [
+    ...publicMerchItems,
+    ...merchItems.map((item) => ({
+      ...item,
+      bandName: item.bandName || bandProfile.name || signatureName || 'Band WiSpace',
+      bandSlug: item.bandSlug || bandProfile.slug || createSlug(bandProfile.name || signatureName || 'band-wispace'),
+      genre: item.genre || bandProfile.genre || 'Indie',
+      city: item.city || bandProfile.city || 'Indonesia'
+    }))
+  ].filter((item, index, items) => (
+    item.name && items.findIndex((candidate) => String(candidate.id) === String(item.id)) === index
+  ));
+  const publicArticleList = [
+    ...publicArticleItems,
+    ...articleItems.map((article) => ({
+      ...article,
+      bandName: article.bandName || bandProfile.name || signatureName || 'Band WiSpace',
+      bandSlug: article.bandSlug || bandProfile.slug || createSlug(bandProfile.name || signatureName || 'band-wispace'),
+      genre: article.genre || bandProfile.genre || 'Indie',
+      city: article.city || bandProfile.city || 'Indonesia'
+    }))
+  ].filter((article, index, articles) => (
+    article.title && articles.findIndex((candidate) => String(candidate.id) === String(article.id)) === index
+  ));
   const filteredBandProfiles = publicBandList.filter((profile) => matchesSearch(profile.name, profile.genre, profile.city, profile.headline, profile.bio, profile.slug));
-  const filteredMerchItems = merchItems.filter((item) => matchesSearch(item.name, item.description, bandProfile.name, bandProfile.genre));
-  const filteredArticles = articleItems.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName));
+  const filteredMerchItems = publicMerchList.filter((item) => matchesSearch(item.name, item.description, item.bandName, item.genre, item.city));
+  const filteredArticles = publicArticleList.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName, article.genre, article.city));
   const quickSearchResults = normalizedSearchTerm ? [
     ...filteredAlbums.slice(0, 3).map((album) => ({
       id: `album-${album.id}`,
@@ -1642,20 +1755,10 @@ export default function App() {
       id: `merch-${item.id}`,
       type: 'MERCH',
       title: item.name,
-      meta: `${bandProfile.name || signatureName || 'Band WiSpace'} / Rp ${Number(item.price || 0).toLocaleString('id-ID')}`,
+      meta: `${item.bandName || 'Band WiSpace'} / Rp ${Number(item.price || 0).toLocaleString('id-ID')}`,
       onSelect: () => navigateInternalPage('explore', { exploreTab: 'merch' })
     }))
   ].slice(0, 10) : [];
-  const bandPublicTracks = albumItems
-    .flatMap((album) => (album.tracks || []).map((track, index) => ({
-      ...track,
-      albumTitle: album.title,
-      albumCover: album.coverPreview,
-      genre: album.genre,
-      displayIndex: index + 1
-    })))
-    .slice(0, 5);
-  const hasFreeFullBandTrack = bandPublicTracks.some((track) => track.freeFull) || albumItems.some((album) => (album.tracks || []).some((track) => track.freeFull));
   const selectedLibraryItem = purchasedAlbums.find((album) => album.id === selectedLibraryItemId) || purchasedAlbums[0] || null;
   const selectedLibraryTracks = selectedLibraryItem?.tracks?.length
     ? selectedLibraryItem.tracks
@@ -1689,6 +1792,24 @@ export default function App() {
   const selectedPublicBandProfile = publicBandProfiles.find((profile) => profile.slug === viewedBandSlug);
   const displayBandProfile = isBandPublicPage && !showBandOwnerControls && selectedPublicBandProfile ? selectedPublicBandProfile : bandProfile;
   const currentBandSlug = getBandProfileSlug(displayBandProfile);
+  const displayBandAlbums = albumItems.filter((album) => {
+    const albumBandSlug = album.bandSlug || createSlug(album.bandName || '');
+    const displayBandName = displayBandProfile.name || bandProfile.name || signatureName || '';
+    return !displayBandName || albumBandSlug === currentBandSlug || album.bandName === displayBandName;
+  });
+  const bandPublicTracks = displayBandAlbums
+    .flatMap((album) => (album.tracks || []).map((track, index) => ({
+      ...track,
+      albumTitle: album.title,
+      albumCover: album.coverPreview,
+      genre: album.genre,
+      displayIndex: index + 1
+    })))
+    .slice(0, 5);
+  const hasFreeFullBandTrack = bandPublicTracks.some((track) => track.freeFull) || displayBandAlbums.some((album) => (album.tracks || []).some((track) => track.freeFull));
+  const displayBandMerchItems = publicMerchList.filter((item) => (
+    item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
+  ));
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -2605,7 +2726,7 @@ export default function App() {
             )}
           </div>
 
-          {merchItems.length === 0 ? (
+          {publicMerchList.length === 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px' }}>
               {[1, 2, 3, 4].map((slot) => (
                 <div key={slot} style={{ ...glassStyle(`merch-placeholder-${slot}`), padding: '14px', backgroundColor: '#090909', borderStyle: 'dashed' }}>
@@ -2629,7 +2750,7 @@ export default function App() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '18px' }}>
-              {merchItems.map((item) => (
+              {publicMerchList.map((item) => (
                 <article
                   key={item.id}
                   onClick={() => setSelectedMerchDetail(selectedMerchDetail?.id === item.id ? null : item)}
@@ -2638,7 +2759,7 @@ export default function App() {
                   <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.07)', display: 'grid', placeItems: 'center', marginBottom: '14px' }}>
                     {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
                   </div>
-                  <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
+                  <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
                   <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0', lineHeight: 1.1 }}>{item.name.toUpperCase()}</h4>
                   <p style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                   {selectedMerchDetail?.id === item.id && (
@@ -2646,7 +2767,7 @@ export default function App() {
                       <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>{item.description || 'Merchandise resmi band di WiSpace.'}</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                         <div style={{ color: '#777', fontSize: '11px' }}>STOK<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{item.stock || 0}</strong></div>
-                        <div style={{ color: '#777', fontSize: '11px' }}>BAND<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</strong></div>
+                        <div style={{ color: '#777', fontSize: '11px' }}>BAND<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()}</strong></div>
                       </div>
                       <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
                     </div>
@@ -2672,7 +2793,7 @@ export default function App() {
             )}
           </div>
 
-          {articleItems.length === 0 ? (
+          {publicArticleList.length === 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '18px' }}>
               {[1, 2, 3, 4].map((slot) => (
                 <article key={slot} style={{ ...glassStyle(`article-placeholder-${slot}`), padding: '18px', backgroundColor: '#090909', borderStyle: 'dashed', minHeight: '220px', display: 'grid', alignContent: 'space-between' }}>
@@ -2697,7 +2818,7 @@ export default function App() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '24px', alignItems: 'start' }}>
               <main style={{ display: 'grid', gap: '18px' }}>
-                {articleItems.map((article) => (
+                {publicArticleList.map((article) => (
                   <article key={article.id} style={{ ...glassStyle(`article-${article.id}`), padding: '20px', backgroundColor: '#090909' }}>
                     <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
                     <h3 style={{ color: '#fff', fontSize: '26px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
@@ -2710,7 +2831,7 @@ export default function App() {
               <aside style={{ ...glassStyle('article-sidebar'), padding: '18px', backgroundColor: '#090909' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>10 ARTIKEL TERBARU</h3>
                 <div style={{ display: 'grid', gap: '12px' }}>
-                  {articleItems.slice(0, 10).map((article) => (
+                  {publicArticleList.slice(0, 10).map((article) => (
                     <div key={`side-${article.id}`} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                       <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
                       <p style={{ color: '#777', fontSize: '11px', margin: 0 }}>{article.category} / {article.createdAt}</p>
@@ -2847,11 +2968,11 @@ export default function App() {
 
               <section style={{ ...glassStyle('band-public-releases'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
-                {albumItems.length === 0 ? (
+                {displayBandAlbums.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
-                    {albumItems.map((album) => (
+                    {displayBandAlbums.map((album) => (
                       <article key={album.id} style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', padding: '12px' }}>
                         <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', marginBottom: '12px' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '11px', fontWeight: '900' }}>COVER</span>}
@@ -2924,11 +3045,11 @@ export default function App() {
 
               <section style={{ ...glassStyle('band-public-merch'), padding: '18px', backgroundColor: '#090909' }}>
                 <h3 style={sectionHeadingStyle}>MERCHANDISE</h3>
-                {merchItems.length === 0 ? (
+                {displayBandMerchItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
-                    {merchItems.slice(0, 4).map((item) => (
+                    {displayBandMerchItems.slice(0, 4).map((item) => (
                       <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                         <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
@@ -3763,11 +3884,11 @@ export default function App() {
               <h3 style={{ fontSize: '14px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><FileText size={14} color="#a8f1ff"/> 10 ARTIKEL BAND TERBARU</h3>
               <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
-            {articleItems.length === 0 ? (
+            {publicArticleList.length === 0 ? (
               <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
             ) : (
               <div style={{ display: 'grid', gap: '12px' }}>
-                {articleItems.slice(0, 10).map((article) => (
+                {publicArticleList.slice(0, 10).map((article) => (
                   <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '10px 0', border: 'none', borderTop: '1px solid #141414', background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
                     <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
                     <p style={{ color: '#777', fontSize: '11px', margin: 0 }}>{article.category} / {article.bandName}</p>
