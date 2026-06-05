@@ -1121,6 +1121,83 @@ export default function App() {
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
+  const homeShellPadding = isTinyLayout ? '12px' : '20px';
+  const homeHeroHeight = isTinyLayout ? 'calc(100vh - 24px)' : 'calc(100vh - 40px)';
+  const homeHeaderStyle = {
+    position: 'absolute',
+    top: isTinyLayout ? '16px' : '30px',
+    left: isTinyLayout ? '16px' : '30px',
+    right: isTinyLayout ? '16px' : '30px',
+    zIndex: 100,
+    display: isTinyLayout ? 'grid' : 'flex',
+    gridTemplateColumns: isTinyLayout ? '1fr' : undefined,
+    justifyContent: 'space-between',
+    alignItems: isTinyLayout ? 'stretch' : 'center',
+    gap: isTinyLayout ? '12px' : '20px',
+    background: 'transparent',
+    opacity: isScrolled ? 0 : 1,
+    pointerEvents: isScrolled ? 'none' : 'auto',
+    transition: 'opacity 0.4s ease-in-out'
+  };
+  const homeSearchWrapStyle = {
+    position: isTinyLayout ? 'relative' : 'absolute',
+    left: isTinyLayout ? 'auto' : '50%',
+    transform: isTinyLayout ? 'none' : 'translateX(-50%)',
+    width: '100%',
+    maxWidth: isTinyLayout ? 'none' : '360px',
+    display: 'flex',
+    alignItems: 'center',
+    minWidth: 0
+  };
+  const homeNavStyle = {
+    display: 'flex',
+    gap: isTinyLayout ? '8px' : '20px',
+    alignItems: 'center',
+    justifyContent: isTinyLayout ? 'space-between' : 'flex-end',
+    width: isTinyLayout ? '100%' : 'auto',
+    flexWrap: 'wrap'
+  };
+  const homeFloatingWrapStyle = {
+    position: 'fixed',
+    top: isTinyLayout ? '12px' : '30px',
+    left: isTinyLayout ? '12px' : 'auto',
+    right: isTinyLayout ? '12px' : '30px',
+    zIndex: 999,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    alignItems: isTinyLayout ? 'stretch' : 'flex-end',
+    opacity: isScrolled ? 1 : 0,
+    transform: isScrolled ? 'translateY(0)' : 'translateY(-20px)',
+    pointerEvents: isScrolled ? 'auto' : 'none',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+  };
+  const homeFloatingBadgeStyle = {
+    ...glassStyle('floating-badge'),
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: isTinyLayout ? 'wrap' : 'nowrap',
+    gap: isTinyLayout ? '6px' : '0',
+    padding: isTinyLayout ? '8px 10px' : '8px 16px',
+    backgroundColor: 'rgba(10, 10, 10, 0.9)',
+    border: '1px solid #00d2ff',
+    borderRadius: '16px',
+    width: isTinyLayout ? '100%' : 'auto',
+    boxSizing: 'border-box'
+  };
+  const homeHeroContentStyle = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    zIndex: 10,
+    background: 'linear-gradient(to top, rgba(3, 3, 3, 1) 0%, rgba(3, 3, 3, 0.4) 50%, rgba(0, 0, 0, 0) 100%)',
+    padding: isTinyLayout ? '24px 18px' : '40px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-end'
+  };
 
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
@@ -1200,7 +1277,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: '20px', fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
       {!isSupabaseConfigured && (
         <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(255,51,51,0.12)', border: '1px solid rgba(255,51,51,0.45)', borderRadius: '14px', color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(0,0,0,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
@@ -1211,15 +1288,15 @@ export default function App() {
           FIXED FLOATING BADGE (IKON CYBER-LINE & KONTROL SMART ROLE)
          ======================================================== */}
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
-        <div style={{ position: 'fixed', top: '30px', right: '30px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', opacity: isScrolled ? 1 : 0, transform: isScrolled ? 'translateY(0)' : 'translateY(-20px)', pointerEvents: isScrolled ? 'auto' : 'none', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-          <div style={{ ...glassStyle('floating-badge'), display: 'flex', alignItems: 'center', padding: '8px 16px', backgroundColor: 'rgba(10, 10, 10, 0.9)', border: '1px solid #00d2ff', borderRadius: '16px' }}>
-            <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: '16px', cursor: 'pointer' }}>WI.ID ↑</span>
-            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>EXPLORE</button>
+        <div style={homeFloatingWrapStyle}>
+          <div style={homeFloatingBadgeStyle}>
+            <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: isTinyLayout ? '4px' : '16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>WI.ID UP</span>
+            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: isTinyLayout ? '4px' : '12px', fontFamily: FONT_STACK, padding: isTinyLayout ? '6px 4px' : '0', whiteSpace: 'nowrap' }}>EXPLORE</button>
             
             {!userSession ? (
               <>
-                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>LOGIN</button>
-                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0, 210, 255, 0.1)', border: '1px solid rgba(0,210,255,0.3)', color: '#00d2ff', borderRadius: '16px', padding: '4px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>JOIN</button>
+                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: isTinyLayout ? '4px' : '12px', fontFamily: FONT_STACK, padding: isTinyLayout ? '6px 4px' : '0', whiteSpace: 'nowrap' }}>LOGIN</button>
+                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0, 210, 255, 0.1)', border: '1px solid rgba(0,210,255,0.3)', color: '#00d2ff', borderRadius: '16px', padding: isTinyLayout ? '6px 10px' : '4px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>JOIN</button>
               </>
             ) : (
               <>
@@ -1233,8 +1310,8 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(5, 5, 5, 0.95)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? '180px' : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#fff', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: isTinyLayout ? '100%' : 'auto', justifyContent: isTinyLayout ? 'flex-end' : 'flex-start' }}>
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(5, 5, 5, 0.95)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#fff', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
             <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ ...glassStyle('search-trigger'), padding: '6px 14px', backgroundColor: '#00d2ff', color: '#000', borderRadius: '16px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={12}/> FIND</div>
           </div>
         </div>
@@ -1287,22 +1364,22 @@ export default function App() {
 
       {/* HEADER UTAMA BINGKAI ATAS */}
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
-        <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 40px)', marginBottom: '40px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000' }}>
-          <header style={{ position: 'absolute', top: '30px', left: '30px', right: '30px', zIndex: 100, display: 'flex', justifyView: 'space-between', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', opacity: isScrolled ? 0 : 1, pointerEvents: isScrolled ? 'none' : 'auto', transition: 'opacity 0.4s ease-in-out' }}>
+        <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '28px' : '40px', borderRadius: isTinyLayout ? '14px' : '16px', overflow: 'hidden', backgroundColor: '#000' }}>
+          <header style={homeHeaderStyle}>
             <div><h1 onClick={() => setSearchTerm('')} style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE</h1></div>
 
             {/* CYBER SEARCH BAR INTEGRATION */}
-            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '360px', display: 'flex', alignItems: 'center' }}>
+            <div style={homeSearchWrapStyle}>
               <Search size={14} color="#666" style={{ position: 'absolute', left: '16px' }} />
               <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#fff', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
             </div>
 
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>EXPLORE</button>
+            <div style={homeNavStyle}>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>EXPLORE</button>
               {!userSession ? (
                 <>
-                  <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>LOGIN</button>
-                  <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ ...glassButtonStyle, padding: '8px 20px', fontSize: '11px' }}>JOIN</button>
+                  <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGIN</button>
+                  <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ ...glassButtonStyle, padding: isTinyLayout ? '8px 14px' : '8px 20px', fontSize: '11px', flexShrink: 0 }}>JOIN</button>
                 </>
               ) : (
                 <>
@@ -1319,13 +1396,13 @@ export default function App() {
               {currentExclusiveBanner.image && (
                 <img key={currentExclusiveBannerIndex} src={currentExclusiveBanner.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               )}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, top: 0, zIndex: 10, background: 'linear-gradient(to top, rgba(3, 3, 3, 1) 0%, rgba(3, 3, 3, 0.4) 50%, rgba(0, 0, 0, 0) 100%)', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <div style={homeHeroContentStyle}>
                 <span style={{ backgroundColor: 'rgba(0,210,255,0.15)', border: '1px solid #00d2ff', color: '#00d2ff', fontSize: '11px', fontWeight: '900', padding: '4px 10px', borderRadius: '2px', width: 'fit-content', marginBottom: '16px' }}>{currentExclusiveBanner.type}</span>
-                <h2 style={{ fontSize: '56px', fontWeight: '900', margin: '0 0 12px 0', color: '#fff', maxWidth: '950px', lineHeight: '0.9' }}>{currentExclusiveBanner.title}</h2>
-                <p style={{ color: '#bbb', fontSize: '15px', maxWidth: '700px', margin: '0 0 28px 0', lineHeight: '1.5' }}>{currentExclusiveBanner.desc}</p>
+                <h2 style={{ fontSize: isTinyLayout ? '34px' : '56px', fontWeight: '900', margin: '0 0 12px 0', color: '#fff', maxWidth: '950px', lineHeight: isTinyLayout ? 1 : 0.9 }}>{currentExclusiveBanner.title}</h2>
+                <p style={{ color: '#bbb', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '700px', margin: '0 0 28px 0', lineHeight: '1.5' }}>{currentExclusiveBanner.desc}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
-                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromHero: true })} style={{ ...glassButtonStyle, padding: '12px 32px', width: 'fit-content', fontSize: '13px' }}>LIHAT DETAIL EVENT</button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromHero: true })} style={{ ...glassButtonStyle, padding: isTinyLayout ? '11px 18px' : '12px 32px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px' }}>LIHAT DETAIL EVENT</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isTinyLayout ? '10px' : '18px', maxWidth: '100%', overflowX: 'auto' }}>
                     {exclusiveEventBanners.map((banner, index) => {
                       const isActiveSlide = currentExclusiveBannerIndex === index;
 
@@ -1363,10 +1440,10 @@ export default function App() {
           ) : (
             <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#030303', display: 'flex', alignItems: 'flex-end' }}>
               <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(0,210,255,0.18)', backgroundColor: '#030303' }} />
-              <div style={{ position: 'relative', zIndex: 10, padding: '40px' }}>
+              <div style={{ position: 'relative', zIndex: 10, padding: isTinyLayout ? '24px 18px' : '40px' }}>
                 <span style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.5px' }}>EXCLUSIVE EVENT EMPTY</span>
-                <h2 style={{ color: '#fff', fontSize: '52px', fontWeight: '900', lineHeight: 0.95, margin: '14px 0 12px 0', maxWidth: '800px' }}>BELUM ADA PAMFLET APPROVED</h2>
-                <p style={{ color: '#888', fontSize: '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
+                <h2 style={{ color: '#fff', fontSize: isTinyLayout ? '34px' : '52px', fontWeight: '900', lineHeight: isTinyLayout ? 1 : 0.95, margin: '14px 0 12px 0', maxWidth: '800px' }}>BELUM ADA PAMFLET APPROVED</h2>
+                <p style={{ color: '#888', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
               </div>
             </div>
           )}
