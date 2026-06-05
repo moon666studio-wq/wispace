@@ -67,6 +67,7 @@ const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
+const EXCLUSIVE_POSTER_SLOT_FEE = 0;
 
 const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -1875,7 +1876,13 @@ export default function App() {
   ));
   const bandBalance = financeTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const bandGrossRevenue = financeTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
-  const wispaceFeeRevenue = financeTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const adminMerchFeeRevenue = saleTransactions
+    .filter((transaction) => transaction.productType === 'merch')
+    .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const adminReleaseFeeRevenue = saleTransactions
+    .filter((transaction) => ['album', 'track'].includes(transaction.productType))
+    .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const adminExclusivePosterRevenue = approvedExclusiveGigs.length * EXCLUSIVE_POSTER_SLOT_FEE;
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -2501,6 +2508,31 @@ export default function App() {
               <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{approvedExclusiveGigs.length}</strong>
             </div>
           </div>
+
+          <section style={{ ...glassStyle('admin-income-report'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE FINANCE REPORT</p>
+                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>PEMASUKAN PLATFORM</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Ini laporan admin untuk fee platform. Dashboard band hanya menampilkan saldo milik band.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>FEE PEMBELIAN MERCH</p>
+                <strong style={{ color: '#00d2ff', fontSize: '24px', fontWeight: '900' }}>Rp {adminMerchFeeRevenue.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>FEE RILISAN DIGITAL</p>
+                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminReleaseFeeRevenue.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>BIAYA PAMFLET EXCLUSIVE</p>
+                <strong style={{ color: EXCLUSIVE_POSTER_SLOT_FEE ? '#fff' : '#ffcc00', fontSize: '24px', fontWeight: '900' }}>{EXCLUSIVE_POSTER_SLOT_FEE ? `Rp ${adminExclusivePosterRevenue.toLocaleString('id-ID')}` : 'TARIF BELUM DISET'}</strong>
+                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{approvedExclusiveGigs.length} slot live. Nanti kalau tarif sudah fix, tinggal set nominalnya.</p>
+              </div>
+            </div>
+          </section>
 
           {pendingGigs.length === 0 ? (
             <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#090909', textAlign: 'center' }}>
@@ -3557,10 +3589,6 @@ export default function App() {
             <div style={{ ...glassStyle('finance-gross'), padding: '20px', backgroundColor: '#090909' }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>GROSS SALES</p>
               <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandGrossRevenue.toLocaleString('id-ID')}</h3>
-            </div>
-            <div style={{ ...glassStyle('finance-fee'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>WISPACE FEE 20%</p>
-              <h3 style={{ color: '#00d2ff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {wispaceFeeRevenue.toLocaleString('id-ID')}</h3>
             </div>
             <div style={{ ...glassStyle('finance-minimum'), padding: '20px', backgroundColor: '#090909' }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MINIMUM PENARIKAN</p>
