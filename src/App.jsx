@@ -45,6 +45,25 @@ const formatDisplayDate = (value) => value
 const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig.approved_until) : '';
 const getGigApprovedAt = (gig) => formatDisplayDate(gig?.approved_at || gig?.updated_at || gig?.created_at);
 const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_exclusive'].includes(gig?.status);
+const getGigStatusLabel = (status = 'pending') => ({
+  pending: 'PENDING REVIEW',
+  approved: 'FREE LIVE',
+  approved_free: 'FREE LIVE',
+  approved_waiting_payment: 'APPROVED - BAYAR',
+  paid_waiting_activation: 'PAID - WAIT ADMIN',
+  approved_exclusive: 'EXCLUSIVE LIVE',
+  rejected: 'REJECTED',
+  removed: 'REMOVED'
+}[status] || status.replaceAll('_', ' ').toUpperCase());
+const getGigStatusColor = (status = 'pending') => ({
+  approved: '#39ff14',
+  approved_free: '#39ff14',
+  approved_waiting_payment: '#ffcc00',
+  paid_waiting_activation: '#00d2ff',
+  approved_exclusive: '#00d2ff',
+  rejected: '#ff3333',
+  removed: '#777'
+}[status] || '#ffcc00');
 const isMissingColumnError = (error) => {
   const message = error?.message?.toLowerCase() || '';
   return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
@@ -67,7 +86,7 @@ const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
-const EXCLUSIVE_POSTER_SLOT_FEE = 0;
+const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 
 const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -1207,6 +1226,19 @@ export default function App() {
     }
   };
 
+  const updateGigStatus = async (id, updatePayload) => {
+    const { error: firstError } = await supabase.from('gigs').update(updatePayload).eq('id', id);
+    const error = isMissingColumnError(firstError)
+      ? (await supabase.from('gigs').update({ status: updatePayload.status }).eq('id', id)).error
+      : firstError;
+    if (!error) {
+      setGigs((current) => current.map((gig) => (
+        gig.id === id ? { ...gig, ...updatePayload } : gig
+      )));
+    }
+    return error;
+  };
+
   const handleGigModeration = async (id, status) => {
     const approvedUntil = new Date();
     approvedUntil.setDate(approvedUntil.getDate() + 10);
@@ -1214,18 +1246,45 @@ export default function App() {
     const updatePayload = status === 'approved_exclusive' || status === 'approved_free'
       ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10) }
       : { status };
-    const { error: firstError } = await supabase.from('gigs').update(updatePayload).eq('id', id);
-    const error = isMissingColumnError(firstError)
-      ? (await supabase.from('gigs').update({ status }).eq('id', id)).error
-      : firstError;
+    const error = await updateGigStatus(id, updatePayload);
     if (error) alert("Gagal update status pamflet: " + error.message);
     else {
       const message = status === 'approved_free'
         ? 'Pamflet disetujui sebagai event free dan tampil di bulletin homepage selama 10 hari.'
+        : status === 'approved_waiting_payment'
+          ? `Konten exclusive disetujui. Pamflet belum tayang sampai user menyelesaikan pembayaran Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.`
         : status === 'approved_exclusive'
           ? 'Pamflet disetujui sebagai exclusive event dan masuk slot slide besar homepage selama 10 hari.'
           : 'Pamflet ditolak dan tidak akan tampil.';
       alert(message);
+      fetchData();
+    }
+  };
+
+  const handleGigExclusivePayment = async (gig) => {
+    const confirmed = window.confirm(`Bayar slot exclusive Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} untuk "${gig.title}"? Ini demo payment dulu.`);
+    if (!confirmed) return;
+
+    const error = await updateGigStatus(gig.id, { status: 'paid_waiting_activation' });
+    if (error) alert('Gagal update pembayaran pamflet: ' + error.message);
+    else {
+      alert('Pembayaran demo berhasil. Admin WiSpace akan mendapat status PAID dan bisa activate slot exclusive.');
+      fetchData();
+    }
+  };
+
+  const handleGigActivateExclusive = async (id) => {
+    const approvedUntil = new Date();
+    approvedUntil.setDate(approvedUntil.getDate() + 10);
+    const approvedAt = new Date().toISOString().slice(0, 10);
+    const error = await updateGigStatus(id, {
+      status: 'approved_exclusive',
+      approved_at: approvedAt,
+      approved_until: approvedUntil.toISOString().slice(0, 10)
+    });
+    if (error) alert('Gagal activate pamflet exclusive: ' + error.message);
+    else {
+      alert('Pamflet exclusive aktif dan tampil selama 10 hari.');
       fetchData();
     }
   };
@@ -1723,6 +1782,9 @@ export default function App() {
 
   const approvedFreeGigs = gigs.filter((gig) => gig.status === 'approved' || gig.status === 'approved_free');
   const approvedExclusiveGigs = gigs.filter((gig) => gig.status === 'approved_exclusive');
+  const exclusiveWaitingPaymentGigs = gigs.filter((gig) => gig.status === 'approved_waiting_payment');
+  const exclusivePaidWaitingActivationGigs = gigs.filter((gig) => gig.status === 'paid_waiting_activation');
+  const paidExclusivePosterGigs = [...exclusivePaidWaitingActivationGigs, ...approvedExclusiveGigs];
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const matchesSearch = (...values) => !normalizedSearchTerm || values.some((value) => String(value || '').toLowerCase().includes(normalizedSearchTerm));
   const filteredGigs = approvedFreeGigs.filter(gig => matchesSearch(gig.title, gig.city, getGigGenre(gig), getGigDate(gig), getGigHtm(gig)));
@@ -1882,7 +1944,7 @@ export default function App() {
   const adminReleaseFeeRevenue = saleTransactions
     .filter((transaction) => ['album', 'track'].includes(transaction.productType))
     .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
-  const adminExclusivePosterRevenue = approvedExclusiveGigs.length * EXCLUSIVE_POSTER_SLOT_FEE;
+  const adminExclusivePosterRevenue = paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE;
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -2503,6 +2565,14 @@ export default function App() {
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>FREE APPROVED</p>
               <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{approvedFreeGigs.length}</strong>
             </div>
+            <div style={{ ...glassStyle('admin-stat-waiting-payment'), padding: '16px', backgroundColor: '#090909' }}>
+              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>WAIT PAYMENT</p>
+              <strong style={{ color: '#ffcc00', fontSize: '28px', fontWeight: '900' }}>{exclusiveWaitingPaymentGigs.length}</strong>
+            </div>
+            <div style={{ ...glassStyle('admin-stat-paid'), padding: '16px', backgroundColor: '#090909' }}>
+              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PAID / ACTIVATE</p>
+              <strong style={{ color: '#00d2ff', fontSize: '28px', fontWeight: '900' }}>{exclusivePaidWaitingActivationGigs.length}</strong>
+            </div>
             <div style={{ ...glassStyle('admin-stat-rule'), padding: '16px', backgroundColor: '#090909' }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>EXCLUSIVE LIVE</p>
               <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{approvedExclusiveGigs.length}</strong>
@@ -2528,8 +2598,8 @@ export default function App() {
               </div>
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>BIAYA PAMFLET EXCLUSIVE</p>
-                <strong style={{ color: EXCLUSIVE_POSTER_SLOT_FEE ? '#fff' : '#ffcc00', fontSize: '24px', fontWeight: '900' }}>{EXCLUSIVE_POSTER_SLOT_FEE ? `Rp ${adminExclusivePosterRevenue.toLocaleString('id-ID')}` : 'TARIF BELUM DISET'}</strong>
-                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{approvedExclusiveGigs.length} slot live. Nanti kalau tarif sudah fix, tinggal set nominalnya.</p>
+                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{paidExclusivePosterGigs.length} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
               </div>
             </div>
           </section>
@@ -2571,7 +2641,7 @@ export default function App() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                     <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE</button>
-                    <button onClick={() => handleGigModeration(gig.id, 'approved_exclusive')} style={{ padding: '10px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(0,210,255,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'approved_waiting_payment')} style={{ padding: '10px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(0,210,255,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>APPROVE PAY</button>
                     <button onClick={() => handleGigModeration(gig.id, 'rejected')} style={{ padding: '10px', backgroundColor: 'rgba(255,51,51,0.1)', color: '#ff3333', border: '1px solid rgba(255,51,51,0.35)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                   </div>
                 </div>
@@ -2579,6 +2649,38 @@ export default function App() {
               })}
             </div>
           )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
+            {[
+              { title: 'EXCLUSIVE WAITING PAYMENT', items: exclusiveWaitingPaymentGigs, color: '#ffcc00', mode: 'waiting' },
+              { title: 'EXCLUSIVE PAID / NEED ACTIVATE', items: exclusivePaidWaitingActivationGigs, color: '#00d2ff', mode: 'activate' }
+            ].map((group) => (
+              <section key={group.title} style={{ ...glassStyle(group.title), padding: '18px', backgroundColor: '#090909' }}>
+                <h3 style={{ color: group.color, fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>{group.title}</h3>
+                {group.items.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada pamflet di status ini.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {group.items.map((gig) => (
+                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', alignItems: 'center' }}>
+                        {renderGigPosterImage(gig, { width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' })}
+                        <div>
+                          <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
+                          <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
+                          <p style={{ color: group.color, fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '4px 0 0 0' }}>{group.mode === 'waiting' ? `Menunggu user bayar Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}` : 'Payment received, siap diaktifkan'}</p>
+                        </div>
+                        {group.mode === 'activate' ? (
+                          <button onClick={() => handleGigActivateExclusive(gig.id)} style={{ padding: '9px 11px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>ACTIVATE</button>
+                        ) : (
+                          <span style={{ color: '#ffcc00', fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap' }}>WAIT PAY</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            ))}
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
             {[
@@ -3210,7 +3312,7 @@ export default function App() {
               </div>
               <div style={{ marginTop: '14px', padding: '14px', backgroundColor: '#000', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.32)' : 'rgba(57,255,20,0.24)'}`, borderRadius: '14px' }}>
                 <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE EVENT SLOT' : 'FREE BULLETIN SLOT'}</p>
-                <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{newGigRequestType === 'exclusive' ? 'Request berbayar untuk masuk slide besar homepage dan tetap wajib dicek admin.' : 'Request gratis untuk masuk bulletin gigs homepage dan jadwal manggung publik setelah dicek admin.'}</p>
+                <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{newGigRequestType === 'exclusive' ? `Request berbayar Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} untuk masuk slide besar homepage. Admin cek konten dulu, lalu pembayaran, lalu activate 10 hari.` : 'Request gratis untuk masuk bulletin gigs homepage dan jadwal manggung publik setelah dicek admin.'}</p>
                 <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>MASA TAYANG: 10 HARI SEJAK ADMIN APPROVE. Setelah lewat tanggal tayang, pamflet perlu diajukan ulang.</p>
                 <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>UKURAN DISARANKAN: {posterUploadGuide.size} / {posterUploadGuide.ratio} / MAX 2MB</p>
                 <p style={{ color: '#666', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{posterUploadGuide.note}</p>
@@ -3234,7 +3336,7 @@ export default function App() {
 
               <section style={{ ...glassStyle('gig-status'), padding: '20px', backgroundColor: '#090909' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>STATUS PAMFLET</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
                   <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', padding: '12px' }}>
                     <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>PENDING</p>
                     <strong style={{ color: '#ffcc00', fontSize: '22px' }}>{pendingGigs.length}</strong>
@@ -3242,6 +3344,10 @@ export default function App() {
                   <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', padding: '12px' }}>
                     <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>FREE</p>
                     <strong style={{ color: '#39ff14', fontSize: '22px' }}>{approvedFreeGigs.length}</strong>
+                  </div>
+                  <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', padding: '12px' }}>
+                    <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>BAYAR</p>
+                    <strong style={{ color: '#ffcc00', fontSize: '22px' }}>{exclusiveWaitingPaymentGigs.length}</strong>
                   </div>
                   <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', padding: '12px' }}>
                     <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>EXCLUSIVE</p>
@@ -3258,11 +3364,21 @@ export default function App() {
                         <div>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{gig.title?.toUpperCase()}</p>
                           <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
+                          {gig.status === 'approved_waiting_payment' && (
+                            <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>KONTEN DISETUJUI - BAYAR RP {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} UNTUK LANJUT</p>
+                          )}
+                          {gig.status === 'paid_waiting_activation' && (
+                            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>PAYMENT RECEIVED - MENUNGGU ADMIN ACTIVATE</p>
+                          )}
                           {isApprovedHomepageGig(gig) && (
                             <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>TAYANG SAMPAI: {getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</p>
                           )}
                         </div>
-                        <span style={{ color: gig.status === 'approved' || gig.status === 'approved_free' ? '#39ff14' : gig.status === 'approved_exclusive' ? '#00d2ff' : gig.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '10px', fontWeight: '900' }}>{(gig.status || 'pending').replace('approved_', '').toUpperCase()}</span>
+                        {gig.status === 'approved_waiting_payment' ? (
+                          <button onClick={() => handleGigExclusivePayment(gig)} style={{ padding: '9px 10px', backgroundColor: '#ffcc00', color: '#000', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BAYAR</button>
+                        ) : (
+                          <span style={{ color: getGigStatusColor(gig.status), fontSize: '10px', fontWeight: '900', textAlign: 'right' }}>{getGigStatusLabel(gig.status)}</span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -4215,7 +4331,7 @@ export default function App() {
                 </div>
                 <div style={{ padding: '12px', backgroundColor: '#000', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.32)' : 'rgba(57,255,20,0.24)'}`, borderRadius: '14px', marginBottom: '18px' }}>
                   <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE SLIDE BERBAYAR' : 'FREE BULLETIN GRATIS'}</p>
-                  <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{newGigRequestType === 'exclusive' ? 'Masuk slide besar homepage setelah admin approve.' : 'Masuk daftar bulletin gigs homepage setelah admin approve.'}</p>
+                  <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{newGigRequestType === 'exclusive' ? `Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} / 10 hari. Admin approve konten dulu, lalu user bayar, lalu admin activate.` : 'Masuk daftar bulletin gigs homepage setelah admin approve.'}</p>
                   <p style={{ color: '#ffcc00', fontSize: '10px', fontWeight: '900', lineHeight: 1.4, margin: '8px 0 0 0' }}>MASA TAYANG: 10 HARI SEJAK ADMIN APPROVE</p>
                   <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', lineHeight: 1.4, margin: '8px 0 0 0' }}>UKURAN: {posterUploadGuide.size} / {posterUploadGuide.ratio}</p>
                 </div>
