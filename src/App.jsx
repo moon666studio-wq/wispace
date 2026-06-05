@@ -738,6 +738,8 @@ export default function App() {
     if (window.location.pathname.startsWith('/band/')) {
       window.history.pushState({ page }, '', '/');
     }
+    setSelectedGigDetail(null);
+    setSelectedPosterPreview(null);
     setActivePage(page);
     if (options.exploreTab) setExploreTab(options.exploreTab);
     if (options.clearSearch) setSearchTerm('');
@@ -1980,7 +1982,7 @@ export default function App() {
         </div>
       )}
 
-      {!loading && selectedGigDetail?.fromHero && (
+      {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromHero && (
         <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start' }}>
           <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
             {selectedGigDetail.image ? (
