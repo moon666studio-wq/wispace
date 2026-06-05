@@ -1577,8 +1577,26 @@ export default function App() {
   const matchesSearch = (...values) => !normalizedSearchTerm || values.some((value) => String(value || '').toLowerCase().includes(normalizedSearchTerm));
   const filteredGigs = approvedFreeGigs.filter(gig => matchesSearch(gig.title, gig.city, getGigGenre(gig), getGigDate(gig), getGigHtm(gig)));
   const filteredPublicGigs = [...approvedExclusiveGigs, ...approvedFreeGigs].filter(gig => matchesSearch(gig.title, gig.city, getGigGenre(gig), getGigDate(gig), getGigHtm(gig)));
-  const filteredAlbums = albumItems.filter((album) => matchesSearch(album.title, album.bandName, album.genre, album.city, album.description));
+  const filteredAlbums = albumItems.filter((album) => matchesSearch(
+    album.title,
+    album.bandName,
+    album.genre,
+    album.city,
+    album.description,
+    (album.tracks || []).map((track) => `${track.title} ${track.fileName}`).join(' ')
+  ));
   const filteredTracks = top10Tracks.filter((track) => matchesSearch(track.title, track.band));
+  const filteredAlbumTracks = albumItems
+    .flatMap((album) => (album.tracks || []).map((track) => ({
+      ...track,
+      albumId: album.id,
+      albumTitle: album.title,
+      bandName: album.bandName,
+      genre: album.genre,
+      city: album.city,
+      sourceAlbum: album
+    })))
+    .filter((track) => matchesSearch(track.title, track.fileName, track.albumTitle, track.bandName, track.genre, track.city));
   const publicBandList = [
     ...publicBandProfiles,
     ...(bandProfile.name ? [bandProfile] : [])
@@ -1588,6 +1606,46 @@ export default function App() {
   const filteredBandProfiles = publicBandList.filter((profile) => matchesSearch(profile.name, profile.genre, profile.city, profile.headline, profile.bio, profile.slug));
   const filteredMerchItems = merchItems.filter((item) => matchesSearch(item.name, item.description, bandProfile.name, bandProfile.genre));
   const filteredArticles = articleItems.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName));
+  const quickSearchResults = normalizedSearchTerm ? [
+    ...filteredAlbums.slice(0, 3).map((album) => ({
+      id: `album-${album.id}`,
+      type: 'RILISAN',
+      title: album.title,
+      meta: `${album.bandName || 'Band WiSpace'} / ${album.genre || 'Indie'} / ${album.trackCount || 0} track`,
+      onSelect: () => navigateInternalPage('explore', { exploreTab: 'rilisan' })
+    })),
+    ...filteredAlbumTracks.slice(0, 3).map((track) => ({
+      id: `track-${track.albumId}-${track.id}`,
+      type: 'LAGU',
+      title: track.title,
+      meta: `${track.bandName || 'Band WiSpace'} / ${track.albumTitle || 'Rilisan'} / ${track.freeFull ? 'free full' : 'preview'}`,
+      onSelect: () => {
+        navigateInternalPage('explore', { exploreTab: 'rilisan' });
+        if (track.url) handlePlayTrack(track, filteredAlbumTracks);
+      }
+    })),
+    ...filteredBandProfiles.slice(0, 3).map((profile) => ({
+      id: `band-${profile.slug || profile.name}`,
+      type: 'BAND',
+      title: profile.name,
+      meta: `${profile.city || 'Indonesia'} / ${profile.genre || 'Indie'} / ${profile.slug || createSlug(profile.name)}`,
+      onSelect: () => openBandPublicProfile(false, profile)
+    })),
+    ...filteredArticles.slice(0, 3).map((article) => ({
+      id: `article-${article.id}`,
+      type: 'ARTIKEL',
+      title: article.title,
+      meta: `${article.category || 'Update Band'} / ${article.bandName || 'Band WiSpace'}`,
+      onSelect: () => navigateInternalPage('explore', { exploreTab: 'artikel' })
+    })),
+    ...filteredMerchItems.slice(0, 2).map((item) => ({
+      id: `merch-${item.id}`,
+      type: 'MERCH',
+      title: item.name,
+      meta: `${bandProfile.name || signatureName || 'Band WiSpace'} / Rp ${Number(item.price || 0).toLocaleString('id-ID')}`,
+      onSelect: () => navigateInternalPage('explore', { exploreTab: 'merch' })
+    }))
+  ].slice(0, 10) : [];
   const bandPublicTracks = albumItems
     .flatMap((album) => (album.tracks || []).map((track, index) => ({
       ...track,
@@ -2155,6 +2213,39 @@ export default function App() {
             </div>
           )}
         </div>
+      )}
+
+      {!loading && activePage === 'home' && !isAdminPage && normalizedSearchTerm && (
+        <section style={{ margin: '0 0 34px 0', padding: isTinyLayout ? '14px' : '18px', background: 'linear-gradient(180deg, rgba(10,10,10,0.96), rgba(3,3,3,0.98))', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 20px 64px rgba(0,0,0,0.5)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>GLOBAL FIND</p>
+              <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1, margin: 0 }}>HASIL UNTUK "{searchTerm.trim().toUpperCase()}"</h3>
+            </div>
+            <button onClick={() => setSearchTerm('')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '9px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
+          </div>
+
+          {quickSearchResults.length === 0 ? (
+            <div style={{ padding: '18px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+              <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ketemu. Coba cari nama band, genre, judul lagu, rilisan, artikel, atau merch.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+              {quickSearchResults.map((result) => (
+                <button
+                  key={result.id}
+                  type="button"
+                  onClick={result.onSelect}
+                  style={{ textAlign: 'left', padding: '13px 14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '5px' }}
+                >
+                  <span style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
+                  <span style={{ color: '#fff', fontSize: '14px', fontWeight: '900', lineHeight: 1.1 }}>{String(result.title || '').toUpperCase()}</span>
+                  <span style={{ color: '#777', fontSize: '12px', fontWeight: '700', lineHeight: 1.3 }}>{result.meta}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromHero && (
