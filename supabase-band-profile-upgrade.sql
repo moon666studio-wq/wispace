@@ -22,6 +22,12 @@ create table if not exists public.band_profiles (
   updated_at timestamptz not null default now()
 );
 
+create index if not exists band_profiles_slug_idx
+on public.band_profiles (slug);
+
+create index if not exists band_profiles_published_updated_idx
+on public.band_profiles (is_published, updated_at desc);
+
 create table if not exists public.band_agreements (
   user_id uuid primary key references auth.users(id) on delete cascade,
   signature_name text not null,

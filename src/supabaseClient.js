@@ -12,6 +12,7 @@ const createEmptyBuilder = () => {
     order: () => builder,
     limit: () => builder,
     insert: async () => ({ data: null, error: missingConfigError }),
+    upsert: async () => ({ data: null, error: missingConfigError }),
     update: () => ({
       eq: async () => ({ data: null, error: missingConfigError })
     }),

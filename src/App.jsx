@@ -6,10 +6,12 @@ import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, Doll
 const fetchCloudData = async () => {
   const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
   const { data: tracksData } = await supabase.from('tracks').select('*').order('created_at', { ascending: false }).limit(10);
+  const { data: bandProfilesData, error: bandProfilesError } = await supabase.from('band_profiles').select('*').order('updated_at', { ascending: false });
 
   return {
     gigsData: gigsData || [],
     tracksData: tracksData || [],
+    bandProfilesData: bandProfilesError ? loadPublicBandRegistry() : (bandProfilesData || []).map(mapBandProfileFromRow),
   };
 };
 
@@ -117,6 +119,47 @@ const loadPublicBandRegistry = () => {
 const savePublicBandRegistry = (profiles) => {
   window.localStorage.setItem(PUBLIC_BAND_REGISTRY_STORAGE_KEY, JSON.stringify(profiles));
 };
+
+const mapBandProfileFromRow = (row = {}) => ({
+  ...createEmptyBandProfile(),
+  name: row.name || '',
+  slug: row.slug || createSlug(row.name || ''),
+  headline: row.headline || '',
+  city: row.city || '',
+  genre: row.genre || '',
+  formedYear: row.formed_year || '',
+  cp: row.cp || '',
+  email: row.email || '',
+  instagram: row.instagram || '',
+  bio: row.bio || '',
+  coverName: row.cover_name || '',
+  coverPreview: row.cover_preview || '',
+  photoName: row.photo_name || '',
+  photoPreview: row.photo_preview || '',
+  isPublished: Boolean(row.is_published),
+  userId: row.user_id || '',
+  updatedAt: row.updated_at || ''
+});
+
+const mapBandProfileToRow = (profile = {}, user) => ({
+  user_id: user?.id,
+  name: profile.name || '',
+  slug: profile.slug || createSlug(profile.name || ''),
+  headline: profile.headline || '',
+  city: profile.city || '',
+  genre: profile.genre || '',
+  formed_year: profile.formedYear || '',
+  cp: profile.cp || '',
+  email: profile.email || '',
+  instagram: profile.instagram || '',
+  bio: profile.bio || '',
+  cover_name: profile.coverName || '',
+  cover_preview: profile.coverPreview || '',
+  photo_name: profile.photoName || '',
+  photo_preview: profile.photoPreview || '',
+  is_published: Boolean(profile.isPublished),
+  updated_at: new Date().toISOString()
+});
 
 const saveUserScopedData = (prefix, user, value) => {
   if (typeof window === 'undefined') return;
@@ -346,8 +389,20 @@ export default function App() {
       return nextProfiles;
     });
 
+    if (userSession?.id && publicProfile.name) {
+      const bandProfileRow = mapBandProfileToRow(publicProfile, userSession);
+      void supabase
+        .from('band_profiles')
+        .upsert(bandProfileRow, { onConflict: 'user_id' })
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync band profile ke Supabase:', error.message);
+          }
+        });
+    }
+
     return publicProfile;
-  }, [signatureName]);
+  }, [signatureName, userSession]);
 
   const exclusiveEventBanners = [
     ...gigs
@@ -518,9 +573,11 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData } = await fetchCloudData();
+    const { gigsData, tracksData, bandProfilesData } = await fetchCloudData();
     setGigs(gigsData);
     setTop10Tracks(tracksData);
+    setPublicBandProfiles(bandProfilesData);
+    savePublicBandRegistry(bandProfilesData);
     setLoading(false);
   };
 
@@ -528,11 +585,13 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, tracksData } = await fetchCloudData();
+      const { gigsData, tracksData, bandProfilesData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
       setTop10Tracks(tracksData);
+      setPublicBandProfiles(bandProfilesData);
+      savePublicBandRegistry(bandProfilesData);
       setLoading(false);
     };
 
@@ -771,6 +830,19 @@ export default function App() {
     }, userSession);
     if (userSession) {
       supabase.auth.updateUser({ data: { role: 'musisi' } });
+      void supabase
+        .from('band_agreements')
+        .upsert({
+          user_id: userSession.id,
+          signature_name: signedBandName,
+          signed_at: signedAt,
+          accepted: true
+        }, { onConflict: 'user_id' })
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync agreement ke Supabase:', error.message);
+          }
+        });
     }
     setBandProfile((current) => {
       const nextProfile = {
