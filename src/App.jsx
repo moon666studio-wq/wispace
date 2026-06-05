@@ -113,6 +113,7 @@ export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [activePage, setActivePage] = useState('home');
+  const [viewportWidth, setViewportWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1280);
   const [exploreTab, setExploreTab] = useState('rilisan');
   const [bandProfileTab, setBandProfileTab] = useState('profile');
   const [isViewingOwnBandProfile, setIsViewingOwnBandProfile] = useState(true);
@@ -383,6 +384,12 @@ export default function App() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // FETCH DATABASE CLOUD
@@ -1034,9 +1041,19 @@ export default function App() {
     outline: 'none'
   };
 
+  const isCompactLayout = viewportWidth < 820;
+  const isTinyLayout = viewportWidth < 560;
+  const innerPagePadding = isTinyLayout ? '88px 16px 20px' : isCompactLayout ? '90px 20px 24px' : '92px 30px 34px';
+  const splitGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.25fr) minmax(260px, 0.75fr)';
+  const studioGridColumns = isCompactLayout ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))';
+  const publicBandHeroColumns = isTinyLayout ? '1fr' : '136px minmax(0, 1fr)';
+  const publicBandAvatarSize = isTinyLayout ? 104 : 136;
+  const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
+  const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
+
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
-    padding: '92px 30px 34px',
+    padding: innerPagePadding,
     background: 'linear-gradient(180deg, #060606 0%, #030303 100%)',
     border: '1px solid rgba(0,210,255,0.16)',
     borderRadius: '14px',
@@ -1154,7 +1171,7 @@ export default function App() {
 
       {/* FLOATING MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
-        <div style={{ position: 'fixed', top: '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '6px' : '10px', padding: isTinyLayout ? '7px 8px' : '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
           <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
@@ -1179,7 +1196,7 @@ export default function App() {
               </button>
             </>
           )}
-          <div style={{ position: 'relative', width: '190px', maxWidth: '30vw' }}>
+          <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
             <Search size={12} color="#666" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#fff', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
           </div>
@@ -1286,7 +1303,7 @@ export default function App() {
       )}
 
       {!loading && selectedGigDetail?.fromHero && (
-        <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start' }}>
+        <section style={{ margin: '0 0 34px 0', padding: '18px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start' }}>
           <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
             {selectedGigDetail.image ? (
               <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
@@ -1441,7 +1458,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
             <div>
               <section style={{ marginBottom: '26px' }}>
                 <h3 style={sectionHeadingStyle}>LATEST DIGITAL RELEASES</h3>
@@ -1710,7 +1727,7 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(260px, 0.6fr)', gap: '24px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '24px', alignItems: 'start' }}>
               <main style={{ display: 'grid', gap: '18px' }}>
                 {articleItems.map((article) => (
                   <article key={article.id} style={{ ...glassStyle(`article-${article.id}`), padding: '20px', backgroundColor: '#090909' }}>
@@ -1741,15 +1758,15 @@ export default function App() {
       {/* PUBLIC BAND PROFILE PAGE */}
       {!loading && isBandPublicPage && (
         <section style={{ minHeight: 'calc(100vh - 40px)', background: 'linear-gradient(180deg, #060606 0%, #030303 100%)', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '14px', overflow: 'hidden', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)' }}>
-          <div style={{ position: 'relative', minHeight: '470px', display: 'flex', alignItems: 'flex-end', padding: '92px 38px 38px', boxSizing: 'border-box' }}>
+          <div style={{ position: 'relative', minHeight: isTinyLayout ? '430px' : '470px', display: 'flex', alignItems: 'flex-end', padding: isTinyLayout ? '98px 20px 28px' : '92px 38px 38px', boxSizing: 'border-box' }}>
             {bandProfile.coverPreview ? (
               <img src={bandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #050505 0%, #072027 45%, #000 100%)' }} />
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(0,210,255,0.18), transparent 34%), linear-gradient(to top, rgba(3,3,3,1), rgba(3,3,3,0.62), rgba(3,3,3,0.16))' }} />
-            <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: '136px minmax(0, 1fr)', gap: '24px', alignItems: 'end', width: '100%' }}>
-              <div style={{ width: '136px', height: '136px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.72)', display: 'grid', placeItems: 'center', boxShadow: '0 24px 55px rgba(0,0,0,0.55), 0 0 30px rgba(0,210,255,0.2)' }}>
+            <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: publicBandHeroColumns, gap: '24px', alignItems: 'end', width: '100%' }}>
+              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.72)', display: 'grid', placeItems: 'center', boxShadow: '0 24px 55px rgba(0,0,0,0.55), 0 0 30px rgba(0,210,255,0.2)' }}>
                 {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
               </div>
               <div>
@@ -1761,7 +1778,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ padding: '30px', display: 'grid', gridTemplateColumns: 'minmax(280px, 1.25fr) minmax(260px, 0.75fr)', gap: '24px', alignItems: 'start' }}>
+          <div style={{ padding: isTinyLayout ? '20px 16px 24px' : '30px', display: 'grid', gridTemplateColumns: splitGridColumns, gap: '24px', alignItems: 'start' }}>
             <main>
               <div style={{ ...glassStyle('band-owner-actions'), padding: '14px', backgroundColor: '#090909', marginBottom: '24px', display: showBandOwnerControls ? 'block' : 'none' }}>
                 <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>OWNER ACTIONS</p>
@@ -1880,7 +1897,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
             <form onSubmit={handleBandSubmit} style={{ ...glassStyle('gig-upload-form'), padding: '20px', backgroundColor: '#090909' }}>
               <h3 style={sectionHeadingStyle}>UPLOAD PAMFLET EVENT</h3>
               <p style={{ color: '#666', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.4 }}>Isi data gigs, lalu kirim ke admin WiSpace untuk dicek sebelum tampil publik.</p>
@@ -2007,7 +2024,7 @@ export default function App() {
             <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BUKA LIBRARY</button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 0.85fr) minmax(300px, 1.15fr)', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: splitGridColumns, gap: '24px', alignItems: 'start' }}>
             <aside style={{ ...glassStyle('audience-account-card'), padding: '22px', backgroundColor: '#090909' }}>
               <div style={{ width: '92px', height: '92px', borderRadius: '18px', backgroundColor: '#000', border: '2px solid rgba(0,210,255,0.65)', display: 'grid', placeItems: 'center', boxShadow: '0 0 30px rgba(0,210,255,0.16)', marginBottom: '18px', overflow: 'hidden' }}>
                 {audienceProfile.photoPreview ? (
@@ -2132,7 +2149,7 @@ export default function App() {
               <button onClick={() => { setActivePage('explore'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)', gap: '24px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: libraryDetailGridColumns, gap: '24px', alignItems: 'start' }}>
               <section style={{ ...glassStyle('library-list'), padding: '20px', backgroundColor: '#090909' }}>
                 <h3 style={sectionHeadingStyle}>PURCHASED RELEASES</h3>
                 <div style={{ display: 'grid', gap: '12px' }}>
@@ -2270,7 +2287,7 @@ export default function App() {
             <p style={{ color: bandBalance >= 100000 ? '#39ff14' : '#ff3333', fontSize: '12px', fontWeight: '900', margin: '12px 0 0 0' }}>{bandBalance >= 100000 ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(100000 - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '18px' }}>
             <section style={{ ...glassStyle('finance-rules'), padding: '20px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>ATURAN PENCAIRAN</h3>
               <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp 100.000. WiSpace mengambil flat 20% dari penjualan bersih, band menerima 80%.</p>
@@ -2294,7 +2311,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
             <aside style={{ ...glassStyle('band-preview'), padding: '18px', backgroundColor: '#090909' }}>
               <div style={{ position: 'relative', minHeight: '210px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '18px' }}>
                 {bandProfile.coverPreview ? (
