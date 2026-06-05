@@ -60,6 +60,7 @@ const PUBLIC_BAND_REGISTRY_STORAGE_KEY = 'wispace_public_band_registry';
 const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
 const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
 const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
+const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -164,6 +165,15 @@ const loadPublicMerchRegistry = () => {
 
 const savePublicMerchRegistry = (merch) => {
   window.localStorage.setItem(PUBLIC_MERCH_REGISTRY_STORAGE_KEY, JSON.stringify(merch));
+};
+
+const loadTransactionLedger = () => {
+  const ledger = readLocalJson(PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY);
+  return Array.isArray(ledger) ? ledger : [];
+};
+
+const saveTransactionLedger = (transactions) => {
+  window.localStorage.setItem(PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY, JSON.stringify(transactions));
 };
 
 const mapBandProfileFromRow = (row = {}) => ({
@@ -383,6 +393,7 @@ export default function App() {
   const [publicBandProfiles, setPublicBandProfiles] = useState(loadPublicBandRegistry);
   const [publicArticleItems, setPublicArticleItems] = useState(loadPublicArticleRegistry);
   const [publicMerchItems, setPublicMerchItems] = useState(loadPublicMerchRegistry);
+  const [saleTransactions, setSaleTransactions] = useState(loadTransactionLedger);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -412,9 +423,6 @@ export default function App() {
   const [gigs, setGigs] = useState([]);
   const [top10Tracks, setTop10Tracks] = useState([]); 
   const [loading, setLoading] = useState(true);
-
-  // MOCK FINANCIAL DATA BAND (Contoh Tampilan Saldo)
-  const [bandBalance] = useState(75000); // Contoh saldo awal 75rb
 
   const audioRef = useRef(new Audio());
   const timerRef = useRef(null);
@@ -1415,6 +1423,37 @@ export default function App() {
     alert('Album masuk draft rilisan dan sudah muncul di Explore. Nanti ini akan lanjut ke storage, agreement log, dan checkout.');
   };
 
+  const recordBandSale = useCallback((sale) => {
+    const grossAmount = normalizePriceValue(sale.amount);
+    const platformFee = Math.round(grossAmount * 0.2);
+    const bandNet = Math.max(0, grossAmount - platformFee);
+    const sellerBandName = sale.sellerBandName || bandProfile.name || signatureName || 'Band WiSpace';
+    const sellerBandSlug = sale.sellerBandSlug || bandProfile.slug || createSlug(sellerBandName);
+    const nextTransaction = {
+      id: createClientId(),
+      productType: sale.productType || 'release',
+      productTitle: sale.productTitle || 'Transaksi WiSpace',
+      sellerBandName,
+      sellerBandSlug,
+      buyerName: audienceProfile.displayName || userSession?.email?.split('@')[0] || 'Audience WiSpace',
+      buyerEmail: userSession?.email || '',
+      grossAmount,
+      platformFee,
+      bandNet,
+      revenueShare: '80/20',
+      status: 'paid_demo',
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+
+    setSaleTransactions((current) => {
+      const nextLedger = [nextTransaction, ...current];
+      saveTransactionLedger(nextLedger);
+      return nextLedger;
+    });
+
+    return nextTransaction;
+  }, [audienceProfile.displayName, bandProfile.name, bandProfile.slug, signatureName, userSession]);
+
   const handlePurchaseAlbum = (album) => {
     if (!userSession) {
       setAuthType('join');
@@ -1435,7 +1474,14 @@ export default function App() {
       persistAudienceLibraryLocal(nextLibrary);
       return nextLibrary;
     });
-    alert(`${album.title} masuk ke Audience Library. Nanti ini diganti checkout/payment beneran.`);
+    const sale = recordBandSale({
+      productType: 'album',
+      productTitle: album.title,
+      amount: album.price,
+      sellerBandName: album.bandName,
+      sellerBandSlug: album.bandSlug || createSlug(album.bandName || '')
+    });
+    alert(`${album.title} masuk Library. Gross Rp ${sale.grossAmount.toLocaleString('id-ID')} | WiSpace 20% Rp ${sale.platformFee.toLocaleString('id-ID')} | Band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
   };
 
   const handlePurchaseTrack = (album, track) => {
@@ -1472,7 +1518,14 @@ export default function App() {
       persistAudienceLibraryLocal(nextLibrary);
       return nextLibrary;
     });
-    alert(`${track.title} masuk ke Audience Library sebagai pembelian per track.`);
+    const sale = recordBandSale({
+      productType: 'track',
+      productTitle: track.title,
+      amount: track.price,
+      sellerBandName: album.bandName,
+      sellerBandSlug: album.bandSlug || createSlug(album.bandName || '')
+    });
+    alert(`${track.title} masuk Library sebagai track. Gross Rp ${sale.grossAmount.toLocaleString('id-ID')} | WiSpace 20% Rp ${sale.platformFee.toLocaleString('id-ID')} | Band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
   };
 
   const handlePurchaseMerch = (item) => {
@@ -1483,7 +1536,14 @@ export default function App() {
       return;
     }
 
-    alert(`${item.name} masuk draft order merch. Nanti ini kita sambungkan ke checkout, stok, dan shipping.`);
+    const sale = recordBandSale({
+      productType: 'merch',
+      productTitle: item.name,
+      amount: item.price,
+      sellerBandName: item.bandName,
+      sellerBandSlug: item.bandSlug || createSlug(item.bandName || '')
+    });
+    alert(`${item.name} masuk draft order merch. Gross Rp ${sale.grossAmount.toLocaleString('id-ID')} | WiSpace 20% Rp ${sale.platformFee.toLocaleString('id-ID')} | Band net Rp ${sale.bandNet.toLocaleString('id-ID')}. Shipping/tracking nanti disambung ke API ekspedisi.`);
   };
 
   const handleMerchDraftSubmit = (event) => {
@@ -1810,6 +1870,12 @@ export default function App() {
   const displayBandMerchItems = publicMerchList.filter((item) => (
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
   ));
+  const financeTransactions = saleTransactions.filter((transaction) => (
+    transaction.sellerBandSlug === currentBandSlug || transaction.sellerBandName === displayBandProfile.name || transaction.sellerBandName === bandProfile.name
+  ));
+  const bandBalance = financeTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
+  const bandGrossRevenue = financeTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
+  const wispaceFeeRevenue = financeTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -3488,6 +3554,14 @@ export default function App() {
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>SALDO SIAP CAIR</p>
               <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandBalance.toLocaleString('id-ID')}</h3>
             </div>
+            <div style={{ ...glassStyle('finance-gross'), padding: '20px', backgroundColor: '#090909' }}>
+              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>GROSS SALES</p>
+              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandGrossRevenue.toLocaleString('id-ID')}</h3>
+            </div>
+            <div style={{ ...glassStyle('finance-fee'), padding: '20px', backgroundColor: '#090909' }}>
+              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>WISPACE FEE 20%</p>
+              <h3 style={{ color: '#00d2ff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {wispaceFeeRevenue.toLocaleString('id-ID')}</h3>
+            </div>
             <div style={{ ...glassStyle('finance-minimum'), padding: '20px', backgroundColor: '#090909' }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MINIMUM PENARIKAN</p>
               <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp 100.000</h3>
@@ -3516,7 +3590,24 @@ export default function App() {
             </section>
             <section style={{ ...glassStyle('finance-history'), padding: '20px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>RIWAYAT TRANSAKSI</h3>
-              <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi real. Nanti bagian ini menampilkan penjualan album, merchandise, fee platform, dan status payout.</p>
+              {financeTransactions.length === 0 ? (
+                <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini dengan split 80/20.</p>
+              ) : (
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {financeTransactions.slice(0, 10).map((transaction) => (
+                    <div key={transaction.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#39ff14', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{transaction.productType.toUpperCase()} / {transaction.createdAt}</p>
+                          <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{transaction.productTitle.toUpperCase()}</h4>
+                        </div>
+                        <strong style={{ color: '#fff', fontSize: '13px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
+                      </div>
+                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Buyer: {transaction.buyerName} / Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Fee WiSpace Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Status {transaction.status}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </section>
