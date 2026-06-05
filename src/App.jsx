@@ -8,12 +8,24 @@ const fetchCloudData = async () => {
   const { data: tracksData } = await supabase.from('tracks').select('*').order('created_at', { ascending: false }).limit(10);
   const { data: bandProfilesData, error: bandProfilesError } = await supabase.from('band_profiles').select('*').order('updated_at', { ascending: false });
   const { data: releasesData, error: releasesError } = await supabase.from('releases').select('*, release_tracks(*)').order('created_at', { ascending: false });
+  const { data: articlesData, error: articlesError } = await supabase.from('band_articles').select('*').order('created_at', { ascending: false });
+  const { data: merchData, error: merchError } = await supabase.from('merch_items').select('*').order('created_at', { ascending: false });
+  const { data: commentsData, error: commentsError } = await supabase.from('article_comments').select('*').order('created_at', { ascending: false });
 
   return {
     gigsData: gigsData || [],
     tracksData: tracksData || [],
     bandProfilesData: bandProfilesError ? loadPublicBandRegistry() : (bandProfilesData || []).map(mapBandProfileFromRow),
-    releasesData: releasesError ? loadPublicReleaseRegistry() : (releasesData || []).map(mapReleaseFromRow),
+    releasesData: releasesError
+      ? loadPublicReleaseRegistry()
+      : (releasesData || []).filter((row) => row.is_active !== false).map(mapReleaseFromRow).filter((release) => release.trackCount > 0),
+    articlesData: articlesError
+      ? loadPublicArticleRegistry()
+      : (articlesData || []).filter((row) => row.is_published !== false).map(mapArticleFromRow),
+    merchData: merchError
+      ? loadPublicMerchRegistry()
+      : (merchData || []).filter((row) => row.is_active !== false).map(mapMerchFromRow),
+    articleCommentsData: commentsError ? loadArticleComments() : mapArticleCommentsFromRows(commentsData || []),
   };
 };
 
@@ -249,6 +261,7 @@ const mapBandProfileToRow = (profile = {}, user) => ({
 
 const mapReleaseFromRow = (row = {}) => {
   const tracks = Array.isArray(row.release_tracks) ? row.release_tracks : [];
+  const activeTracks = tracks.filter((track) => track.is_active !== false);
   return {
     id: row.id || createClientId(),
     title: row.title || 'Rilisan WiSpace',
@@ -256,8 +269,8 @@ const mapReleaseFromRow = (row = {}) => {
     description: row.description || '',
     coverPreview: row.cover_preview || '',
     coverName: row.cover_name || '',
-    trackCount: tracks.length || row.track_count || 0,
-    tracks: tracks
+    trackCount: activeTracks.length || (tracks.length ? 0 : row.track_count || 0),
+    tracks: activeTracks
       .slice()
       .sort((firstTrack, secondTrack) => (firstTrack.track_order || 0) - (secondTrack.track_order || 0))
       .map((track) => ({
@@ -275,9 +288,58 @@ const mapReleaseFromRow = (row = {}) => {
     genre: row.genre || 'Indie',
     signedBy: row.signed_by || row.band_name || 'Band WiSpace',
     releaseType: row.release_type || 'album',
+    isActive: row.is_active !== false,
     updatedAt: row.updated_at || row.created_at || ''
   };
 };
+
+const mapMerchFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  bandName: row.band_name || 'Band WiSpace',
+  bandSlug: row.band_slug || createSlug(row.band_name || 'Band WiSpace'),
+  name: row.name || 'Merch WiSpace',
+  description: row.description || '',
+  price: row.price || '',
+  stock: row.stock || 0,
+  imageName: row.image_name || '',
+  imagePreview: row.image_preview || '',
+  genre: row.genre || 'Indie',
+  city: row.city || 'Indonesia',
+  isActive: row.is_active !== false,
+  updatedAt: row.updated_at || row.created_at || ''
+});
+
+const mapArticleFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  bandName: row.band_name || 'Band WiSpace',
+  bandSlug: row.band_slug || createSlug(row.band_name || 'Band WiSpace'),
+  title: row.title || 'Artikel WiSpace',
+  category: row.category || 'Update Band',
+  excerpt: row.excerpt || '',
+  body: row.body || '',
+  genre: row.genre || 'Indie',
+  city: row.city || 'Indonesia',
+  createdAt: row.created_at
+    ? new Date(row.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '',
+  updatedAt: row.updated_at || row.created_at || ''
+});
+
+const mapArticleCommentsFromRows = (rows = []) => rows.reduce((commentsByArticle, row = {}) => {
+  if (!row.article_id) return commentsByArticle;
+  const nextComment = {
+    id: row.id || createClientId(),
+    author: row.author_name || 'Audience WiSpace',
+    body: row.body || '',
+    createdAt: row.created_at
+      ? new Date(row.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+      : ''
+  };
+  return {
+    ...commentsByArticle,
+    [row.article_id]: [...(commentsByArticle[row.article_id] || []), nextComment]
+  };
+}, {});
 
 const saveUserScopedData = (prefix, user, value) => {
   if (typeof window === 'undefined') return;
@@ -616,8 +678,34 @@ export default function App() {
     ];
     savePublicMerchRegistry(nextItems);
     setPublicMerchItems(nextItems);
+
+    if (isSupabaseConfigured && userSession?.id && publicItem.name) {
+      const merchRow = {
+        id: merchId,
+        band_user_id: userSession.id,
+        band_name: publicItem.bandName,
+        band_slug: publicItem.bandSlug,
+        name: publicItem.name,
+        description: publicItem.description || '',
+        price: normalizePriceValue(publicItem.price),
+        stock: normalizePriceValue(publicItem.stock),
+        image_name: publicItem.imageName || '',
+        image_preview: publicItem.imagePreview || '',
+        genre: publicItem.genre || 'Indie',
+        city: publicItem.city || 'Indonesia',
+        is_active: true,
+        updated_at: new Date().toISOString()
+      };
+
+      void supabase.from('merch_items').upsert(merchRow).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync merch ke Supabase:', error.message);
+        }
+      });
+    }
+
     return publicItem;
-  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName]);
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
 
   const publishPublicArticle = useCallback((article) => {
     const articleId = article.id || createClientId();
@@ -627,8 +715,8 @@ export default function App() {
       id: articleId,
       bandName,
       bandSlug: article.bandSlug || bandProfile.slug || createSlug(bandName),
-      genre: bandProfile.genre || article.genre || 'Indie',
-      city: bandProfile.city || article.city || 'Indonesia',
+      genre: article.genre || bandProfile.genre || 'Indie',
+      city: article.city || bandProfile.city || 'Indonesia',
       updatedAt: new Date().toISOString()
     };
     const nextArticles = [
@@ -637,8 +725,32 @@ export default function App() {
     ];
     savePublicArticleRegistry(nextArticles);
     setPublicArticleItems(nextArticles);
+
+    if (isSupabaseConfigured && userSession?.id && publicArticle.title) {
+      const articleRow = {
+        id: articleId,
+        band_user_id: article.bandUserId || userSession.id,
+        band_name: publicArticle.bandName,
+        band_slug: publicArticle.bandSlug,
+        title: publicArticle.title,
+        category: publicArticle.category || 'Update Band',
+        excerpt: publicArticle.excerpt || '',
+        body: publicArticle.body || '',
+        genre: publicArticle.genre || 'Indie',
+        city: publicArticle.city || 'Indonesia',
+        is_published: true,
+        updated_at: new Date().toISOString()
+      };
+
+      void supabase.from('band_articles').upsert(articleRow).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync artikel ke Supabase:', error.message);
+        }
+      });
+    }
+
     return publicArticle;
-  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName]);
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
 
   const exclusiveEventBanners = [
     ...gigs
@@ -816,13 +928,19 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData, releasesData } = await fetchCloudData();
+    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData } = await fetchCloudData();
     setGigs(gigsData);
     setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
     setAlbumItems(releasesData);
+    setPublicArticleItems(articlesData);
+    setPublicMerchItems(merchData);
+    setArticleComments(articleCommentsData);
     savePublicBandRegistry(bandProfilesData);
     savePublicReleaseRegistry(releasesData);
+    savePublicArticleRegistry(articlesData);
+    savePublicMerchRegistry(merchData);
+    saveArticleComments(articleCommentsData);
     setLoading(false);
   };
 
@@ -830,15 +948,21 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, tracksData, bandProfilesData, releasesData } = await fetchCloudData();
+      const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
       setTop10Tracks(tracksData);
       setPublicBandProfiles(bandProfilesData);
       setAlbumItems(releasesData);
+      setPublicArticleItems(articlesData);
+      setPublicMerchItems(merchData);
+      setArticleComments(articleCommentsData);
       savePublicBandRegistry(bandProfilesData);
       savePublicReleaseRegistry(releasesData);
+      savePublicArticleRegistry(articlesData);
+      savePublicMerchRegistry(merchData);
+      saveArticleComments(articleCommentsData);
       setLoading(false);
     };
 
@@ -1564,7 +1688,28 @@ export default function App() {
       savePublicReleaseRegistry(nextAlbums);
       return nextAlbums;
     });
-    alert('Rilisan sudah dihapus dari draft/public registry. Nanti versi Supabase akan soft-delete juga.');
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase
+        .from('releases')
+        .update({ is_active: false, is_published: false, updated_at: new Date().toISOString() })
+        .eq('id', album.id)
+        .then(async ({ error }) => {
+          if (error && isMissingColumnError(error)) {
+            const { error: fallbackError } = await supabase
+              .from('releases')
+              .update({ is_published: false, updated_at: new Date().toISOString() })
+              .eq('id', album.id);
+            if (fallbackError && !isMissingColumnError(fallbackError)) {
+              console.warn('Gagal sync hapus rilisan ke Supabase:', fallbackError.message);
+            }
+            return;
+          }
+          if (error) console.warn('Gagal sync hapus rilisan ke Supabase:', error.message);
+        });
+    }
+
+    alert('Rilisan sudah dihapus dari etalase dan Explore.');
   };
 
   const handleDeleteAlbumTrack = (album, track) => {
@@ -1594,6 +1739,19 @@ export default function App() {
       setActiveTrack(null);
       setPlayerQueue([]);
     }
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase
+        .from('release_tracks')
+        .update({ is_active: false })
+        .eq('id', track.id)
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync hapus lagu ke Supabase:', error.message);
+          }
+        });
+    }
+
     alert('Lagu sudah dihapus. Kalau track terakhir di album dihapus, albumnya ikut hilang dari Explore.');
   };
 
@@ -1761,6 +1919,19 @@ export default function App() {
       savePublicMerchRegistry(nextPublicItems);
       return nextPublicItems;
     });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase
+        .from('merch_items')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('id', item.id)
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync hapus merch ke Supabase:', error.message);
+          }
+        });
+    }
+
     alert('Merch sudah dihapus dari etalase dan Explore.');
   };
 
@@ -1841,6 +2012,20 @@ export default function App() {
       return nextComments;
     });
     setArticleCommentDrafts((current) => ({ ...current, [article.id]: '' }));
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase.from('article_comments').insert([{
+        id: nextComment.id,
+        article_id: article.id,
+        author_user_id: userSession.id,
+        author_name: author,
+        body: commentText
+      }]).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync komentar artikel ke Supabase:', error.message);
+        }
+      });
+    }
   };
 
   const handleMessageSubmit = (event) => {
