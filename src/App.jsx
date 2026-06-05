@@ -1234,6 +1234,27 @@ export default function App() {
     scrollSnapAlign: 'start',
     minWidth: 0
   };
+  const ownerActionsPanelStyle = {
+    ...glassStyle('band-owner-actions'),
+    padding: isTinyLayout ? '9px' : '10px',
+    backgroundColor: '#080808',
+    marginBottom: isTinyLayout ? '16px' : '18px',
+    display: showBandOwnerControls ? 'block' : 'none',
+    borderRadius: '12px'
+  };
+  const ownerActionsGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(118px, 1fr))',
+    gap: isTinyLayout ? '7px' : '8px'
+  };
+  const ownerActionButtonStyle = {
+    ...glassButtonStyle,
+    padding: isTinyLayout ? '8px 7px' : '9px 8px',
+    fontSize: '10px',
+    lineHeight: 1.15,
+    borderRadius: '10px',
+    minHeight: isTinyLayout ? '34px' : '36px'
+  };
 
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
@@ -1970,16 +1991,16 @@ export default function App() {
 
           <div style={{ padding: isTinyLayout ? '20px 16px 24px' : '30px', display: 'grid', gridTemplateColumns: splitGridColumns, gap: '24px', alignItems: 'start' }}>
             <main>
-              <div style={{ ...glassStyle('band-owner-actions'), padding: '14px', backgroundColor: '#090909', marginBottom: '24px', display: showBandOwnerControls ? 'block' : 'none' }}>
-                <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>OWNER ACTIONS</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
-                  <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>EDIT PROFILE</button>
-                  <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>UPLOAD ALBUM</button>
-                  <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>MERCHANDISE</button>
-                  <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>TULIS ARTIKEL</button>
-                  <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>UPLOAD PAMFLET GIGS</button>
-                  <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', color: '#fff', borderColor: '#444' }}>JADWAL MANGGUNG</button>
-                  <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px', background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>DASHBOARD KEUANGAN</button>
+              <div style={ownerActionsPanelStyle}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>OWNER ACTIONS</p>
+                <div style={ownerActionsGridStyle}>
+                  <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>EDIT PROFILE</button>
+                  <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>UPLOAD ALBUM</button>
+                  <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>MERCH</button>
+                  <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>ARTIKEL</button>
+                  <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>PAMFLET</button>
+                  <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>JADWAL</button>
+                  <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
                 </div>
               </div>
 
