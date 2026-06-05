@@ -45,6 +45,7 @@ const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('
 const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
 const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
 const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
+const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
@@ -219,6 +220,7 @@ export default function App() {
     body: ''
   });
   const [articleItems, setArticleItems] = useState([]);
+  const [subscribedBands, setSubscribedBands] = useState([]);
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
     contact: '',
@@ -272,6 +274,9 @@ export default function App() {
   const persistBandArticlesLocal = useCallback((articles, user = userSession) => {
     saveUserScopedData(BAND_ARTICLES_STORAGE_PREFIX, user, articles);
   }, [userSession]);
+  const persistBandSubscriptionsLocal = useCallback((subscriptions, user = userSession) => {
+    saveUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, user, subscriptions);
+  }, [userSession]);
 
   const exclusiveEventBanners = [
     ...gigs
@@ -312,6 +317,7 @@ export default function App() {
       const storedProfile = loadUserScopedData(BAND_PROFILE_STORAGE_PREFIX, userSession);
       const storedAgreement = loadUserScopedData(BAND_AGREEMENT_STORAGE_PREFIX, userSession);
       const storedArticles = loadUserScopedData(BAND_ARTICLES_STORAGE_PREFIX, userSession);
+      const storedSubscriptions = loadUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, userSession);
 
       if (storedProfile) {
         const safeStoredProfile = trimOversizedBandPreview(storedProfile);
@@ -335,6 +341,10 @@ export default function App() {
       if (Array.isArray(storedArticles)) {
         setArticleItems(storedArticles);
       }
+
+      if (Array.isArray(storedSubscriptions)) {
+        setSubscribedBands(storedSubscriptions);
+      }
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
@@ -352,6 +362,7 @@ export default function App() {
     setAuthError('');
     setSearchTerm('');
     setIsSearchExpanded(false);
+    setSubscribedBands([]);
     if (window.location.pathname.startsWith('/band/')) {
       window.history.pushState({ page: 'home' }, '', '/');
     }
@@ -570,6 +581,37 @@ export default function App() {
     } catch {
       window.prompt('Copy link profile band:', profileUrl);
     }
+  };
+
+  const handleBandSubscribeToggle = () => {
+    if (!userSession) {
+      setAuthType('join');
+      setShowAuthModal(true);
+      setAuthError(`Join atau login dulu buat subscribe ${(bandProfile.name || signatureName || 'band ini').toUpperCase()} dan dapet notif update.`);
+      return;
+    }
+
+    const bandSlug = getBandProfileSlug();
+    const bandName = bandProfile.name || signatureName || 'Band WiSpace';
+    const isSubscribed = subscribedBands.some((item) => item.slug === bandSlug);
+    const nextSubscriptions = isSubscribed
+      ? subscribedBands.filter((item) => item.slug !== bandSlug)
+      : [
+          {
+            slug: bandSlug,
+            name: bandName,
+            genre: bandProfile.genre || 'Indie',
+            city: bandProfile.city || 'Indonesia',
+            subscribedAt: new Date().toISOString()
+          },
+          ...subscribedBands
+        ];
+
+    setSubscribedBands(nextSubscriptions);
+    persistBandSubscriptionsLocal(nextSubscriptions);
+    alert(isSubscribed
+      ? `Subscribe ke ${bandName} dibatalin bro.`
+      : `Subscribed ke ${bandName}. Nanti update rilisan, gigs, artikel, dan merch bisa masuk notif.`);
   };
 
   const handleContractSignature = (e) => {
@@ -1020,6 +1062,7 @@ export default function App() {
   const isBandAccount = userRole === 'musisi' || hasBandIdentity;
   const showBandOwnerControls = isBandAccount && isViewingOwnBandProfile;
   const showBandContactForm = !showBandOwnerControls;
+  const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === getBandProfileSlug());
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
 
@@ -1984,7 +2027,17 @@ export default function App() {
                 <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
                 <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{bandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
                 <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath()}</p>
-                <button onClick={copyBandProfileLink} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content' }}>COPY PROFILE LINK</button>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+                  {!showBandOwnerControls && (
+                    <button onClick={handleBandSubscribeToggle} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content', background: isSubscribedToCurrentBand ? 'rgba(57,255,20,0.1)' : glassButtonStyle.background, border: isSubscribedToCurrentBand ? '1px solid rgba(57,255,20,0.35)' : glassButtonStyle.border, color: isSubscribedToCurrentBand ? '#39ff14' : '#00d2ff' }}>
+                      {isSubscribedToCurrentBand ? 'SUBSCRIBED' : 'SUBSCRIBE BAND'}
+                    </button>
+                  )}
+                  <button onClick={copyBandProfileLink} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content' }}>COPY PROFILE LINK</button>
+                </div>
+                {!showBandOwnerControls && isSubscribedToCurrentBand && (
+                  <p style={{ color: '#39ff14', fontSize: '11px', fontWeight: '900', margin: '10px 0 0 0' }}>Notif update band aktif di draft subscription.</p>
+                )}
               </div>
             </div>
           </div>
