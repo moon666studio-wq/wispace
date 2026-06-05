@@ -1034,6 +1034,83 @@ export default function App() {
     outline: 'none'
   };
 
+  const pageShellStyle = {
+    minHeight: 'calc(100vh - 40px)',
+    padding: '92px 30px 34px',
+    background: 'linear-gradient(180deg, #060606 0%, #030303 100%)',
+    border: '1px solid rgba(0,210,255,0.16)',
+    borderRadius: '14px',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)'
+  };
+
+  const pageHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: '24px',
+    marginBottom: '34px',
+    flexWrap: 'wrap',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    paddingBottom: '22px'
+  };
+
+  const eyebrowStyle = {
+    color: '#00d2ff',
+    fontSize: '11px',
+    fontWeight: '900',
+    letterSpacing: '1.4px',
+    margin: '0 0 9px 0'
+  };
+
+  const pageTitleStyle = {
+    color: '#fff',
+    fontSize: 'clamp(30px, 5vw, 48px)',
+    fontWeight: '900',
+    margin: 0,
+    lineHeight: 0.95
+  };
+
+  const pageLeadStyle = {
+    color: '#8a8a8a',
+    fontSize: '14px',
+    margin: '12px 0 0 0',
+    maxWidth: '760px',
+    lineHeight: 1.55
+  };
+
+  const sectionHeadingStyle = {
+    color: '#f5f5f5',
+    fontSize: '15px',
+    fontWeight: '900',
+    margin: '0 0 16px 0',
+    letterSpacing: '0.8px'
+  };
+
+  const exploreCopy = {
+    rilisan: {
+      eyebrow: 'WISPACE RELEASES',
+      title: 'RILISAN DIGITAL',
+      lead: 'Katalog album digital dan preview 30 detik dari musisi indie. Cover, harga, genre, dan band dibuat gampang discan.'
+    },
+    band: {
+      eyebrow: 'WISPACE BAND INDEX',
+      title: 'BAND DIRECTORY',
+      lead: 'Tempat audience, band lain, dan promotor nemu profile band, kontak, rilisan, merch, dan jadwal manggung.'
+    },
+    artikel: {
+      eyebrow: 'WISPACE ARTICLES',
+      title: 'ARTIKEL SKENA',
+      lead: 'Arsip cerita band, catatan rilisan, interview, dan pergerakan musik independen.'
+    },
+    merch: {
+      eyebrow: 'WISPACE DISTRO',
+      title: 'MERCH BAND',
+      lead: 'Etalase merchandise band: kaos, CD, kaset, stiker, bundle album, dan item fisik lain dari komunitas.'
+    }
+  };
+
+  const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
+
   return (
     <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: '20px', fontFamily: "'League Spartan', sans-serif", boxSizing: 'border-box' }}>
       {!isSupabaseConfigured && (
@@ -1077,7 +1154,7 @@ export default function App() {
 
       {/* FLOATING MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
-        <div style={{ position: 'fixed', top: '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box' }}>
+        <div style={{ position: 'fixed', top: '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
           <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
@@ -1088,7 +1165,7 @@ export default function App() {
             <button
               key={tab}
               onClick={() => { setActivePage('explore'); setExploreTab(tab); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              style={{ background: 'transparent', border: 'none', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}
+              style={{ background: activePage === 'explore' && exploreTab === tab ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(0,210,255,0.32)' : '1px solid transparent', borderRadius: '10px', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap', padding: '7px 9px' }}
             >
               {label}
             </button>
@@ -1355,19 +1432,19 @@ export default function App() {
 
       {/* EXPLORE RELEASES PAGE */}
       {!loading && isExplorePage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '86px 28px 28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
             <div>
-              <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE EXPLORE</p>
-              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>RILISAN, BAND, ARTIKEL & MERCH</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>Halaman katalog buat audience nemu album digital, profile band, artikel skena, preview lagu 30 detik, dan merchandise indie.</p>
+              <p style={eyebrowStyle}>{activeExploreCopy.eyebrow}</p>
+              <h2 style={pageTitleStyle}>{activeExploreCopy.title}</h2>
+              <p style={pageLeadStyle}>{activeExploreCopy.lead}</p>
             </div>
           </div>
 
           <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
             <div>
               <section style={{ marginBottom: '26px' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0', letterSpacing: '1px' }}>LATEST DIGITAL RELEASES</h3>
+                <h3 style={sectionHeadingStyle}>LATEST DIGITAL RELEASES</h3>
                 {filteredAlbums.length === 0 ? (
                   <div style={{ ...glassStyle('explore-empty-albums'), padding: '24px', backgroundColor: '#090909' }}>
                     <h4 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ALBUM DRAFT</h4>
@@ -1395,7 +1472,7 @@ export default function App() {
               </section>
 
               <section>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0', letterSpacing: '1px' }}>30 SECOND PREVIEW TRACKS</h3>
+                <h3 style={sectionHeadingStyle}>30 SECOND PREVIEW TRACKS</h3>
                 <div style={{ ...glassStyle('explore-tracks'), padding: '18px', backgroundColor: '#090909' }}>
                   {filteredTracks.length === 0 ? (
                     <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
@@ -1416,7 +1493,7 @@ export default function App() {
 
             <aside style={{ display: 'grid', gap: '18px' }}>
               <section style={{ ...glassStyle('explore-band-directory'), padding: '18px', backgroundColor: '#090909' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>BAND DIRECTORY</h3>
+                <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '68px 1fr', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ width: '68px', height: '68px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', display: 'grid', placeItems: 'center' }}>
                     {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
@@ -1437,7 +1514,7 @@ export default function App() {
 
               <section style={{ ...glassStyle('explore-merch'), padding: '18px', backgroundColor: '#090909' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                  <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: 0 }}>MERCH HIGHLIGHT</h3>
+                  <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>MERCH HIGHLIGHT</h3>
                   <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>LIHAT SEMUA</button>
                 </div>
                 {filteredMerchItems.length === 0 ? (
@@ -1463,7 +1540,7 @@ export default function App() {
 
           {exploreTab === 'band' && (
             <section style={{ ...glassStyle('explore-band-tab'), padding: '22px', backgroundColor: '#090909' }}>
-              <h3 style={{ color: '#00d2ff', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0' }}>BAND DIRECTORY</h3>
+              <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
               {bandMatchesSearch ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '86px 1fr auto', gap: '16px', alignItems: 'center', padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
                   <div style={{ width: '86px', height: '86px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
@@ -1484,7 +1561,7 @@ export default function App() {
 
           {exploreTab === 'artikel' && (
             <section style={{ ...glassStyle('explore-article-tab'), padding: '22px', backgroundColor: '#090909' }}>
-              <h3 style={{ color: '#00d2ff', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0' }}>ARTIKEL SKENA</h3>
+              <h3 style={sectionHeadingStyle}>ARTIKEL SKENA</h3>
               {filteredArticles.length === 0 ? (
                 <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok. Band bisa tulis artikel dari Band Studio.</p>
               ) : (
@@ -1504,7 +1581,7 @@ export default function App() {
           {exploreTab === 'merch' && (
             <section style={{ ...glassStyle('explore-merch-tab'), padding: '22px', backgroundColor: '#090909' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '15px', fontWeight: '900', margin: 0 }}>MERCH BAND</h3>
+                <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>MERCH BAND</h3>
                 {isBandAccount && <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>UPLOAD MERCH</button>}
               </div>
               {filteredMerchItems.length === 0 ? (
@@ -1598,12 +1675,12 @@ export default function App() {
 
       {/* ARTICLES PAGE */}
       {!loading && isArticlesPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
             <div>
-              <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE ARTICLES</p>
-              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>ARTIKEL BAND & SKENA</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '760px', lineHeight: 1.5 }}>Ruang cerita buat interview band, catatan rilisan, review skena, update gigs, dan arsip pergerakan musik independen.</p>
+              <p style={eyebrowStyle}>WISPACE ARTICLES</p>
+              <h2 style={pageTitleStyle}>ARTIKEL BAND & SKENA</h2>
+              <p style={pageLeadStyle}>Ruang cerita buat interview band, catatan rilisan, review skena, update gigs, dan arsip pergerakan musik independen.</p>
             </div>
             {isBandAccount && (
               <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL</button>
@@ -1663,28 +1740,28 @@ export default function App() {
 
       {/* PUBLIC BAND PROFILE PAGE */}
       {!loading && isBandPublicPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px', overflow: 'hidden' }}>
-          <div style={{ position: 'relative', minHeight: '420px', display: 'flex', alignItems: 'flex-end', padding: '34px', boxSizing: 'border-box' }}>
+        <section style={{ minHeight: 'calc(100vh - 40px)', background: 'linear-gradient(180deg, #060606 0%, #030303 100%)', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '14px', overflow: 'hidden', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)' }}>
+          <div style={{ position: 'relative', minHeight: '470px', display: 'flex', alignItems: 'flex-end', padding: '92px 38px 38px', boxSizing: 'border-box' }}>
             {bandProfile.coverPreview ? (
               <img src={bandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #050505 0%, #09232b 48%, #000 100%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #050505 0%, #072027 45%, #000 100%)' }} />
             )}
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,3,3,1), rgba(3,3,3,0.42), rgba(3,3,3,0.1))' }} />
-            <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: '128px minmax(0, 1fr)', gap: '22px', alignItems: 'end', width: '100%' }}>
-              <div style={{ width: '128px', height: '128px', borderRadius: '18px', overflow: 'hidden', backgroundColor: '#000', border: '2px solid rgba(0,210,255,0.8)', display: 'grid', placeItems: 'center', boxShadow: '0 0 35px rgba(0,210,255,0.25)' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(0,210,255,0.18), transparent 34%), linear-gradient(to top, rgba(3,3,3,1), rgba(3,3,3,0.62), rgba(3,3,3,0.16))' }} />
+            <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: '136px minmax(0, 1fr)', gap: '24px', alignItems: 'end', width: '100%' }}>
+              <div style={{ width: '136px', height: '136px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.72)', display: 'grid', placeItems: 'center', boxShadow: '0 24px 55px rgba(0,0,0,0.55), 0 0 30px rgba(0,210,255,0.2)' }}>
                 {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
               </div>
               <div>
-                <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.5px', margin: '0 0 10px 0' }}>PUBLIC BAND PROFILE</p>
-                <h2 style={{ color: '#fff', fontSize: '52px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 0.95 }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
-                <p style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 10px 0' }}>{bandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
-                <p style={{ color: '#aaa', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id/band/{bandProfile.slug || 'nama-band'}</p>
+                <p style={eyebrowStyle}>PUBLIC BAND PROFILE</p>
+                <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
+                <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{bandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
+                <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id/band/{bandProfile.slug || 'nama-band'}</p>
               </div>
             </div>
           </div>
 
-          <div style={{ padding: '24px 28px 34px', display: 'grid', gridTemplateColumns: 'minmax(280px, 1.25fr) minmax(260px, 0.75fr)', gap: '24px', alignItems: 'start' }}>
+          <div style={{ padding: '30px', display: 'grid', gridTemplateColumns: 'minmax(280px, 1.25fr) minmax(260px, 0.75fr)', gap: '24px', alignItems: 'start' }}>
             <main>
               <div style={{ ...glassStyle('band-owner-actions'), padding: '14px', backgroundColor: '#090909', marginBottom: '24px', display: showBandOwnerControls ? 'block' : 'none' }}>
                 <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>OWNER ACTIONS</p>
@@ -1700,12 +1777,12 @@ export default function App() {
               </div>
 
               <section style={{ ...glassStyle('band-public-bio'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>BIO BAND</h3>
+                <h3 style={sectionHeadingStyle}>BIO BAND</h3>
                 <p style={{ color: '#bbb', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{bandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
               <section style={{ ...glassStyle('band-public-releases'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>ALBUM DIGITAL</h3>
+                <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {albumItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
                 ) : (
@@ -1725,7 +1802,7 @@ export default function App() {
               </section>
 
               <section id="band-gig-schedule" style={{ ...glassStyle('band-gig-schedule'), padding: '20px', backgroundColor: '#090909' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>JADWAL MANGGUNG</h3>
+                <h3 style={sectionHeadingStyle}>JADWAL MANGGUNG</h3>
                 {bandScheduleItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada jadwal manggung. Tambahkan jadwal dari Band Gig Manager, jadwal ini hanya tampil di profile band.</p>
                 ) : (
@@ -1747,7 +1824,7 @@ export default function App() {
 
             <aside style={{ display: 'grid', gap: '18px' }}>
               <section style={{ ...glassStyle('band-public-contact'), padding: '18px', backgroundColor: '#090909' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>CONTACT</h3>
+                <h3 style={sectionHeadingStyle}>CONTACT</h3>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#fff' }}>{bandProfile.cp || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#fff' }}>{bandProfile.email || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#fff' }}>{bandProfile.instagram || '-'}</span></p>
@@ -1768,7 +1845,7 @@ export default function App() {
               </section>
 
               <section style={{ ...glassStyle('band-public-merch'), padding: '18px', backgroundColor: '#090909' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>MERCHANDISE</h3>
+                <h3 style={sectionHeadingStyle}>MERCHANDISE</h3>
                 {merchItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
                 ) : (
@@ -2022,11 +2099,13 @@ export default function App() {
 
       {/* AUDIENCE LIBRARY PAGE */}
       {!loading && isAudienceLibraryPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ marginBottom: '28px' }}>
-            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>AUDIENCE LIBRARY</p>
-            <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>MY MUSIC ARCHIVE</h2>
-            <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '760px', lineHeight: 1.5 }}>Koleksi album digital yang sudah dibeli audience. Nanti file bisa masuk secret encrypted folder dan hanya bisa diakses dari WiSpace.</p>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
+            <div>
+              <p style={eyebrowStyle}>AUDIENCE LIBRARY</p>
+              <h2 style={pageTitleStyle}>MY MUSIC ARCHIVE</h2>
+              <p style={pageLeadStyle}>Koleksi album digital yang sudah dibeli audience. Nanti file bisa masuk secret encrypted folder dan hanya bisa diakses dari WiSpace.</p>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '24px' }}>
@@ -2053,7 +2132,7 @@ export default function App() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)', gap: '24px', alignItems: 'start' }}>
               <section style={{ ...glassStyle('library-list'), padding: '20px', backgroundColor: '#090909' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>PURCHASED RELEASES</h3>
+                <h3 style={sectionHeadingStyle}>PURCHASED RELEASES</h3>
                 <div style={{ display: 'grid', gap: '12px' }}>
                   {purchasedAlbums.map((album) => (
                     <article key={album.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
