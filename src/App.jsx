@@ -7,11 +7,13 @@ const fetchCloudData = async () => {
   const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
   const { data: tracksData } = await supabase.from('tracks').select('*').order('created_at', { ascending: false }).limit(10);
   const { data: bandProfilesData, error: bandProfilesError } = await supabase.from('band_profiles').select('*').order('updated_at', { ascending: false });
+  const { data: releasesData, error: releasesError } = await supabase.from('releases').select('*, release_tracks(*)').order('created_at', { ascending: false });
 
   return {
     gigsData: gigsData || [],
     tracksData: tracksData || [],
     bandProfilesData: bandProfilesError ? loadPublicBandRegistry() : (bandProfilesData || []).map(mapBandProfileFromRow),
+    releasesData: releasesError ? loadPublicReleaseRegistry() : (releasesData || []).map(mapReleaseFromRow),
   };
 };
 
@@ -43,7 +45,10 @@ const formatDisplayDate = (value) => value
 const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig.approved_until) : '';
 const getGigApprovedAt = (gig) => formatDisplayDate(gig?.approved_at || gig?.updated_at || gig?.created_at);
 const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_exclusive'].includes(gig?.status);
-const isMissingColumnError = (error) => error?.message?.toLowerCase().includes('could not find') || error?.message?.toLowerCase().includes('schema cache');
+const isMissingColumnError = (error) => {
+  const message = error?.message?.toLowerCase() || '';
+  return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
+};
 const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
 const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
 const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
@@ -51,12 +56,23 @@ const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
 const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
 const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
 const PUBLIC_BAND_REGISTRY_STORAGE_KEY = 'wispace_public_band_registry';
+const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
+
+const createClientId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const normalizePriceValue = (value) => {
+  const parsedValue = Number(String(value || '').replace(/[^\d]/g, ''));
+  return Number.isFinite(parsedValue) ? parsedValue : 0;
+};
 
 const createEmptyAudienceProfile = () => ({
   displayName: '',
@@ -120,6 +136,15 @@ const savePublicBandRegistry = (profiles) => {
   window.localStorage.setItem(PUBLIC_BAND_REGISTRY_STORAGE_KEY, JSON.stringify(profiles));
 };
 
+const loadPublicReleaseRegistry = () => {
+  const registry = readLocalJson(PUBLIC_RELEASE_REGISTRY_STORAGE_KEY);
+  return Array.isArray(registry) ? registry : [];
+};
+
+const savePublicReleaseRegistry = (releases) => {
+  window.localStorage.setItem(PUBLIC_RELEASE_REGISTRY_STORAGE_KEY, JSON.stringify(releases));
+};
+
 const mapBandProfileFromRow = (row = {}) => ({
   ...createEmptyBandProfile(),
   name: row.name || '',
@@ -160,6 +185,37 @@ const mapBandProfileToRow = (profile = {}, user) => ({
   is_published: Boolean(profile.isPublished),
   updated_at: new Date().toISOString()
 });
+
+const mapReleaseFromRow = (row = {}) => {
+  const tracks = Array.isArray(row.release_tracks) ? row.release_tracks : [];
+  return {
+    id: row.id || createClientId(),
+    title: row.title || 'Rilisan WiSpace',
+    price: row.price || '',
+    description: row.description || '',
+    coverPreview: row.cover_preview || '',
+    coverName: row.cover_name || '',
+    trackCount: tracks.length || row.track_count || 0,
+    tracks: tracks
+      .slice()
+      .sort((firstTrack, secondTrack) => (firstTrack.track_order || 0) - (secondTrack.track_order || 0))
+      .map((track) => ({
+        id: track.id || createClientId(),
+        title: track.title || track.file_name || 'Track WiSpace',
+        fileName: track.file_name || '',
+        size: track.file_size || 0,
+        url: track.audio_url || '',
+        price: track.price || '',
+        freeFull: Boolean(track.free_full)
+      })),
+    bandName: row.band_name || 'Band WiSpace',
+    city: row.city || 'Indonesia',
+    genre: row.genre || 'Indie',
+    signedBy: row.signed_by || row.band_name || 'Band WiSpace',
+    releaseType: row.release_type || 'album',
+    updatedAt: row.updated_at || row.created_at || ''
+  };
+};
 
 const saveUserScopedData = (prefix, user, value) => {
   if (typeof window === 'undefined') return;
@@ -404,6 +460,70 @@ export default function App() {
     return publicProfile;
   }, [signatureName, userSession]);
 
+  const publishPublicRelease = useCallback((release) => {
+    const releaseId = release.id || createClientId();
+    const publicRelease = {
+      ...release,
+      id: releaseId,
+      isPublished: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    const localReleases = [
+      publicRelease,
+      ...loadPublicReleaseRegistry().filter((item) => String(item.id) !== String(releaseId))
+    ];
+    savePublicReleaseRegistry(localReleases);
+
+    if (isSupabaseConfigured && userSession?.id && publicRelease.title) {
+      const releaseRow = {
+        id: releaseId,
+        band_user_id: userSession.id,
+        band_name: publicRelease.bandName || bandProfile.name || signatureName || 'Band WiSpace',
+        band_slug: bandProfile.slug || createSlug(publicRelease.bandName || bandProfile.name || 'band-wispace'),
+        title: publicRelease.title || 'Rilisan WiSpace',
+        description: publicRelease.description || '',
+        price: normalizePriceValue(publicRelease.price),
+        release_type: publicRelease.releaseType || (publicRelease.trackCount === 1 ? 'single' : 'album'),
+        genre: publicRelease.genre || bandProfile.genre || 'Indie',
+        city: publicRelease.city || bandProfile.city || 'Indonesia',
+        cover_name: publicRelease.coverName || '',
+        cover_preview: publicRelease.coverPreview || '',
+        signed_by: publicRelease.signedBy || signatureName || publicRelease.bandName || 'Band WiSpace',
+        is_published: true,
+        updated_at: new Date().toISOString()
+      };
+
+      const trackRows = (publicRelease.tracks || []).map((track, index) => ({
+        id: track.id || createClientId(),
+        release_id: releaseId,
+        track_order: index + 1,
+        title: track.title || `Track ${index + 1}`,
+        file_name: track.fileName || track.title || '',
+        file_size: track.size || 0,
+        audio_url: track.url || '',
+        price: normalizePriceValue(track.price),
+        free_full: Boolean(track.freeFull)
+      }));
+
+      void supabase.from('releases').upsert(releaseRow).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync rilisan ke Supabase:', error.message);
+          return;
+        }
+        if (!error && trackRows.length) {
+          void supabase.from('release_tracks').upsert(trackRows).then(({ error: trackError }) => {
+            if (trackError && !isMissingColumnError(trackError)) {
+              console.warn('Gagal sync track rilisan ke Supabase:', trackError.message);
+            }
+          });
+        }
+      });
+    }
+
+    return publicRelease;
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
+
   const exclusiveEventBanners = [
     ...gigs
       .filter((gig) => gig.status === 'approved_exclusive')
@@ -573,11 +693,13 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData } = await fetchCloudData();
+    const { gigsData, tracksData, bandProfilesData, releasesData } = await fetchCloudData();
     setGigs(gigsData);
     setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
+    setAlbumItems(releasesData);
     savePublicBandRegistry(bandProfilesData);
+    savePublicReleaseRegistry(releasesData);
     setLoading(false);
   };
 
@@ -585,13 +707,15 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, tracksData, bandProfilesData } = await fetchCloudData();
+      const { gigsData, tracksData, bandProfilesData, releasesData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
       setTop10Tracks(tracksData);
       setPublicBandProfiles(bandProfilesData);
+      setAlbumItems(releasesData);
       savePublicBandRegistry(bandProfilesData);
+      savePublicReleaseRegistry(releasesData);
       setLoading(false);
     };
 
@@ -951,9 +1075,50 @@ export default function App() {
 
   const handleTrackSubmit = async (e) => {
     e.preventDefault();
+    const singleId = createClientId();
+    const singleTrackId = createClientId();
+    const singleRelease = {
+      id: singleId,
+      title: trackTitle,
+      price: '',
+      description: 'Single preview dari WiSpace radio.',
+      coverPreview: bandProfile.photoPreview || bandProfile.coverPreview || '',
+      coverName: bandProfile.photoName || bandProfile.coverName || '',
+      trackCount: 1,
+      releaseType: 'single',
+      tracks: [{
+        id: singleTrackId,
+        title: trackTitle,
+        fileName: '',
+        size: 0,
+        url: trackUrl,
+        price: '',
+        freeFull: false
+      }],
+      bandName: trackBand || bandProfile.name || signatureName || 'Band WiSpace',
+      city: bandProfile.city || 'Indonesia',
+      genre: bandProfile.genre || 'Indie',
+      signedBy: bandProfile.name || signatureName || trackBand || 'Band WiSpace'
+    };
+
     const { error } = await supabase.from('tracks').insert([{ band: trackBand, title: trackTitle, url: trackUrl }]);
     if (error) alert(error.message);
-    else { setTrackBand(''); setTrackTitle(''); setTrackUrl(''); setShowAuthModal(false); alert('Lagu beres mengudara!'); fetchData(); }
+    else {
+      const publicRelease = publishPublicRelease(singleRelease);
+      setAlbumItems((current) => [
+        publicRelease,
+        ...current.filter((item) => String(item.id) !== String(publicRelease.id))
+      ]);
+      setTop10Tracks((current) => [
+        { id: `preview-${singleTrackId}`, band: publicRelease.bandName, title: trackTitle, url: trackUrl },
+        ...current
+      ].slice(0, 10));
+      setTrackBand('');
+      setTrackTitle('');
+      setTrackUrl('');
+      setShowAuthModal(false);
+      alert('Lagu beres mengudara dan sudah masuk ke rilisan single.');
+    }
   };
 
   const handleGigModeration = async (id, status) => {
@@ -1128,16 +1293,18 @@ export default function App() {
     if (!albumDraft.signature.trim()) return alert('Isi nama penanggung jawab / tanda tangan digital dulu bro.');
     if (albumDraft.audioFiles.length === 0) return alert('Import minimal satu file MP3/WAV dulu bro.');
 
+    const albumId = createClientId();
     const nextAlbum = {
-      id: Date.now(),
+      id: albumId,
       title: albumDraft.title,
       price: albumDraft.price,
       description: albumDraft.description,
       coverPreview: albumDraft.coverPreview,
       coverName: albumDraft.coverName,
       trackCount: albumDraft.audioFiles.length,
+      releaseType: albumDraft.audioFiles.length === 1 ? 'single' : 'album',
       tracks: albumDraft.audioFiles.map((file, index) => ({
-        id: `${Date.now()}-${index}`,
+        id: createClientId(),
         title: file.name.replace(/\.(mp3|wav)$/i, ''),
         fileName: file.name,
         size: file.size,
@@ -1151,7 +1318,11 @@ export default function App() {
       signedBy: albumDraft.signature
     };
 
-    setAlbumItems((current) => [nextAlbum, ...current]);
+    const publicAlbum = publishPublicRelease(nextAlbum);
+    setAlbumItems((current) => [
+      publicAlbum,
+      ...current.filter((item) => String(item.id) !== String(publicAlbum.id))
+    ]);
     setAlbumDraft({
       title: '',
       price: '',
