@@ -46,6 +46,8 @@ const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
 const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
 const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
 const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
+const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
+const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
@@ -86,6 +88,23 @@ const saveUserScopedData = (prefix, user, value) => {
     });
   } catch (error) {
     console.warn('WiSpace local save skipped:', error);
+  }
+};
+
+const getBandGlobalStorageKey = (prefix, slug) => `${prefix}_${slug || 'band-wispace'}`;
+
+const loadBandGlobalData = (prefix, slug, fallbackValue) => {
+  if (typeof window === 'undefined') return fallbackValue;
+  const value = readLocalJson(getBandGlobalStorageKey(prefix, slug));
+  return value ?? fallbackValue;
+};
+
+const saveBandGlobalData = (prefix, slug, value) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(getBandGlobalStorageKey(prefix, slug), JSON.stringify(value));
+  } catch (error) {
+    console.warn('WiSpace band metric save skipped:', error);
   }
 };
 
@@ -221,6 +240,8 @@ export default function App() {
   });
   const [articleItems, setArticleItems] = useState([]);
   const [subscribedBands, setSubscribedBands] = useState([]);
+  const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
+  const [bandNotifications, setBandNotifications] = useState([]);
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
     contact: '',
@@ -609,9 +630,36 @@ export default function App() {
 
     setSubscribedBands(nextSubscriptions);
     persistBandSubscriptionsLocal(nextSubscriptions);
+
+    const currentCount = Number(loadBandGlobalData(BAND_SUBSCRIBER_COUNT_PREFIX, bandSlug, bandSubscriberCount)) || 0;
+    const nextCount = isSubscribed ? Math.max(0, currentCount - 1) : currentCount + 1;
+    const nextNotifications = isSubscribed
+      ? bandNotifications
+      : [
+          {
+            id: Date.now(),
+            type: 'subscribe',
+            title: 'SUBSCRIBER BARU',
+            body: `${audienceProfile.displayName || userSession.email?.split('@')[0] || 'Audience WiSpace'} subscribe ${bandName}.`,
+            createdAt: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+            read: false
+          },
+          ...bandNotifications
+        ].slice(0, 12);
+
+    setBandSubscriberCount(nextCount);
+    setBandNotifications(nextNotifications);
+    saveBandGlobalData(BAND_SUBSCRIBER_COUNT_PREFIX, bandSlug, nextCount);
+    saveBandGlobalData(BAND_NOTIFICATIONS_STORAGE_PREFIX, bandSlug, nextNotifications);
     alert(isSubscribed
       ? `Subscribe ke ${bandName} dibatalin bro.`
       : `Subscribed ke ${bandName}. Nanti update rilisan, gigs, artikel, dan merch bisa masuk notif.`);
+  };
+
+  const markBandNotificationsRead = () => {
+    const nextNotifications = bandNotifications.map((notification) => ({ ...notification, read: true }));
+    setBandNotifications(nextNotifications);
+    saveBandGlobalData(BAND_NOTIFICATIONS_STORAGE_PREFIX, currentBandSlug, nextNotifications);
   };
 
   const handleContractSignature = (e) => {
@@ -1062,9 +1110,23 @@ export default function App() {
   const isBandAccount = userRole === 'musisi' || hasBandIdentity;
   const showBandOwnerControls = isBandAccount && isViewingOwnBandProfile;
   const showBandContactForm = !showBandOwnerControls;
-  const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === getBandProfileSlug());
+  const currentBandSlug = getBandProfileSlug();
+  const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
+  const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
+
+  useEffect(() => {
+    const metricTimer = window.setTimeout(() => {
+      const storedCount = loadBandGlobalData(BAND_SUBSCRIBER_COUNT_PREFIX, currentBandSlug, 0);
+      const storedNotifications = loadBandGlobalData(BAND_NOTIFICATIONS_STORAGE_PREFIX, currentBandSlug, []);
+
+      setBandSubscriberCount(Number(storedCount) || 0);
+      setBandNotifications(Array.isArray(storedNotifications) ? storedNotifications : []);
+    }, 0);
+
+    return () => window.clearTimeout(metricTimer);
+  }, [currentBandSlug]);
 
   useEffect(() => {
     const syncBandRoute = () => {
@@ -2027,6 +2089,12 @@ export default function App() {
                 <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
                 <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{bandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
                 <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath()}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '0 0 14px 0' }}>
+                  <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,210,255,0.28)', color: '#00d2ff', fontSize: '11px', fontWeight: '900' }}>{bandSubscriberCount.toLocaleString('id-ID')} SUBSCRIBERS</span>
+                  {showBandOwnerControls && unreadBandNotifications > 0 && (
+                    <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(57,255,20,0.1)', border: '1px solid rgba(57,255,20,0.28)', color: '#39ff14', fontSize: '11px', fontWeight: '900' }}>{unreadBandNotifications} NOTIF BARU</span>
+                  )}
+                </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
                   {!showBandOwnerControls && (
                     <button onClick={handleBandSubscribeToggle} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content', background: isSubscribedToCurrentBand ? 'rgba(57,255,20,0.1)' : glassButtonStyle.background, border: isSubscribedToCurrentBand ? '1px solid rgba(57,255,20,0.35)' : glassButtonStyle.border, color: isSubscribedToCurrentBand ? '#39ff14' : '#00d2ff' }}>
@@ -2056,6 +2124,32 @@ export default function App() {
                   <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
                 </div>
               </div>
+
+              {showBandOwnerControls && (
+                <section style={{ ...glassStyle('band-subscribe-notifications'), padding: '14px', backgroundColor: '#090909', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
+                    <div>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>BAND NOTIFICATIONS</p>
+                      <h3 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUBSCRIBER ACTIVITY</h3>
+                    </div>
+                    {unreadBandNotifications > 0 && (
+                      <button onClick={markBandNotificationsRead} style={{ background: 'transparent', border: '1px solid rgba(57,255,20,0.28)', color: '#39ff14', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+                    )}
+                  </div>
+                  {bandNotifications.length === 0 ? (
+                    <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notif subscribe. Nanti setiap audience subscribe band ini, activity-nya masuk di sini.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      {bandNotifications.slice(0, 4).map((notification) => (
+                        <div key={notification.id} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${notification.read ? '#141414' : 'rgba(57,255,20,0.28)'}`, borderRadius: '10px' }}>
+                          <p style={{ color: notification.read ? '#777' : '#39ff14', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{notification.title} / {notification.createdAt}</p>
+                          <p style={{ color: '#ddd', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
 
               <section style={{ ...glassStyle('band-public-bio'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
@@ -2600,6 +2694,16 @@ export default function App() {
               </div>
               <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PUBLIC BAND PAGE PREVIEW</p>
               <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id{getBandProfilePath()}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '0 0 12px 0' }}>
+                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '12px' }}>
+                  <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>SUBSCRIBERS</p>
+                  <strong style={{ color: '#00d2ff', fontSize: '18px' }}>{bandSubscriberCount.toLocaleString('id-ID')}</strong>
+                </div>
+                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.16)', borderRadius: '12px' }}>
+                  <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>NOTIF BARU</p>
+                  <strong style={{ color: unreadBandNotifications ? '#39ff14' : '#555', fontSize: '18px' }}>{unreadBandNotifications}</strong>
+                </div>
+              </div>
               <p style={{ color: '#fff', fontSize: '14px', fontWeight: '900', lineHeight: 1.35, margin: '0 0 10px 0' }}>{bandProfile.headline || 'Headline singkat band akan tampil di sini.'}</p>
               <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''}</p>
               <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band akan tampil di sini. Audience bisa lihat cerita singkat, karakter musik, dan info rilisan band.'}</p>
