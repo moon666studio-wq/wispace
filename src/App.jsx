@@ -901,9 +901,19 @@ export default function App() {
       audioFiles: files.map((file) => ({
         name: file.name,
         size: file.size,
-        url: URL.createObjectURL(file)
+        url: URL.createObjectURL(file),
+        price: ''
       })),
       freeTrackIndex: ''
+    }));
+  };
+
+  const updateAlbumTrackPrice = (index, price) => {
+    setAlbumDraft((current) => ({
+      ...current,
+      audioFiles: current.audioFiles.map((file, fileIndex) => (
+        fileIndex === index ? { ...file, price } : file
+      ))
     }));
   };
 
@@ -953,6 +963,7 @@ export default function App() {
         fileName: file.name,
         size: file.size,
         url: file.url,
+        price: file.price,
         freeFull: String(index) === String(albumDraft.freeTrackIndex)
       })),
       bandName: bandProfile.name || signatureName || 'Band WiSpace',
@@ -994,6 +1005,39 @@ export default function App() {
 
     setPurchasedAlbums((current) => [{ ...album, purchasedAt: 'Baru saja' }, ...current]);
     alert(`${album.title} masuk ke Audience Library. Nanti ini diganti checkout/payment beneran.`);
+  };
+
+  const handlePurchaseTrack = (album, track) => {
+    if (!userSession) {
+      setAuthType('join');
+      setShowAuthModal(true);
+      setAuthError('Join atau login dulu buat beli track dan masukin ke library.');
+      return;
+    }
+
+    const trackPurchaseId = `${album.id}-${track.id}`;
+    const alreadyOwned = purchasedAlbums.some((item) => item.id === trackPurchaseId);
+    if (alreadyOwned) {
+      setActivePage('audience_library');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setPurchasedAlbums((current) => [
+      {
+        ...album,
+        id: trackPurchaseId,
+        title: track.title,
+        price: track.price,
+        trackCount: 1,
+        purchaseType: 'track',
+        parentAlbumTitle: album.title,
+        tracks: [track],
+        purchasedAt: 'Baru saja'
+      },
+      ...current
+    ]);
+    alert(`${track.title} masuk ke Audience Library sebagai pembelian per track.`);
   };
 
   const handlePurchaseMerch = (item) => {
@@ -1842,10 +1886,21 @@ export default function App() {
                         <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
                         <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 6px 0', lineHeight: 1.1 }}>{album.title.toUpperCase()}</h4>
                         <p style={{ color: '#777', fontSize: '12px', margin: '0 0 12px 0' }}>{album.bandName.toUpperCase()} - {album.city.toUpperCase()}</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ color: '#fff', fontSize: '14px', fontWeight: '900' }}>Rp {Number(album.price || 0).toLocaleString('id-ID')}</span>
-                          <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                          <span style={{ color: '#fff', fontSize: '14px', fontWeight: '900' }}>Full Rp {Number(album.price || 0).toLocaleString('id-ID')}</span>
+                          <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI FULL'}</button>
                         </div>
+                        {(album.tracks || []).length > 0 && (
+                          <div style={{ display: 'grid', gap: '7px', borderTop: '1px solid #141414', paddingTop: '10px' }}>
+                            {(album.tracks || []).slice(0, 3).map((track) => (
+                              <div key={`explore-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
+                                <span style={{ color: track.freeFull ? '#39ff14' : '#aaa', fontSize: '11px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
+                                <button onClick={() => handlePurchaseTrack(album, track)} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
+                              </div>
+                            ))}
+                            {(album.tracks || []).length > 3 && <p style={{ color: '#555', fontSize: '10px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 3} TRACK LAIN DI PROFILE BAND</p>}
+                          </div>
+                        )}
                       </article>
                     ))}
                   </div>
@@ -2250,9 +2305,23 @@ export default function App() {
                         <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', marginBottom: '12px' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '11px', fontWeight: '900' }}>COVER</span>}
                         </div>
+                        <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>{album.trackCount} TRACK / FULL ALBUM</p>
                         <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 6px 0' }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
-                        <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, width: '100%', padding: '9px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI ALBUM'}</button>
+                        <p style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>Full Album Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
+                        <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, width: '100%', padding: '9px', fontSize: '11px', marginBottom: '10px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI FULL ALBUM'}</button>
+                        {(album.tracks || []).length > 0 && (
+                          <div style={{ display: 'grid', gap: '8px', borderTop: '1px solid #141414', paddingTop: '10px' }}>
+                            {(album.tracks || []).slice(0, 10).map((track, index) => (
+                              <div key={track.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center' }}>
+                                <div style={{ minWidth: 0 }}>
+                                  <p style={{ color: track.freeFull ? '#39ff14' : '#ddd', fontSize: '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(index + 1).padStart(2, '0')} / {track.title.toUpperCase()}</p>
+                                  <p style={{ color: '#666', fontSize: '10px', margin: '3px 0 0 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</p>
+                                </div>
+                                <button onClick={() => handlePurchaseTrack(album, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(57,255,20,0.08)' : 'rgba(255,255,255,0.04)', border: `1px solid ${track.freeFull ? 'rgba(57,255,20,0.24)' : 'rgba(255,255,255,0.12)'}`, color: track.freeFull ? '#39ff14' : '#fff', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </article>
                     ))}
                   </div>
@@ -2601,7 +2670,7 @@ export default function App() {
                       </div>
                       <div>
                         <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>{album.bandName.toUpperCase()} / {album.trackCount} TRACK / {album.purchasedAt}</p>
+                        <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
                       </div>
                       <button style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>PLAY</button>
                     </article>
@@ -2913,7 +2982,7 @@ export default function App() {
                         {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru tetap jadi preview 30 detik.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain otomatis preview 30 detik.'}
                       </p>
                       {albumDraft.audioFiles.map((file, index) => (
-                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: hasFreeFullBandTrack ? '1fr auto' : 'auto 1fr auto', gap: '10px', padding: '8px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
+                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: hasFreeFullBandTrack ? '1fr minmax(88px, 120px) auto' : 'auto 1fr minmax(88px, 120px) auto', gap: '10px', padding: '8px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
                           {!hasFreeFullBandTrack && (
                             <input
                               type="radio"
@@ -2923,7 +2992,15 @@ export default function App() {
                               title="Jadikan lagu ini free full listen"
                             />
                           )}
-                          <span>{String(index + 1).padStart(2, '0')} / {file.name}</span>
+                          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {file.name}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Rp/track"
+                            value={file.price}
+                            onChange={(event) => updateAlbumTrackPrice(index, event.target.value)}
+                            style={{ width: '100%', backgroundColor: '#050505', border: '1px solid #222', borderRadius: '10px', color: '#fff', padding: '8px', fontSize: '11px', fontFamily: FONT_STACK, boxSizing: 'border-box' }}
+                          />
                           <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? '#39ff14' : '#666', fontWeight: '900' }}>
                             {String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'FREE FULL' : `${(file.size / (1024 * 1024)).toFixed(2)} MB`}
                           </span>
