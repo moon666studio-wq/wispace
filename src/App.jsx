@@ -48,6 +48,7 @@ const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
+const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 
 const readLocalJson = (key) => {
   try {
@@ -1025,7 +1026,7 @@ export default function App() {
 
   const glassButtonStyle = {
     background: 'rgba(0, 210, 255, 0.08)', border: '1px solid rgba(0, 210, 255, 0.2)', color: '#00d2ff',
-    cursor: 'pointer', borderRadius: '16px', fontWeight: '900', letterSpacing: '0.5px', fontFamily: "'League Spartan'", transition: 'all 0.2s ease'
+    cursor: 'pointer', borderRadius: '16px', fontWeight: '900', letterSpacing: '0.5px', fontFamily: FONT_STACK, transition: 'all 0.2s ease'
   };
 
   const formInputStyle = {
@@ -1036,7 +1037,7 @@ export default function App() {
     padding: '12px',
     fontSize: '13px',
     color: '#fff',
-    fontFamily: "'League Spartan'",
+    fontFamily: FONT_STACK,
     boxSizing: 'border-box',
     outline: 'none'
   };
@@ -1129,7 +1130,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: '20px', fontFamily: "'League Spartan', sans-serif", boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: '#030303', color: '#ffffff', minHeight: '100vh', padding: '20px', fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
       {!isSupabaseConfigured && (
         <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(255,51,51,0.12)', border: '1px solid rgba(255,51,51,0.45)', borderRadius: '14px', color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(0,0,0,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
@@ -1143,27 +1144,27 @@ export default function App() {
         <div style={{ position: 'fixed', top: '30px', right: '30px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', opacity: isScrolled ? 1 : 0, transform: isScrolled ? 'translateY(0)' : 'translateY(-20px)', pointerEvents: isScrolled ? 'auto' : 'none', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
           <div style={{ ...glassStyle('floating-badge'), display: 'flex', alignItems: 'center', padding: '8px 16px', backgroundColor: 'rgba(10, 10, 10, 0.9)', border: '1px solid #00d2ff', borderRadius: '16px' }}>
             <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: '16px', cursor: 'pointer' }}>WI.ID ↑</span>
-            <button onClick={() => { setActivePage('explore'); setExploreTab('rilisan'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>EXPLORE</button>
+            <button onClick={() => { setActivePage('explore'); setExploreTab('rilisan'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>EXPLORE</button>
             
             {!userSession ? (
               <>
-                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>LOGIN</button>
-                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0, 210, 255, 0.1)', border: '1px solid rgba(0,210,255,0.3)', color: '#00d2ff', borderRadius: '16px', padding: '4px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>JOIN</button>
+                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>LOGIN</button>
+                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0, 210, 255, 0.1)', border: '1px solid rgba(0,210,255,0.3)', color: '#00d2ff', borderRadius: '16px', padding: '4px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>JOIN</button>
               </>
             ) : (
               <>
-                <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: "'League Spartan'" }}>
+                <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>
                   MESSAGES
                   {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
                 </button>
-                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: "'League Spartan'", minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
-                <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: "'League Spartan'" }}><LogOut size={13}/> LOGOUT</button>
+                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
               </>
             )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(5, 5, 5, 0.95)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? '180px' : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#fff', outline: 'none', fontFamily: "'League Spartan'", transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(5, 5, 5, 0.95)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? '180px' : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#fff', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
             <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ ...glassStyle('search-trigger'), padding: '6px 14px', backgroundColor: '#00d2ff', color: '#000', borderRadius: '16px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={12}/> FIND</div>
           </div>
         </div>
@@ -1172,7 +1173,7 @@ export default function App() {
       {/* FLOATING MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '6px' : '10px', padding: isTinyLayout ? '7px 8px' : '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>WISPACE</button>
+          <button onClick={() => { setActivePage('home'); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
             ['band', 'BAND'],
@@ -1182,15 +1183,15 @@ export default function App() {
             <button
               key={tab}
               onClick={() => { setActivePage('explore'); setExploreTab(tab); setSearchTerm(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              style={{ background: activePage === 'explore' && exploreTab === tab ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(0,210,255,0.32)' : '1px solid transparent', borderRadius: '10px', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap', padding: '7px 9px' }}
+              style={{ background: activePage === 'explore' && exploreTab === tab ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(0,210,255,0.32)' : '1px solid transparent', borderRadius: '10px', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px' }}
             >
               {label}
             </button>
           ))}
           {userSession && (
             <>
-              <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>LIBRARY</button>
-              <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}>
+              <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
+              <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>
                 MESSAGES
                 {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
               </button>
@@ -1198,17 +1199,17 @@ export default function App() {
           )}
           <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
             <Search size={12} color="#666" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#fff', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#fff', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
           </div>
           {!userSession ? (
             <>
-              <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>LOGIN</button>
-              <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0,210,255,0.12)', border: '1px solid rgba(0,210,255,0.35)', color: '#00d2ff', borderRadius: '12px', padding: '7px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>JOIN</button>
+              <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LOGIN</button>
+              <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0,210,255,0.12)', border: '1px solid rgba(0,210,255,0.35)', color: '#00d2ff', borderRadius: '12px', padding: '7px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>JOIN</button>
             </>
           ) : (
             <>
-              <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: "'League Spartan'", whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
-              <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: "'League Spartan'", whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
+              <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
+              <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
             </>
           )}
         </div>
@@ -1223,7 +1224,7 @@ export default function App() {
             {/* CYBER SEARCH BAR INTEGRATION */}
             <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '360px', display: 'flex', alignItems: 'center' }}>
               <Search size={14} color="#666" style={{ position: 'absolute', left: '16px' }} />
-              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#fff', outline: 'none', fontFamily: "'League Spartan'", boxSizing: 'border-box', textAlign: 'center' }} />
+              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#fff', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
             </div>
 
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
@@ -1274,7 +1275,7 @@ export default function App() {
                             textShadow: isActiveSlide ? '0 0 16px rgba(0, 210, 255, 0.95)' : 'none',
                             boxShadow: 'none',
                             cursor: 'pointer',
-                            fontFamily: "'League Spartan'",
+                            fontFamily: FONT_STACK,
                             fontSize: '12px',
                             fontWeight: '900',
                             lineHeight: 1,
@@ -1322,7 +1323,7 @@ export default function App() {
               {isApprovedHomepageGig(selectedGigDetail) && <span>TAYANG SAMPAI: <strong style={{ color: '#ffcc00' }}>{getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong></span>}
             </div>
           </div>
-          <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>CLOSE</button>
+          <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
         </section>
       )}
 
@@ -1339,7 +1340,7 @@ export default function App() {
                 {adminError && <p style={{ color: '#ff3333', fontSize: '12px', fontWeight: '900', margin: '0 0 12px 0' }}>{adminError}</p>}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <button type="submit" style={{ ...glassButtonStyle, padding: '12px', fontSize: '12px' }}>UNLOCK ADMIN</button>
-                  <button type="button" onClick={closeAdminGate} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>BACK HOME</button>
+                  <button type="button" onClick={closeAdminGate} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BACK HOME</button>
                 </div>
               </form>
             </div>
@@ -1386,7 +1387,7 @@ export default function App() {
                     onClick={() => gig.image && setSelectedPosterPreview(gig)}
                     disabled={!gig.image}
                     title={gig.image ? 'Klik buat cek pamflet utuh' : 'Belum ada gambar pamflet'}
-                    style={{ width: '100%', padding: 0, margin: '0 0 14px 0', border: 'none', background: 'transparent', cursor: gig.image ? 'zoom-in' : 'default', fontFamily: "'League Spartan'" }}
+                    style={{ width: '100%', padding: 0, margin: '0 0 14px 0', border: 'none', background: 'transparent', cursor: gig.image ? 'zoom-in' : 'default', fontFamily: FONT_STACK }}
                   >
                     {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px' })}
                     {gig.image && <span style={{ display: 'block', color: '#00d2ff', fontSize: '10px', fontWeight: '900', marginTop: '8px', textAlign: 'left' }}>KLIK GAMBAR UNTUK PREVIEW UTUH</span>}
@@ -1405,9 +1406,9 @@ export default function App() {
                     )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                    <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>FREE</button>
-                    <button onClick={() => handleGigModeration(gig.id, 'approved_exclusive')} style={{ padding: '10px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(0,210,255,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>EXCLUSIVE</button>
-                    <button onClick={() => handleGigModeration(gig.id, 'rejected')} style={{ padding: '10px', backgroundColor: 'rgba(255,51,51,0.1)', color: '#ff3333', border: '1px solid rgba(255,51,51,0.35)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>REJECT</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'approved_exclusive')} style={{ padding: '10px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(0,210,255,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'rejected')} style={{ padding: '10px', backgroundColor: 'rgba(255,51,51,0.1)', color: '#ff3333', border: '1px solid rgba(255,51,51,0.35)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                   </div>
                 </div>
                 );
@@ -1434,7 +1435,7 @@ export default function App() {
                           <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>APPROVE: <span style={{ color: '#fff' }}>{getGigApprovedAt(gig) || '-'}</span></p>
                           <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>HABIS: <span style={{ color: '#ffcc00' }}>{getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</span></p>
                         </div>
-                        <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '9px 11px', backgroundColor: 'rgba(255,51,51,0.1)', color: '#ff3333', border: '1px solid rgba(255,51,51,0.35)', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>REMOVE</button>
+                        <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '9px 11px', backgroundColor: 'rgba(255,51,51,0.1)', color: '#ff3333', border: '1px solid rgba(255,51,51,0.35)', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
                       </div>
                     ))}
                   </div>
@@ -1518,7 +1519,7 @@ export default function App() {
                   <div>
                     <button
                       onClick={() => { setIsViewingOwnBandProfile(false); setActivePage('band_public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: "'League Spartan'", textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(0,210,255,0.65)', textUnderlineOffset: '4px' }}
+                      style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(0,210,255,0.65)', textUnderlineOffset: '4px' }}
                     >
                       {(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}
                     </button>
@@ -1532,7 +1533,7 @@ export default function App() {
               <section style={{ ...glassStyle('explore-merch'), padding: '18px', backgroundColor: '#090909' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                   <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>MERCH HIGHLIGHT</h3>
-                  <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>LIHAT SEMUA</button>
+                  <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
                 </div>
                 {filteredMerchItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
@@ -1925,8 +1926,8 @@ export default function App() {
               {newPosterName && <p style={{ color: '#aaa', fontSize: '11px', fontWeight: '900', margin: '8px 0 0 0' }}>FILE: {newPosterName}</p>}
               {newPosterNotice && <p style={{ color: newPosterNotice.includes('Ideal') ? '#ffcc00' : '#39ff14', fontSize: '11px', lineHeight: 1.45, margin: '6px 0 0 0' }}>{newPosterNotice}</p>}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '14px' }}>
-                <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'free' ? '1px solid #39ff14' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'free' ? 'rgba(57,255,20,0.12)' : '#000', color: newGigRequestType === 'free' ? '#39ff14' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>FREE BULLETIN</button>
-                <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'exclusive' ? '1px solid #00d2ff' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.14)' : '#000', color: newGigRequestType === 'exclusive' ? '#00d2ff' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>EXCLUSIVE SLIDE</button>
+                <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'free' ? '1px solid #39ff14' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'free' ? 'rgba(57,255,20,0.12)' : '#000', color: newGigRequestType === 'free' ? '#39ff14' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE BULLETIN</button>
+                <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'exclusive' ? '1px solid #00d2ff' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.14)' : '#000', color: newGigRequestType === 'exclusive' ? '#00d2ff' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE SLIDE</button>
               </div>
               <div style={{ marginTop: '14px', padding: '14px', backgroundColor: '#000', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.32)' : 'rgba(57,255,20,0.24)'}`, borderRadius: '14px' }}>
                 <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE EVENT SLOT' : 'FREE BULLETIN SLOT'}</p>
@@ -1935,7 +1936,7 @@ export default function App() {
                 <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>UKURAN DISARANKAN: {posterUploadGuide.size} / {posterUploadGuide.ratio} / MAX 2MB</p>
                 <p style={{ color: '#666', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{posterUploadGuide.note}</p>
               </div>
-              <button type="submit" style={{ width: '100%', padding: '14px', marginTop: '16px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>KIRIM KE ANTREAN KURASI</button>
+              <button type="submit" style={{ width: '100%', padding: '14px', marginTop: '16px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>KIRIM KE ANTREAN KURASI</button>
             </form>
 
             <div style={{ display: 'grid', gap: '18px' }}>
@@ -2104,7 +2105,7 @@ export default function App() {
                   <input type="text" placeholder="GENRE FAVORIT" value={audienceProfile.favoriteGenre} onChange={(event) => setAudienceProfile({ ...audienceProfile, favoriteGenre: event.target.value })} style={formInputStyle} />
                   <input type="text" placeholder="KONTAK OPSIONAL" value={audienceProfile.contact} onChange={(event) => setAudienceProfile({ ...audienceProfile, contact: event.target.value })} style={formInputStyle} />
                 </div>
-                <button type="submit" style={{ width: '100%', padding: '13px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>SIMPAN PROFILE AUDIENCE</button>
+                <button type="submit" style={{ width: '100%', padding: '13px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE AUDIENCE</button>
               </form>
 
               <section style={{ ...glassStyle('audience-profile-note'), padding: '20px', backgroundColor: '#090909' }}>
@@ -2177,7 +2178,7 @@ export default function App() {
                 <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.5, margin: '0 0 16px 0' }}>File berada di secret encrypted folder. Audience bisa access/download pribadi, tapi tidak boleh redistribusi ulang.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <button style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY ALBUM</button>
-                  <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>SECURE DOWNLOAD</button>
+                  <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SECURE DOWNLOAD</button>
                 </div>
               </aside>
             </div>
@@ -2233,7 +2234,7 @@ export default function App() {
                           <textarea placeholder={`BALAS KE ${message.sender.toUpperCase()}`} value={replyDraft} onChange={(event) => setReplyDraft(event.target.value)} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <button type="submit" style={{ ...glassButtonStyle, padding: '10px', fontSize: '11px' }}>KIRIM REPLY</button>
-                            <button type="button" onClick={() => { setActiveReplyId(null); setReplyDraft(''); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>BATAL</button>
+                            <button type="button" onClick={() => { setActiveReplyId(null); setReplyDraft(''); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BATAL</button>
                           </div>
                         </form>
                       ) : isBandAccount ? (
@@ -2352,7 +2353,7 @@ export default function App() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
                 <button onClick={() => { setActivePage('message_center'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px', fontSize: '11px' }}>MESSAGE</button>
-                <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', fontFamily: "'League Spartan'" }}>FOLLOW</button>
+                <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', fontFamily: FONT_STACK }}>FOLLOW</button>
               </div>
               <div style={{ borderTop: '1px solid #141414', paddingTop: '14px', marginBottom: '14px' }}>
                 <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
@@ -2386,7 +2387,7 @@ export default function App() {
                   <button
                     key={tab}
                     onClick={() => setBandProfileTab(tab)}
-                    style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#00d2ff' : 'transparent', color: bandProfileTab === tab ? '#000' : '#777', border: bandProfileTab === tab ? 'none' : '1px solid #222', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}
+                    style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#00d2ff' : 'transparent', color: bandProfileTab === tab ? '#000' : '#777', border: bandProfileTab === tab ? 'none' : '1px solid #222', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
                   >
                     {tab === 'profile' ? 'PROFILE BAND' : tab === 'album' ? 'UPLOAD ALBUM' : tab === 'merch' ? 'MERCHANDISE' : 'ARTIKEL'}
                   </button>
@@ -2419,7 +2420,7 @@ export default function App() {
                       <p style={{ color: '#555', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.photoName || 'Foto utama/avatar band.'}</p>
                     </label>
                   </div>
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>SIMPAN PROFILE BAND</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE BAND</button>
                 </form>
               )}
 
@@ -2466,7 +2467,7 @@ export default function App() {
                     <input type="text" placeholder="NAMA PENANGGUNG JAWAB / TTD DIGITAL" value={albumDraft.signature} onChange={(e) => setAlbumDraft({ ...albumDraft, signature: e.target.value })} style={formInputStyle} />
                   </div>
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
                 </form>
               )}
 
@@ -2497,7 +2498,7 @@ export default function App() {
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>TAMBAH KE ETALASE MERCH</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TAMBAH KE ETALASE MERCH</button>
                 </form>
               )}
 
@@ -2522,7 +2523,7 @@ export default function App() {
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>PUBLISH ARTIKEL DRAFT</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PUBLISH ARTIKEL DRAFT</button>
                 </form>
               )}
             </div>
@@ -2564,7 +2565,7 @@ export default function App() {
                       <button
                         key={jenis}
                         onClick={() => handleKirimLaporan(gig.id, jenis)}
-                        style={{ width: '100%', background: 'transparent', border: 'none', borderTop: '1px solid #141414', color: '#ddd', fontSize: '11px', fontWeight: '800', padding: '8px 0', textAlign: 'left', cursor: 'pointer', fontFamily: "'League Spartan'" }}
+                        style={{ width: '100%', background: 'transparent', border: 'none', borderTop: '1px solid #141414', color: '#ddd', fontSize: '11px', fontWeight: '800', padding: '8px 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}
                       >
                         {jenis.toUpperCase()}
                       </button>
@@ -2579,7 +2580,7 @@ export default function App() {
                 {/* LACI GESER DETAIL (POP-DRAWER GAYA 3) - MUNCUL DI BAWAH POSTER YANG DIKLIK */}
                 {selectedGigDetail?.id === gig.id && (
                   <div style={{ marginTop: '14px', padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.3)', borderRadius: '12px', animation: 'slideDown 0.2s ease-out' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontFamily: "'League Spartan'" }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontFamily: FONT_STACK }}>
                       <div style={{ color: '#fff' }}><span style={{ color: '#666' }}>📅 DATE:</span> {getGigDate(gig)}</div>
                       <div style={{ color: '#fff' }}><span style={{ color: '#666' }}>📍 VENUE:</span> {gig.city.toUpperCase()}</div>
                       <div style={{ color: getGigHtm(gig).toLowerCase() === 'free' ? '#39ff14' : '#00d2ff', fontWeight: '900' }}>
@@ -2617,14 +2618,14 @@ export default function App() {
           <div style={{ ...glassStyle('c2'), padding: '24px', backgroundColor: '#090909' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '14px', color: '#00d2ff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={14}/> 10 ARTIKEL BAND TERBARU</h3>
-              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>LIHAT</button>
+              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
             {articleItems.length === 0 ? (
               <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
             ) : (
               <div style={{ display: 'grid', gap: '12px' }}>
                 {articleItems.slice(0, 10).map((article) => (
-                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '10px 0', border: 'none', borderTop: '1px solid #141414', background: 'transparent', cursor: 'pointer', fontFamily: "'League Spartan'" }}>
+                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '10px 0', border: 'none', borderTop: '1px solid #141414', background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
                     <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
                     <p style={{ color: '#777', fontSize: '11px', margin: 0 }}>{article.category} / {article.bandName}</p>
                   </button>
@@ -2650,7 +2651,7 @@ export default function App() {
                 <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>PREVIEW PAMFLET UTUH</p>
                 <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPosterPreview.title?.toUpperCase()}</h3>
               </div>
-              <button onClick={() => setSelectedPosterPreview(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>CLOSE</button>
+              <button onClick={() => setSelectedPosterPreview(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
             <div style={{ width: '100%', maxHeight: '74vh', overflow: 'auto', backgroundColor: '#000', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
               <img src={selectedPosterPreview.image} alt="" style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
@@ -2670,13 +2671,13 @@ export default function App() {
             {authType === 'login' && (
               <form onSubmit={handleLoginAkun}>
                 <h3 style={{ color: '#00d2ff', margin: '0 0 24px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>MASUK MOSHPIT WISPACE</h3>
-                <input type="email" placeholder="EMAIL USER" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
-                <input type="password" placeholder="PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
+                <input type="email" placeholder="EMAIL USER" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                <input type="password" placeholder="PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
                 {authError && (
                   <div style={{ backgroundColor: '#000', border: `1px solid ${authError.startsWith('Link') ? 'rgba(0,210,255,0.35)' : 'rgba(255,51,51,0.35)'}`, color: authError.startsWith('Link') ? '#00d2ff' : '#ff3333', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
                 )}
-                <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? '#141414' : '#00d2ff', color: authLoading ? '#555' : '#000', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: "'League Spartan'" }}>{authLoading ? 'MEMPROSES...' : 'LOG MASUK'}</button>
-                <button type="button" onClick={handleResendVerification} disabled={authLoading} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: 'transparent', color: '#00d2ff', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: "'League Spartan'", fontSize: '12px' }}>KIRIM ULANG VERIFIKASI EMAIL</button>
+                <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? '#141414' : '#00d2ff', color: authLoading ? '#555' : '#000', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{authLoading ? 'MEMPROSES...' : 'LOG MASUK'}</button>
+                <button type="button" onClick={handleResendVerification} disabled={authLoading} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: 'transparent', color: '#00d2ff', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK, fontSize: '12px' }}>KIRIM ULANG VERIFIKASI EMAIL</button>
               </form>
             )}
 
@@ -2721,14 +2722,14 @@ export default function App() {
                   {userRole === 'musisi' ? '👉 LU AKAN TERDAFTAR SEBAGAI BAND/KREATOR' : '👉 LU AKAN TERDAFTAR SEBAGAI PENIKMAT/KOLEKTOR MUSIK'}
                 </p>
 
-                <input type="email" placeholder="ALAMAT EMAIL RESMI" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
-                <input type="password" placeholder="BUAT PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: "'League Spartan'", boxSizing: 'border-box' }} />
+                <input type="email" placeholder="ALAMAT EMAIL RESMI" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                <input type="password" placeholder="BUAT PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
                 {authError && (
                   <div style={{ backgroundColor: '#000', border: `1px solid ${authError.startsWith('Link') ? 'rgba(0,210,255,0.35)' : 'rgba(255,51,51,0.35)'}`, color: authError.startsWith('Link') ? '#00d2ff' : '#ff3333', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
                 )}
                 
                 {/* Tombol Submit Kunci Akun */}
-                <button type="submit" disabled={!userRole || authLoading} style={{ width: '100%', padding: '14px', backgroundColor: userRole && !authLoading ? '#00d2ff' : '#141414', color: userRole && !authLoading ? '#000' : '#444', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: userRole && !authLoading ? 'pointer' : 'not-allowed', fontFamily: "'League Spartan'", transition: 'all 0.2s' }}>
+                <button type="submit" disabled={!userRole || authLoading} style={{ width: '100%', padding: '14px', backgroundColor: userRole && !authLoading ? '#00d2ff' : '#141414', color: userRole && !authLoading ? '#000' : '#444', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: userRole && !authLoading ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK, transition: 'all 0.2s' }}>
                   {authLoading ? 'MEMPROSES...' : userRole ? 'DAFTAR AKUN BARU' : 'PILIH ROL LU DI ATAS DULU'}
                 </button>
               </form>
@@ -2740,8 +2741,8 @@ export default function App() {
                 <h3 style={{ color: '#fff', fontWeight: '900', fontSize: '20px', margin: '0 0 8px 0' }}>CHOOSE YOUR DESTINY</h3>
                 <p style={{ color: '#666', fontSize: '13px', margin: '0 0 24px 0' }}>Tentukan kasta pergerakan lu di dalam platform WiSpace</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <button onClick={() => handleRoleSelection('musisi')} style={{ padding: '16px', backgroundColor: 'rgba(0,210,255,0.05)', border: '1px solid #00d2ff', borderRadius: '16px', color: '#00d2ff', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: "'League Spartan'" }}>🎸 SEBAGAI MUSISI (UPLOAD KARYA/GIGS)</button>
-                  <button onClick={() => handleRoleSelection('audience')} style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: "'League Spartan'" }}>🎧 SEBAGAI AUDIENCE (PENIKMAT/KOLEKTOR)</button>
+                  <button onClick={() => handleRoleSelection('musisi')} style={{ padding: '16px', backgroundColor: 'rgba(0,210,255,0.05)', border: '1px solid #00d2ff', borderRadius: '16px', color: '#00d2ff', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: FONT_STACK }}>🎸 SEBAGAI MUSISI (UPLOAD KARYA/GIGS)</button>
+                  <button onClick={() => handleRoleSelection('audience')} style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: FONT_STACK }}>🎧 SEBAGAI AUDIENCE (PENIKMAT/KOLEKTOR)</button>
                 </div>
               </div>
             )}
@@ -2758,8 +2759,8 @@ export default function App() {
                   <p style={{ margin: '0' }}>5. Tindakan Plagiarisme dilarang keras! Apabila di masa depan ditemukan indikasi plagiat karya orang lain, hal tersebut adalah <strong>pelanggaran mutlak band</strong> dan WiSpace lepas dari segala tuntutan hukum (karena admin tidak mengurasi orisinalitas nada satu per satu).</p>
                 </div>
                 <p style={{ color: '#fff', fontSize: '12px', fontWeight: '700', marginBottom: '8px' }}>Ketik Nama Band Lu Untuk Tanda Tangan Digital Sah:</p>
-                <input type="text" placeholder="CONTOH: SKENA NOISE SYNDICATE" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '16px', fontFamily: "'League Spartan'", boxSizing: 'border-box', textAlign: 'center' }} />
-                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#ff3333', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>SAYA SETUJU & SIGN KONTRAK ✍️</button>
+                <input type="text" placeholder="CONTOH: SKENA NOISE SYNDICATE" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '16px', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
+                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#ff3333', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SAYA SETUJU & SIGN KONTRAK ✍️</button>
               </form>
             )}
 
@@ -2772,7 +2773,7 @@ export default function App() {
                 <div style={{ backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.2)', padding: '14px', borderRadius: '16px', marginBottom: '20px', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div><span style={{ color: '#666', fontSize: '11px', fontWeight: '900' }}>TOTAL SALDO SIAP CAIR</span><h4 style={{ margin: 0, fontSize: '24px', color: '#fff', fontWeight: '900', display: 'flex', alignItems: 'center' }}><DollarSign size={20} color="#00d2ff"/> Rp {bandBalance.toLocaleString('id-ID')}</h4></div>
-                    <button disabled={bandBalance < 100000} style={{ padding: '8px 14px', backgroundColor: bandBalance >= 100000 ? '#00d2ff' : '#141414', border: 'none', borderRadius: '16px', color: bandBalance >= 100000 ? '#000' : '#444', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= 100000 ? 'pointer' : 'not-allowed', fontFamily: "'League Spartan'" }}>TARIK DANA</button>
+                    <button disabled={bandBalance < 100000} style={{ padding: '8px 14px', backgroundColor: bandBalance >= 100000 ? '#00d2ff' : '#141414', border: 'none', borderRadius: '16px', color: bandBalance >= 100000 ? '#000' : '#444', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= 100000 ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>TARIK DANA</button>
                   </div>
                   <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 15-20%. Pencairan berkala tiap tanggal 1. {bandBalance < 100000 && <span style={{ color: '#ff3333' }}>Kurang Rp {(100000 - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, breo!</span>}</p>
                 </div>
@@ -2826,8 +2827,8 @@ export default function App() {
                 {newPosterName && <p style={{ color: '#aaa', fontSize: '11px', fontWeight: '900', margin: '-4px 0 12px 0' }}>FILE: {newPosterName}</p>}
                 {newPosterNotice && <p style={{ color: newPosterNotice.includes('Ideal') ? '#ffcc00' : '#39ff14', fontSize: '11px', lineHeight: 1.45, margin: '-4px 0 12px 0' }}>{newPosterNotice}</p>}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-                  <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'free' ? '1px solid #39ff14' : '1px solid #222', backgroundColor: newGigRequestType === 'free' ? 'rgba(57,255,20,0.12)' : '#000', color: newGigRequestType === 'free' ? '#39ff14' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>FREE BULLETIN</button>
-                  <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'exclusive' ? '1px solid #00d2ff' : '1px solid #222', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.14)' : '#000', color: newGigRequestType === 'exclusive' ? '#00d2ff' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: "'League Spartan'" }}>EXCLUSIVE SLIDE</button>
+                  <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'free' ? '1px solid #39ff14' : '1px solid #222', backgroundColor: newGigRequestType === 'free' ? 'rgba(57,255,20,0.12)' : '#000', color: newGigRequestType === 'free' ? '#39ff14' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE BULLETIN</button>
+                  <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'exclusive' ? '1px solid #00d2ff' : '1px solid #222', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.14)' : '#000', color: newGigRequestType === 'exclusive' ? '#00d2ff' : '#777', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE SLIDE</button>
                 </div>
                 <div style={{ padding: '12px', backgroundColor: '#000', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(0,210,255,0.32)' : 'rgba(57,255,20,0.24)'}`, borderRadius: '14px', marginBottom: '18px' }}>
                   <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE SLIDE BERBAYAR' : 'FREE BULLETIN GRATIS'}</p>
@@ -2857,3 +2858,4 @@ export default function App() {
     </div>
   );
 }
+
