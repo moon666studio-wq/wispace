@@ -1234,7 +1234,7 @@ export default function App() {
 
       {/* ADMIN MODERATION PANEL */}
       {!loading && isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
+        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '86px 28px 28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
           {!isAdminUnlocked ? (
             <div style={{ minHeight: 'calc(100vh - 96px)', display: 'grid', placeItems: 'center' }}>
               <form onSubmit={handleAdminUnlock} style={{ ...glassStyle('admin-password-gate'), width: '100%', maxWidth: '420px', padding: '28px', backgroundColor: '#090909' }}>
@@ -1355,7 +1355,7 @@ export default function App() {
 
       {/* EXPLORE RELEASES PAGE */}
       {!loading && isExplorePage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
+        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '86px 28px 28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
             <div>
               <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE EXPLORE</p>
