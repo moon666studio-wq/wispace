@@ -1226,6 +1226,39 @@ export default function App() {
     }
   };
 
+  const recordPlatformIncome = useCallback((sale) => {
+    const grossAmount = normalizePriceValue(sale.amount);
+    const nextTransaction = {
+      id: createClientId(),
+      productType: sale.productType || 'platform_income',
+      productTitle: sale.productTitle || 'Pemasukan WiSpace',
+      sellerBandName: 'WiSpace',
+      sellerBandSlug: 'wispace-admin',
+      buyerName: audienceProfile.displayName || userSession?.email?.split('@')[0] || 'User WiSpace',
+      buyerEmail: userSession?.email || '',
+      grossAmount,
+      platformFee: grossAmount,
+      bandNet: 0,
+      revenueShare: 'platform',
+      status: 'paid_demo',
+      gigId: sale.gigId || '',
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+
+    setSaleTransactions((current) => {
+      const alreadyRecorded = nextTransaction.gigId && current.some((transaction) => (
+        transaction.gigId === nextTransaction.gigId && transaction.productType === nextTransaction.productType
+      ));
+      if (alreadyRecorded) return current;
+
+      const nextLedger = [nextTransaction, ...current];
+      saveTransactionLedger(nextLedger);
+      return nextLedger;
+    });
+
+    return nextTransaction;
+  }, [audienceProfile.displayName, userSession]);
+
   const updateGigStatus = async (id, updatePayload) => {
     const { error: firstError } = await supabase.from('gigs').update(updatePayload).eq('id', id);
     const error = isMissingColumnError(firstError)
@@ -1243,9 +1276,15 @@ export default function App() {
     const approvedUntil = new Date();
     approvedUntil.setDate(approvedUntil.getDate() + 10);
     const approvedAt = new Date().toISOString().slice(0, 10);
-    const updatePayload = status === 'approved_exclusive' || status === 'approved_free'
-      ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10) }
-      : { status };
+    const updatePayload = status === 'approved_exclusive'
+      ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10), payment_status: 'paid', activated_at: new Date().toISOString() }
+      : status === 'approved_free'
+        ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10), payment_status: 'not_required' }
+        : status === 'approved_waiting_payment'
+          ? { status, payment_status: 'awaiting_payment', exclusive_fee: EXCLUSIVE_POSTER_SLOT_FEE }
+          : status === 'rejected'
+            ? { status, payment_status: 'cancelled' }
+            : { status };
     const error = await updateGigStatus(id, updatePayload);
     if (error) alert("Gagal update status pamflet: " + error.message);
     else {
@@ -1265,9 +1304,22 @@ export default function App() {
     const confirmed = window.confirm(`Bayar slot exclusive Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} untuk "${gig.title}"? Ini demo payment dulu.`);
     if (!confirmed) return;
 
-    const error = await updateGigStatus(gig.id, { status: 'paid_waiting_activation' });
+    const paymentReference = `demo-exclusive-${gig.id}-${Date.now()}`;
+    const error = await updateGigStatus(gig.id, {
+      status: 'paid_waiting_activation',
+      payment_status: 'paid',
+      payment_reference: paymentReference,
+      exclusive_fee: EXCLUSIVE_POSTER_SLOT_FEE,
+      paid_at: new Date().toISOString()
+    });
     if (error) alert('Gagal update pembayaran pamflet: ' + error.message);
     else {
+      recordPlatformIncome({
+        productType: 'exclusive_poster',
+        productTitle: gig.title || 'Pamflet Exclusive',
+        amount: EXCLUSIVE_POSTER_SLOT_FEE,
+        gigId: gig.id
+      });
       alert('Pembayaran demo berhasil. Admin WiSpace akan mendapat status PAID dan bisa activate slot exclusive.');
       fetchData();
     }
@@ -1280,7 +1332,9 @@ export default function App() {
     const error = await updateGigStatus(id, {
       status: 'approved_exclusive',
       approved_at: approvedAt,
-      approved_until: approvedUntil.toISOString().slice(0, 10)
+      approved_until: approvedUntil.toISOString().slice(0, 10),
+      payment_status: 'paid',
+      activated_at: new Date().toISOString()
     });
     if (error) alert('Gagal activate pamflet exclusive: ' + error.message);
     else {
@@ -1944,7 +1998,12 @@ export default function App() {
   const adminReleaseFeeRevenue = saleTransactions
     .filter((transaction) => ['album', 'track'].includes(transaction.productType))
     .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
-  const adminExclusivePosterRevenue = paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE;
+  const exclusivePosterTransactions = saleTransactions.filter((transaction) => transaction.productType === 'exclusive_poster');
+  const adminExclusivePosterRevenue = Math.max(
+    exclusivePosterTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || transaction.grossAmount || 0), 0),
+    paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE
+  );
+  const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -2599,7 +2658,7 @@ export default function App() {
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>BIAYA PAMFLET EXCLUSIVE</p>
                 <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{paidExclusivePosterGigs.length} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
+                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
               </div>
             </div>
           </section>
