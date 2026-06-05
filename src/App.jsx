@@ -218,6 +218,7 @@ export default function App() {
     coverName: '',
     coverPreview: '',
     audioFiles: [],
+    freeTrackIndex: '',
     signature: '',
     accepted: false
   });
@@ -273,6 +274,7 @@ export default function App() {
 
   const audioRef = useRef(new Audio());
   const timerRef = useRef(null);
+  const audioPreviewTimerRef = useRef(null);
 
   const getStoredRole = useCallback((user) => {
     const roleById = user?.id ? window.localStorage.getItem(`wispace_role_${user.id}`) : null;
@@ -898,8 +900,10 @@ export default function App() {
       ...current,
       audioFiles: files.map((file) => ({
         name: file.name,
-        size: file.size
-      }))
+        size: file.size,
+        url: URL.createObjectURL(file)
+      })),
+      freeTrackIndex: ''
     }));
   };
 
@@ -943,6 +947,14 @@ export default function App() {
       coverPreview: albumDraft.coverPreview,
       coverName: albumDraft.coverName,
       trackCount: albumDraft.audioFiles.length,
+      tracks: albumDraft.audioFiles.map((file, index) => ({
+        id: `${Date.now()}-${index}`,
+        title: file.name.replace(/\.(mp3|wav)$/i, ''),
+        fileName: file.name,
+        size: file.size,
+        url: file.url,
+        freeFull: String(index) === String(albumDraft.freeTrackIndex)
+      })),
       bandName: bandProfile.name || signatureName || 'Band WiSpace',
       city: bandProfile.city || 'Indonesia',
       genre: bandProfile.genre || 'Indie',
@@ -957,6 +969,7 @@ export default function App() {
       coverName: '',
       coverPreview: '',
       audioFiles: [],
+      freeTrackIndex: '',
       signature: albumDraft.signature,
       accepted: false
     });
@@ -1076,8 +1089,34 @@ export default function App() {
 
   // PLAYER SYSTEM
   const handlePlayTrack = (track) => {
-    if (activeTrack?.id === track.id && isPlaying) { audioRef.current.pause(); setIsPlaying(false); return; }
-    audioRef.current.src = track.url; audioRef.current.play(); setActiveTrack(track); setIsPlaying(true);
+    if (!track?.url) {
+      alert('File audio belum tersedia buat preview bro.');
+      return;
+    }
+
+    window.clearTimeout(audioPreviewTimerRef.current);
+
+    if (activeTrack?.id === track.id && isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    audioRef.current.src = track.url;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+    setActiveTrack(track);
+    setIsPlaying(true);
+
+    audioRef.current.onended = () => setIsPlaying(false);
+
+    if (!track.freeFull) {
+      audioPreviewTimerRef.current = window.setTimeout(() => {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+      }, 30000);
+    }
   };
 
   const approvedFreeGigs = gigs.filter((gig) => gig.status === 'approved' || gig.status === 'approved_free');
@@ -1091,6 +1130,16 @@ export default function App() {
   const filteredMerchItems = merchItems.filter((item) => matchesSearch(item.name, item.description, bandProfile.name, bandProfile.genre));
   const filteredArticles = articleItems.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName));
   const bandMatchesSearch = matchesSearch(bandProfile.name, signatureName, bandProfile.genre, bandProfile.city, bandProfile.headline, bandProfile.bio);
+  const bandPublicTracks = albumItems
+    .flatMap((album) => (album.tracks || []).map((track, index) => ({
+      ...track,
+      albumTitle: album.title,
+      albumCover: album.coverPreview,
+      genre: album.genre,
+      displayIndex: index + 1
+    })))
+    .slice(0, 5);
+  const hasFreeFullBandTrack = bandPublicTracks.some((track) => track.freeFull) || albumItems.some((album) => (album.tracks || []).some((track) => track.freeFull));
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -2156,6 +2205,40 @@ export default function App() {
                 <p style={{ color: '#bbb', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{bandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
+              <section style={{ ...glassStyle('band-public-player'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                  <div>
+                    <h3 style={{ ...sectionHeadingStyle, margin: '0 0 6px 0' }}>PROMO MUSIC PLAYER</h3>
+                    <p style={{ color: '#666', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Preview maksimal 30 detik. Satu lagu bisa dibuka full gratis oleh band.</p>
+                  </div>
+                  {hasFreeFullBandTrack && (
+                    <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(57,255,20,0.1)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14', fontSize: '10px', fontWeight: '900' }}>1 FREE FULL TRACK</span>
+                  )}
+                </div>
+                {bandPublicTracks.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada lagu promo. Upload album dulu, lalu pilih track preview/free full di Band Studio.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '10px' }}>
+                    {bandPublicTracks.map((track, index) => {
+                      const isActive = activeTrack?.id === track.id && isPlaying;
+                      return (
+                        <div key={track.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '44px 1fr' : '52px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: `1px solid ${track.freeFull ? 'rgba(57,255,20,0.26)' : '#141414'}`, borderRadius: '12px' }}>
+                          <div style={{ width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', color: '#00d2ff', fontSize: '11px', fontWeight: '900' }}>
+                            {track.albumCover ? <img src={track.albumCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : String(index + 1).padStart(2, '0')}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : '30 SEC PREVIEW'} / {track.albumTitle?.toUpperCase()}</p>
+                            <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
+                            <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
+                          </div>
+                          <button onClick={() => handlePlayTrack(track)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '9px' : '10px 14px', fontSize: '11px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>{isActive ? 'PAUSE' : 'PLAY'}</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+
               <section style={{ ...glassStyle('band-public-releases'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {albumItems.length === 0 ? (
@@ -2724,7 +2807,18 @@ export default function App() {
               </div>
               <div style={{ borderTop: '1px solid #141414', paddingTop: '14px', marginBottom: '14px' }}>
                 <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
-                <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Nanti maksimal 5 lagu promo tampil di sini, masing-masing preview 30 detik.</p>
+                {bandPublicTracks.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Maksimal 5 lagu promo tampil di public profile. Pilih 1 track free full saat upload album.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {bandPublicTracks.slice(0, 3).map((track) => (
+                      <div key={`studio-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', color: '#ddd', fontSize: '11px' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
+                        <strong style={{ color: track.freeFull ? '#39ff14' : '#00d2ff', flexShrink: 0 }}>{track.freeFull ? 'FULL' : '30S'}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div style={{ borderTop: '1px solid #141414', paddingTop: '14px' }}>
                 <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCHANDISE SHELF</h4>
@@ -2814,13 +2908,30 @@ export default function App() {
 
                   {albumDraft.audioFiles.length > 0 && (
                     <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
-                      <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>TRACK FILES</p>
+                      <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
+                      <p style={{ color: hasFreeFullBandTrack ? '#555' : '#00d2ff', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
+                        {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru tetap jadi preview 30 detik.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain otomatis preview 30 detik.'}
+                      </p>
                       {albumDraft.audioFiles.map((file, index) => (
-                        <div key={`${file.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '8px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px' }}>
+                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: hasFreeFullBandTrack ? '1fr auto' : 'auto 1fr auto', gap: '10px', padding: '8px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
+                          {!hasFreeFullBandTrack && (
+                            <input
+                              type="radio"
+                              name="free-track"
+                              checked={String(albumDraft.freeTrackIndex) === String(index)}
+                              onChange={() => setAlbumDraft({ ...albumDraft, freeTrackIndex: index })}
+                              title="Jadikan lagu ini free full listen"
+                            />
+                          )}
                           <span>{String(index + 1).padStart(2, '0')} / {file.name}</span>
-                          <span style={{ color: '#666' }}>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                          <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? '#39ff14' : '#666', fontWeight: '900' }}>
+                            {String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'FREE FULL' : `${(file.size / (1024 * 1024)).toFixed(2)} MB`}
+                          </span>
                         </div>
                       ))}
+                      {!hasFreeFullBandTrack && albumDraft.freeTrackIndex !== '' && (
+                        <button type="button" onClick={() => setAlbumDraft({ ...albumDraft, freeTrackIndex: '' })} style={{ marginTop: '10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#aaa', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BATALKAN FREE FULL</button>
+                      )}
                     </div>
                   )}
 
