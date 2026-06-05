@@ -1219,7 +1219,7 @@ export default function App() {
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 40px)', marginBottom: '40px', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000' }}>
           <header style={{ position: 'absolute', top: '30px', left: '30px', right: '30px', zIndex: 100, display: 'flex', justifyView: 'space-between', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', opacity: isScrolled ? 0 : 1, pointerEvents: isScrolled ? 'none' : 'auto', transition: 'opacity 0.4s ease-in-out' }}>
-            <div><h1 onClick={() => setSearchTerm('')} style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE.MY.ID</h1></div>
+            <div><h1 onClick={() => setSearchTerm('')} style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE</h1></div>
 
             {/* CYBER SEARCH BAR INTEGRATION */}
             <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '360px', display: 'flex', alignItems: 'center' }}>
