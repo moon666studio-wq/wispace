@@ -48,6 +48,7 @@ const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
 const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
 const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
 const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
+const PUBLIC_BAND_REGISTRY_STORAGE_KEY = 'wispace_public_band_registry';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -106,6 +107,15 @@ const loadUserScopedData = (prefix, user) => {
     if (value) return value;
   }
   return null;
+};
+
+const loadPublicBandRegistry = () => {
+  const registry = readLocalJson(PUBLIC_BAND_REGISTRY_STORAGE_KEY);
+  return Array.isArray(registry) ? registry : [];
+};
+
+const savePublicBandRegistry = (profiles) => {
+  window.localStorage.setItem(PUBLIC_BAND_REGISTRY_STORAGE_KEY, JSON.stringify(profiles));
 };
 
 const saveUserScopedData = (prefix, user, value) => {
@@ -249,6 +259,8 @@ export default function App() {
   const [subscribedBands, setSubscribedBands] = useState([]);
   const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
   const [bandNotifications, setBandNotifications] = useState([]);
+  const [publicBandProfiles, setPublicBandProfiles] = useState(loadPublicBandRegistry);
+  const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
     contact: '',
@@ -315,6 +327,27 @@ export default function App() {
   const persistAudienceLibraryLocal = useCallback((library, user = userSession) => {
     saveUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, user, library);
   }, [userSession]);
+  const publishPublicBandProfile = useCallback((profile) => {
+    const profileSlug = profile.slug || createSlug(profile.name || signatureName || 'band-wispace');
+    const publicProfile = {
+      ...createEmptyBandProfile(),
+      ...trimOversizedBandPreview(profile),
+      slug: profileSlug,
+      isPublished: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    setPublicBandProfiles((current) => {
+      const nextProfiles = [
+        publicProfile,
+        ...current.filter((item) => item.slug !== profileSlug)
+      ];
+      savePublicBandRegistry(nextProfiles);
+      return nextProfiles;
+    });
+
+    return publicProfile;
+  }, [signatureName]);
 
   const exclusiveEventBanners = [
     ...gigs
@@ -376,6 +409,14 @@ export default function App() {
         setSignatureName((current) => current || storedAgreement.signatureName || storedProfile?.name || '');
         setUserRole('musisi');
         persistUserRole('musisi', userSession);
+        if (storedProfile?.name || storedAgreement.signatureName) {
+          publishPublicBandProfile({
+            ...createEmptyBandProfile(),
+            ...storedProfile,
+            name: storedProfile?.name || storedAgreement.signatureName,
+            slug: storedProfile?.slug || createSlug(storedProfile?.name || storedAgreement.signatureName)
+          });
+        }
       }
 
       if (Array.isArray(storedArticles)) {
@@ -396,7 +437,7 @@ export default function App() {
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
-  }, [persistBandProfileLocal, persistUserRole, userSession]);
+  }, [persistBandProfileLocal, persistUserRole, publishPublicBandProfile, userSession]);
 
   const stopAudioPlayback = () => {
     window.clearTimeout(audioPreviewTimerRef.current);
@@ -628,6 +669,7 @@ export default function App() {
       window.history.pushState({ page: 'band_public', slug: getBandProfileSlug(profile) }, '', bandPath);
     }
     setShowAuthModal(false);
+    setViewedBandSlug(getBandProfileSlug(profile));
     setIsViewingOwnBandProfile(isOwnerView);
     setActivePage('band_public');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -644,7 +686,7 @@ export default function App() {
   };
 
   const copyBandProfileLink = async () => {
-    const profileUrl = `${window.location.origin}${getBandProfilePath()}`;
+    const profileUrl = `${window.location.origin}/band/${currentBandSlug}`;
     try {
       await navigator.clipboard.writeText(profileUrl);
       alert('Link profile band sudah dicopy bro.');
@@ -657,22 +699,25 @@ export default function App() {
     if (!userSession) {
       setAuthType('join');
       setShowAuthModal(true);
-      setAuthError(`Join atau login dulu buat subscribe ${(bandProfile.name || signatureName || 'band ini').toUpperCase()} dan dapet notif update.`);
+      setAuthError(`Join atau login dulu buat subscribe ${(displayBandProfile.name || signatureName || 'band ini').toUpperCase()} dan dapet notif update.`);
       return;
     }
 
-    const bandSlug = getBandProfileSlug();
-    const bandName = bandProfile.name || signatureName || 'Band WiSpace';
+    const bandSlug = currentBandSlug;
+    const bandName = displayBandProfile.name || signatureName || 'Band WiSpace';
     const isSubscribed = subscribedBands.some((item) => item.slug === bandSlug);
+    const subscribedAt = new Date().toISOString();
+    const notificationCreatedAt = new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const notificationId = `${bandSlug}-${subscribedAt}`;
     const nextSubscriptions = isSubscribed
       ? subscribedBands.filter((item) => item.slug !== bandSlug)
       : [
           {
             slug: bandSlug,
             name: bandName,
-            genre: bandProfile.genre || 'Indie',
-            city: bandProfile.city || 'Indonesia',
-            subscribedAt: new Date().toISOString()
+            genre: displayBandProfile.genre || 'Indie',
+            city: displayBandProfile.city || 'Indonesia',
+            subscribedAt
           },
           ...subscribedBands
         ];
@@ -686,11 +731,11 @@ export default function App() {
       ? bandNotifications
       : [
           {
-            id: Date.now(),
+            id: notificationId,
             type: 'subscribe',
             title: 'SUBSCRIBER BARU',
             body: `${audienceProfile.displayName || userSession.email?.split('@')[0] || 'Audience WiSpace'} subscribe ${bandName}.`,
-            createdAt: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+            createdAt: notificationCreatedAt,
             read: false
           },
           ...bandNotifications
@@ -735,6 +780,7 @@ export default function App() {
         isPublished: true
       };
       persistBandProfileLocal(nextProfile, userSession);
+      publishPublicBandProfile(nextProfile);
       return nextProfile;
     });
     setShowAuthModal(false);
@@ -996,6 +1042,7 @@ export default function App() {
         isPublished: true
       };
       persistBandProfileLocal(nextProfile);
+      publishPublicBandProfile(nextProfile);
       return nextProfile;
     });
     alert('Profile band tersimpan dan aman saat refresh di browser ini. Step production berikutnya: sambungkan ke Supabase Storage + table band_profiles.');
@@ -1287,9 +1334,15 @@ export default function App() {
   const filteredPublicGigs = [...approvedExclusiveGigs, ...approvedFreeGigs].filter(gig => matchesSearch(gig.title, gig.city, getGigGenre(gig), getGigDate(gig), getGigHtm(gig)));
   const filteredAlbums = albumItems.filter((album) => matchesSearch(album.title, album.bandName, album.genre, album.city, album.description));
   const filteredTracks = top10Tracks.filter((track) => matchesSearch(track.title, track.band));
+  const publicBandList = [
+    ...publicBandProfiles,
+    ...(bandProfile.name ? [bandProfile] : [])
+  ].filter((profile, index, profiles) => (
+    profile.name && profiles.findIndex((item) => (item.slug || createSlug(item.name)) === (profile.slug || createSlug(profile.name))) === index
+  ));
+  const filteredBandProfiles = publicBandList.filter((profile) => matchesSearch(profile.name, profile.genre, profile.city, profile.headline, profile.bio, profile.slug));
   const filteredMerchItems = merchItems.filter((item) => matchesSearch(item.name, item.description, bandProfile.name, bandProfile.genre));
   const filteredArticles = articleItems.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName));
-  const bandMatchesSearch = matchesSearch(bandProfile.name, signatureName, bandProfile.genre, bandProfile.city, bandProfile.headline, bandProfile.bio);
   const bandPublicTracks = albumItems
     .flatMap((album) => (album.tracks || []).map((track, index) => ({
       ...track,
@@ -1330,7 +1383,9 @@ export default function App() {
   const isBandAccount = userRole === 'musisi';
   const showBandOwnerControls = isBandAccount && isViewingOwnBandProfile;
   const showBandContactForm = !showBandOwnerControls;
-  const currentBandSlug = getBandProfileSlug();
+  const selectedPublicBandProfile = publicBandProfiles.find((profile) => profile.slug === viewedBandSlug);
+  const displayBandProfile = isBandPublicPage && !showBandOwnerControls && selectedPublicBandProfile ? selectedPublicBandProfile : bandProfile;
+  const currentBandSlug = getBandProfileSlug(displayBandProfile);
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -1355,6 +1410,7 @@ export default function App() {
 
       const routeSlug = decodeURIComponent(bandRouteMatch[1]);
       const ownSlug = createSlug(bandProfile.slug || bandProfile.name || signatureName || '');
+      setViewedBandSlug(routeSlug);
       setShowAuthModal(false);
       setSearchTerm('');
       setIsViewingOwnBandProfile(Boolean(ownSlug && routeSlug === ownSlug && isBandAccount));
@@ -2072,22 +2128,29 @@ export default function App() {
             <aside style={{ display: 'grid', gap: '18px' }}>
               <section style={{ ...glassStyle('explore-band-directory'), padding: '18px', backgroundColor: '#090909' }}>
                 <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '68px 1fr', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
-                  <div style={{ width: '68px', height: '68px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', display: 'grid', placeItems: 'center' }}>
-                    {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                {filteredBandProfiles.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {filteredBandProfiles.slice(0, 4).map((profile) => (
+                      <div key={`side-${profile.slug}`} style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ width: '58px', height: '58px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', display: 'grid', placeItems: 'center' }}>
+                          {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <button
+                            onClick={() => openBandPublicProfile(false, profile)}
+                            style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '13px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(0,210,255,0.65)', textUnderlineOffset: '4px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            {profile.name.toUpperCase()}
+                          </button>
+                          <p style={{ color: '#777', fontSize: '12px', margin: '0 0 4px 0' }}>{(profile.city || 'INDONESIA').toUpperCase()} / {(profile.genre || 'INDIE').toUpperCase()}</p>
+                          <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>/{profile.slug || createSlug(profile.name)}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <button
-                      onClick={() => openBandPublicProfile(false)}
-                      style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(0,210,255,0.65)', textUnderlineOffset: '4px' }}
-                    >
-                      {(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}
-                    </button>
-                    <p style={{ color: '#777', fontSize: '12px', margin: '0 0 4px 0' }}>{(bandProfile.city || 'INDONESIA').toUpperCase()} / {(bandProfile.genre || 'INDIE').toUpperCase()}</p>
-                    <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>/{bandProfile.slug || 'band-wispace'}</p>
-                  </div>
-                </div>
-                <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: '0 0 14px 0' }}>{bandProfile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
+                )}
               </section>
 
               <section style={{ ...glassStyle('explore-merch'), padding: '18px', backgroundColor: '#090909' }}>
@@ -2119,17 +2182,21 @@ export default function App() {
           {exploreTab === 'band' && (
             <section style={{ ...glassStyle('explore-band-tab'), padding: '22px', backgroundColor: '#090909' }}>
               <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
-              {bandMatchesSearch ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '86px 1fr auto', gap: '16px', alignItems: 'center', padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
-                  <div style={{ width: '86px', height: '86px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
-                    {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
-                  </div>
-                  <div>
-                    <h4 style={{ color: '#fff', fontSize: '20px', fontWeight: '900', margin: '0 0 6px 0' }}>{(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</h4>
-                    <p style={{ color: '#777', fontSize: '13px', margin: '0 0 6px 0' }}>{(bandProfile.genre || 'INDIE').toUpperCase()} / {(bandProfile.city || 'INDONESIA').toUpperCase()}</p>
-                    <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>{bandProfile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
-                  </div>
-                  <button onClick={() => openBandPublicProfile(false)} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>LIHAT PROFILE</button>
+              {filteredBandProfiles.length > 0 ? (
+                <div style={{ display: 'grid', gap: '14px' }}>
+                  {filteredBandProfiles.map((profile) => (
+                    <div key={`band-tab-${profile.slug}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '68px 1fr' : '86px 1fr auto', gap: '16px', alignItems: 'center', padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
+                      <div style={{ width: isTinyLayout ? '68px' : '86px', height: isTinyLayout ? '68px' : '86px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
+                        {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                      </div>
+                      <div>
+                        <h4 style={{ color: '#fff', fontSize: '20px', fontWeight: '900', margin: '0 0 6px 0' }}>{profile.name.toUpperCase()}</h4>
+                        <p style={{ color: '#777', fontSize: '13px', margin: '0 0 6px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
+                        <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
+                      </div>
+                      <button onClick={() => openBandPublicProfile(false, profile)} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>LIHAT PROFILE</button>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
@@ -2320,21 +2387,21 @@ export default function App() {
       {!loading && isBandPublicPage && (
         <section style={{ minHeight: 'calc(100vh - 40px)', background: 'linear-gradient(180deg, #060606 0%, #030303 100%)', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '14px', overflow: 'hidden', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)' }}>
           <div style={{ position: 'relative', minHeight: isTinyLayout ? '430px' : '470px', display: 'flex', alignItems: 'flex-end', padding: isTinyLayout ? '98px 20px 28px' : '92px 38px 38px', boxSizing: 'border-box' }}>
-            {bandProfile.coverPreview ? (
-              <img src={bandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            {displayBandProfile.coverPreview ? (
+              <img src={displayBandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #050505 0%, #072027 45%, #000 100%)' }} />
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(0,210,255,0.18), transparent 34%), linear-gradient(to top, rgba(3,3,3,1), rgba(3,3,3,0.62), rgba(3,3,3,0.16))' }} />
             <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: publicBandHeroColumns, gap: '24px', alignItems: 'end', width: '100%' }}>
               <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '16px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.72)', display: 'grid', placeItems: 'center', boxShadow: '0 24px 55px rgba(0,0,0,0.55), 0 0 30px rgba(0,210,255,0.2)' }}>
-                {bandProfile.photoPreview ? <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
+                {displayBandProfile.photoPreview ? <img src={displayBandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
               </div>
               <div>
                 <p style={eyebrowStyle}>PUBLIC BAND PROFILE</p>
-                <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
-                <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{bandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
-                <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath()}</p>
+                <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(displayBandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
+                <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{displayBandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
+                <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(displayBandProfile.city || 'KOTA').toUpperCase()} / {(displayBandProfile.genre || 'GENRE').toUpperCase()}{displayBandProfile.formedYear ? ` / SINCE ${displayBandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath(displayBandProfile)}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '0 0 14px 0' }}>
                   <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(0,0,0,0.55)', border: '1px solid rgba(0,210,255,0.28)', color: '#00d2ff', fontSize: '11px', fontWeight: '900' }}>{bandSubscriberCount.toLocaleString('id-ID')} SUBSCRIBERS</span>
                   {showBandOwnerControls && unreadBandNotifications > 0 && (
@@ -2401,7 +2468,7 @@ export default function App() {
 
               <section style={{ ...glassStyle('band-public-bio'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
-                <p style={{ color: '#bbb', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{bandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
+                <p style={{ color: '#bbb', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
               <section style={{ ...glassStyle('band-public-player'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
@@ -2496,12 +2563,12 @@ export default function App() {
             <aside style={{ display: 'grid', gap: '18px' }}>
               <section style={{ ...glassStyle('band-public-contact'), padding: '18px', backgroundColor: '#090909' }}>
                 <h3 style={sectionHeadingStyle}>CONTACT</h3>
-                <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#fff' }}>{bandProfile.cp || '-'}</span></p>
-                <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#fff' }}>{bandProfile.email || '-'}</span></p>
-                <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#fff' }}>{bandProfile.instagram || '-'}</span></p>
+                <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#fff' }}>{displayBandProfile.cp || '-'}</span></p>
+                <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#fff' }}>{displayBandProfile.email || '-'}</span></p>
+                <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#fff' }}>{displayBandProfile.instagram || '-'}</span></p>
                 {showBandContactForm ? (
                   <form onSubmit={handleMessageSubmit} style={{ display: 'grid', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
-                    <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(bandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
+                    <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(displayBandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
                     <input type="text" placeholder="NAMA PENGIRIM" value={messageDraft.sender} onChange={(e) => setMessageDraft({ ...messageDraft, sender: e.target.value })} required style={formInputStyle} />
                     <input type="text" placeholder="KONTAK BALASAN" value={messageDraft.contact} onChange={(e) => setMessageDraft({ ...messageDraft, contact: e.target.value })} required style={formInputStyle} />
                     <input type="text" placeholder="SUBJEK" value={messageDraft.subject} onChange={(e) => setMessageDraft({ ...messageDraft, subject: e.target.value })} required style={formInputStyle} />
