@@ -249,6 +249,7 @@ export default function App() {
     subject: '',
     body: ''
   });
+  const [selectedLibraryItemId, setSelectedLibraryItemId] = useState(null);
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyDraft, setReplyDraft] = useState('');
   const [messages, setMessages] = useState([
@@ -1163,6 +1164,16 @@ export default function App() {
     }
   };
 
+  const handlePlayLibraryTrack = (track, libraryItem = selectedLibraryItem) => {
+    handlePlayTrack({
+      ...track,
+      id: `library-${libraryItem?.id || 'item'}-${track.id}`,
+      albumTitle: libraryItem?.parentAlbumTitle || libraryItem?.title || track.albumTitle,
+      albumCover: libraryItem?.coverPreview || track.albumCover,
+      freeFull: true
+    });
+  };
+
   const approvedFreeGigs = gigs.filter((gig) => gig.status === 'approved' || gig.status === 'approved_free');
   const approvedExclusiveGigs = gigs.filter((gig) => gig.status === 'approved_exclusive');
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -1184,6 +1195,18 @@ export default function App() {
     })))
     .slice(0, 5);
   const hasFreeFullBandTrack = bandPublicTracks.some((track) => track.freeFull) || albumItems.some((album) => (album.tracks || []).some((track) => track.freeFull));
+  const selectedLibraryItem = purchasedAlbums.find((album) => album.id === selectedLibraryItemId) || purchasedAlbums[0] || null;
+  const selectedLibraryTracks = selectedLibraryItem?.tracks?.length
+    ? selectedLibraryItem.tracks
+    : selectedLibraryItem
+      ? [{
+          id: `${selectedLibraryItem.id}-fallback`,
+          title: selectedLibraryItem.title,
+          url: selectedLibraryItem.url,
+          price: selectedLibraryItem.price,
+          freeFull: true
+        }]
+      : [];
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -2634,21 +2657,17 @@ export default function App() {
               <p style={eyebrowStyle}>AUDIENCE LIBRARY</p>
               <h2 style={pageTitleStyle}>MY MUSIC ARCHIVE</h2>
               <p style={pageLeadStyle}>Koleksi album digital yang sudah dibeli audience. Nanti file bisa masuk secret encrypted folder dan hanya bisa diakses dari WiSpace.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '24px' }}>
-            <div style={{ ...glassStyle('library-owned'), padding: '18px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>OWNED ALBUMS</p>
-              <h3 style={{ color: '#00d2ff', fontSize: '32px', fontWeight: '900', margin: 0 }}>{purchasedAlbums.length}</h3>
-            </div>
-            <div style={{ ...glassStyle('library-access'), padding: '18px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>ACCESS TYPE</p>
-              <h3 style={{ color: '#fff', fontSize: '24px', fontWeight: '900', margin: 0 }}>ENCRYPTED</h3>
-            </div>
-            <div style={{ ...glassStyle('library-policy'), padding: '18px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>REDISTRIBUTION</p>
-              <h3 style={{ color: '#ff3333', fontSize: '24px', fontWeight: '900', margin: 0 }}>DILARANG</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px' }}>
+                {[
+                  ['OWNED', purchasedAlbums.length],
+                  ['ACCESS', 'ENCRYPTED'],
+                  ['REDISTRIBUTION', 'DILARANG']
+                ].map(([label, value]) => (
+                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#000', border: `1px solid ${label === 'REDISTRIBUTION' ? 'rgba(255,51,51,0.22)' : 'rgba(0,210,255,0.18)'}`, borderRadius: '9999px', color: label === 'REDISTRIBUTION' ? '#ff3333' : '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
+                    {label}: <strong style={{ color: label === 'REDISTRIBUTION' ? '#ff3333' : '#fff' }}>{value}</strong>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -2663,8 +2682,16 @@ export default function App() {
               <section style={{ ...glassStyle('library-list'), padding: '20px', backgroundColor: '#090909' }}>
                 <h3 style={sectionHeadingStyle}>PURCHASED RELEASES</h3>
                 <div style={{ display: 'grid', gap: '12px' }}>
-                  {purchasedAlbums.map((album) => (
-                    <article key={album.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                  {purchasedAlbums.map((album) => {
+                    const isSelectedLibraryItem = selectedLibraryItem?.id === album.id;
+                    const firstTrack = album.tracks?.[0] || null;
+
+                    return (
+                    <article
+                      key={album.id}
+                      onClick={() => setSelectedLibraryItemId(album.id)}
+                      style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: isSelectedLibraryItem ? 'rgba(0,210,255,0.06)' : '#000', border: isSelectedLibraryItem ? '1px solid rgba(0,210,255,0.45)' : '1px solid #141414', borderRadius: '12px', cursor: 'pointer' }}
+                    >
                       <div style={{ width: '72px', height: '72px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
                         {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>COVER</span>}
                       </div>
@@ -2672,21 +2699,53 @@ export default function App() {
                         <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.title.toUpperCase()}</h4>
                         <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
                       </div>
-                      <button style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>PLAY</button>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelectedLibraryItemId(album.id);
+                          if (firstTrack) handlePlayLibraryTrack(firstTrack, album);
+                        }}
+                        style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}
+                      >
+                        {activeTrack?.id === `library-${album.id}-${firstTrack?.id}` && isPlaying ? 'PAUSE' : 'PLAY'}
+                      </button>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
 
               <aside style={{ ...glassStyle('library-player'), padding: '20px', backgroundColor: '#090909' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
                 <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '16px', backgroundColor: '#000', border: '1px solid #141414', display: 'grid', placeItems: 'center', marginBottom: '16px', overflow: 'hidden' }}>
-                  {purchasedAlbums[0]?.coverPreview ? <img src={purchasedAlbums[0].coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>PLAYER</span>}
+                  {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>PLAYER</span>}
                 </div>
-                <h4 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0' }}>{purchasedAlbums[0]?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div>
+                    <h4 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
+                    <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
+                  </div>
+                  <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', color: '#fff', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
+                </div>
                 <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.5, margin: '0 0 16px 0' }}>File berada di secret encrypted folder. Audience bisa access/download pribadi, tapi tidak boleh redistribusi ulang.</p>
+                <div style={{ display: 'grid', gap: '9px', marginBottom: '16px' }}>
+                  {selectedLibraryTracks.map((track, index) => {
+                    const libraryTrackId = `library-${selectedLibraryItem?.id || 'item'}-${track.id}`;
+                    const isLibraryTrackActive = activeTrack?.id === libraryTrackId && isPlaying;
+
+                    return (
+                      <div key={track.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                        <div>
+                          <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
+                          <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>FULL OWNED PLAYBACK</p>
+                        </div>
+                        <button onClick={() => handlePlayLibraryTrack(track)} style={{ ...glassButtonStyle, padding: '8px 11px', fontSize: '10px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
+                      </div>
+                    );
+                  })}
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <button style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY ALBUM</button>
+                  <button onClick={() => selectedLibraryTracks[0] && handlePlayLibraryTrack(selectedLibraryTracks[0])} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY {selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</button>
                   <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SECURE DOWNLOAD</button>
                 </div>
               </aside>
