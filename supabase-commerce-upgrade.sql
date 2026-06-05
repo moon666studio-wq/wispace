@@ -17,6 +17,15 @@ create table if not exists public.band_articles (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.article_comments (
+  id uuid primary key default gen_random_uuid(),
+  article_id uuid not null references public.band_articles(id) on delete cascade,
+  author_user_id uuid references auth.users(id) on delete set null,
+  author_name text not null,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.merch_items (
   id uuid primary key default gen_random_uuid(),
   band_user_id uuid references auth.users(id) on delete set null,
@@ -93,8 +102,20 @@ create table if not exists public.shipment_tracking_events (
   created_at timestamptz not null default now()
 );
 
+alter table if exists public.releases
+add column if not exists is_active boolean not null default true;
+
+alter table if exists public.release_tracks
+add column if not exists is_active boolean not null default true;
+
+alter table if exists public.merch_items
+add column if not exists is_active boolean not null default true;
+
 create index if not exists band_articles_published_idx
 on public.band_articles (is_published, created_at desc);
+
+create index if not exists article_comments_article_idx
+on public.article_comments (article_id, created_at desc);
 
 create index if not exists merch_items_active_idx
 on public.merch_items (is_active, created_at desc);
@@ -118,6 +139,7 @@ create index if not exists shipment_events_order_idx
 on public.shipment_tracking_events (merch_order_id, event_time desc);
 
 alter table public.band_articles enable row level security;
+alter table public.article_comments enable row level security;
 alter table public.merch_items enable row level security;
 alter table public.sales_transactions enable row level security;
 alter table public.merch_orders enable row level security;
@@ -133,6 +155,22 @@ create policy "Bands can manage own articles"
 on public.band_articles for all
 using (auth.uid() = band_user_id)
 with check (auth.uid() = band_user_id);
+
+drop policy if exists "Published article comments are readable by everyone" on public.article_comments;
+create policy "Published article comments are readable by everyone"
+on public.article_comments for select
+using (
+  exists (
+    select 1 from public.band_articles
+    where band_articles.id = article_comments.article_id
+    and band_articles.is_published = true
+  )
+);
+
+drop policy if exists "Authenticated users can comment on articles" on public.article_comments;
+create policy "Authenticated users can comment on articles"
+on public.article_comments for insert
+with check (auth.uid() = author_user_id);
 
 drop policy if exists "Active merch is readable by everyone" on public.merch_items;
 create policy "Active merch is readable by everyone"

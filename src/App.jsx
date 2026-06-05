@@ -80,6 +80,7 @@ const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
 const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
 const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
+const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -194,6 +195,15 @@ const loadTransactionLedger = () => {
 
 const saveTransactionLedger = (transactions) => {
   window.localStorage.setItem(PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY, JSON.stringify(transactions));
+};
+
+const loadArticleComments = () => {
+  const comments = readLocalJson(ARTICLE_COMMENTS_STORAGE_KEY);
+  return comments && typeof comments === 'object' && !Array.isArray(comments) ? comments : {};
+};
+
+const saveArticleComments = (comments) => {
+  window.localStorage.setItem(ARTICLE_COMMENTS_STORAGE_KEY, JSON.stringify(comments));
 };
 
 const mapBandProfileFromRow = (row = {}) => ({
@@ -406,7 +416,15 @@ export default function App() {
     excerpt: '',
     body: ''
   });
+  const [adminArticleDraft, setAdminArticleDraft] = useState({
+    title: '',
+    category: '',
+    excerpt: '',
+    body: ''
+  });
   const [articleItems, setArticleItems] = useState([]);
+  const [articleComments, setArticleComments] = useState(loadArticleComments);
+  const [articleCommentDrafts, setArticleCommentDrafts] = useState({});
   const [subscribedBands, setSubscribedBands] = useState([]);
   const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
   const [bandNotifications, setBandNotifications] = useState([]);
@@ -603,12 +621,12 @@ export default function App() {
 
   const publishPublicArticle = useCallback((article) => {
     const articleId = article.id || createClientId();
-    const bandName = bandProfile.name || signatureName || article.bandName || 'Band WiSpace';
+    const bandName = article.bandName || bandProfile.name || signatureName || 'Band WiSpace';
     const publicArticle = {
       ...article,
       id: articleId,
       bandName,
-      bandSlug: bandProfile.slug || createSlug(bandName),
+      bandSlug: article.bandSlug || bandProfile.slug || createSlug(bandName),
       genre: bandProfile.genre || article.genre || 'Indie',
       city: bandProfile.city || article.city || 'Indonesia',
       updatedAt: new Date().toISOString()
@@ -1537,6 +1555,48 @@ export default function App() {
     alert('Album masuk draft rilisan dan sudah muncul di Explore. Nanti ini akan lanjut ke storage, agreement log, dan checkout.');
   };
 
+  const handleDeleteAlbum = (album) => {
+    const confirmed = window.confirm(`Hapus rilisan "${album.title}" dari etalase band dan Explore?`);
+    if (!confirmed) return;
+
+    setAlbumItems((current) => {
+      const nextAlbums = current.filter((item) => String(item.id) !== String(album.id));
+      savePublicReleaseRegistry(nextAlbums);
+      return nextAlbums;
+    });
+    alert('Rilisan sudah dihapus dari draft/public registry. Nanti versi Supabase akan soft-delete juga.');
+  };
+
+  const handleDeleteAlbumTrack = (album, track) => {
+    const confirmed = window.confirm(`Hapus lagu "${track.title}" dari rilisan "${album.title}"?`);
+    if (!confirmed) return;
+
+    setAlbumItems((current) => {
+      const nextAlbums = current
+        .map((item) => {
+          if (String(item.id) !== String(album.id)) return item;
+          const nextTracks = (item.tracks || []).filter((candidate) => String(candidate.id) !== String(track.id));
+          return {
+            ...item,
+            tracks: nextTracks,
+            trackCount: nextTracks.length,
+            releaseType: nextTracks.length === 1 ? 'single' : 'album'
+          };
+        })
+        .filter((item) => (item.tracks || []).length > 0);
+      savePublicReleaseRegistry(nextAlbums);
+      return nextAlbums;
+    });
+
+    if (String(activeTrack?.id) === String(track.id)) {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+      setActiveTrack(null);
+      setPlayerQueue([]);
+    }
+    alert('Lagu sudah dihapus. Kalau track terakhir di album dihapus, albumnya ikut hilang dari Explore.');
+  };
+
   const recordBandSale = useCallback((sale) => {
     const grossAmount = normalizePriceValue(sale.amount);
     const platformFee = Math.round(grossAmount * 0.2);
@@ -1687,6 +1747,23 @@ export default function App() {
     alert('Merch masuk etalase draft. Nanti step berikutnya kita sambungkan ke Supabase + order flow.');
   };
 
+  const handleDeleteMerch = (item) => {
+    const confirmed = window.confirm(`Hapus merch "${item.name}" dari etalase band dan Explore?`);
+    if (!confirmed) return;
+
+    setMerchItems((current) => {
+      const nextItems = current.filter((merch) => String(merch.id) !== String(item.id));
+      persistBandMerchLocal(nextItems);
+      return nextItems;
+    });
+    setPublicMerchItems((current) => {
+      const nextPublicItems = current.filter((merch) => String(merch.id) !== String(item.id));
+      savePublicMerchRegistry(nextPublicItems);
+      return nextPublicItems;
+    });
+    alert('Merch sudah dihapus dari etalase dan Explore.');
+  };
+
   const handleArticleSubmit = (event) => {
     event.preventDefault();
     if (!articleDraft.title.trim()) return alert('Isi judul artikel dulu bro.');
@@ -1712,6 +1789,58 @@ export default function App() {
     setArticleDraft({ title: '', category: '', excerpt: '', body: '' });
     setBandProfileTab('artikel');
     alert('Artikel masuk draft publish dan sudah tampil di page Artikel.');
+  };
+
+  const handleAdminArticleSubmit = (event) => {
+    event.preventDefault();
+    if (!adminArticleDraft.title.trim()) return alert('Isi judul artikel admin dulu bro.');
+    if (!adminArticleDraft.excerpt.trim()) return alert('Isi ringkasan artikel admin dulu bro.');
+
+    const nextArticle = {
+      id: createClientId(),
+      ...adminArticleDraft,
+      bandName: 'WiSpace Editorial',
+      bandSlug: 'wispace-editorial',
+      category: adminArticleDraft.category || 'WiSpace Update',
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+
+    publishPublicArticle(nextArticle);
+    setAdminArticleDraft({ title: '', category: '', excerpt: '', body: '' });
+    alert('Artikel admin WiSpace sudah publish ke halaman Artikel.');
+  };
+
+  const handleArticleCommentSubmit = (event, article) => {
+    event.preventDefault();
+    if (!userSession) {
+      setAuthType('join');
+      setShowAuthModal(true);
+      setAuthError('Login atau join dulu buat komentar di artikel.');
+      return;
+    }
+
+    const commentText = (articleCommentDrafts[article.id] || '').trim();
+    if (!commentText) return alert('Isi komentar dulu bro.');
+
+    const author = userRole === 'musisi'
+      ? (bandProfile.name || signatureName || 'Band WiSpace')
+      : (audienceProfile.displayName || userSession.email?.split('@')[0] || 'Audience WiSpace');
+    const nextComment = {
+      id: createClientId(),
+      author,
+      body: commentText,
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+
+    setArticleComments((current) => {
+      const nextComments = {
+        ...current,
+        [article.id]: [nextComment, ...(current[article.id] || [])]
+      };
+      saveArticleComments(nextComments);
+      return nextComments;
+    });
+    setArticleCommentDrafts((current) => ({ ...current, [article.id]: '' }));
   };
 
   const handleMessageSubmit = (event) => {
@@ -2663,6 +2792,22 @@ export default function App() {
             </div>
           </section>
 
+          <section style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
+            <div style={{ marginBottom: '14px' }}>
+              <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE EDITORIAL</p>
+              <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>PUBLISH ARTIKEL ADMIN</h3>
+            </div>
+            <form onSubmit={handleAdminArticleSubmit} style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                <input type="text" placeholder="JUDUL ARTIKEL ADMIN" value={adminArticleDraft.title} onChange={(event) => setAdminArticleDraft({ ...adminArticleDraft, title: event.target.value })} required style={formInputStyle} />
+                <input type="text" placeholder="KATEGORI (News, Editorial, Update)" value={adminArticleDraft.category} onChange={(event) => setAdminArticleDraft({ ...adminArticleDraft, category: event.target.value })} style={formInputStyle} />
+              </div>
+              <textarea placeholder="RINGKASAN ARTIKEL" value={adminArticleDraft.excerpt} onChange={(event) => setAdminArticleDraft({ ...adminArticleDraft, excerpt: event.target.value })} required rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+              <textarea placeholder="ISI ARTIKEL LENGKAP" value={adminArticleDraft.body} onChange={(event) => setAdminArticleDraft({ ...adminArticleDraft, body: event.target.value })} rows={6} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+              <button type="submit" style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px', width: 'fit-content' }}>PUBLISH ARTIKEL WISPACE</button>
+            </form>
+          </section>
+
           {pendingGigs.length === 0 ? (
             <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#090909', textAlign: 'center' }}>
               <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>ANTREAN BERSIH</h3>
@@ -3077,15 +3222,36 @@ export default function App() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '24px', alignItems: 'start' }}>
               <main style={{ display: 'grid', gap: '18px' }}>
-                {publicArticleList.map((article) => (
-                  <article key={article.id} style={{ ...glassStyle(`article-${article.id}`), padding: '20px', backgroundColor: '#090909' }}>
-                    <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                    <h3 style={{ color: '#fff', fontSize: '26px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
-                    <p style={{ color: '#aaa', fontSize: '14px', lineHeight: 1.6, margin: '0 0 14px 0' }}>{article.excerpt}</p>
-                    {article.body && <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.65, margin: '0 0 14px 0', whiteSpace: 'pre-line' }}>{article.body}</p>}
-                    <p style={{ color: '#555', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
-                  </article>
-                ))}
+                {publicArticleList.map((article) => {
+                  const comments = articleComments[article.id] || [];
+                  return (
+                    <article key={article.id} style={{ ...glassStyle(`article-${article.id}`), padding: '20px', backgroundColor: '#090909' }}>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
+                      <h3 style={{ color: '#fff', fontSize: '26px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
+                      <p style={{ color: '#aaa', fontSize: '14px', lineHeight: 1.6, margin: '0 0 14px 0' }}>{article.excerpt}</p>
+                      {article.body && <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.65, margin: '0 0 14px 0', whiteSpace: 'pre-line' }}>{article.body}</p>}
+                      <p style={{ color: '#555', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
+
+                      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
+                        <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>KOMENTAR ({comments.length})</p>
+                        {comments.length > 0 && (
+                          <div style={{ display: 'grid', gap: '8px', marginBottom: '12px' }}>
+                            {comments.slice(0, 3).map((comment) => (
+                              <div key={comment.id} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                                <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
+                                <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <form onSubmit={(event) => handleArticleCommentSubmit(event, article)} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr auto', gap: '8px' }}>
+                          <input type="text" placeholder={userSession ? 'TULIS KOMENTAR...' : 'LOGIN UNTUK KOMENTAR'} value={articleCommentDrafts[article.id] || ''} onChange={(event) => setArticleCommentDrafts({ ...articleCommentDrafts, [article.id]: event.target.value })} style={{ ...formInputStyle, margin: 0 }} />
+                          <button type="submit" style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>KIRIM</button>
+                        </form>
+                      </div>
+                    </article>
+                  );
+                })}
               </main>
               <aside style={{ ...glassStyle('article-sidebar'), padding: '18px', backgroundColor: '#090909' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>10 ARTIKEL TERBARU</h3>
@@ -4025,6 +4191,31 @@ export default function App() {
                     <input type="text" placeholder="NAMA PENANGGUNG JAWAB / TTD DIGITAL" value={albumDraft.signature} onChange={(e) => setAlbumDraft({ ...albumDraft, signature: e.target.value })} style={formInputStyle} />
                   </div>
 
+                  {displayBandAlbums.length > 0 && (
+                    <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
+                      <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>RILISAN YANG SUDAH DIUPLOAD</p>
+                      {displayBandAlbums.map((album) => (
+                        <div key={album.id} style={{ padding: '10px 0', borderTop: '1px solid #111', color: '#ddd', fontSize: '12px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', gap: '10px', alignItems: 'center' }}>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '900' }}>{album.title}</span>
+                            <span style={{ color: '#00d2ff', fontWeight: '900' }}>{album.trackCount || 0} TRACK</span>
+                            <button type="button" onClick={() => handleDeleteAlbum(album)} style={{ background: 'rgba(255,51,51,0.1)', border: '1px solid rgba(255,51,51,0.35)', color: '#ff3333', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE ALBUM</button>
+                          </div>
+                          {(album.tracks || []).length > 0 && (
+                            <div style={{ display: 'grid', gap: '6px', marginTop: '8px' }}>
+                              {(album.tracks || []).map((track, index) => (
+                                <div key={track.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px', alignItems: 'center', padding: '7px 8px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '10px' }}>
+                                  <span style={{ color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {track.title}</span>
+                                  <button type="button" onClick={() => handleDeleteAlbumTrack(album, track)} style={{ background: 'transparent', border: '1px solid rgba(255,51,51,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE LAGU</button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
                 </form>
               )}
@@ -4047,10 +4238,11 @@ export default function App() {
                     <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>DRAFT MERCHANDISE</p>
                       {merchItems.map((item) => (
-                        <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid #111', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
+                        <div key={item.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid #111', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
                           <span>{item.name}</span>
                           <span style={{ color: '#00d2ff', fontWeight: '900' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</span>
                           <span style={{ color: '#666' }}>Stok {item.stock}</span>
+                          <button type="button" onClick={() => handleDeleteMerch(item)} style={{ background: 'rgba(255,51,51,0.1)', border: '1px solid rgba(255,51,51,0.35)', color: '#ff3333', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE</button>
                         </div>
                       ))}
                     </div>
