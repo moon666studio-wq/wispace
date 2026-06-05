@@ -26,6 +26,20 @@ create table if not exists public.article_comments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.content_reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_user_id uuid references auth.users(id) on delete set null,
+  reporter_name text,
+  reporter_email text,
+  content_type text not null,
+  target_id text not null,
+  title text not null,
+  reason text not null,
+  status text not null default 'open',
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+
 create table if not exists public.merch_items (
   id uuid primary key default gen_random_uuid(),
   band_user_id uuid references auth.users(id) on delete set null,
@@ -117,6 +131,9 @@ on public.band_articles (is_published, created_at desc);
 create index if not exists article_comments_article_idx
 on public.article_comments (article_id, created_at desc);
 
+create index if not exists content_reports_status_idx
+on public.content_reports (status, created_at desc);
+
 create index if not exists merch_items_active_idx
 on public.merch_items (is_active, created_at desc);
 
@@ -140,6 +157,7 @@ on public.shipment_tracking_events (merch_order_id, event_time desc);
 
 alter table public.band_articles enable row level security;
 alter table public.article_comments enable row level security;
+alter table public.content_reports enable row level security;
 alter table public.merch_items enable row level security;
 alter table public.sales_transactions enable row level security;
 alter table public.merch_orders enable row level security;
@@ -171,6 +189,16 @@ drop policy if exists "Authenticated users can comment on articles" on public.ar
 create policy "Authenticated users can comment on articles"
 on public.article_comments for insert
 with check (auth.uid() = author_user_id);
+
+drop policy if exists "Authenticated users can create content reports" on public.content_reports;
+create policy "Authenticated users can create content reports"
+on public.content_reports for insert
+with check (auth.uid() = reporter_user_id);
+
+drop policy if exists "Reporters can read own content reports" on public.content_reports;
+create policy "Reporters can read own content reports"
+on public.content_reports for select
+using (auth.uid() = reporter_user_id);
 
 drop policy if exists "Active merch is readable by everyone" on public.merch_items;
 create policy "Active merch is readable by everyone"

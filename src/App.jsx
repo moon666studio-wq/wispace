@@ -93,6 +93,7 @@ const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
 const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
 const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
+const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -216,6 +217,15 @@ const loadArticleComments = () => {
 
 const saveArticleComments = (comments) => {
   window.localStorage.setItem(ARTICLE_COMMENTS_STORAGE_KEY, JSON.stringify(comments));
+};
+
+const loadContentReports = () => {
+  const reports = readLocalJson(CONTENT_REPORTS_STORAGE_KEY);
+  return Array.isArray(reports) ? reports : [];
+};
+
+const saveContentReports = (reports) => {
+  window.localStorage.setItem(CONTENT_REPORTS_STORAGE_KEY, JSON.stringify(reports));
 };
 
 const mapBandProfileFromRow = (row = {}) => ({
@@ -487,6 +497,7 @@ export default function App() {
   const [articleItems, setArticleItems] = useState([]);
   const [articleComments, setArticleComments] = useState(loadArticleComments);
   const [articleCommentDrafts, setArticleCommentDrafts] = useState({});
+  const [contentReports, setContentReports] = useState(loadContentReports);
   const [subscribedBands, setSubscribedBands] = useState([]);
   const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
   const [bandNotifications, setBandNotifications] = useState([]);
@@ -1382,8 +1393,11 @@ export default function App() {
       platformFee: grossAmount,
       bandNet: 0,
       revenueShare: 'platform',
-      status: 'paid_demo',
+      status: 'paid_settled',
+      paymentStatus: 'paid',
+      payoutStatus: 'platform_income',
       gigId: sale.gigId || '',
+      paidAt: new Date().toISOString(),
       createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
     };
 
@@ -1397,6 +1411,30 @@ export default function App() {
       saveTransactionLedger(nextLedger);
       return nextLedger;
     });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase.from('sales_transactions').insert([{
+        id: nextTransaction.id,
+        buyer_user_id: userSession.id,
+        seller_band_slug: nextTransaction.sellerBandSlug,
+        seller_band_name: nextTransaction.sellerBandName,
+        buyer_name: nextTransaction.buyerName,
+        buyer_email: nextTransaction.buyerEmail,
+        product_type: nextTransaction.productType,
+        product_title: nextTransaction.productTitle,
+        gig_id: sale.gigId || null,
+        gross_amount: nextTransaction.grossAmount,
+        platform_fee: nextTransaction.platformFee,
+        band_net: nextTransaction.bandNet,
+        revenue_share: nextTransaction.revenueShare,
+        status: nextTransaction.status,
+        paid_at: nextTransaction.paidAt
+      }]).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync pemasukan platform ke Supabase:', error.message);
+        }
+      });
+    }
 
     return nextTransaction;
   }, [audienceProfile.displayName, userSession]);
@@ -1773,7 +1811,10 @@ export default function App() {
       platformFee,
       bandNet,
       revenueShare: '80/20',
-      status: 'paid_demo',
+      status: 'paid_settled',
+      paymentStatus: 'paid',
+      payoutStatus: 'available_next_cycle',
+      paidAt: new Date().toISOString(),
       createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
     };
 
@@ -1782,6 +1823,29 @@ export default function App() {
       saveTransactionLedger(nextLedger);
       return nextLedger;
     });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase.from('sales_transactions').insert([{
+        id: nextTransaction.id,
+        buyer_user_id: userSession.id,
+        seller_band_slug: nextTransaction.sellerBandSlug,
+        seller_band_name: nextTransaction.sellerBandName,
+        buyer_name: nextTransaction.buyerName,
+        buyer_email: nextTransaction.buyerEmail,
+        product_type: nextTransaction.productType,
+        product_title: nextTransaction.productTitle,
+        gross_amount: nextTransaction.grossAmount,
+        platform_fee: nextTransaction.platformFee,
+        band_net: nextTransaction.bandNet,
+        revenue_share: nextTransaction.revenueShare,
+        status: nextTransaction.status,
+        paid_at: nextTransaction.paidAt
+      }]).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync transaksi ke Supabase:', error.message);
+        }
+      });
+    }
 
     return nextTransaction;
   }, [audienceProfile.displayName, bandProfile.name, bandProfile.slug, signatureName, userSession]);
@@ -2025,6 +2089,121 @@ export default function App() {
           console.warn('Gagal sync komentar artikel ke Supabase:', error.message);
         }
       });
+    }
+  };
+
+  const createContentReport = (payload) => {
+    if (!userSession) {
+      setAuthType('join');
+      setShowAuthModal(true);
+      setAuthError('Login atau join dulu buat kirim laporan.');
+      return;
+    }
+
+    const reason = window.prompt('Alasan laporan? Tulis: plagiat, SARA, scam, spam, atau lainnya.', 'plagiat');
+    if (!reason?.trim()) return;
+
+    const nextReport = {
+      id: createClientId(),
+      type: payload.type || 'content',
+      targetId: payload.targetId || '',
+      title: payload.title || 'Konten WiSpace',
+      reason: reason.trim(),
+      status: 'open',
+      reporterName: userRole === 'musisi'
+        ? (bandProfile.name || signatureName || 'Band WiSpace')
+        : (audienceProfile.displayName || userSession.email?.split('@')[0] || 'Audience WiSpace'),
+      reporterEmail: userSession.email || '',
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+
+    setContentReports((current) => {
+      const nextReports = [nextReport, ...current];
+      saveContentReports(nextReports);
+      return nextReports;
+    });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase.from('content_reports').insert([{
+        id: nextReport.id,
+        reporter_user_id: userSession.id,
+        reporter_name: nextReport.reporterName,
+        reporter_email: nextReport.reporterEmail,
+        content_type: nextReport.type,
+        target_id: nextReport.targetId,
+        title: nextReport.title,
+        reason: nextReport.reason,
+        status: nextReport.status
+      }]).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync laporan konten ke Supabase:', error.message);
+        }
+      });
+    }
+    alert('Laporan masuk ke dashboard admin WiSpace.');
+  };
+
+  const handleResolveContentReport = (reportId) => {
+    setContentReports((current) => {
+      const nextReports = current.map((report) => (
+        String(report.id) === String(reportId) ? { ...report, status: 'resolved' } : report
+      ));
+      saveContentReports(nextReports);
+      return nextReports;
+    });
+  };
+
+  const handleRemoveArticle = (article) => {
+    const confirmed = window.confirm(`Remove artikel "${article.title}" dari WiSpace?`);
+    if (!confirmed) return;
+
+    setArticleItems((current) => {
+      const nextArticles = current.filter((item) => String(item.id) !== String(article.id));
+      persistBandArticlesLocal(nextArticles);
+      return nextArticles;
+    });
+    setPublicArticleItems((current) => {
+      const nextArticles = current.filter((item) => String(item.id) !== String(article.id));
+      savePublicArticleRegistry(nextArticles);
+      return nextArticles;
+    });
+
+    if (isSupabaseConfigured) {
+      void supabase
+        .from('band_articles')
+        .update({ is_published: false, updated_at: new Date().toISOString() })
+        .eq('id', article.id)
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal remove artikel di Supabase:', error.message);
+          }
+        });
+    }
+  };
+
+  const handleRemoveArticleComment = (articleId, commentId) => {
+    const confirmed = window.confirm('Remove komentar ini dari artikel?');
+    if (!confirmed) return;
+
+    setArticleComments((current) => {
+      const nextComments = {
+        ...current,
+        [articleId]: (current[articleId] || []).filter((comment) => String(comment.id) !== String(commentId))
+      };
+      saveArticleComments(nextComments);
+      return nextComments;
+    });
+
+    if (isSupabaseConfigured) {
+      void supabase
+        .from('article_comments')
+        .delete()
+        .eq('id', commentId)
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal remove komentar di Supabase:', error.message);
+          }
+        });
     }
   };
 
@@ -2318,6 +2497,14 @@ export default function App() {
     paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE
   );
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
+  const openContentReports = contentReports.filter((report) => report.status !== 'resolved');
+  const recentArticleComments = Object.entries(articleComments)
+    .flatMap(([articleId, comments]) => (comments || []).map((comment) => ({
+      ...comment,
+      articleId,
+      articleTitle: publicArticleList.find((article) => String(article.id) === String(articleId))?.title || 'Artikel WiSpace'
+    })))
+    .slice(0, 12);
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
@@ -2993,6 +3180,68 @@ export default function App() {
             </form>
           </section>
 
+          <section style={{ ...glassStyle('admin-content-moderation'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>CONTENT MODERATION</p>
+                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>LAPORAN, KOMENTAR, ARTIKEL</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Tempat admin ngecek laporan plagiat/SARA/spam, remove komentar, dan takedown artikel kalau perlu.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '14px' }}>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <h4 style={{ color: '#ffcc00', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>LAPORAN TERBUKA ({openContentReports.length})</h4>
+                {openContentReports.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada laporan konten.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {openContentReports.slice(0, 6).map((report) => (
+                      <div key={report.id} style={{ padding: '10px', backgroundColor: '#050505', border: '1px solid #151515', borderRadius: '10px' }}>
+                        <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{report.type.toUpperCase()} / {report.reason.toUpperCase()}</p>
+                        <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{report.title}</p>
+                        <p style={{ color: '#555', fontSize: '10px', margin: '0 0 8px 0' }}>By {report.reporterName} / {report.createdAt}</p>
+                        <button onClick={() => handleResolveContentReport(report.id)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '10px' }}>RESOLVE</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <h4 style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>KOMENTAR TERBARU</h4>
+                {recentArticleComments.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada komentar artikel.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {recentArticleComments.slice(0, 6).map((comment) => (
+                      <div key={`${comment.articleId}-${comment.id}`} style={{ padding: '10px', backgroundColor: '#050505', border: '1px solid #151515', borderRadius: '10px' }}>
+                        <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()}</p>
+                        <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.35, margin: '0 0 6px 0' }}>{comment.body}</p>
+                        <p style={{ color: '#555', fontSize: '10px', margin: '0 0 8px 0' }}>{comment.articleTitle}</p>
+                        <button onClick={() => handleRemoveArticleComment(comment.articleId, comment.id)} style={{ background: 'rgba(255,51,51,0.1)', border: '1px solid rgba(255,51,51,0.35)', color: '#ff3333', borderRadius: '9px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>ARTIKEL LIVE</h4>
+                {publicArticleList.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel live.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {publicArticleList.slice(0, 6).map((article) => (
+                      <div key={`moderate-${article.id}`} style={{ padding: '10px', backgroundColor: '#050505', border: '1px solid #151515', borderRadius: '10px' }}>
+                        <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', lineHeight: 1.25, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
+                        <p style={{ color: '#555', fontSize: '10px', margin: '0 0 8px 0' }}>{article.category} / {article.bandName}</p>
+                        <button onClick={() => handleRemoveArticle(article)} style={{ background: 'rgba(255,51,51,0.1)', border: '1px solid rgba(255,51,51,0.35)', color: '#ff3333', borderRadius: '9px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           {pendingGigs.length === 0 ? (
             <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#090909', textAlign: 'center' }}>
               <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>ANTREAN BERSIH</h3>
@@ -3415,7 +3664,10 @@ export default function App() {
                       <h3 style={{ color: '#fff', fontSize: '26px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
                       <p style={{ color: '#aaa', fontSize: '14px', lineHeight: 1.6, margin: '0 0 14px 0' }}>{article.excerpt}</p>
                       {article.body && <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.65, margin: '0 0 14px 0', whiteSpace: 'pre-line' }}>{article.body}</p>}
-                      <p style={{ color: '#555', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <p style={{ color: '#555', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
+                        <button onClick={() => createContentReport({ type: 'article', targetId: article.id, title: article.title })} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#888', borderRadius: '9px', padding: '6px 8px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN ARTIKEL</button>
+                      </div>
 
                       <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
                         <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>KOMENTAR ({comments.length})</p>
@@ -3425,6 +3677,7 @@ export default function App() {
                               <div key={comment.id} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
                                 <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
                                 <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
+                                <button onClick={() => createContentReport({ type: 'comment', targetId: comment.id, title: `${article.title} / ${comment.author}` })} style={{ marginTop: '8px', background: 'transparent', border: 'none', color: '#666', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN KOMENTAR</button>
                               </div>
                             ))}
                           </div>
@@ -3566,7 +3819,10 @@ export default function App() {
                           <div style={{ minWidth: 0 }}>
                             <p style={{ color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : '30 SEC PREVIEW'} / {track.albumTitle?.toUpperCase()}</p>
                             <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
-                            <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
+                              <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${displayBandProfile.name || track.bandName || 'Band WiSpace'}` })} style={{ background: 'transparent', border: 'none', color: '#555', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
+                            </div>
                           </div>
                           <button onClick={() => handlePlayTrack(track, bandPublicTracks)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '9px' : '10px 14px', fontSize: '11px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>{isActive ? 'PAUSE' : 'PLAY'}</button>
                         </div>
@@ -3598,6 +3854,7 @@ export default function App() {
                                 <div style={{ minWidth: 0 }}>
                                   <p style={{ color: track.freeFull ? '#39ff14' : '#ddd', fontSize: '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(index + 1).padStart(2, '0')} / {track.title.toUpperCase()}</p>
                                   <p style={{ color: '#666', fontSize: '10px', margin: '3px 0 0 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</p>
+                                  <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${album.title}` })} style={{ marginTop: '5px', background: 'transparent', border: 'none', color: '#555', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
                                 </div>
                                 <button onClick={() => handlePurchaseTrack(album, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(57,255,20,0.08)' : 'rgba(255,255,255,0.04)', border: `1px solid ${track.freeFull ? 'rgba(57,255,20,0.24)' : 'rgba(255,255,255,0.12)'}`, color: track.freeFull ? '#39ff14' : '#fff', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
                               </div>
@@ -4157,7 +4414,7 @@ export default function App() {
                         </div>
                         <strong style={{ color: '#fff', fontSize: '13px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
                       </div>
-                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Buyer: {transaction.buyerName} / Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Fee WiSpace Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Status {transaction.status}</p>
+                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Buyer: {transaction.buyerName} / Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
                     </div>
                   ))}
                 </div>
