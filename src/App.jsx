@@ -1311,7 +1311,7 @@ export default function App() {
 
       {/* ADMIN MODERATION PANEL */}
       {!loading && isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '86px 28px 28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
+        <section style={pageShellStyle}>
           {!isAdminUnlocked ? (
             <div style={{ minHeight: 'calc(100vh - 96px)', display: 'grid', placeItems: 'center' }}>
               <form onSubmit={handleAdminUnlock} style={{ ...glassStyle('admin-password-gate'), width: '100%', maxWidth: '420px', padding: '28px', backgroundColor: '#090909' }}>
@@ -1328,11 +1328,11 @@ export default function App() {
             </div>
           ) : (
             <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+          <div style={pageHeaderStyle}>
             <div>
-              <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE ADMIN GATE</p>
-              <h2 style={{ color: '#fff', fontSize: '32px', fontWeight: '900', margin: 0, lineHeight: 1 }}>KURASI PAMFLET EVENT</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '700px', lineHeight: 1.5 }}>Semua upload pamflet masuk pending dulu. Admin bisa approve sebagai event free untuk bulletin, approve sebagai exclusive untuk slide besar, atau reject kalau belum layak tayang.</p>
+              <p style={eyebrowStyle}>WISPACE ADMIN GATE</p>
+              <h2 style={pageTitleStyle}>KURASI PAMFLET EVENT</h2>
+              <p style={pageLeadStyle}>Semua upload pamflet masuk pending dulu. Admin bisa approve sebagai event free untuk bulletin, approve sebagai exclusive untuk slide besar, atau reject kalau belum layak tayang.</p>
             </div>
             <button onClick={closeAdminGate} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BACK HOME</button>
           </div>
@@ -1608,12 +1608,12 @@ export default function App() {
 
       {/* MERCH MARKET PAGE */}
       {!loading && isMerchMarketPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
             <div>
-              <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE MERCH MARKET</p>
-              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>DISTRO BAND MERCHANDISE</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '760px', lineHeight: 1.5 }}>Satu halaman buat ngumpulin merch band indie: kaos, CD, kaset, stiker, bundle album, dan item fisik lain dari profile band.</p>
+              <p style={eyebrowStyle}>WISPACE MERCH MARKET</p>
+              <h2 style={pageTitleStyle}>DISTRO BAND MERCHANDISE</h2>
+              <p style={pageLeadStyle}>Satu halaman buat ngumpulin merch band indie: kaos, CD, kaset, stiker, bundle album, dan item fisik lain dari profile band.</p>
             </div>
             {isBandAccount && (
               <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>UPLOAD MERCH</button>
@@ -1871,16 +1871,18 @@ export default function App() {
 
       {/* GIG MANAGER PAGE */}
       {!loading && isGigManagerPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ marginBottom: '28px' }}>
-            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>BAND GIG MANAGER</p>
-            <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>PAMFLET GIGS & JADWAL MANGGUNG</h2>
-            <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '760px', lineHeight: 1.5 }}>Upload pamflet masuk antrean kurasi admin untuk homepage. Jadwal manggung biasa cukup ditambah sendiri dan hanya tampil di profile band.</p>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
+            <div>
+              <p style={eyebrowStyle}>BAND GIG MANAGER</p>
+              <h2 style={pageTitleStyle}>PAMFLET GIGS & JADWAL MANGGUNG</h2>
+              <p style={pageLeadStyle}>Upload pamflet masuk antrean kurasi admin untuk homepage. Jadwal manggung biasa cukup ditambah sendiri dan hanya tampil di profile band.</p>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
             <form onSubmit={handleBandSubmit} style={{ ...glassStyle('gig-upload-form'), padding: '20px', backgroundColor: '#090909' }}>
-              <h3 style={{ color: '#00d2ff', margin: '0 0 8px 0', fontSize: '16px', fontWeight: '900' }}>UPLOAD PAMFLET EVENT</h3>
+              <h3 style={sectionHeadingStyle}>UPLOAD PAMFLET EVENT</h3>
               <p style={{ color: '#666', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.4 }}>Isi data gigs, lalu kirim ke admin WiSpace untuk dicek sebelum tampil publik.</p>
               <div style={{ display: 'grid', gap: '12px' }}>
                 <input type="text" placeholder="NAMA ACARA / CONCERT" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required style={formInputStyle} />
@@ -1995,12 +1997,12 @@ export default function App() {
 
       {/* AUDIENCE PROFILE PAGE */}
       {!loading && isAudienceProfilePage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
             <div>
-              <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>AUDIENCE PROFILE</p>
-              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>MY WISPACE ACCOUNT</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '760px', lineHeight: 1.5 }}>Halaman akun penikmat musik. Audience tetap simpel: cek identitas akun, koleksi, message, dan akses rilisan yang sudah dibeli.</p>
+              <p style={eyebrowStyle}>AUDIENCE PROFILE</p>
+              <h2 style={pageTitleStyle}>MY WISPACE ACCOUNT</h2>
+              <p style={pageLeadStyle}>Halaman akun penikmat musik. Audience tetap simpel: cek identitas akun, koleksi, message, dan akses rilisan yang sudah dibeli.</p>
             </div>
             <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BUKA LIBRARY</button>
           </div>
@@ -2168,17 +2170,19 @@ export default function App() {
 
       {/* MESSAGE CENTER PAGE */}
       {!loading && isMessagePage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ marginBottom: '28px' }}>
-            <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE MESSAGES</p>
-            <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>INBOX</h2>
-            <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '760px', lineHeight: 1.5 }}>{isBandAccount ? 'Pesan dari audience, band lain, promotor, dan kolaborator event masuk di sini. Band bisa membalas langsung dari inbox.' : 'Pesan akun audience masuk di sini. Untuk kirim pesan ke band, buka halaman profile band lalu pakai form message di sana.'}</p>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
+            <div>
+              <p style={eyebrowStyle}>WISPACE MESSAGES</p>
+              <h2 style={pageTitleStyle}>INBOX</h2>
+              <p style={pageLeadStyle}>{isBandAccount ? 'Pesan dari audience, band lain, promotor, dan kolaborator event masuk di sini. Band bisa membalas langsung dari inbox.' : 'Pesan akun audience masuk di sini. Untuk kirim pesan ke band, buka halaman profile band lalu pakai form message di sana.'}</p>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gap: '24px', alignItems: 'start' }}>
             <section style={{ ...glassStyle('message-inbox'), padding: '20px', backgroundColor: '#090909' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '16px', fontWeight: '900', margin: 0 }}>INBOX</h3>
+                <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>INBOX</h3>
                 <span style={{ color: unreadMessages ? '#ff3333' : '#666', fontSize: '11px', fontWeight: '900' }}>{unreadMessages} NEW</span>
               </div>
 
@@ -2231,11 +2235,13 @@ export default function App() {
 
       {/* FINANCE DASHBOARD PAGE */}
       {!loading && isFinancePage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(57,255,20,0.2)', borderRadius: '16px' }}>
-          <div style={{ marginBottom: '28px' }}>
-            <p style={{ color: '#39ff14', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>BAND FINANCE DASHBOARD</p>
-            <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>PENGHASILAN & PENCAIRAN</h2>
-            <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>Pantau saldo, target pencairan Rp 100.000, revenue share 80/20, dan jadwal payout tiap tanggal 1.</p>
+        <section style={{ ...pageShellStyle, border: '1px solid rgba(57,255,20,0.2)' }}>
+          <div style={pageHeaderStyle}>
+            <div>
+              <p style={{ ...eyebrowStyle, color: '#39ff14' }}>BAND FINANCE DASHBOARD</p>
+              <h2 style={pageTitleStyle}>PENGHASILAN & PENCAIRAN</h2>
+              <p style={pageLeadStyle}>Pantau saldo, target pencairan Rp 100.000, revenue share 80/20, dan jadwal payout tiap tanggal 1.</p>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '24px' }}>
@@ -2279,12 +2285,12 @@ export default function App() {
 
       {/* BAND PROFILE STUDIO PAGE */}
       {!loading && isBandProfilePage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', padding: '28px', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '28px', flexWrap: 'wrap' }}>
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
             <div>
-              <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>BAND STUDIO</p>
-              <h2 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0, lineHeight: 1 }}>BAND PROFILE STUDIO</h2>
-              <p style={{ color: '#777', fontSize: '13px', margin: '10px 0 0 0', maxWidth: '680px', lineHeight: 1.5 }}>Page khusus musisi buat bangun halaman band publik, import foto, isi kontak, siapin album digital, dan kelola merchandise.</p>
+              <p style={eyebrowStyle}>BAND STUDIO</p>
+              <h2 style={pageTitleStyle}>BAND PROFILE STUDIO</h2>
+              <p style={pageLeadStyle}>Page khusus musisi buat bangun halaman band publik, import foto, isi kontak, siapin album digital, dan kelola merchandise.</p>
             </div>
           </div>
 
