@@ -165,6 +165,7 @@ const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
+const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 
 const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -3836,7 +3837,11 @@ export default function App() {
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '30px' : '46px', borderRadius: isTinyLayout ? '14px' : '18px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.075)', boxShadow: '0 28px 90px rgba(0,0,0,0.74), inset 0 1px 0 rgba(255,255,255,0.045)' }}>
           <header style={homeHeaderStyle}>
-            <div style={homeBrandWrapStyle}><h1 onClick={() => setSearchTerm('')} style={{ fontSize: isTinyLayout ? '22px' : '24px', fontWeight: '900', letterSpacing: '1.5px', color: '#00d2ff', margin: 0, cursor: 'pointer' }}>WISPACE</h1></div>
+            <div style={homeBrandWrapStyle}>
+              <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', padding: 0, margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '118px' : '142px', maxWidth: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 0 18px rgba(0,210,255,0.28))' }} />
+              </button>
+            </div>
 
             {/* CYBER SEARCH BAR INTEGRATION */}
             <div style={homeSearchWrapStyle}>
