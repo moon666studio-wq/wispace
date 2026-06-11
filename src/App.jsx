@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
-import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
 const fetchCloudData = async () => {
   const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
@@ -2731,6 +2731,12 @@ export default function App() {
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
+  const unreadNotificationTotal = unreadMessages + (isBandAccount ? unreadBandNotifications : 0);
+  const openNotificationCenter = () => {
+    navigateInternalPage('message_center');
+    markMessagesAsRead();
+    if (isBandAccount) markBandNotificationsRead();
+  };
 
   useEffect(() => {
     const metricTimer = window.setTimeout(() => {
@@ -3088,9 +3094,9 @@ export default function App() {
               </>
             ) : (
               <>
-                <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ position: 'relative', background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', fontFamily: FONT_STACK }}>
-                  MESSAGES
-                  {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
+                <button title="Notifications" onClick={openNotificationCenter} style={{ position: 'relative', background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', marginRight: '10px', fontFamily: FONT_STACK, flexShrink: 0 }}>
+                  <Bell size={14} />
+                  {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
                 </button>
                 <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
@@ -3126,9 +3132,9 @@ export default function App() {
           {userSession && (
             <>
               <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
-              <button onClick={() => { navigateInternalPage('message_center'); markMessagesAsRead(); }} style={{ position: 'relative', background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>
-                MESSAGES
-                {unreadMessages > 0 && <span style={{ position: 'absolute', top: '-8px', right: '-10px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '10px', display: 'grid', placeItems: 'center', fontWeight: '900' }}>{unreadMessages}</span>}
+              <button title="Notifications" onClick={openNotificationCenter} style={{ position: 'relative', background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
+                <Bell size={14} />
+                {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
               </button>
             </>
           )}
@@ -4565,7 +4571,35 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gap: '14px', alignItems: 'start' }}>
+            {isBandAccount && (
+              <section style={{ ...glassStyle('band-notifications'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '9999px', backgroundColor: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.24)', display: 'grid', placeItems: 'center', color: '#00d2ff' }}>
+                      <Bell size={15} />
+                    </div>
+                    <h3 style={{ ...sectionHeadingStyle, margin: 0, fontSize: '13px' }}>BAND NOTIFICATIONS</h3>
+                  </div>
+                  <span style={{ color: unreadBandNotifications ? '#39ff14' : '#666', fontSize: '10px', fontWeight: '900' }}>{unreadBandNotifications} NEW</span>
+                </div>
+                {bandNotifications.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada notif band. Subscriber baru dan update aktivitas band akan tampil di sini.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '7px' }}>
+                    {bandNotifications.slice(0, 6).map((notification) => (
+                      <div key={notification.id} style={{ ...compactRowStyle, border: notification.read ? '1px solid #141414' : '1px solid rgba(57,255,20,0.3)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '4px' }}>
+                          <strong style={{ color: notification.read ? '#fff' : '#39ff14', fontSize: '11px', fontWeight: '900' }}>{notification.title}</strong>
+                          <span style={{ color: '#666', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{notification.createdAt}</span>
+                        </div>
+                        <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
             <section style={{ ...glassStyle('message-inbox'), padding: '20px', backgroundColor: '#090909' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>INBOX</h3>
