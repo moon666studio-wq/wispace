@@ -112,6 +112,12 @@ const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
   completed: '#39ff14',
   cancelled: '#ff3333'
 }[status] || '#ffcc00');
+const getReadinessColor = (status = 'todo') => ({
+  ready: '#39ff14',
+  scaffold: '#00d2ff',
+  demo: '#ffcc00',
+  todo: '#ff3333'
+}[status] || '#777');
 const isMissingColumnError = (error) => {
   const message = error?.message?.toLowerCase() || '';
   return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
@@ -158,6 +164,23 @@ const SQL_SETUP_PLAN = [
     file: 'supabase-commerce-upgrade.sql',
     title: 'Commerce + merch + notif',
     note: 'Untuk merch order, transaksi 80/20, subscription, update notif, komentar, laporan, dan tracking.'
+  }
+];
+const PAYMENT_FLOW_STEPS = [
+  {
+    title: 'Order created',
+    status: 'pending_payment',
+    note: 'Checkout bikin order id dan menunggu pembayaran.'
+  },
+  {
+    title: 'Payment confirmed',
+    status: 'demo_paid',
+    note: 'MVP sekarang langsung mensimulasikan paid. Nanti diganti webhook Midtrans/Xendit.'
+  },
+  {
+    title: 'Access / fulfillment',
+    status: 'library_active / order_paid_waiting_band',
+    note: 'Digital masuk Library, merch masuk antrean proses band.'
   }
 ];
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -1835,8 +1858,8 @@ export default function App() {
       platformFee: grossAmount,
       bandNet: 0,
       revenueShare: 'platform',
-      status: 'paid_settled',
-      paymentStatus: 'paid',
+      status: sale.status || 'paid_settled',
+      paymentStatus: sale.paymentStatus || 'demo_paid',
       payoutStatus: 'platform_income',
       orderId: sale.orderId || '',
       paymentMethod: sale.paymentMethod || 'demo_checkout',
@@ -2263,8 +2286,8 @@ export default function App() {
       platformFee,
       bandNet,
       revenueShare: '80/20',
-      status: 'paid_settled',
-      paymentStatus: 'paid',
+      status: sale.status || 'paid_settled',
+      paymentStatus: sale.paymentStatus || 'demo_paid',
       paymentMethod: sale.paymentMethod || 'demo_checkout',
       fulfillmentStatus: sale.fulfillmentStatus || (sale.productType === 'merch' ? 'order_paid_waiting_band' : 'library_active'),
       payoutStatus: 'available_next_cycle',
@@ -3190,6 +3213,10 @@ export default function App() {
     : checkoutProduct?.bandName;
   const checkoutSubtotal = normalizePriceValue(checkoutProduct?.price);
   const checkoutReference = activeCheckout?.checkoutRef || 'WSP-DEMO-ORDER';
+  const checkoutAccessStatus = activeCheckout?.type === 'merch' ? 'order_paid_waiting_band' : 'library_active';
+  const checkoutStatusCopy = activeCheckout?.type === 'merch'
+    ? 'Demo paid - menunggu band proses'
+    : 'Demo paid - library aktif';
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -3270,6 +3297,57 @@ export default function App() {
     'Audience daftar/login, klik Explore, beli album/track, cek Library dan player.',
     'Audience beli merch, isi alamat/kurir, lalu band cek order di dashboard keuangan.',
     'Band proses order, input resi, lalu admin cek ledger fee rilisan, merch, dan pamflet.'
+  ];
+  const localAssetCount = [
+    ...publicBandProfiles.flatMap((profile) => [profile.photoPreview, profile.coverPreview]),
+    ...albumItems.flatMap((album) => [album.coverPreview, ...(album.tracks || []).map((track) => track.url)]),
+    ...publicMerchList.map((item) => item.imagePreview),
+    ...gigs.map((gig) => gig.image)
+  ].filter((value) => typeof value === 'string' && (value.startsWith('blob:') || value.startsWith('data:'))).length;
+  const demoPaymentTransactions = saleTransactions.filter((transaction) => (
+    transaction.paymentMethod === 'demo_checkout' || transaction.paymentStatus === 'demo_paid'
+  )).length;
+  const productionReadinessItems = [
+    {
+      title: 'Supabase env',
+      status: isSupabaseConfigured ? 'ready' : 'todo',
+      note: isSupabaseConfigured ? 'ENV Vite sudah kebaca di app.' : 'Set VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel.'
+    },
+    {
+      title: 'SQL schema',
+      status: 'scaffold',
+      note: 'File SQL sudah ada dan perlu dijalankan berurutan di Supabase SQL Editor.'
+    },
+    {
+      title: 'Catalog + commerce',
+      status: 'ready',
+      note: 'Rilisan, merch, transaksi, order, library, dan dashboard sudah punya flow UI + Supabase scaffold.'
+    },
+    {
+      title: 'Payment gateway',
+      status: demoPaymentTransactions ? 'demo' : 'demo',
+      note: `Masih demo checkout. ${demoPaymentTransactions} transaksi demo tercatat; nanti diganti webhook Midtrans/Xendit.`
+    },
+    {
+      title: 'Asset storage',
+      status: localAssetCount ? 'demo' : 'scaffold',
+      note: localAssetCount ? `${localAssetCount} asset masih blob/data URL. Next pindah ke Supabase Storage.` : 'Bucket sudah disiapkan di SQL, tinggal wiring upload file.'
+    },
+    {
+      title: 'Private audio',
+      status: 'todo',
+      note: 'MP3/WAV perlu bucket private + signed URL untuk buyer yang sudah punya akses.'
+    },
+    {
+      title: 'Encrypted download',
+      status: 'todo',
+      note: 'Tombol secure download masih konsep UI, belum DRM/encrypted folder produksi.'
+    },
+    {
+      title: 'Shipment tracking',
+      status: merchOrders.some((order) => order.trackingNumber) ? 'scaffold' : 'demo',
+      note: 'Band bisa input resi manual. API ekspedisi real-time belum tersambung.'
+    }
   ];
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
@@ -4092,6 +4170,39 @@ export default function App() {
                   <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{step.note}</p>
                 </div>
               ))}
+            </div>
+          </section>
+
+          <section style={{ ...glassStyle('admin-production-readiness'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PRODUCTION READINESS</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>FITUR SIAP VS DEMO</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Panel internal buat tahu mana yang aman dites sekarang dan mana yang masih perlu wiring sebelum pembayaran asli.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+              {productionReadinessItems.map((item) => (
+                <div key={item.title} style={compactRowStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '6px' }}>
+                    <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
+                    <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessColor(item.status)}44`, backgroundColor: `${getReadinessColor(item.status)}10`, borderRadius: '9999px', padding: '4px 7px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
+                  </div>
+                  <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{item.note}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '10px' }}>
+              <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>PAYMENT FLOW SCAFFOLD</p>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
+                {PAYMENT_FLOW_STEPS.map((step, index) => (
+                  <div key={step.status} style={{ padding: '9px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '9px' }}>
+                    <p style={{ color: '#ffcc00', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {index + 1} / {step.status}</p>
+                    <strong style={{ color: '#fff', fontSize: '10px' }}>{step.title.toUpperCase()}</strong>
+                    <p style={{ color: '#666', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
@@ -6072,14 +6183,16 @@ export default function App() {
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
                 <strong style={{ color: '#00d2ff', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutSubtotal.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Payment demo status langsung berhasil. Gateway Midtrans/Xendit bisa kita sambung nanti.</p>
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Payment masih demo: order dibuat sebagai pending, lalu disimulasikan paid. Gateway Midtrans/Xendit bisa disambung nanti.</p>
               </div>
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>RINGKASAN AKSES</p>
                 <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
                   <span>Order ID: <strong style={{ color: '#00d2ff' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#fff' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
-                  <span>Status: <strong style={{ color: activeCheckout.type === 'merch' ? '#ffcc00' : '#39ff14' }}>{activeCheckout.type === 'merch' ? 'Paid - menunggu band proses' : 'Library aktif setelah bayar'}</strong></span>
+                  <span>Payment: <strong style={{ color: '#ffcc00' }}>PENDING_PAYMENT {'->'} DEMO_PAID</strong></span>
+                  <span>Status: <strong style={{ color: activeCheckout.type === 'merch' ? '#ffcc00' : '#39ff14' }}>{checkoutStatusCopy}</strong></span>
+                  <span>Fulfillment: <strong style={{ color: activeCheckout.type === 'merch' ? '#ffcc00' : '#39ff14' }}>{checkoutAccessStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
                   <span>{activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.'}</span>
                 </div>
               </div>
@@ -6118,7 +6231,7 @@ export default function App() {
               </div>
             )}
 
-            <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BAYAR DEMO & KONFIRMASI ORDER</button>
+            <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMULASI PAYMENT PAID & KONFIRMASI ORDER</button>
           </form>
         </div>
       )}
