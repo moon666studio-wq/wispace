@@ -2846,6 +2846,11 @@ export default function App() {
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
+  const compactPanelStyle = { padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909', marginBottom: isTinyLayout ? '18px' : '22px' };
+  const compactMetricCardStyle = { padding: isTinyLayout ? '10px' : '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', minWidth: 0 };
+  const compactMetricLabelStyle = { color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15 };
+  const compactMetricValueStyle = { color: '#fff', fontSize: isTinyLayout ? '18px' : '21px', fontWeight: '900', lineHeight: 1 };
+  const compactRowStyle = { padding: isTinyLayout ? '9px' : '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' };
   const homeShellPadding = isTinyLayout ? '12px' : '20px';
   const homeHeroHeight = isTinyLayout ? 'calc(100vh - 88px)' : 'calc(100vh - 96px)';
   const homeHeaderStyle = {
@@ -3359,65 +3364,66 @@ export default function App() {
             </div>
           </div>
 
-          <section style={{ ...glassStyle('admin-income-report'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
+          <section style={{ ...glassStyle('admin-income-report'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE FINANCE REPORT</p>
-                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>PEMASUKAN PLATFORM</h3>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>WISPACE FINANCE REPORT</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>PEMASUKAN PLATFORM</h3>
               </div>
-              <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Ini laporan admin untuk fee platform. Dashboard band hanya menampilkan saldo milik band.</p>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ini laporan admin untuk fee platform. Dashboard band hanya menampilkan saldo milik band.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL OMZET PAID</p>
-                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminGrossSalesRevenue.toLocaleString('id-ID')}</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '9px' }}>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>TOTAL OMZET PAID</p>
+                <strong style={compactMetricValueStyle}>Rp {adminGrossSalesRevenue.toLocaleString('id-ID')}</strong>
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL FEE WISPACE</p>
-                <strong style={{ color: '#00d2ff', fontSize: '24px', fontWeight: '900' }}>Rp {adminPlatformRevenue.toLocaleString('id-ID')}</strong>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>TOTAL FEE WISPACE</p>
+                <strong style={{ ...compactMetricValueStyle, color: '#00d2ff' }}>Rp {adminPlatformRevenue.toLocaleString('id-ID')}</strong>
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>FEE PEMBELIAN MERCH</p>
-                <strong style={{ color: '#00d2ff', fontSize: '24px', fontWeight: '900' }}>Rp {adminMerchFeeRevenue.toLocaleString('id-ID')}</strong>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>FEE PEMBELIAN MERCH</p>
+                <strong style={{ ...compactMetricValueStyle, color: '#00d2ff' }}>Rp {adminMerchFeeRevenue.toLocaleString('id-ID')}</strong>
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>FEE RILISAN DIGITAL</p>
-                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminReleaseFeeRevenue.toLocaleString('id-ID')}</strong>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>FEE RILISAN DIGITAL</p>
+                <strong style={compactMetricValueStyle}>Rp {adminReleaseFeeRevenue.toLocaleString('id-ID')}</strong>
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>BIAYA PAMFLET EXCLUSIVE</p>
-                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>BIAYA PAMFLET EXCLUSIVE</p>
+                <strong style={compactMetricValueStyle}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TRANSAKSI PAID</p>
-                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>{paidSaleTransactions.length}</strong>
-                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
+                <strong style={compactMetricValueStyle}>{paidSaleTransactions.length}</strong>
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
               </div>
             </div>
           </section>
 
-          <section style={{ ...glassStyle('admin-transaction-ledger'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
+          <section style={{ ...glassStyle('admin-transaction-ledger'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#39ff14', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>PAYMENT LEDGER</p>
-                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
+                <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PAYMENT LEDGER</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
               </div>
-              <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
             </div>
             {saleTransactions.length === 0 ? (
               <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian rilisan, track, merch, dan slot exclusive akan masuk ke ledger ini.</p>
             ) : (
-              <div style={{ display: 'grid', gap: '10px' }}>
+              <div style={{ display: 'grid', gap: '7px' }}>
                 {saleTransactions.slice(0, 12).map((transaction) => (
-                  <div key={transaction.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.4fr 1fr 1fr auto', gap: '10px', alignItems: 'center' }}>
+                  <div key={transaction.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(180px, 1.35fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr) minmax(130px, 0.9fr) auto', gap: isTinyLayout ? '6px' : '9px', alignItems: 'center' }}>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(transaction.orderId || transaction.id).toUpperCase()} / {(transaction.productType || 'order').toUpperCase()}</p>
-                      <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
+                      <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 }}>{(transaction.orderId || transaction.id).toUpperCase()} / {(transaction.productType || 'order').toUpperCase()}</p>
+                      <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
                     </div>
-                    <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Buyer: <strong style={{ color: '#fff' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#fff' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
-                    <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</p>
-                    <strong style={{ color: '#39ff14', fontSize: '10px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end' }}>{String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
+                    <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#fff' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#fff' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
+                    <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')}</p>
+                    <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
+                    <strong style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
                   </div>
                 ))}
               </div>
@@ -4624,79 +4630,79 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '24px' }}>
-            <div style={{ ...glassStyle('finance-balance'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>SALDO SIAP CAIR</p>
-              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandBalance.toLocaleString('id-ID')}</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '18px' }}>
+            <div style={{ ...glassStyle('finance-balance'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>SALDO SIAP CAIR</p>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {bandBalance.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-gross'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PENJUALAN MASUK</p>
-              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandGrossRevenue.toLocaleString('id-ID')}</h3>
+            <div style={{ ...glassStyle('finance-gross'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>PENJUALAN MASUK</p>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {bandGrossRevenue.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-minimum'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MINIMUM PENARIKAN</p>
-              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp 100.000</h3>
+            <div style={{ ...glassStyle('finance-minimum'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>MINIMUM PENARIKAN</p>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp 100.000</h3>
             </div>
-            <div style={{ ...glassStyle('finance-split'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>TRANSAKSI PAID</p>
-              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>{financeTransactions.length}</h3>
+            <div style={{ ...glassStyle('finance-split'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>{financeTransactions.length}</h3>
             </div>
           </div>
 
-          <div style={{ ...glassStyle('finance-progress'), padding: '22px', backgroundColor: '#090909', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', color: '#aaa', fontSize: '12px', fontWeight: '900' }}>
+          <div style={{ ...glassStyle('finance-progress'), padding: isTinyLayout ? '12px' : '14px', backgroundColor: '#090909', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '8px', color: '#aaa', fontSize: '10px', fontWeight: '900' }}>
               <span>PROGRESS MENUJU PENCAIRAN</span>
               <span>{Math.min(100, Math.round((bandBalance / 100000) * 100))}%</span>
             </div>
-            <div style={{ height: '10px', backgroundColor: '#000', borderRadius: '9999px', overflow: 'hidden', border: '1px solid #141414' }}>
+            <div style={{ height: '7px', backgroundColor: '#000', borderRadius: '9999px', overflow: 'hidden', border: '1px solid #141414' }}>
               <div style={{ width: `${Math.min(100, (bandBalance / 100000) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #39ff14, #00d2ff)' }} />
             </div>
-            <p style={{ color: bandBalance >= 100000 ? '#39ff14' : '#ff3333', fontSize: '12px', fontWeight: '900', margin: '12px 0 0 0' }}>{bandBalance >= 100000 ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(100000 - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
+            <p style={{ color: bandBalance >= 100000 ? '#39ff14' : '#ff3333', fontSize: '10px', fontWeight: '900', margin: '9px 0 0 0' }}>{bandBalance >= 100000 ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(100000 - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '18px' }}>
-            <section style={{ ...glassStyle('finance-rules'), padding: '20px', backgroundColor: '#090909' }}>
-              <h3 style={{ color: '#39ff14', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>ATURAN PENCAIRAN</h3>
-              <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp 100.000. Nominal saldo yang tampil adalah dana bersih milik band.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '14px' }}>
+            <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#39ff14', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
+              <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp 100.000. Nominal saldo yang tampil adalah dana bersih milik band.</p>
             </section>
-            <section style={{ ...glassStyle('finance-history'), padding: '20px', backgroundColor: '#090909' }}>
-              <h3 style={{ color: '#39ff14', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>RIWAYAT TRANSAKSI</h3>
+            <section style={{ ...glassStyle('finance-history'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#39ff14', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>RIWAYAT TRANSAKSI</h3>
               {financeTransactions.length === 0 ? (
                 <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini setelah payment paid.</p>
               ) : (
-                <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ display: 'grid', gap: '7px' }}>
                   {financeTransactions.slice(0, 10).map((transaction) => (
-                    <div key={transaction.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                    <div key={transaction.id} style={compactRowStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#39ff14', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{transaction.productType.toUpperCase()} / {transaction.createdAt}</p>
-                          <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{transaction.productTitle.toUpperCase()}</h4>
+                          <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{transaction.productType.toUpperCase()} / {transaction.createdAt}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{transaction.productTitle.toUpperCase()}</h4>
                         </div>
-                        <strong style={{ color: '#fff', fontSize: '13px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
+                        <strong style={{ color: '#fff', fontSize: '12px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
                       </div>
-                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
                     </div>
                   ))}
                 </div>
               )}
             </section>
-            <section style={{ ...glassStyle('finance-merch-orders'), padding: '20px', backgroundColor: '#090909' }}>
-              <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>ORDER MERCH MASUK</h3>
+            <section style={{ ...glassStyle('finance-merch-orders'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#00d2ff', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ORDER MERCH MASUK</h3>
               {bandMerchOrders.length === 0 ? (
                 <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch fisik. Kalau audience checkout merch, alamat dan kurir akan tampil di sini.</p>
               ) : (
-                <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ display: 'grid', gap: '7px' }}>
                   {bandMerchOrders.slice(0, 8).map((order) => (
-                    <div key={order.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                    <div key={order.id} style={compactRowStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId} / {order.courier} / {order.createdAt}</p>
-                          <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.itemName.toUpperCase()}</h4>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier} / {order.createdAt}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
                         </div>
-                        <strong style={{ color: '#ffcc00', fontSize: '10px', flexShrink: 0 }}>{order.trackingStatus.replaceAll('_', ' ').toUpperCase()}</strong>
+                        <strong style={{ color: '#ffcc00', fontSize: '9px', flexShrink: 0 }}>{order.trackingStatus.replaceAll('_', ' ').toUpperCase()}</strong>
                       </div>
-                      <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: '0 0 5px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
-                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                      <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
                     </div>
                   ))}
                 </div>
