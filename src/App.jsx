@@ -135,6 +135,8 @@ const createEmptyCheckoutDraft = () => ({
   note: ''
 });
 
+const createCheckoutReference = (type = 'order') => `WSP-${String(type).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+
 const createEmptyBandProfile = () => ({
   name: '',
   slug: '',
@@ -1422,6 +1424,9 @@ export default function App() {
       status: 'paid_settled',
       paymentStatus: 'paid',
       payoutStatus: 'platform_income',
+      orderId: sale.orderId || '',
+      paymentMethod: sale.paymentMethod || 'demo_checkout',
+      fulfillmentStatus: sale.fulfillmentStatus || 'platform_recorded',
       gigId: sale.gigId || '',
       paidAt: new Date().toISOString(),
       createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -1825,8 +1830,10 @@ export default function App() {
     const bandNet = Math.max(0, grossAmount - platformFee);
     const sellerBandName = sale.sellerBandName || bandProfile.name || signatureName || 'Band WiSpace';
     const sellerBandSlug = sale.sellerBandSlug || bandProfile.slug || createSlug(sellerBandName);
+    const transactionId = createClientId();
     const nextTransaction = {
-      id: createClientId(),
+      id: transactionId,
+      orderId: sale.orderId || `WSP-${transactionId.slice(0, 8).toUpperCase()}`,
       productType: sale.productType || 'release',
       productTitle: sale.productTitle || 'Transaksi WiSpace',
       sellerBandName,
@@ -1839,6 +1846,8 @@ export default function App() {
       revenueShare: '80/20',
       status: 'paid_settled',
       paymentStatus: 'paid',
+      paymentMethod: sale.paymentMethod || 'demo_checkout',
+      fulfillmentStatus: sale.fulfillmentStatus || (sale.productType === 'merch' ? 'order_paid_waiting_band' : 'library_active'),
       payoutStatus: 'available_next_cycle',
       paidAt: new Date().toISOString(),
       createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -1894,7 +1903,7 @@ export default function App() {
       return;
     }
 
-    setActiveCheckout({ type: 'album', album });
+    setActiveCheckout({ type: 'album', album, checkoutRef: createCheckoutReference('album') });
     setCheckoutDraft({
       ...createEmptyCheckoutDraft(),
       buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
@@ -1918,7 +1927,7 @@ export default function App() {
       return;
     }
 
-    setActiveCheckout({ type: 'track', album, track, trackPurchaseId });
+    setActiveCheckout({ type: 'track', album, track, trackPurchaseId, checkoutRef: createCheckoutReference('track') });
     setCheckoutDraft({
       ...createEmptyCheckoutDraft(),
       buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
@@ -1934,7 +1943,7 @@ export default function App() {
       return;
     }
 
-    setActiveCheckout({ type: 'merch', item });
+    setActiveCheckout({ type: 'merch', item, checkoutRef: createCheckoutReference('merch') });
     setCheckoutDraft({
       ...createEmptyCheckoutDraft(),
       buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
@@ -1993,6 +2002,8 @@ export default function App() {
         sellerBandName: album.bandName,
         sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
         releaseId: album.id,
+        orderId: activeCheckout.checkoutRef,
+        fulfillmentStatus: 'library_active',
         buyerName,
         buyerEmail
       });
@@ -2039,6 +2050,8 @@ export default function App() {
         sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
         releaseId: album.id,
         trackId: track.id,
+        orderId: activeCheckout.checkoutRef,
+        fulfillmentStatus: 'library_active',
         buyerName,
         buyerEmail
       });
@@ -2056,12 +2069,15 @@ export default function App() {
         sellerBandName: item.bandName,
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || ''),
         merchItemId: item.id,
+        orderId: activeCheckout.checkoutRef,
+        fulfillmentStatus: 'order_paid_waiting_band',
         buyerName,
         buyerEmail
       });
       const nextOrder = {
         id: createClientId(),
         transactionId: sale.id,
+        orderId: sale.orderId,
         merchItemId: item.id,
         itemName: item.name,
         sellerBandName: item.bandName || 'Band WiSpace',
@@ -2640,6 +2656,7 @@ export default function App() {
     ? checkoutAlbumContext?.bandName
     : checkoutProduct?.bandName;
   const checkoutSubtotal = normalizePriceValue(checkoutProduct?.price);
+  const checkoutReference = activeCheckout?.checkoutRef || 'WSP-DEMO-ORDER';
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -2690,6 +2707,8 @@ export default function App() {
   const adminReleaseFeeRevenue = saleTransactions
     .filter((transaction) => ['album', 'track'].includes(transaction.productType))
     .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const adminGrossSalesRevenue = saleTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
+  const paidSaleTransactions = saleTransactions.filter((transaction) => (transaction.paymentStatus || transaction.status || '').includes('paid'));
   const bandMerchOrders = merchOrders.filter((order) => (
     order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
   ));
@@ -2699,6 +2718,7 @@ export default function App() {
     paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE
   );
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
+  const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
   const openContentReports = contentReports.filter((report) => report.status !== 'resolved');
   const recentArticleComments = Object.entries(articleComments)
     .flatMap(([articleId, comments]) => (comments || []).map((comment) => ({
@@ -3349,6 +3369,14 @@ export default function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL OMZET PAID</p>
+                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminGrossSalesRevenue.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL FEE WISPACE</p>
+                <strong style={{ color: '#00d2ff', fontSize: '24px', fontWeight: '900' }}>Rp {adminPlatformRevenue.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>FEE PEMBELIAN MERCH</p>
                 <strong style={{ color: '#00d2ff', fontSize: '24px', fontWeight: '900' }}>Rp {adminMerchFeeRevenue.toLocaleString('id-ID')}</strong>
               </div>
@@ -3362,11 +3390,38 @@ export default function App() {
                 <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
               </div>
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>ORDER MERCH FISIK</p>
-                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>{merchOrders.length}</strong>
-                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Order paid, menunggu band proses pengiriman.</p>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TRANSAKSI PAID</p>
+                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>{paidSaleTransactions.length}</strong>
+                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
               </div>
             </div>
+          </section>
+
+          <section style={{ ...glassStyle('admin-transaction-ledger'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#39ff14', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>PAYMENT LEDGER</p>
+                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
+            </div>
+            {saleTransactions.length === 0 ? (
+              <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian rilisan, track, merch, dan slot exclusive akan masuk ke ledger ini.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '10px' }}>
+                {saleTransactions.slice(0, 12).map((transaction) => (
+                  <div key={transaction.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.4fr 1fr 1fr auto', gap: '10px', alignItems: 'center' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(transaction.orderId || transaction.id).toUpperCase()} / {(transaction.productType || 'order').toUpperCase()}</p>
+                      <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
+                    </div>
+                    <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Buyer: <strong style={{ color: '#fff' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#fff' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
+                    <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</p>
+                    <strong style={{ color: '#39ff14', fontSize: '10px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end' }}>{String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <section style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
@@ -4565,7 +4620,7 @@ export default function App() {
             <div>
               <p style={{ ...eyebrowStyle, color: '#39ff14' }}>BAND FINANCE DASHBOARD</p>
               <h2 style={pageTitleStyle}>PENGHASILAN & PENCAIRAN</h2>
-              <p style={pageLeadStyle}>Pantau saldo, target pencairan Rp 100.000, revenue share 80/20, dan jadwal payout tiap tanggal 1.</p>
+              <p style={pageLeadStyle}>Pantau saldo bersih band, riwayat transaksi paid, order merch, dan jadwal payout tiap tanggal 1.</p>
             </div>
           </div>
 
@@ -4575,7 +4630,7 @@ export default function App() {
               <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandBalance.toLocaleString('id-ID')}</h3>
             </div>
             <div style={{ ...glassStyle('finance-gross'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>GROSS SALES</p>
+              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PENJUALAN MASUK</p>
               <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp {bandGrossRevenue.toLocaleString('id-ID')}</h3>
             </div>
             <div style={{ ...glassStyle('finance-minimum'), padding: '20px', backgroundColor: '#090909' }}>
@@ -4583,8 +4638,8 @@ export default function App() {
               <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>Rp 100.000</h3>
             </div>
             <div style={{ ...glassStyle('finance-split'), padding: '20px', backgroundColor: '#090909' }}>
-              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>REVENUE SHARE</p>
-              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>80 / 20</h3>
+              <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>TRANSAKSI PAID</p>
+              <h3 style={{ color: '#fff', fontSize: '34px', fontWeight: '900', margin: 0 }}>{financeTransactions.length}</h3>
             </div>
           </div>
 
@@ -4602,12 +4657,12 @@ export default function App() {
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '18px' }}>
             <section style={{ ...glassStyle('finance-rules'), padding: '20px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>ATURAN PENCAIRAN</h3>
-              <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp 100.000. WiSpace mengambil flat 20% dari penjualan bersih, band menerima 80%.</p>
+              <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp 100.000. Nominal saldo yang tampil adalah dana bersih milik band.</p>
             </section>
             <section style={{ ...glassStyle('finance-history'), padding: '20px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>RIWAYAT TRANSAKSI</h3>
               {financeTransactions.length === 0 ? (
-                <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini dengan split 80/20.</p>
+                <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini setelah payment paid.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '10px' }}>
                   {financeTransactions.slice(0, 10).map((transaction) => (
@@ -4619,7 +4674,7 @@ export default function App() {
                         </div>
                         <strong style={{ color: '#fff', fontSize: '13px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
                       </div>
-                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Buyer: {transaction.buyerName} / Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
+                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
                     </div>
                   ))}
                 </div>
@@ -4635,7 +4690,7 @@ export default function App() {
                     <div key={order.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.courier} / {order.createdAt}</p>
+                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId} / {order.courier} / {order.createdAt}</p>
                           <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.itemName.toUpperCase()}</h4>
                         </div>
                         <strong style={{ color: '#ffcc00', fontSize: '10px', flexShrink: 0 }}>{order.trackingStatus.replaceAll('_', ' ').toUpperCase()}</strong>
@@ -5087,6 +5142,7 @@ export default function App() {
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>RINGKASAN AKSES</p>
                 <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
+                  <span>Order ID: <strong style={{ color: '#00d2ff' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#fff' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
                   <span>Status: <strong style={{ color: '#39ff14' }}>Akses aktif setelah pembayaran</strong></span>
                   <span>{activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.'}</span>
