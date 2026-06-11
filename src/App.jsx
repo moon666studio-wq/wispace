@@ -190,6 +190,7 @@ const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-se
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 const PUBLIC_ASSET_BUCKET = 'band-assets';
+const PRIVATE_AUDIO_BUCKET = 'release-audio';
 
 const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -402,6 +403,7 @@ const mapReleaseFromRow = (row = {}) => {
         fileName: track.file_name || '',
         size: track.file_size || 0,
         url: track.audio_url || '',
+        audioPath: track.audio_path || '',
         price: track.price || '',
         freeFull: Boolean(track.free_full)
       })),
@@ -691,6 +693,44 @@ const uploadPublicAsset = async (file, folder, user) => {
     error: null,
     path: storagePath
   };
+};
+
+const isSupportedAudioFile = (file) => (
+  file?.type?.startsWith('audio/') || /\.(mp3|wav)$/i.test(file?.name || '')
+);
+
+const uploadPrivateAudio = async (file, folder, user) => {
+  const localUrl = URL.createObjectURL(file);
+  if (!isSupabaseConfigured || !user?.id) {
+    return { url: localUrl, audioPath: '', stored: false, error: null };
+  }
+
+  const safeName = createStorageSafeName(file.name || 'track');
+  const storagePath = `${user.id}/${folder}/${Date.now()}-${safeName}`;
+  const { error } = await supabase
+    .storage
+    .from(PRIVATE_AUDIO_BUCKET)
+    .upload(storagePath, file, {
+      cacheControl: '3600',
+      contentType: file.type || undefined,
+      upsert: true
+    });
+
+  if (error) {
+    return { url: localUrl, audioPath: '', stored: false, error };
+  }
+
+  return { url: localUrl, audioPath: storagePath, stored: true, error: null };
+};
+
+const createSignedAudioUrl = async (audioPath) => {
+  if (!isSupabaseConfigured || !audioPath) return '';
+  const { data, error } = await supabase
+    .storage
+    .from(PRIVATE_AUDIO_BUCKET)
+    .createSignedUrl(audioPath, 60 * 60);
+  if (error) throw error;
+  return data?.signedUrl || '';
 };
 
 const trimOversizedBandPreview = (profile) => ({
@@ -1005,7 +1045,8 @@ export default function App() {
         title: track.title || `Track ${index + 1}`,
         file_name: track.fileName || track.title || '',
         file_size: track.size || 0,
-        audio_url: track.url || '',
+        audio_url: track.url?.startsWith('blob:') ? '' : track.url || '',
+        audio_path: track.audioPath || '',
         price: normalizePriceValue(track.price),
         free_full: Boolean(track.freeFull)
       }));
@@ -1017,6 +1058,19 @@ export default function App() {
         }
         if (!error && trackRows.length) {
           void supabase.from('release_tracks').upsert(trackRows).then(({ error: trackError }) => {
+            if (trackError && isMissingColumnError(trackError)) {
+              const legacyTrackRows = trackRows.map((trackRow) => {
+                const legacyTrackRow = { ...trackRow };
+                delete legacyTrackRow.audio_path;
+                return legacyTrackRow;
+              });
+              void supabase.from('release_tracks').upsert(legacyTrackRows).then(({ error: legacyTrackError }) => {
+                if (legacyTrackError && !isMissingColumnError(legacyTrackError)) {
+                  console.warn('Gagal sync track rilisan ke Supabase:', legacyTrackError.message);
+                }
+              });
+              return;
+            }
             if (trackError && !isMissingColumnError(trackError)) {
               console.warn('Gagal sync track rilisan ke Supabase:', trackError.message);
             }
@@ -2172,18 +2226,49 @@ export default function App() {
     }
   };
 
-  const handleAlbumAudioImport = (event) => {
+  const handleAlbumAudioImport = async (event) => {
     const files = Array.from(event.target.files || []);
-    setAlbumDraft((current) => ({
-      ...current,
-      audioFiles: files.map((file) => ({
-        name: file.name,
-        size: file.size,
-        url: URL.createObjectURL(file),
-        price: ''
-      })),
-      freeTrackIndex: ''
-    }));
+    if (!files.length) return;
+    const unsupportedFile = files.find((file) => !isSupportedAudioFile(file));
+    if (unsupportedFile) {
+      alert(`File ${unsupportedFile.name} belum didukung. Pakai MP3 atau WAV dulu bro.`);
+      clearFileInput(event);
+      return;
+    }
+
+    try {
+      const uploadedFiles = await Promise.all(files.map(async (file) => {
+        const uploadResult = await uploadPrivateAudio(file, 'releases/audio', userSession);
+        return {
+          name: file.name,
+          size: file.size,
+          url: uploadResult.url,
+          audioPath: uploadResult.audioPath,
+          storageStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local',
+          storageError: uploadResult.error?.message || '',
+          price: ''
+        };
+      }));
+
+      setAlbumDraft((current) => {
+        current.audioFiles.forEach((file) => {
+          if (file.url?.startsWith('blob:')) URL.revokeObjectURL(file.url);
+        });
+        return {
+          ...current,
+          audioFiles: uploadedFiles,
+          freeTrackIndex: ''
+        };
+      });
+
+      const failedUploads = uploadedFiles.filter((file) => file.storageStatus === 'fallback');
+      if (failedUploads.length) {
+        alert(`${failedUploads.length} audio belum masuk Storage, preview lokal dipakai dulu. Cek policy bucket release-audio di Supabase.`);
+      }
+    } catch (error) {
+      alert(`Gagal import audio: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
   const updateAlbumTrackPrice = (index, price) => {
@@ -2256,6 +2341,7 @@ export default function App() {
         fileName: file.name,
         size: file.size,
         url: file.url,
+        audioPath: file.audioPath || '',
         price: file.price,
         freeFull: String(index) === String(albumDraft.freeTrackIndex)
       })),
@@ -3093,8 +3179,30 @@ export default function App() {
   };
 
   // PLAYER SYSTEM
-  const handlePlayTrack = (track, queue = []) => {
-    if (!track?.url) {
+  const resolvePlayableTrack = async (track) => {
+    if (!track) return null;
+    if (track.audioPath && (track.isOwned || track.freeFull)) {
+      try {
+        const signedUrl = await createSignedAudioUrl(track.audioPath);
+        if (signedUrl) return { ...track, url: signedUrl, signedAt: new Date().toISOString() };
+      } catch (error) {
+        console.warn('Gagal bikin signed audio URL:', error.message);
+        if (!track.url) throw error;
+      }
+    }
+    return track.url ? track : null;
+  };
+
+  const handlePlayTrack = async (track, queue = []) => {
+    let playableTrack = null;
+    try {
+      playableTrack = await resolvePlayableTrack(track);
+    } catch (error) {
+      alert(`Akses audio private belum bisa dibuka: ${error.message}`);
+      return;
+    }
+
+    if (!playableTrack?.url) {
       alert('File audio belum tersedia buat preview bro.');
       return;
     }
@@ -3102,31 +3210,36 @@ export default function App() {
     window.clearTimeout(audioPreviewTimerRef.current);
 
     const nextQueue = queue.length ? queue : (playerQueue.length ? playerQueue : [track]);
-    const nextQueueIndex = Math.max(0, nextQueue.findIndex((item) => item.id === track.id));
+    const nextQueueIndex = Math.max(0, nextQueue.findIndex((item) => item.id === playableTrack.id));
 
-    if (activeTrack?.id === track.id) {
+    if (activeTrack?.id === playableTrack.id) {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
         return;
       }
 
-      audioRef.current.play();
-      setIsPlaying(true);
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch((error) => alert(`Audio belum bisa diputar: ${error.message}`));
       return;
     }
 
-    audioRef.current.src = track.url;
+    audioRef.current.src = playableTrack.url;
     audioRef.current.currentTime = 0;
-    audioRef.current.play();
-    setActiveTrack(track);
-    setIsPlaying(true);
+    audioRef.current.play()
+      .then(() => setIsPlaying(true))
+      .catch((error) => {
+        setIsPlaying(false);
+        alert(`Audio belum bisa diputar: ${error.message}`);
+      });
+    setActiveTrack(playableTrack);
     setPlayerQueue(nextQueue);
     setPlayerQueueIndex(nextQueueIndex);
 
     audioRef.current.onended = () => setIsPlaying(false);
 
-    if (!track.freeFull) {
+    if (!playableTrack.freeFull) {
       audioPreviewTimerRef.current = window.setTimeout(() => {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -3140,18 +3253,33 @@ export default function App() {
     id: `library-${libraryItem?.id || 'item'}-${track.id}`,
     albumTitle: libraryItem?.parentAlbumTitle || libraryItem?.title || track.albumTitle,
     albumCover: libraryItem?.coverPreview || track.albumCover,
+    isOwned: true,
     freeFull: true
   });
 
   const handlePlayLibraryTrack = (track, libraryItem = selectedLibraryItem, tracks = selectedLibraryTracks) => {
     const libraryQueue = (tracks.length ? tracks : [track]).map((item) => buildLibraryPlaybackTrack(item, libraryItem));
-    handlePlayTrack({
-      ...track,
-      id: `library-${libraryItem?.id || 'item'}-${track.id}`,
-      albumTitle: libraryItem?.parentAlbumTitle || libraryItem?.title || track.albumTitle,
-      albumCover: libraryItem?.coverPreview || track.albumCover,
-      freeFull: true
-    }, libraryQueue);
+    handlePlayTrack(buildLibraryPlaybackTrack(track, libraryItem), libraryQueue);
+  };
+
+  const handleSecureLibraryDownload = async () => {
+    const targetTrack = selectedLibraryTracks[0];
+    if (!targetTrack) return alert('Pilih rilisan di Library dulu bro.');
+
+    try {
+      const playableTrack = await resolvePlayableTrack(buildLibraryPlaybackTrack(targetTrack, selectedLibraryItem));
+      if (!playableTrack?.url) return alert('File download belum tersedia untuk rilisan ini.');
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = playableTrack.url;
+      downloadLink.download = targetTrack.fileName || `${targetTrack.title || 'wispace-track'}.mp3`;
+      downloadLink.rel = 'noopener noreferrer';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+    } catch (error) {
+      alert(`Secure download belum bisa dibuka: ${error.message}`);
+    }
   };
 
   const handleToggleActiveTrack = () => {
@@ -3294,6 +3422,7 @@ export default function App() {
           id: `${selectedLibraryItem.id}-fallback`,
           title: selectedLibraryItem.title,
           url: selectedLibraryItem.url,
+          audioPath: selectedLibraryItem.audioPath || '',
           price: selectedLibraryItem.price,
           freeFull: true
         }]
@@ -3401,6 +3530,9 @@ export default function App() {
     ...publicMerchList.map((item) => item.imagePreview),
     ...gigs.map((gig) => gig.image)
   ].filter((value) => typeof value === 'string' && (value.startsWith('blob:') || value.startsWith('data:'))).length;
+  const privateAudioPathCount = albumItems
+    .flatMap((album) => album.tracks || [])
+    .filter((track) => Boolean(track.audioPath)).length;
   const demoPaymentTransactions = saleTransactions.filter((transaction) => (
     transaction.paymentMethod === 'demo_checkout' || transaction.paymentStatus === 'demo_paid'
   )).length;
@@ -3428,12 +3560,12 @@ export default function App() {
     {
       title: 'Asset storage',
       status: localAssetCount ? 'demo' : 'scaffold',
-      note: localAssetCount ? `${localAssetCount} asset masih blob/data URL, biasanya audio private atau fallback upload. Gambar public sudah diarahkan ke bucket band-assets.` : 'Gambar public sudah diarahkan ke bucket band-assets; audio private masih tahap berikutnya.'
+      note: localAssetCount ? `${localAssetCount} asset masih blob/data URL, biasanya fallback upload atau audio lama. Gambar public sudah diarahkan ke bucket band-assets.` : 'Gambar public sudah diarahkan ke bucket band-assets.'
     },
     {
       title: 'Private audio',
-      status: 'todo',
-      note: 'MP3/WAV perlu bucket private + signed URL untuk buyer yang sudah punya akses.'
+      status: privateAudioPathCount ? 'scaffold' : 'todo',
+      note: privateAudioPathCount ? `${privateAudioPathCount} track punya private audio path. Library player meminta signed URL untuk owner/buyer/free full.` : 'MP3/WAV sudah di-wire ke bucket release-audio; upload baru akan punya private path setelah SQL policy dijalankan.'
     },
     {
       title: 'Encrypted download',
@@ -5559,7 +5691,7 @@ export default function App() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <button onClick={() => selectedLibraryTracks[0] && handlePlayLibraryTrack(selectedLibraryTracks[0])} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY {selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</button>
-                  <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SECURE DOWNLOAD</button>
+                  <button onClick={handleSecureLibraryDownload} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SECURE DOWNLOAD</button>
                 </div>
               </aside>
             </div>
@@ -6028,7 +6160,12 @@ export default function App() {
                               title="Jadikan lagu ini free full listen"
                             />
                           )}
-                          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {file.name}</span>
+                          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {String(index + 1).padStart(2, '0')} / {file.name}
+                            <small style={{ color: file.storageStatus === 'stored' ? '#39ff14' : file.storageStatus === 'fallback' ? '#ffcc00' : '#777', marginLeft: '8px', fontWeight: '900' }}>
+                              {file.storageStatus === 'stored' ? 'PRIVATE STORAGE' : file.storageStatus === 'fallback' ? 'LOCAL FALLBACK' : 'LOCAL'}
+                            </small>
+                          </span>
                           <input
                             type="number"
                             min="0"

@@ -36,7 +36,8 @@ const fallbackSupabase = {
   storage: {
     from: () => ({
       upload: async () => ({ data: null, error: missingConfigError }),
-      getPublicUrl: () => ({ data: { publicUrl: '' } })
+      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+      createSignedUrl: async () => ({ data: null, error: missingConfigError })
     })
   }
 };

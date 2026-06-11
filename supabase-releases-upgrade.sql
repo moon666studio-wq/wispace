@@ -37,6 +37,9 @@ create table if not exists public.release_tracks (
 alter table public.release_tracks
 add column if not exists file_size bigint not null default 0;
 
+alter table public.release_tracks
+add column if not exists audio_path text;
+
 create table if not exists public.audience_library (
   id uuid primary key default gen_random_uuid(),
   audience_user_id uuid not null references auth.users(id) on delete cascade,
@@ -56,6 +59,9 @@ on public.releases (band_slug);
 
 create index if not exists release_tracks_release_idx
 on public.release_tracks (release_id, track_order);
+
+create index if not exists release_tracks_audio_path_idx
+on public.release_tracks (audio_path);
 
 create index if not exists audience_library_user_idx
 on public.audience_library (audience_user_id, purchased_at desc);
@@ -162,6 +168,50 @@ to authenticated
 using (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text)
 with check (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text);
 
+drop policy if exists "Bands can upload own private audio" on storage.objects;
+create policy "Bands can upload own private audio"
+on storage.objects for insert
+to authenticated
+with check (bucket_id = 'release-audio' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Bands can update own private audio" on storage.objects;
+create policy "Bands can update own private audio"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'release-audio' and (storage.foldername(name))[1] = auth.uid()::text)
+with check (bucket_id = 'release-audio' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Owners and buyers can read private audio" on storage.objects;
+create policy "Owners and buyers can read private audio"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id = 'release-audio'
+  and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or exists (
+      select 1
+      from public.release_tracks
+      join public.releases on releases.id = release_tracks.release_id
+      where release_tracks.audio_path = storage.objects.name
+      and (
+        releases.band_user_id = auth.uid()
+        or (release_tracks.free_full = true and releases.is_published = true)
+        or exists (
+          select 1
+          from public.audience_library
+          where audience_library.audience_user_id = auth.uid()
+          and audience_library.release_id = release_tracks.release_id
+          and (
+            audience_library.purchase_type = 'album'
+            or audience_library.track_id = release_tracks.id
+          )
+        )
+      )
+    )
+  )
+);
+
 -- Storage policies can be tightened later per asset type. During MVP:
 -- - band-assets is public for covers, avatars, banners, merch images, and posters.
--- - release-audio is private; app should issue signed URLs for purchased users.
+-- - release-audio is private; owner, buyer, and free-full tracks get signed URLs.
