@@ -534,6 +534,7 @@ export default function App() {
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
   const [showNotificationPopout, setShowNotificationPopout] = useState(false);
+  const [selectedArticleId, setSelectedArticleId] = useState(null);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -1153,10 +1154,17 @@ export default function App() {
     setSelectedGigDetail(null);
     setSelectedPosterPreview(null);
     setShowNotificationPopout(false);
+    if (page !== 'articles') setSelectedArticleId(null);
     setActivePage(page);
     if (options.exploreTab) setExploreTab(options.exploreTab);
     if (options.clearSearch) setSearchTerm('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openArticleReader = (article) => {
+    if (!article?.id) return;
+    setSelectedArticleId(article.id);
+    navigateInternalPage('articles');
   };
 
   const copyBandProfileLink = async () => {
@@ -2596,6 +2604,10 @@ export default function App() {
   const filteredBandProfiles = publicBandList.filter((profile) => matchesSearch(profile.name, profile.genre, profile.city, profile.headline, profile.bio, profile.slug));
   const filteredMerchItems = publicMerchList.filter((item) => matchesSearch(item.name, item.description, item.bandName, item.genre, item.city));
   const filteredArticles = publicArticleList.filter((article) => matchesSearch(article.title, article.category, article.excerpt, article.body, article.bandName, article.genre, article.city));
+  const selectedArticle = selectedArticleId
+    ? publicArticleList.find((article) => String(article.id) === String(selectedArticleId))
+    : null;
+  const selectedArticleComments = selectedArticle ? (articleComments[selectedArticle.id] || []) : [];
   const quickSearchResults = normalizedSearchTerm ? [
     ...filteredAlbums.slice(0, 3).map((album) => ({
       id: `album-${album.id}`,
@@ -2626,7 +2638,7 @@ export default function App() {
       type: 'ARTIKEL',
       title: article.title,
       meta: `${article.category || 'Update Band'} / ${article.bandName || 'Band WiSpace'}`,
-      onSelect: () => navigateInternalPage('explore', { exploreTab: 'artikel' })
+      onSelect: () => openArticleReader(article)
     })),
     ...filteredMerchItems.slice(0, 2).map((item) => ({
       id: `merch-${item.id}`,
@@ -3834,10 +3846,11 @@ export default function App() {
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
                   {filteredArticles.map((article) => (
-                    <article key={article.id} style={{ padding: '16px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
+                    <article key={article.id} onClick={() => openArticleReader(article)} style={{ padding: '16px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', cursor: 'pointer' }}>
                       <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
                       <h4 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h4>
                       <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '12px 0 0 0' }}>BACA ARTIKEL</p>
                     </article>
                   ))}
                 </div>
@@ -3976,55 +3989,70 @@ export default function App() {
                 )}
               </div>
             </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '24px', alignItems: 'start' }}>
-              <main style={{ display: 'grid', gap: '18px' }}>
-                {publicArticleList.map((article) => {
-                  const comments = articleComments[article.id] || [];
-                  return (
-                    <article key={article.id} style={{ ...glassStyle(`article-${article.id}`), padding: '20px', backgroundColor: '#090909' }}>
-                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                      <h3 style={{ color: '#fff', fontSize: '26px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
-                      <p style={{ color: '#aaa', fontSize: '14px', lineHeight: 1.6, margin: '0 0 14px 0' }}>{article.excerpt}</p>
-                      {article.body && <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.65, margin: '0 0 14px 0', whiteSpace: 'pre-line' }}>{article.body}</p>}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <p style={{ color: '#555', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
-                        <button onClick={() => createContentReport({ type: 'article', targetId: article.id, title: article.title })} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#888', borderRadius: '9px', padding: '6px 8px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN ARTIKEL</button>
-                      </div>
+          ) : selectedArticle ? (
+            <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '22px', alignItems: 'start' }}>
+              <main>
+                <article style={{ ...glassStyle(`article-reader-${selectedArticle.id}`), padding: isTinyLayout ? '18px' : '26px', backgroundColor: '#090909' }}>
+                  <button onClick={() => setSelectedArticleId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#888', borderRadius: '9999px', padding: '7px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, marginBottom: '18px' }}>KEMBALI KE ETALASE</button>
+                  <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{selectedArticle.category.toUpperCase()} / {selectedArticle.createdAt}</p>
+                  <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '30px' : 'clamp(38px, 5vw, 64px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 16px 0' }}>{selectedArticle.title.toUpperCase()}</h3>
+                  <p style={{ color: '#aaa', fontSize: isTinyLayout ? '15px' : '17px', lineHeight: 1.55, margin: '0 0 18px 0', maxWidth: '840px' }}>{selectedArticle.excerpt}</p>
+                  {selectedArticle.body && <p style={{ color: '#d0d0d0', fontSize: '14px', lineHeight: 1.75, margin: '0 0 20px 0', whiteSpace: 'pre-line' }}>{selectedArticle.body}</p>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid #141414' }}>
+                    <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(selectedArticle.bandName || 'BAND WISPACE').toUpperCase()}</p>
+                    <button onClick={() => createContentReport({ type: 'article', targetId: selectedArticle.id, title: selectedArticle.title })} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#888', borderRadius: '9px', padding: '6px 8px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN ARTIKEL</button>
+                  </div>
 
-                      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
-                        <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>KOMENTAR ({comments.length})</p>
-                        {comments.length > 0 && (
-                          <div style={{ display: 'grid', gap: '8px', marginBottom: '12px' }}>
-                            {comments.slice(0, 3).map((comment) => (
-                              <div key={comment.id} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
-                                <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
-                                <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
-                                <button onClick={() => createContentReport({ type: 'comment', targetId: comment.id, title: `${article.title} / ${comment.author}` })} style={{ marginTop: '8px', background: 'transparent', border: 'none', color: '#666', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN KOMENTAR</button>
-                              </div>
-                            ))}
+                  <div style={{ marginTop: '18px', paddingTop: '18px', borderTop: '1px solid #141414' }}>
+                    <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>KOMENTAR ({selectedArticleComments.length})</p>
+                    {selectedArticleComments.length > 0 && (
+                      <div style={{ display: 'grid', gap: '8px', marginBottom: '12px' }}>
+                        {selectedArticleComments.slice(0, 5).map((comment) => (
+                          <div key={comment.id} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                            <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
+                            <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
+                            <button onClick={() => createContentReport({ type: 'comment', targetId: comment.id, title: `${selectedArticle.title} / ${comment.author}` })} style={{ marginTop: '8px', background: 'transparent', border: 'none', color: '#666', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN KOMENTAR</button>
                           </div>
-                        )}
-                        <form onSubmit={(event) => handleArticleCommentSubmit(event, article)} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr auto', gap: '8px' }}>
-                          <input type="text" placeholder={userSession ? 'TULIS KOMENTAR...' : 'LOGIN UNTUK KOMENTAR'} value={articleCommentDrafts[article.id] || ''} onChange={(event) => setArticleCommentDrafts({ ...articleCommentDrafts, [article.id]: event.target.value })} style={{ ...formInputStyle, margin: 0 }} />
-                          <button type="submit" style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>KIRIM</button>
-                        </form>
+                        ))}
                       </div>
-                    </article>
-                  );
-                })}
+                    )}
+                    <form onSubmit={(event) => handleArticleCommentSubmit(event, selectedArticle)} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr auto', gap: '8px' }}>
+                      <input type="text" placeholder={userSession ? 'TULIS KOMENTAR...' : 'LOGIN UNTUK KOMENTAR'} value={articleCommentDrafts[selectedArticle.id] || ''} onChange={(event) => setArticleCommentDrafts({ ...articleCommentDrafts, [selectedArticle.id]: event.target.value })} style={{ ...formInputStyle, margin: 0 }} />
+                      <button type="submit" style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>KIRIM</button>
+                    </form>
+                  </div>
+                </article>
               </main>
-              <aside style={{ ...glassStyle('article-sidebar'), padding: '18px', backgroundColor: '#090909' }}>
-                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>10 ARTIKEL TERBARU</h3>
-                <div style={{ display: 'grid', gap: '12px' }}>
-                  {publicArticleList.slice(0, 10).map((article) => (
-                    <div key={`side-${article.id}`} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                      <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
-                      <p style={{ color: '#777', fontSize: '11px', margin: 0 }}>{article.category} / {article.createdAt}</p>
-                    </div>
-                  ))}
+              <aside style={{ ...glassStyle('article-sidebar'), padding: '14px', backgroundColor: '#090909', position: isCompactLayout ? 'relative' : 'sticky', top: isCompactLayout ? 'auto' : '98px' }}>
+                <h3 style={{ color: '#00d2ff', fontSize: '13px', fontWeight: '900', margin: '0 0 12px 0' }}>ARTIKEL LAINNYA</h3>
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {publicArticleList.slice(0, 10).map((article) => {
+                    const isActiveArticle = String(article.id) === String(selectedArticle.id);
+                    return (
+                      <button key={`side-${article.id}`} onClick={() => setSelectedArticleId(article.id)} style={{ textAlign: 'left', padding: '10px', backgroundColor: isActiveArticle ? 'rgba(0,210,255,0.08)' : '#000', border: isActiveArticle ? '1px solid rgba(0,210,255,0.3)' : '1px solid #141414', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                        <p style={{ color: isActiveArticle ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
+                        <p style={{ color: '#777', fontSize: '10px', margin: 0 }}>{article.category} / {article.createdAt}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </aside>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+              {publicArticleList.map((article, index) => (
+                <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...glassStyle(`article-card-${article.id}`), padding: index === 0 && !isCompactLayout ? '24px' : '16px', backgroundColor: '#090909', minHeight: index === 0 && !isCompactLayout ? '320px' : '220px', display: 'grid', alignContent: 'space-between', cursor: 'pointer', gridColumn: index === 0 && !isCompactLayout ? 'span 2' : 'auto' }}>
+                  <div>
+                    <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
+                    <h3 style={{ color: '#fff', fontSize: index === 0 && !isCompactLayout ? '34px' : '20px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
+                    <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginTop: '18px' }}>
+                    <p style={{ color: '#555', fontSize: '10px', fontWeight: '900', margin: 0 }}>{(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
+                    <span style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900' }}>BACA</span>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </section>
