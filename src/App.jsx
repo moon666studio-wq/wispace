@@ -3055,10 +3055,10 @@ export default function App() {
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
     padding: innerPagePadding,
-    background: 'linear-gradient(180deg, rgba(7,7,7,0.96) 0%, rgba(2,2,2,0.98) 100%)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '14px',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)'
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 0,
+    boxShadow: 'none'
   };
 
   const pageHeaderStyle = {
@@ -3066,10 +3066,10 @@ export default function App() {
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     gap: '24px',
-    marginBottom: '34px',
+    marginBottom: '30px',
     flexWrap: 'wrap',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-    paddingBottom: '22px'
+    borderBottom: 'none',
+    paddingBottom: 0
   };
 
   const eyebrowStyle = {
@@ -4060,7 +4060,7 @@ export default function App() {
 
       {/* PUBLIC BAND PROFILE PAGE */}
       {!loading && isBandPublicPage && (
-        <section style={{ minHeight: 'calc(100vh - 40px)', background: 'linear-gradient(180deg, #060606 0%, #030303 100%)', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '14px', overflow: 'hidden', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)' }}>
+        <section style={{ minHeight: 'calc(100vh - 40px)', background: 'transparent', border: 'none', borderRadius: 0, overflow: 'visible', boxShadow: 'none' }}>
           <div style={{ position: 'relative', minHeight: isTinyLayout ? '430px' : '470px', display: 'flex', alignItems: 'flex-end', padding: isTinyLayout ? '98px 20px 28px' : '92px 38px 38px', boxSizing: 'border-box' }}>
             {displayBandProfile.coverPreview ? (
               <img src={displayBandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -4734,7 +4734,7 @@ export default function App() {
 
       {/* FINANCE DASHBOARD PAGE */}
       {!loading && isFinancePage && (
-        <section style={{ ...pageShellStyle, border: '1px solid rgba(57,255,20,0.2)' }}>
+        <section style={pageShellStyle}>
           <div style={pageHeaderStyle}>
             <div>
               <p style={{ ...eyebrowStyle, color: '#39ff14' }}>BAND FINANCE DASHBOARD</p>
