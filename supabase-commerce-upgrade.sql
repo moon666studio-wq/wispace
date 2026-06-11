@@ -60,6 +60,7 @@ create table if not exists public.merch_items (
 
 create table if not exists public.sales_transactions (
   id uuid primary key default gen_random_uuid(),
+  order_id text,
   buyer_user_id uuid references auth.users(id) on delete set null,
   seller_band_user_id uuid references auth.users(id) on delete set null,
   seller_band_slug text,
@@ -77,7 +78,9 @@ create table if not exists public.sales_transactions (
   band_net integer not null default 0,
   revenue_share text not null default '80/20',
   payment_provider text,
+  payment_method text,
   payment_reference text,
+  fulfillment_status text,
   status text not null default 'pending',
   created_at timestamptz not null default now(),
   paid_at timestamptz
@@ -86,6 +89,7 @@ create table if not exists public.sales_transactions (
 create table if not exists public.merch_orders (
   id uuid primary key default gen_random_uuid(),
   transaction_id uuid references public.sales_transactions(id) on delete cascade,
+  order_id text,
   buyer_user_id uuid references auth.users(id) on delete set null,
   seller_band_user_id uuid references auth.users(id) on delete set null,
   merch_item_id uuid references public.merch_items(id) on delete set null,
@@ -103,6 +107,35 @@ create table if not exists public.merch_orders (
   tracking_last_checked_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table if not exists public.band_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  audience_user_id uuid references auth.users(id) on delete cascade,
+  band_slug text not null,
+  band_name text,
+  created_at timestamptz not null default now(),
+  unique (audience_user_id, band_slug)
+);
+
+create table if not exists public.band_update_notifications (
+  id uuid primary key default gen_random_uuid(),
+  band_slug text not null,
+  band_name text,
+  update_type text not null default 'update',
+  title text not null,
+  body text,
+  source_id text,
+  created_at timestamptz not null default now(),
+  unique (band_slug, source_id)
+);
+
+create table if not exists public.audience_notification_reads (
+  id uuid primary key default gen_random_uuid(),
+  audience_user_id uuid references auth.users(id) on delete cascade,
+  notification_id text not null,
+  created_at timestamptz not null default now(),
+  unique (audience_user_id, notification_id)
 );
 
 create table if not exists public.shipment_tracking_events (
@@ -124,6 +157,14 @@ add column if not exists is_active boolean not null default true;
 
 alter table if exists public.merch_items
 add column if not exists is_active boolean not null default true;
+
+alter table if exists public.sales_transactions
+add column if not exists order_id text,
+add column if not exists payment_method text,
+add column if not exists fulfillment_status text;
+
+alter table if exists public.merch_orders
+add column if not exists order_id text;
 
 create index if not exists band_articles_published_idx
 on public.band_articles (is_published, created_at desc);
@@ -152,6 +193,15 @@ on public.sales_transactions (gig_id, created_at desc);
 create index if not exists merch_orders_transaction_idx
 on public.merch_orders (transaction_id);
 
+create index if not exists band_subscriptions_audience_idx
+on public.band_subscriptions (audience_user_id, created_at desc);
+
+create index if not exists band_update_notifications_band_idx
+on public.band_update_notifications (band_slug, created_at desc);
+
+create index if not exists audience_notification_reads_user_idx
+on public.audience_notification_reads (audience_user_id, created_at desc);
+
 create index if not exists shipment_events_order_idx
 on public.shipment_tracking_events (merch_order_id, event_time desc);
 
@@ -161,6 +211,9 @@ alter table public.content_reports enable row level security;
 alter table public.merch_items enable row level security;
 alter table public.sales_transactions enable row level security;
 alter table public.merch_orders enable row level security;
+alter table public.band_subscriptions enable row level security;
+alter table public.band_update_notifications enable row level security;
+alter table public.audience_notification_reads enable row level security;
 alter table public.shipment_tracking_events enable row level security;
 
 drop policy if exists "Published articles are readable by everyone" on public.band_articles;
@@ -230,6 +283,34 @@ drop policy if exists "Audience can create own merch orders" on public.merch_ord
 create policy "Audience can create own merch orders"
 on public.merch_orders for insert
 with check (auth.uid() = buyer_user_id);
+
+drop policy if exists "Audience can manage own subscriptions" on public.band_subscriptions;
+create policy "Audience can manage own subscriptions"
+on public.band_subscriptions for all
+using (auth.uid() = audience_user_id)
+with check (auth.uid() = audience_user_id);
+
+drop policy if exists "Band updates are readable by everyone" on public.band_update_notifications;
+create policy "Band updates are readable by everyone"
+on public.band_update_notifications for select
+using (true);
+
+drop policy if exists "Bands can publish update notifications" on public.band_update_notifications;
+create policy "Bands can publish update notifications"
+on public.band_update_notifications for insert
+with check (
+  exists (
+    select 1 from public.band_profiles
+    where band_profiles.slug = band_update_notifications.band_slug
+    and band_profiles.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Audience can manage own notification reads" on public.audience_notification_reads;
+create policy "Audience can manage own notification reads"
+on public.audience_notification_reads for all
+using (auth.uid() = audience_user_id)
+with check (auth.uid() = audience_user_id);
 
 drop policy if exists "Order participants can read shipment events" on public.shipment_tracking_events;
 create policy "Order participants can read shipment events"

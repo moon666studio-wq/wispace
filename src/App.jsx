@@ -87,6 +87,7 @@ const BAND_MERCH_STORAGE_PREFIX = 'wispace_band_merch';
 const BAND_SUBSCRIPTIONS_STORAGE_PREFIX = 'wispace_band_subscriptions';
 const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
 const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
+const BAND_UPDATE_FEED_STORAGE_PREFIX = 'wispace_band_update_feed';
 const PUBLIC_BAND_REGISTRY_STORAGE_KEY = 'wispace_public_band_registry';
 const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
 const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
@@ -97,6 +98,7 @@ const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
+const AUDIENCE_NOTIFICATION_READ_PREFIX = 'wispace_audience_notification_read';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
@@ -526,6 +528,7 @@ export default function App() {
   const [subscribedBands, setSubscribedBands] = useState([]);
   const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
   const [bandNotifications, setBandNotifications] = useState([]);
+  const [readSubscribedUpdateIds, setReadSubscribedUpdateIds] = useState([]);
   const [publicBandProfiles, setPublicBandProfiles] = useState(loadPublicBandRegistry);
   const [publicArticleItems, setPublicArticleItems] = useState(loadPublicArticleRegistry);
   const [publicMerchItems, setPublicMerchItems] = useState(loadPublicMerchRegistry);
@@ -535,6 +538,8 @@ export default function App() {
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
   const [showNotificationPopout, setShowNotificationPopout] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState(null);
+  const [selectedReleaseId, setSelectedReleaseId] = useState(null);
+  const [selectedMerchId, setSelectedMerchId] = useState(null);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -602,6 +607,42 @@ export default function App() {
   const persistAudienceLibraryLocal = useCallback((library, user = userSession) => {
     saveUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, user, library);
   }, [userSession]);
+  const persistSubscribedUpdateReadsLocal = useCallback((reads, user = userSession) => {
+    saveUserScopedData(AUDIENCE_NOTIFICATION_READ_PREFIX, user, reads);
+  }, [userSession]);
+  const publishBandUpdateNotification = useCallback((bandSlug, update) => {
+    if (!bandSlug) return;
+    const nextUpdate = {
+      id: update.id || createClientId(),
+      type: update.type || 'update',
+      title: update.title || 'Update baru',
+      body: update.body || '',
+      bandName: update.bandName || bandProfile.name || signatureName || 'Band WiSpace',
+      bandSlug,
+      createdAt: update.createdAt || new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+    const currentFeed = loadBandGlobalData(BAND_UPDATE_FEED_STORAGE_PREFIX, bandSlug, []);
+    const nextFeed = [
+      nextUpdate,
+      ...currentFeed.filter((item) => String(item.id) !== String(nextUpdate.id))
+    ].slice(0, 20);
+    saveBandGlobalData(BAND_UPDATE_FEED_STORAGE_PREFIX, bandSlug, nextFeed);
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase
+        .from('band_update_notifications')
+        .upsert({
+          band_slug: bandSlug,
+          band_name: nextUpdate.bandName,
+          update_type: nextUpdate.type,
+          title: nextUpdate.title,
+          body: nextUpdate.body,
+          source_id: nextUpdate.id
+        }, { onConflict: 'band_slug,source_id' })
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) console.warn('Gagal sync update subscriber:', error.message);
+        });
+    }
+  }, [bandProfile.name, signatureName, userSession]);
   const publishPublicBandProfile = useCallback((profile) => {
     const profileSlug = profile.slug || createSlug(profile.name || signatureName || 'band-wispace');
     const publicProfile = {
@@ -645,6 +686,13 @@ export default function App() {
       isPublished: true,
       updatedAt: new Date().toISOString()
     };
+    publishBandUpdateNotification(publicRelease.bandSlug, {
+      id: `release-${releaseId}`,
+      type: 'release',
+      title: 'RILISAN BARU',
+      body: `${publicRelease.bandName || bandProfile.name || 'Band WiSpace'} upload ${publicRelease.title}.`,
+      bandName: publicRelease.bandName || bandProfile.name || 'Band WiSpace'
+    });
 
     const localReleases = [
       publicRelease,
@@ -699,7 +747,7 @@ export default function App() {
     }
 
     return publicRelease;
-  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, publishBandUpdateNotification, signatureName, userSession]);
 
   const publishPublicMerch = useCallback((item) => {
     const merchId = item.id || createClientId();
@@ -713,6 +761,13 @@ export default function App() {
       city: bandProfile.city || item.city || 'Indonesia',
       updatedAt: new Date().toISOString()
     };
+    publishBandUpdateNotification(publicItem.bandSlug, {
+      id: `merch-${merchId}`,
+      type: 'merch',
+      title: 'MERCH BARU',
+      body: `${publicItem.bandName} upload merch ${publicItem.name}.`,
+      bandName: publicItem.bandName
+    });
     const nextItems = [
       publicItem,
       ...loadPublicMerchRegistry().filter((registryItem) => String(registryItem.id) !== String(merchId))
@@ -746,7 +801,7 @@ export default function App() {
     }
 
     return publicItem;
-  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, publishBandUpdateNotification, signatureName, userSession]);
 
   const publishPublicArticle = useCallback((article) => {
     const articleId = article.id || createClientId();
@@ -760,6 +815,13 @@ export default function App() {
       city: article.city || bandProfile.city || 'Indonesia',
       updatedAt: new Date().toISOString()
     };
+    publishBandUpdateNotification(publicArticle.bandSlug, {
+      id: `article-${articleId}`,
+      type: 'article',
+      title: 'ARTIKEL BARU',
+      body: `${publicArticle.bandName} publish artikel ${publicArticle.title}.`,
+      bandName: publicArticle.bandName
+    });
     const nextArticles = [
       publicArticle,
       ...loadPublicArticleRegistry().filter((registryArticle) => String(registryArticle.id) !== String(articleId))
@@ -791,7 +853,7 @@ export default function App() {
     }
 
     return publicArticle;
-  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, signatureName, userSession]);
+  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, publishBandUpdateNotification, signatureName, userSession]);
 
   const exclusiveEventBanners = [
     ...gigs
@@ -836,6 +898,7 @@ export default function App() {
       const storedSubscriptions = loadUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, userSession);
       const storedAudienceProfile = loadUserScopedData(AUDIENCE_PROFILE_STORAGE_PREFIX, userSession);
       const storedAudienceLibrary = loadUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, userSession);
+      const storedNotificationReads = loadUserScopedData(AUDIENCE_NOTIFICATION_READ_PREFIX, userSession);
 
       if (storedProfile) {
         const safeStoredProfile = trimOversizedBandPreview(storedProfile);
@@ -885,6 +948,10 @@ export default function App() {
       if (Array.isArray(storedAudienceLibrary)) {
         setPurchasedAlbums(storedAudienceLibrary);
       }
+
+      if (Array.isArray(storedNotificationReads)) {
+        setReadSubscribedUpdateIds(storedNotificationReads);
+      }
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
@@ -917,9 +984,13 @@ export default function App() {
     setHasSignedContract(false);
     setSignatureName('');
     setSubscribedBands([]);
+    setReadSubscribedUpdateIds([]);
     setAudienceProfile(createEmptyAudienceProfile());
     setPurchasedAlbums([]);
     setSelectedLibraryItemId(null);
+    setSelectedReleaseId(null);
+    setSelectedMerchId(null);
+    setSelectedArticleId(null);
     if (window.location.pathname.startsWith('/band/')) {
       window.history.pushState({ page: 'home' }, '', '/');
     }
@@ -1167,6 +1238,18 @@ export default function App() {
     navigateInternalPage('articles');
   };
 
+  const openReleaseDetail = (album) => {
+    if (!album?.id) return;
+    setSelectedReleaseId(album.id);
+    navigateInternalPage('explore', { exploreTab: 'rilisan' });
+  };
+
+  const openMerchDetail = (item) => {
+    if (!item?.id) return;
+    setSelectedMerchId(item.id);
+    navigateInternalPage('explore', { exploreTab: 'merch' });
+  };
+
   const copyBandProfileLink = async () => {
     const profileUrl = `${window.location.origin}/band/${currentBandSlug}`;
     try {
@@ -1227,6 +1310,29 @@ export default function App() {
     setBandNotifications(nextNotifications);
     saveBandGlobalData(BAND_SUBSCRIBER_COUNT_PREFIX, bandSlug, nextCount);
     saveBandGlobalData(BAND_NOTIFICATIONS_STORAGE_PREFIX, bandSlug, nextNotifications);
+    if (isSupabaseConfigured && userSession?.id) {
+      if (isSubscribed) {
+        void supabase
+          .from('band_subscriptions')
+          .delete()
+          .eq('audience_user_id', userSession.id)
+          .eq('band_slug', bandSlug)
+          .then(({ error }) => {
+            if (error && !isMissingColumnError(error)) console.warn('Gagal sync unsubscribe band:', error.message);
+          });
+      } else {
+        void supabase
+          .from('band_subscriptions')
+          .upsert({
+            audience_user_id: userSession.id,
+            band_slug: bandSlug,
+            band_name: bandName
+          }, { onConflict: 'audience_user_id,band_slug' })
+          .then(({ error }) => {
+            if (error && !isMissingColumnError(error)) console.warn('Gagal sync subscribe band:', error.message);
+          });
+      }
+    }
     alert(isSubscribed
       ? `Subscribe ke ${bandName} dibatalin bro.`
       : `Subscribed ke ${bandName}. Nanti update rilisan, gigs, artikel, dan merch bisa masuk notif.`);
@@ -1457,6 +1563,7 @@ export default function App() {
     if (isSupabaseConfigured && userSession?.id) {
       void supabase.from('sales_transactions').insert([{
         id: nextTransaction.id,
+        order_id: nextTransaction.orderId || null,
         buyer_user_id: userSession.id,
         seller_band_slug: nextTransaction.sellerBandSlug,
         seller_band_name: nextTransaction.sellerBandName,
@@ -1469,6 +1576,8 @@ export default function App() {
         platform_fee: nextTransaction.platformFee,
         band_net: nextTransaction.bandNet,
         revenue_share: nextTransaction.revenueShare,
+        payment_method: nextTransaction.paymentMethod,
+        fulfillment_status: nextTransaction.fulfillmentStatus,
         status: nextTransaction.status,
         paid_at: nextTransaction.paidAt
       }]).then(({ error }) => {
@@ -1873,6 +1982,7 @@ export default function App() {
     if (isSupabaseConfigured && userSession?.id) {
       void supabase.from('sales_transactions').insert([{
         id: nextTransaction.id,
+        order_id: nextTransaction.orderId || null,
         buyer_user_id: userSession.id,
         seller_band_slug: nextTransaction.sellerBandSlug,
         seller_band_name: nextTransaction.sellerBandName,
@@ -1887,6 +1997,8 @@ export default function App() {
         platform_fee: nextTransaction.platformFee,
         band_net: nextTransaction.bandNet,
         revenue_share: nextTransaction.revenueShare,
+        payment_method: nextTransaction.paymentMethod,
+        fulfillment_status: nextTransaction.fulfillmentStatus,
         status: nextTransaction.status,
         paid_at: nextTransaction.paidAt
       }]).then(({ error }) => {
@@ -2134,6 +2246,7 @@ export default function App() {
         void supabase.from('merch_orders').insert([{
           id: nextOrder.id,
           transaction_id: sale.id,
+          order_id: nextOrder.orderId || null,
           buyer_user_id: userSession.id,
           merch_item_id: item.id,
           quantity: 1,
@@ -2608,13 +2721,19 @@ export default function App() {
     ? publicArticleList.find((article) => String(article.id) === String(selectedArticleId))
     : null;
   const selectedArticleComments = selectedArticle ? (articleComments[selectedArticle.id] || []) : [];
+  const selectedRelease = selectedReleaseId
+    ? albumItems.find((album) => String(album.id) === String(selectedReleaseId))
+    : null;
+  const selectedMerch = selectedMerchId
+    ? publicMerchList.find((item) => String(item.id) === String(selectedMerchId))
+    : null;
   const quickSearchResults = normalizedSearchTerm ? [
     ...filteredAlbums.slice(0, 3).map((album) => ({
       id: `album-${album.id}`,
       type: 'RILISAN',
       title: album.title,
       meta: `${album.bandName || 'Band WiSpace'} / ${album.genre || 'Indie'} / ${album.trackCount || 0} track`,
-      onSelect: () => navigateInternalPage('explore', { exploreTab: 'rilisan' })
+      onSelect: () => openReleaseDetail(album)
     })),
     ...filteredAlbumTracks.slice(0, 3).map((track) => ({
       id: `track-${track.albumId}-${track.id}`,
@@ -2645,7 +2764,7 @@ export default function App() {
       type: 'MERCH',
       title: item.name,
       meta: `${item.bandName || 'Band WiSpace'} / Rp ${Number(item.price || 0).toLocaleString('id-ID')}`,
-      onSelect: () => navigateInternalPage('explore', { exploreTab: 'merch' })
+      onSelect: () => openMerchDetail(item)
     }))
   ].slice(0, 10) : [];
   const selectedLibraryItem = purchasedAlbums.find((album) => album.id === selectedLibraryItemId) || purchasedAlbums[0] || null;
@@ -2743,10 +2862,39 @@ export default function App() {
     })))
     .slice(0, 12);
   const isSubscribedToCurrentBand = subscribedBands.some((item) => item.slug === currentBandSlug);
+  const subscribedBandUpdateNotifications = subscribedBands
+    .flatMap((subscription) => (
+      loadBandGlobalData(BAND_UPDATE_FEED_STORAGE_PREFIX, subscription.slug, [])
+        .map((update) => ({
+          ...update,
+          id: `sub-${subscription.slug}-${update.id}`,
+          sourceId: update.id,
+          bandSlug: subscription.slug,
+          bandName: update.bandName || subscription.name
+        }))
+    ))
+    .filter((update) => !readSubscribedUpdateIds.includes(update.id))
+    .slice(0, 8);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
-  const unreadNotificationTotal = unreadMessages + (isBandAccount ? unreadBandNotifications : 0);
+  const unreadSubscribedUpdates = subscribedBandUpdateNotifications.length;
+  const unreadNotificationTotal = unreadMessages + (isBandAccount ? unreadBandNotifications : unreadSubscribedUpdates);
+  const markSubscribedUpdatesRead = () => {
+    if (isBandAccount || !subscribedBandUpdateNotifications.length) return;
+    const nextReads = [...new Set([...readSubscribedUpdateIds, ...subscribedBandUpdateNotifications.map((item) => item.id)])];
+    setReadSubscribedUpdateIds(nextReads);
+    persistSubscribedUpdateReadsLocal(nextReads);
+    if (isSupabaseConfigured && userSession?.id) {
+      const readRows = subscribedBandUpdateNotifications.map((item) => ({
+        audience_user_id: userSession.id,
+        notification_id: item.id
+      }));
+      void supabase.from('audience_notification_reads').upsert(readRows, { onConflict: 'audience_user_id,notification_id' }).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) console.warn('Gagal sync read notif subscriber:', error.message);
+      });
+    }
+  };
   const toggleNotificationPopout = () => {
     setShowNotificationPopout((current) => !current);
   };
@@ -2755,6 +2903,7 @@ export default function App() {
     navigateInternalPage('message_center');
     markMessagesAsRead();
     if (isBandAccount) markBandNotificationsRead();
+    markSubscribedUpdatesRead();
   };
   const notificationPreviewItems = [
     ...visibleMessages.filter((message) => !message.read).slice(0, 2).map((message) => ({
@@ -2768,7 +2917,12 @@ export default function App() {
       label: 'BAND NOTIF',
       title: notification.title || 'Notif baru',
       body: notification.body || 'Ada update baru untuk band.'
-    })) : [])
+    })) : subscribedBandUpdateNotifications.slice(0, 3).map((notification) => ({
+      id: notification.id,
+      label: 'SUBSCRIBED',
+      title: notification.title || 'Update baru',
+      body: notification.body || `${notification.bandName || 'Band'} punya update baru.`
+    })))
   ].slice(0, 3);
 
   useEffect(() => {
@@ -3245,7 +3399,7 @@ export default function App() {
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); markSubscribedUpdatesRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
             <button type="button" onClick={openNotificationCenter} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '9px' }}>INBOX</button>
           </div>
         </div>
@@ -3698,6 +3852,69 @@ export default function App() {
             </div>
           </div>
 
+          {exploreTab === 'rilisan' && selectedRelease && (
+            <section style={{ ...glassStyle(`release-detail-${selectedRelease.id}`), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909', marginBottom: '22px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 320px) minmax(0, 1fr)', gap: '18px', alignItems: 'start' }}>
+                <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(0,210,255,0.16)', display: 'grid', placeItems: 'center' }}>
+                  {selectedRelease.coverPreview ? <img src={selectedRelease.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>{selectedRelease.genre?.toUpperCase()} / {selectedRelease.trackCount} TRACK</p>
+                      <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '28px' : '42px', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedRelease.title.toUpperCase()}</h3>
+                      <p style={{ color: '#888', fontSize: '13px', fontWeight: '800', margin: 0 }}>{selectedRelease.bandName?.toUpperCase()} / {selectedRelease.city?.toUpperCase()}</p>
+                    </div>
+                    <button onClick={() => setSelectedReleaseId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+                  </div>
+                  {selectedRelease.description && <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedRelease.description}</p>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                    <strong style={{ color: '#fff', fontSize: '18px', fontWeight: '900' }}>Full Album Rp {Number(selectedRelease.price || 0).toLocaleString('id-ID')}</strong>
+                    <button onClick={() => handlePurchaseAlbum(selectedRelease)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === selectedRelease.id) ? 'BUKA LIBRARY' : 'BELI FULL ALBUM'}</button>
+                  </div>
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {(selectedRelease.tracks || []).map((track, index) => (
+                      <div key={`detail-track-${track.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '32px minmax(0, 1fr) auto auto', gap: '9px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                        <span style={{ color: '#555', fontSize: '10px', fontWeight: '900' }}>{String(index + 1).padStart(2, '0')}</span>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</p>
+                          <p style={{ color: track.freeFull ? '#39ff14' : '#777', fontSize: '10px', fontWeight: '800', margin: 0 }}>{track.freeFull ? 'FREE FULL TRACK' : '30 SECOND PREVIEW'}</p>
+                        </div>
+                        <button onClick={() => handlePlayTrack({ ...track, albumTitle: selectedRelease.title, bandName: selectedRelease.bandName, albumCover: selectedRelease.coverPreview }, (selectedRelease.tracks || []).map((item) => ({ ...item, albumTitle: selectedRelease.title, bandName: selectedRelease.bandName, albumCover: selectedRelease.coverPreview })))} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
+                        <button onClick={() => handlePurchaseTrack(selectedRelease, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(57,255,20,0.08)' : 'rgba(0,210,255,0.08)', border: `1px solid ${track.freeFull ? 'rgba(57,255,20,0.25)' : 'rgba(0,210,255,0.25)'}`, color: track.freeFull ? '#39ff14' : '#00d2ff', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {exploreTab === 'merch' && selectedMerch && (
+            <section style={{ ...glassStyle(`merch-detail-${selectedMerch.id}`), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909', marginBottom: '22px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 300px) minmax(0, 1fr)', gap: '18px', alignItems: 'start' }}>
+                <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#000', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(0,210,255,0.16)', display: 'grid', placeItems: 'center' }}>
+                  {selectedMerch.imagePreview ? <img src={selectedMerch.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>MERCH / STOCK {selectedMerch.stock || 0}</p>
+                      <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '28px' : '42px', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedMerch.name.toUpperCase()}</h3>
+                      <p style={{ color: '#888', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(selectedMerch.bandName || 'Band WiSpace').toUpperCase()} / {(selectedMerch.city || 'Indonesia').toUpperCase()}</p>
+                    </div>
+                    <button onClick={() => setSelectedMerchId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+                  </div>
+                  {selectedMerch.description && <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedMerch.description}</p>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', flexWrap: 'wrap' }}>
+                    <strong style={{ color: '#fff', fontSize: '20px', fontWeight: '900' }}>Rp {Number(selectedMerch.price || 0).toLocaleString('id-ID')}</strong>
+                    <button onClick={() => handlePurchaseMerch(selectedMerch)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
           <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
             <div>
               <section style={{ marginBottom: '26px' }}>
@@ -3711,7 +3928,7 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px' }}>
                     {filteredAlbums.map((album) => (
-                      <article key={album.id} style={{ ...glassStyle(`album-${album.id}`), padding: '14px', backgroundColor: '#090909' }}>
+                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...glassStyle(`album-${album.id}`), padding: '14px', backgroundColor: selectedRelease?.id === album.id ? 'rgba(0,210,255,0.06)' : '#090909', border: selectedRelease?.id === album.id ? '1px solid rgba(0,210,255,0.32)' : glassStyle(`album-${album.id}`).border, cursor: 'pointer' }}>
                         <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '14px', border: '1px solid rgba(255,255,255,0.07)' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                         </div>
@@ -3720,14 +3937,14 @@ export default function App() {
                         <p style={{ color: '#777', fontSize: '12px', margin: '0 0 12px 0' }}>{album.bandName.toUpperCase()} - {album.city.toUpperCase()}</p>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                           <span style={{ color: '#fff', fontSize: '14px', fontWeight: '900' }}>Full Rp {Number(album.price || 0).toLocaleString('id-ID')}</span>
-                          <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI FULL'}</button>
+                          <button onClick={(event) => { event.stopPropagation(); handlePurchaseAlbum(album); }} style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI FULL'}</button>
                         </div>
                         {(album.tracks || []).length > 0 && (
                           <div style={{ display: 'grid', gap: '7px', borderTop: '1px solid #141414', paddingTop: '10px' }}>
                             {(album.tracks || []).slice(0, 3).map((track) => (
                               <div key={`explore-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
                                 <span style={{ color: track.freeFull ? '#39ff14' : '#aaa', fontSize: '11px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
-                                <button onClick={() => handlePurchaseTrack(album, track)} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
+                                <button onClick={(event) => { event.stopPropagation(); handlePurchaseTrack(album, track); }} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
                               </div>
                             ))}
                             {(album.tracks || []).length > 3 && <p style={{ color: '#555', fontSize: '10px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 3} TRACK LAIN DI PROFILE BAND</p>}
@@ -3797,7 +4014,7 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {filteredMerchItems.slice(0, 4).map(item => (
-                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                      <button key={item.id} onClick={() => openMerchDetail(item)} style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', fontFamily: FONT_STACK }}>
                         <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
@@ -3805,7 +4022,7 @@ export default function App() {
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.name.toUpperCase()}</p>
                           <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -3869,14 +4086,14 @@ export default function App() {
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '18px' }}>
                   {filteredMerchItems.map((item) => (
-                    <article key={item.id} style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
+                    <article key={item.id} onClick={() => openMerchDetail(item)} style={{ padding: '14px', backgroundColor: selectedMerch?.id === item.id ? 'rgba(0,210,255,0.06)' : '#000', border: selectedMerch?.id === item.id ? '1px solid rgba(0,210,255,0.32)' : '1px solid #141414', borderRadius: '14px', cursor: 'pointer' }}>
                       <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', marginBottom: '14px' }}>
                         {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
                       </div>
                       <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{(bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
                       <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>{item.name.toUpperCase()}</h4>
                       <p style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
-                      <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
+                      <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
                     </article>
                   ))}
                 </div>
