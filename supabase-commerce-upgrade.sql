@@ -274,6 +274,12 @@ create policy "Audience can create own transactions"
 on public.sales_transactions for insert
 with check (auth.uid() = buyer_user_id);
 
+drop policy if exists "Bands can update own transaction fulfillment" on public.sales_transactions;
+create policy "Bands can update own transaction fulfillment"
+on public.sales_transactions for update
+using (auth.uid() = seller_band_user_id)
+with check (auth.uid() = seller_band_user_id);
+
 drop policy if exists "Order participants can read merch orders" on public.merch_orders;
 create policy "Order participants can read merch orders"
 on public.merch_orders for select
@@ -283,6 +289,12 @@ drop policy if exists "Audience can create own merch orders" on public.merch_ord
 create policy "Audience can create own merch orders"
 on public.merch_orders for insert
 with check (auth.uid() = buyer_user_id);
+
+drop policy if exists "Bands can update own merch orders" on public.merch_orders;
+create policy "Bands can update own merch orders"
+on public.merch_orders for update
+using (auth.uid() = seller_band_user_id)
+with check (auth.uid() = seller_band_user_id);
 
 drop policy if exists "Audience can manage own subscriptions" on public.band_subscriptions;
 create policy "Audience can manage own subscriptions"

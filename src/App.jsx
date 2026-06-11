@@ -98,6 +98,20 @@ const getGigStatusColor = (status = 'pending') => ({
   rejected: '#ff3333',
   removed: '#777'
 }[status] || '#ffcc00');
+const getMerchOrderStatusLabel = (status = 'order_paid_waiting_band') => ({
+  order_paid_waiting_band: 'PAID - WAIT BAND',
+  processing: 'DIPROSES BAND',
+  shipped: 'DIKIRIM',
+  completed: 'SELESAI',
+  cancelled: 'DIBATALKAN'
+}[status] || status.replaceAll('_', ' ').toUpperCase());
+const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
+  order_paid_waiting_band: '#ffcc00',
+  processing: '#00d2ff',
+  shipped: '#39ff14',
+  completed: '#39ff14',
+  cancelled: '#ff3333'
+}[status] || '#ffcc00');
 const isMissingColumnError = (error) => {
   const message = error?.message?.toLowerCase() || '';
   return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
@@ -494,6 +508,7 @@ const mapMerchOrderFromRow = (row = {}) => ({
   postalCode: row.shipping_postal_code || '',
   courier: row.courier_service || row.courier_code || 'Kurir belum dipilih',
   note: '',
+  trackingNumber: row.tracking_number || '',
   trackingStatus: row.tracking_status || 'order_paid_waiting_band',
   createdAt: row.created_at
     ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
@@ -2438,6 +2453,7 @@ export default function App() {
         itemName: item.name,
         sellerBandName: item.bandName || 'Band WiSpace',
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || 'band-wispace'),
+        sellerBandUserId: item.bandUserId || '',
         buyerName,
         buyerEmail,
         recipientName: checkoutDraft.recipientName.trim(),
@@ -2447,6 +2463,7 @@ export default function App() {
         postalCode: checkoutDraft.postalCode.trim(),
         courier: checkoutDraft.courier,
         note: checkoutDraft.note.trim(),
+        trackingNumber: '',
         trackingStatus: 'order_paid_waiting_band',
         createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
       };
@@ -2502,6 +2519,79 @@ export default function App() {
       setActiveCheckout(null);
       alert(`${item.name} masuk order merch. Pembelian berhasil, band akan proses pengiriman.`);
     }
+  };
+
+  const updateMerchOrderLocal = (orderId, updatePayload) => {
+    setMerchOrders((current) => {
+      const nextOrders = current.map((order) => (
+        String(order.id) === String(orderId) ? { ...order, ...updatePayload } : order
+      ));
+      saveMerchOrders(nextOrders);
+      return nextOrders;
+    });
+  };
+
+  const updateMerchTransactionFulfillmentLocal = (transactionId, fulfillmentStatus) => {
+    if (!transactionId) return;
+
+    setSaleTransactions((current) => {
+      const nextTransactions = current.map((transaction) => (
+        String(transaction.id) === String(transactionId) ? { ...transaction, fulfillmentStatus } : transaction
+      ));
+      saveTransactionLedger(nextTransactions);
+      return nextTransactions;
+    });
+  };
+
+  const syncMerchOrderUpdate = (order, updatePayload) => {
+    if (!isSupabaseConfigured || !userSession?.id) return;
+
+    void supabase
+      .from('merch_orders')
+      .update({
+        tracking_status: updatePayload.trackingStatus || order.trackingStatus,
+        tracking_number: updatePayload.trackingNumber ?? order.trackingNumber ?? null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', order.id)
+      .then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync status order merch ke Supabase:', error.message);
+        }
+      });
+
+    if (order.transactionId) {
+      void supabase
+        .from('sales_transactions')
+        .update({ fulfillment_status: updatePayload.trackingStatus || order.trackingStatus })
+        .eq('id', order.transactionId)
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync fulfillment transaksi merch:', error.message);
+          }
+        });
+    }
+  };
+
+  const handleMerchOrderStatusUpdate = (order, nextStatus) => {
+    const updatePayload = { trackingStatus: nextStatus };
+    updateMerchOrderLocal(order.id, updatePayload);
+    updateMerchTransactionFulfillmentLocal(order.transactionId, nextStatus);
+    syncMerchOrderUpdate(order, updatePayload);
+  };
+
+  const handleMerchTrackingNumberUpdate = (order) => {
+    const trackingNumber = window.prompt(`Nomor resi untuk order ${order.orderId || order.id}:`, order.trackingNumber || '');
+    if (trackingNumber === null) return;
+
+    const cleanTrackingNumber = trackingNumber.trim();
+    const updatePayload = {
+      trackingNumber: cleanTrackingNumber,
+      trackingStatus: cleanTrackingNumber ? 'shipped' : order.trackingStatus
+    };
+    updateMerchOrderLocal(order.id, updatePayload);
+    updateMerchTransactionFulfillmentLocal(order.transactionId, updatePayload.trackingStatus);
+    syncMerchOrderUpdate(order, updatePayload);
   };
 
   const handleMerchDraftSubmit = (event) => {
@@ -3080,11 +3170,27 @@ export default function App() {
   const bandMerchOrders = merchOrders.filter((order) => (
     order.sellerBandUserId === userSession?.id || order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
   ));
+  const adminBandPayoutTotal = saleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
+  const adminWaitingMerchOrders = merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
+  const bandPendingMerchOrders = bandMerchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
+  const financeDigitalRevenue = financeTransactions
+    .filter((transaction) => ['album', 'track'].includes(transaction.productType))
+    .reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
+  const financeMerchRevenue = financeTransactions
+    .filter((transaction) => transaction.productType === 'merch')
+    .reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const exclusivePosterTransactions = saleTransactions.filter((transaction) => transaction.productType === 'exclusive_poster');
   const adminExclusivePosterRevenue = Math.max(
     exclusivePosterTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || transaction.grossAmount || 0), 0),
     paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE
   );
+  const realFlowChecklist = [
+    'Band daftar/login, approve agreement, isi profile, upload album + 1 track free full.',
+    'Band upload merch dengan stok kecil, lalu buka profile public dan pastikan card merch muncul.',
+    'Audience daftar/login, klik Explore, beli album/track, cek Library dan player.',
+    'Audience beli merch, isi alamat/kurir, lalu band cek order di dashboard keuangan.',
+    'Band proses order, input resi, lalu admin cek ledger fee rilisan, merch, dan pamflet.'
+  ];
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
   const openContentReports = contentReports.filter((report) => report.status !== 'resolved');
@@ -3856,6 +3962,32 @@ export default function App() {
                 <strong style={compactMetricValueStyle}>{paidSaleTransactions.length}</strong>
                 <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
               </div>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>ESTIMASI PAYOUT BAND</p>
+                <strong style={compactMetricValueStyle}>Rp {adminBandPayoutTotal.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>ORDER PERLU PROSES</p>
+                <strong style={{ ...compactMetricValueStyle, color: adminWaitingMerchOrders ? '#ffcc00' : '#555' }}>{adminWaitingMerchOrders}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section style={{ ...glassStyle('admin-real-flow-checklist'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REAL TEST FLOW</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>CHECKLIST TESTING</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Urutan ini dipakai setelah SQL Supabase jalan dan data dummy sudah siap dibersihkan.</p>
+            </div>
+            <div style={{ display: 'grid', gap: '7px' }}>
+              {realFlowChecklist.map((item, index) => (
+                <div key={item} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '24px 1fr', gap: '9px', alignItems: 'start' }}>
+                  <strong style={{ width: '24px', height: '24px', borderRadius: '9999px', backgroundColor: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.22)', color: '#00d2ff', display: 'grid', placeItems: 'center', fontSize: '10px' }}>{index + 1}</strong>
+                  <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{item}</p>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -3880,7 +4012,7 @@ export default function App() {
                     <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#fff' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#fff' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
                     <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')}</p>
                     <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
-                    <strong style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
+                    <strong style={{ color: transaction.productType === 'merch' ? getMerchOrderStatusColor(transaction.fulfillmentStatus) : '#39ff14', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{transaction.productType === 'merch' ? getMerchOrderStatusLabel(transaction.fulfillmentStatus) : String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
                   </div>
                 ))}
               </div>
@@ -5211,6 +5343,18 @@ export default function App() {
               <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>{financeTransactions.length}</h3>
             </div>
+            <div style={{ ...glassStyle('finance-digital'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>RILISAN DIGITAL</p>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {financeDigitalRevenue.toLocaleString('id-ID')}</h3>
+            </div>
+            <div style={{ ...glassStyle('finance-merch'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>MERCH NET</p>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {financeMerchRevenue.toLocaleString('id-ID')}</h3>
+            </div>
+            <div style={{ ...glassStyle('finance-active-orders'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
+              <p style={compactMetricLabelStyle}>ORDER AKTIF</p>
+              <h3 style={{ ...compactMetricValueStyle, color: bandPendingMerchOrders ? '#ffcc00' : '#555', fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>{bandPendingMerchOrders}</h3>
+            </div>
           </div>
 
           <div style={{ ...glassStyle('finance-progress'), padding: isTinyLayout ? '12px' : '14px', backgroundColor: '#090909', marginBottom: '18px' }}>
@@ -5263,10 +5407,18 @@ export default function App() {
                           <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier} / {order.createdAt}</p>
                           <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
                         </div>
-                        <strong style={{ color: '#ffcc00', fontSize: '9px', flexShrink: 0 }}>{order.trackingStatus.replaceAll('_', ' ').toUpperCase()}</strong>
+                        <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
                       <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
-                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{order.address}, {order.city} {order.postalCode}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <p style={{ color: order.trackingNumber ? '#39ff14' : '#555', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'belum diisi'}</strong></p>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.24)', color: order.trackingStatus === 'processing' ? '#555' : '#00d2ff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
+                          <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.24)', color: '#39ff14', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} disabled={order.trackingStatus === 'completed'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: order.trackingStatus === 'completed' ? '#555' : '#fff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'completed' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -5714,7 +5866,7 @@ export default function App() {
                 <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
                   <span>Order ID: <strong style={{ color: '#00d2ff' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#fff' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
-                  <span>Status: <strong style={{ color: '#39ff14' }}>Akses aktif setelah pembayaran</strong></span>
+                  <span>Status: <strong style={{ color: activeCheckout.type === 'merch' ? '#ffcc00' : '#39ff14' }}>{activeCheckout.type === 'merch' ? 'Paid - menunggu band proses' : 'Library aktif setelah bayar'}</strong></span>
                   <span>{activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.'}</span>
                 </div>
               </div>
