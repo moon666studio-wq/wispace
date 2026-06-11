@@ -14,6 +14,9 @@ const fetchCloudData = async (user = null) => {
   const { data: transactionsData, error: transactionsError } = user?.id
     ? await supabase.from('sales_transactions').select('*').order('created_at', { ascending: false })
     : { data: null, error: null };
+  const { data: audienceLibraryData, error: audienceLibraryError } = user?.id
+    ? await supabase.from('audience_library').select('*, releases(*, release_tracks(*)), release_tracks(*)').eq('audience_user_id', user.id).order('purchased_at', { ascending: false })
+    : { data: null, error: null };
   const { data: merchOrdersData, error: merchOrdersError } = user?.id
     ? await supabase.from('merch_orders').select('*, merch_items(name, band_name, band_slug)').order('created_at', { ascending: false })
     : { data: null, error: null };
@@ -40,6 +43,7 @@ const fetchCloudData = async (user = null) => {
       : (merchData || []).filter((row) => row.is_active !== false).map(mapMerchFromRow),
     articleCommentsData: commentsError ? loadArticleComments() : mapArticleCommentsFromRows(commentsData || []),
     saleTransactionsData: !user?.id || transactionsError ? loadTransactionLedger() : (transactionsData || []).map(mapTransactionFromRow),
+    audienceLibraryData: !user?.id || audienceLibraryError ? null : mapAudienceLibraryFromRows(audienceLibraryData || []),
     merchOrdersData: !user?.id || merchOrdersError ? loadMerchOrders() : (merchOrdersData || []).map(mapMerchOrderFromRow),
     subscribedBandsData: subscriptionsError ? [] : (subscriptionsData || []).map(mapBandSubscriptionFromRow),
     notificationReadsData: notificationReadsError ? [] : (notificationReadsData || []).map((row) => row.notification_id).filter(Boolean),
@@ -405,6 +409,7 @@ const mapTransactionFromRow = (row = {}) => ({
   productTitle: row.product_title || 'Transaksi WiSpace',
   sellerBandName: row.seller_band_name || 'WiSpace',
   sellerBandSlug: row.seller_band_slug || createSlug(row.seller_band_name || 'wispace'),
+  sellerBandUserId: row.seller_band_user_id || '',
   buyerName: row.buyer_name || 'Audience WiSpace',
   buyerEmail: row.buyer_email || '',
   grossAmount: Number(row.gross_amount || 0),
@@ -423,6 +428,54 @@ const mapTransactionFromRow = (row = {}) => ({
     : ''
 });
 
+const mapAudienceLibraryFromRows = (rows = []) => rows
+  .map((row = {}) => {
+    const release = row.releases ? mapReleaseFromRow(row.releases) : null;
+    if (!release) return null;
+
+    const purchaseType = row.purchase_type || (row.track_id ? 'track' : 'album');
+    const purchasedAt = row.purchased_at
+      ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.purchased_at))
+      : 'Baru saja';
+
+    if (purchaseType === 'track') {
+      const selectedTrack = release.tracks.find((track) => String(track.id) === String(row.track_id))
+        || (row.release_tracks ? {
+          id: row.release_tracks.id || row.track_id,
+          title: row.release_tracks.title || row.release_tracks.file_name || 'Track WiSpace',
+          fileName: row.release_tracks.file_name || '',
+          size: row.release_tracks.file_size || 0,
+          url: row.release_tracks.audio_url || '',
+          price: row.release_tracks.price || '',
+          freeFull: Boolean(row.release_tracks.free_full)
+        } : null);
+      if (!selectedTrack) return null;
+
+      return {
+        ...release,
+        id: `${release.id}-${selectedTrack.id}`,
+        title: selectedTrack.title,
+        price: selectedTrack.price,
+        trackCount: 1,
+        purchaseType: 'track',
+        parentAlbumTitle: release.title,
+        tracks: [selectedTrack],
+        purchasedAt,
+        paymentStatus: 'paid',
+        accessType: row.access_type || 'encrypted_library'
+      };
+    }
+
+    return {
+      ...release,
+      purchaseType: 'album',
+      purchasedAt,
+      paymentStatus: 'paid',
+      accessType: row.access_type || 'encrypted_library'
+    };
+  })
+  .filter(Boolean);
+
 const mapMerchOrderFromRow = (row = {}) => ({
   id: row.id || createClientId(),
   transactionId: row.transaction_id || '',
@@ -431,6 +484,7 @@ const mapMerchOrderFromRow = (row = {}) => ({
   itemName: row.merch_items?.name || 'Merch WiSpace',
   sellerBandName: row.merch_items?.band_name || 'Band WiSpace',
   sellerBandSlug: row.merch_items?.band_slug || '',
+  sellerBandUserId: row.seller_band_user_id || '',
   buyerName: row.shipping_recipient || 'Audience WiSpace',
   buyerEmail: '',
   recipientName: row.shipping_recipient || '',
@@ -1063,12 +1117,17 @@ export default function App() {
       if (isSupabaseConfigured && userSession?.id) {
         void fetchCloudData(userSession).then(({
           saleTransactionsData,
+          audienceLibraryData,
           merchOrdersData,
           subscribedBandsData,
           notificationReadsData,
           updateNotificationsData
         }) => {
           setSaleTransactions(saleTransactionsData);
+          if (audienceLibraryData?.length) {
+            setPurchasedAlbums(audienceLibraryData);
+            persistAudienceLibraryLocal(audienceLibraryData, userSession);
+          }
           setMerchOrders(merchOrdersData);
           cacheBandUpdateNotifications(updateNotificationsData);
           if (subscribedBandsData.length) {
@@ -1086,7 +1145,7 @@ export default function App() {
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
-  }, [persistBandProfileLocal, persistBandSubscriptionsLocal, persistSubscribedUpdateReadsLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
+  }, [persistAudienceLibraryLocal, persistBandProfileLocal, persistBandSubscriptionsLocal, persistSubscribedUpdateReadsLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
 
   const stopAudioPlayback = () => {
     window.clearTimeout(audioPreviewTimerRef.current);
@@ -1171,7 +1230,7 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData } = await fetchCloudData(userSession);
+    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData } = await fetchCloudData(userSession);
     setGigs(gigsData);
     setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
@@ -1180,6 +1239,10 @@ export default function App() {
     setPublicMerchItems(merchData);
     setArticleComments(articleCommentsData);
     setSaleTransactions(saleTransactionsData);
+    if (audienceLibraryData?.length) {
+      setPurchasedAlbums(audienceLibraryData);
+      persistAudienceLibraryLocal(audienceLibraryData, userSession);
+    }
     setMerchOrders(merchOrdersData);
     if (userSession?.id) {
       setSubscribedBands((current) => subscribedBandsData.length ? subscribedBandsData : current);
@@ -3002,7 +3065,7 @@ export default function App() {
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
   ));
   const financeTransactions = saleTransactions.filter((transaction) => (
-    transaction.sellerBandSlug === currentBandSlug || transaction.sellerBandName === displayBandProfile.name || transaction.sellerBandName === bandProfile.name
+    transaction.sellerBandUserId === userSession?.id || transaction.sellerBandSlug === currentBandSlug || transaction.sellerBandName === displayBandProfile.name || transaction.sellerBandName === bandProfile.name
   ));
   const bandBalance = financeTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const bandGrossRevenue = financeTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
@@ -3015,7 +3078,7 @@ export default function App() {
   const adminGrossSalesRevenue = saleTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
   const paidSaleTransactions = saleTransactions.filter((transaction) => (transaction.paymentStatus || transaction.status || '').includes('paid'));
   const bandMerchOrders = merchOrders.filter((order) => (
-    order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
+    order.sellerBandUserId === userSession?.id || order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
   ));
   const exclusivePosterTransactions = saleTransactions.filter((transaction) => transaction.productType === 'exclusive_poster');
   const adminExclusivePosterRevenue = Math.max(

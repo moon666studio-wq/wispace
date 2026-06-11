@@ -60,6 +60,14 @@ on public.release_tracks (release_id, track_order);
 create index if not exists audience_library_user_idx
 on public.audience_library (audience_user_id, purchased_at desc);
 
+create unique index if not exists audience_library_album_unique_idx
+on public.audience_library (audience_user_id, release_id)
+where purchase_type = 'album' and track_id is null;
+
+create unique index if not exists audience_library_track_unique_idx
+on public.audience_library (audience_user_id, release_id, track_id)
+where purchase_type = 'track' and track_id is not null;
+
 alter table public.releases enable row level security;
 alter table public.release_tracks enable row level security;
 alter table public.audience_library enable row level security;
