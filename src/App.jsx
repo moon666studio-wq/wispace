@@ -2817,6 +2817,32 @@ export default function App() {
       </div>
     )
   );
+  const renderCompactSearchResults = () => (
+    <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '14px', boxShadow: '0 18px 50px rgba(0,0,0,0.66)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
+        <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS</p>
+        <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', color: '#777', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
+      </div>
+      {quickSearchResults.length === 0 ? (
+        <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Belum ketemu. Coba nama band, genre, judul lagu, artikel, atau merch.</p>
+      ) : (
+        <div style={{ display: 'grid', gap: '6px', maxHeight: isTinyLayout ? '220px' : '260px', overflowY: 'auto' }}>
+          {quickSearchResults.slice(0, 6).map((result) => (
+            <button
+              key={result.id}
+              type="button"
+              onClick={result.onSelect}
+              style={{ textAlign: 'left', padding: '8px 9px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '3px' }}
+            >
+              <span style={{ color: '#00d2ff', fontSize: '8px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
+              <span style={{ color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(result.title || '').toUpperCase()}</span>
+              <span style={{ color: '#777', fontSize: '10px', fontWeight: '700', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.meta}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   const openProfileModal = () => {
     if (isBandAccount) {
@@ -3241,6 +3267,7 @@ export default function App() {
               {userSession && isTinyLayout && (
                 <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '44%', flex: '0 0 auto' }}>{renderProfileChip(22, '94px')}</button>
               )}
+              {normalizedSearchTerm && renderCompactSearchResults()}
             </div>
 
             <div style={homeNavStyle}>
@@ -3319,39 +3346,6 @@ export default function App() {
             </div>
           )}
         </div>
-      )}
-
-      {!loading && activePage === 'home' && !isAdminPage && normalizedSearchTerm && (
-        <section style={{ margin: '0 0 34px 0', padding: isTinyLayout ? '14px' : '18px', background: 'linear-gradient(180deg, rgba(10,10,10,0.96), rgba(3,3,3,0.98))', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 20px 64px rgba(0,0,0,0.5)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>GLOBAL FIND</p>
-              <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1, margin: 0 }}>HASIL UNTUK "{searchTerm.trim().toUpperCase()}"</h3>
-            </div>
-            <button onClick={() => setSearchTerm('')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '9px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
-          </div>
-
-          {quickSearchResults.length === 0 ? (
-            <div style={{ padding: '18px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-              <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ketemu. Coba cari nama band, genre, judul lagu, rilisan, artikel, atau merch.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
-              {quickSearchResults.map((result) => (
-                <button
-                  key={result.id}
-                  type="button"
-                  onClick={result.onSelect}
-                  style={{ textAlign: 'left', padding: '13px 14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '5px' }}
-                >
-                  <span style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
-                  <span style={{ color: '#fff', fontSize: '14px', fontWeight: '900', lineHeight: 1.1 }}>{String(result.title || '').toUpperCase()}</span>
-                  <span style={{ color: '#777', fontSize: '12px', fontWeight: '700', lineHeight: 1.3 }}>{result.meta}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
       )}
 
       {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromEventOverlay && (
