@@ -135,6 +135,31 @@ const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const AUDIENCE_NOTIFICATION_READ_PREFIX = 'wispace_audience_notification_read';
+const LOCAL_RESET_KEY_PREFIXES = [
+  'wispace_'
+];
+const SQL_SETUP_PLAN = [
+  {
+    file: 'supabase-band-profile-upgrade.sql',
+    title: 'Band profile + agreement',
+    note: 'Wajib pertama supaya profile band, owner id, dan agreement musisi siap.'
+  },
+  {
+    file: 'supabase-gigs-upgrade.sql',
+    title: 'Gigs + pamflet',
+    note: 'Untuk upload pamflet free/exclusive, status approve, tanggal tayang, dan pembayaran slot.'
+  },
+  {
+    file: 'supabase-releases-upgrade.sql',
+    title: 'Rilisan + library',
+    note: 'Untuk album, track, audio URL, pembelian digital, dan library audience.'
+  },
+  {
+    file: 'supabase-commerce-upgrade.sql',
+    title: 'Commerce + merch + notif',
+    note: 'Untuk merch order, transaksi 80/20, subscription, update notif, komentar, laporan, dan tracking.'
+  }
+];
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
@@ -1225,6 +1250,53 @@ export default function App() {
     setAdminError('');
     setIsAdminUnlocked(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleResetLocalTestingData = () => {
+    const confirmed = window.confirm('Reset semua data testing lokal WiSpace di browser ini? Ini tidak menghapus data Supabase, file mp3/image di folder project, atau akun auth.');
+    if (!confirmed) return;
+
+    stopAudioPlayback();
+    Object.keys(window.localStorage)
+      .filter((key) => LOCAL_RESET_KEY_PREFIXES.some((prefix) => key.startsWith(prefix)))
+      .forEach((key) => window.localStorage.removeItem(key));
+
+    setGigs([]);
+    setTop10Tracks([]);
+    setPublicBandProfiles([]);
+    setAlbumItems([]);
+    setArticleItems([]);
+    setPublicArticleItems([]);
+    setMerchItems([]);
+    setPublicMerchItems([]);
+    setArticleComments({});
+    setContentReports([]);
+    setSaleTransactions([]);
+    setMerchOrders([]);
+    setPurchasedAlbums([]);
+    setSubscribedBands([]);
+    setReadSubscribedUpdateIds([]);
+    setBandNotifications([]);
+    setBandSubscriberCount(0);
+    setBandProfile(createEmptyBandProfile());
+    setAudienceProfile(createEmptyAudienceProfile());
+    setHasSignedContract(false);
+    setSignatureName('');
+    setSelectedGigDetail(null);
+    setSelectedPosterPreview(null);
+    setSelectedReleaseId(null);
+    setSelectedMerchId(null);
+    setSelectedArticleId(null);
+    setActiveCheckout(null);
+    setShowAuthModal(false);
+    setShowNotificationPopout(false);
+    setSearchTerm('');
+    setActivePage('home');
+    if (window.location.pathname !== '/') {
+      window.history.pushState({ page: 'home' }, '', '/');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    alert('Data testing lokal sudah dibersihkan. Reload atau login ulang untuk ambil data cloud dari Supabase.');
   };
 
   // EARLY TRIGGER SCROLL SENSOR (80PX)
@@ -3989,6 +4061,53 @@ export default function App() {
                 </div>
               ))}
             </div>
+          </section>
+
+          <section style={{ ...glassStyle('admin-supabase-setup'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>SUPABASE SETUP ORDER</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>SQL CHECKLIST</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Run file ini berurutan di Supabase SQL Editor. Kalau sudah pernah, aman di-run ulang karena mayoritas pakai if not exists/drop policy.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+              {SQL_SETUP_PLAN.map((step, index) => (
+                <div key={step.file} style={compactRowStyle}>
+                  <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>STEP {index + 1} / {step.file}</p>
+                  <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{step.title.toUpperCase()}</h4>
+                  <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{step.note}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section style={{ ...glassStyle('admin-testing-tools'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LOCAL TESTING TOOLS</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>RESET & DATA HEALTH</h3>
+              </div>
+              <button type="button" onClick={handleResetLocalTestingData} style={{ background: 'rgba(255,51,51,0.08)', border: '1px solid rgba(255,51,51,0.35)', color: '#ff3333', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESET LOCAL DATA</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+              {[
+                ['BAND', publicBandProfiles.length],
+                ['RILISAN', albumItems.length],
+                ['MERCH', publicMerchList.length],
+                ['ARTIKEL', publicArticleList.length],
+                ['GIGS', gigs.length],
+                ['TRANSAKSI', saleTransactions.length],
+                ['ORDER', merchOrders.length],
+                ['LIBRARY', purchasedAlbums.length]
+              ].map(([label, value]) => (
+                <div key={label} style={compactMetricCardStyle}>
+                  <p style={compactMetricLabelStyle}>{label}</p>
+                  <strong style={compactMetricValueStyle}>{value}</strong>
+                </div>
+              ))}
+            </div>
+            <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser dengan prefix WiSpace. Data Supabase live dan file lokal project tidak ikut terhapus.</p>
           </section>
 
           <section style={{ ...glassStyle('admin-transaction-ledger'), ...compactPanelStyle }}>
