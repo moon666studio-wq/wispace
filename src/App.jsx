@@ -94,6 +94,7 @@ const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
 const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
 const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
+const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -119,6 +120,19 @@ const createEmptyAudienceProfile = () => ({
   contact: '',
   photoName: '',
   photoPreview: ''
+});
+
+const createEmptyCheckoutDraft = () => ({
+  buyerName: '',
+  buyerPhone: '',
+  buyerEmail: '',
+  recipientName: '',
+  recipientPhone: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  courier: 'JNE REG',
+  note: ''
 });
 
 const createEmptyBandProfile = () => ({
@@ -208,6 +222,15 @@ const loadTransactionLedger = () => {
 
 const saveTransactionLedger = (transactions) => {
   window.localStorage.setItem(PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY, JSON.stringify(transactions));
+};
+
+const loadMerchOrders = () => {
+  const orders = readLocalJson(MERCH_ORDERS_STORAGE_KEY);
+  return Array.isArray(orders) ? orders : [];
+};
+
+const saveMerchOrders = (orders) => {
+  window.localStorage.setItem(MERCH_ORDERS_STORAGE_KEY, JSON.stringify(orders));
 };
 
 const loadArticleComments = () => {
@@ -505,6 +528,9 @@ export default function App() {
   const [publicArticleItems, setPublicArticleItems] = useState(loadPublicArticleRegistry);
   const [publicMerchItems, setPublicMerchItems] = useState(loadPublicMerchRegistry);
   const [saleTransactions, setSaleTransactions] = useState(loadTransactionLedger);
+  const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
+  const [activeCheckout, setActiveCheckout] = useState(null);
+  const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -1805,8 +1831,8 @@ export default function App() {
       productTitle: sale.productTitle || 'Transaksi WiSpace',
       sellerBandName,
       sellerBandSlug,
-      buyerName: audienceProfile.displayName || userSession?.email?.split('@')[0] || 'Audience WiSpace',
-      buyerEmail: userSession?.email || '',
+      buyerName: sale.buyerName || audienceProfile.displayName || userSession?.email?.split('@')[0] || 'Audience WiSpace',
+      buyerEmail: sale.buyerEmail || userSession?.email || '',
       grossAmount,
       platformFee,
       bandNet,
@@ -1834,6 +1860,9 @@ export default function App() {
         buyer_email: nextTransaction.buyerEmail,
         product_type: nextTransaction.productType,
         product_title: nextTransaction.productTitle,
+        release_id: sale.releaseId || null,
+        track_id: sale.trackId || null,
+        merch_item_id: sale.merchItemId || null,
         gross_amount: nextTransaction.grossAmount,
         platform_fee: nextTransaction.platformFee,
         band_net: nextTransaction.bandNet,
@@ -1865,19 +1894,12 @@ export default function App() {
       return;
     }
 
-    setPurchasedAlbums((current) => {
-      const nextLibrary = [{ ...album, purchasedAt: 'Baru saja' }, ...current];
-      persistAudienceLibraryLocal(nextLibrary);
-      return nextLibrary;
+    setActiveCheckout({ type: 'album', album });
+    setCheckoutDraft({
+      ...createEmptyCheckoutDraft(),
+      buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
+      buyerEmail: userSession.email || ''
     });
-    const sale = recordBandSale({
-      productType: 'album',
-      productTitle: album.title,
-      amount: album.price,
-      sellerBandName: album.bandName,
-      sellerBandSlug: album.bandSlug || createSlug(album.bandName || '')
-    });
-    alert(`${album.title} masuk Library. Gross Rp ${sale.grossAmount.toLocaleString('id-ID')} | WiSpace 20% Rp ${sale.platformFee.toLocaleString('id-ID')} | Band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
   };
 
   const handlePurchaseTrack = (album, track) => {
@@ -1896,32 +1918,12 @@ export default function App() {
       return;
     }
 
-    setPurchasedAlbums((current) => {
-      const nextLibrary = [
-        {
-          ...album,
-          id: trackPurchaseId,
-          title: track.title,
-        price: track.price,
-        trackCount: 1,
-        purchaseType: 'track',
-        parentAlbumTitle: album.title,
-          tracks: [track],
-          purchasedAt: 'Baru saja'
-        },
-        ...current
-      ];
-      persistAudienceLibraryLocal(nextLibrary);
-      return nextLibrary;
+    setActiveCheckout({ type: 'track', album, track, trackPurchaseId });
+    setCheckoutDraft({
+      ...createEmptyCheckoutDraft(),
+      buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
+      buyerEmail: userSession.email || ''
     });
-    const sale = recordBandSale({
-      productType: 'track',
-      productTitle: track.title,
-      amount: track.price,
-      sellerBandName: album.bandName,
-      sellerBandSlug: album.bandSlug || createSlug(album.bandName || '')
-    });
-    alert(`${track.title} masuk Library sebagai track. Gross Rp ${sale.grossAmount.toLocaleString('id-ID')} | WiSpace 20% Rp ${sale.platformFee.toLocaleString('id-ID')} | Band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
   };
 
   const handlePurchaseMerch = (item) => {
@@ -1932,14 +1934,200 @@ export default function App() {
       return;
     }
 
-    const sale = recordBandSale({
-      productType: 'merch',
-      productTitle: item.name,
-      amount: item.price,
-      sellerBandName: item.bandName,
-      sellerBandSlug: item.bandSlug || createSlug(item.bandName || '')
+    setActiveCheckout({ type: 'merch', item });
+    setCheckoutDraft({
+      ...createEmptyCheckoutDraft(),
+      buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
+      buyerEmail: userSession.email || '',
+      recipientName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
+      city: audienceProfile.city || ''
     });
-    alert(`${item.name} masuk draft order merch. Gross Rp ${sale.grossAmount.toLocaleString('id-ID')} | WiSpace 20% Rp ${sale.platformFee.toLocaleString('id-ID')} | Band net Rp ${sale.bandNet.toLocaleString('id-ID')}. Shipping/tracking nanti disambung ke API ekspedisi.`);
+  };
+
+  const handleCheckoutSubmit = (event) => {
+    event.preventDefault();
+    if (!activeCheckout || !userSession) return;
+
+    const buyerName = checkoutDraft.buyerName.trim() || audienceProfile.displayName || userSession.email?.split('@')[0] || 'Audience WiSpace';
+    const buyerEmail = checkoutDraft.buyerEmail.trim() || userSession.email || '';
+
+    if (activeCheckout.type === 'merch') {
+      const requiredFields = [
+        checkoutDraft.recipientName,
+        checkoutDraft.recipientPhone,
+        checkoutDraft.address,
+        checkoutDraft.city,
+        checkoutDraft.postalCode
+      ];
+      if (requiredFields.some((field) => !field.trim())) {
+        alert('Lengkapi data penerima, nomor HP, alamat, kota, dan kode pos dulu bro.');
+        return;
+      }
+    }
+
+    if (activeCheckout.type === 'album') {
+      const album = activeCheckout.album;
+      const alreadyOwned = purchasedAlbums.some((item) => item.id === album.id);
+      if (alreadyOwned) {
+        setActiveCheckout(null);
+        setActivePage('audience_library');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      setPurchasedAlbums((current) => {
+        const nextLibrary = [{
+          ...album,
+          purchaseType: 'album',
+          purchasedAt: 'Baru saja',
+          paymentStatus: 'paid',
+          accessType: 'encrypted_library'
+        }, ...current];
+        persistAudienceLibraryLocal(nextLibrary);
+        return nextLibrary;
+      });
+      const sale = recordBandSale({
+        productType: 'album',
+        productTitle: album.title,
+        amount: album.price,
+        sellerBandName: album.bandName,
+        sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
+        releaseId: album.id,
+        buyerName,
+        buyerEmail
+      });
+      setActiveCheckout(null);
+      alert(`${album.title} masuk Library. Payment paid, payout band masuk siklus tanggal 1. Band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
+      return;
+    }
+
+    if (activeCheckout.type === 'track') {
+      const { album, track, trackPurchaseId } = activeCheckout;
+      const alreadyOwned = purchasedAlbums.some((item) => item.id === trackPurchaseId);
+      if (alreadyOwned) {
+        setActiveCheckout(null);
+        setActivePage('audience_library');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      setPurchasedAlbums((current) => {
+        const nextLibrary = [
+          {
+            ...album,
+            id: trackPurchaseId,
+            title: track.title,
+            price: track.price,
+            trackCount: 1,
+            purchaseType: 'track',
+            parentAlbumTitle: album.title,
+            tracks: [track],
+            purchasedAt: 'Baru saja',
+            paymentStatus: 'paid',
+            accessType: 'encrypted_library'
+          },
+          ...current
+        ];
+        persistAudienceLibraryLocal(nextLibrary);
+        return nextLibrary;
+      });
+      const sale = recordBandSale({
+        productType: 'track',
+        productTitle: track.title,
+        amount: track.price,
+        sellerBandName: album.bandName,
+        sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
+        releaseId: album.id,
+        trackId: track.id,
+        buyerName,
+        buyerEmail
+      });
+      setActiveCheckout(null);
+      alert(`${track.title} masuk Library sebagai track. Payment paid, band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
+      return;
+    }
+
+    if (activeCheckout.type === 'merch') {
+      const item = activeCheckout.item;
+      const sale = recordBandSale({
+        productType: 'merch',
+        productTitle: item.name,
+        amount: item.price,
+        sellerBandName: item.bandName,
+        sellerBandSlug: item.bandSlug || createSlug(item.bandName || ''),
+        merchItemId: item.id,
+        buyerName,
+        buyerEmail
+      });
+      const nextOrder = {
+        id: createClientId(),
+        transactionId: sale.id,
+        merchItemId: item.id,
+        itemName: item.name,
+        sellerBandName: item.bandName || 'Band WiSpace',
+        sellerBandSlug: item.bandSlug || createSlug(item.bandName || 'band-wispace'),
+        buyerName,
+        buyerEmail,
+        recipientName: checkoutDraft.recipientName.trim(),
+        recipientPhone: checkoutDraft.recipientPhone.trim(),
+        address: checkoutDraft.address.trim(),
+        city: checkoutDraft.city.trim(),
+        postalCode: checkoutDraft.postalCode.trim(),
+        courier: checkoutDraft.courier,
+        note: checkoutDraft.note.trim(),
+        trackingStatus: 'order_paid_waiting_band',
+        createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      setMerchOrders((current) => {
+        const nextOrders = [nextOrder, ...current];
+        saveMerchOrders(nextOrders);
+        return nextOrders;
+      });
+      setMerchItems((current) => {
+        const nextItems = current.map((merch) => (
+          String(merch.id) === String(item.id)
+            ? { ...merch, stock: Math.max(0, normalizePriceValue(merch.stock) - 1) }
+            : merch
+        ));
+        persistBandMerchLocal(nextItems);
+        return nextItems;
+      });
+      setPublicMerchItems((current) => {
+        const nextItems = current.map((merch) => (
+          String(merch.id) === String(item.id)
+            ? { ...merch, stock: Math.max(0, normalizePriceValue(merch.stock) - 1) }
+            : merch
+        ));
+        savePublicMerchRegistry(nextItems);
+        return nextItems;
+      });
+
+      if (isSupabaseConfigured && userSession?.id) {
+        void supabase.from('merch_orders').insert([{
+          id: nextOrder.id,
+          transaction_id: sale.id,
+          buyer_user_id: userSession.id,
+          merch_item_id: item.id,
+          quantity: 1,
+          shipping_recipient: nextOrder.recipientName,
+          shipping_phone: nextOrder.recipientPhone,
+          shipping_address: nextOrder.address,
+          shipping_city: nextOrder.city,
+          shipping_postal_code: nextOrder.postalCode,
+          courier_code: nextOrder.courier.split(' ')[0],
+          courier_service: nextOrder.courier,
+          tracking_status: nextOrder.trackingStatus
+        }]).then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync order merch ke Supabase:', error.message);
+          }
+        });
+      }
+
+      setActiveCheckout(null);
+      alert(`${item.name} masuk order merch. Payment paid, band net Rp ${sale.bandNet.toLocaleString('id-ID')}. Band tinggal proses pengiriman.`);
+    }
   };
 
   const handleMerchDraftSubmit = (event) => {
@@ -2441,6 +2629,19 @@ export default function App() {
           freeFull: true
         }]
       : [];
+  const checkoutProduct = activeCheckout?.type === 'album'
+    ? activeCheckout.album
+    : activeCheckout?.type === 'track'
+      ? activeCheckout.track
+      : activeCheckout?.item || null;
+  const checkoutAlbumContext = activeCheckout?.album || null;
+  const checkoutTitle = checkoutProduct?.title || checkoutProduct?.name || 'Checkout WiSpace';
+  const checkoutSellerName = activeCheckout?.type === 'track'
+    ? checkoutAlbumContext?.bandName
+    : checkoutProduct?.bandName;
+  const checkoutSubtotal = normalizePriceValue(checkoutProduct?.price);
+  const checkoutPlatformFee = Math.round(checkoutSubtotal * 0.2);
+  const checkoutBandNet = Math.max(0, checkoutSubtotal - checkoutPlatformFee);
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -2491,6 +2692,9 @@ export default function App() {
   const adminReleaseFeeRevenue = saleTransactions
     .filter((transaction) => ['album', 'track'].includes(transaction.productType))
     .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const bandMerchOrders = merchOrders.filter((order) => (
+    order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
+  ));
   const exclusivePosterTransactions = saleTransactions.filter((transaction) => transaction.productType === 'exclusive_poster');
   const adminExclusivePosterRevenue = Math.max(
     exclusivePosterTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || transaction.grossAmount || 0), 0),
@@ -3160,6 +3364,11 @@ export default function App() {
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>BIAYA PAMFLET EXCLUSIVE</p>
                 <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
                 <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>ORDER MERCH FISIK</p>
+                <strong style={{ color: '#fff', fontSize: '24px', fontWeight: '900' }}>{merchOrders.length}</strong>
+                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Order paid, menunggu band proses pengiriman.</p>
               </div>
             </div>
           </section>
@@ -4420,6 +4629,28 @@ export default function App() {
                 </div>
               )}
             </section>
+            <section style={{ ...glassStyle('finance-merch-orders'), padding: '20px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>ORDER MERCH MASUK</h3>
+              {bandMerchOrders.length === 0 ? (
+                <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch fisik. Kalau audience checkout merch, alamat dan kurir akan tampil di sini.</p>
+              ) : (
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {bandMerchOrders.slice(0, 8).map((order) => (
+                    <div key={order.id} style={{ padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.courier} / {order.createdAt}</p>
+                          <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.itemName.toUpperCase()}</h4>
+                        </div>
+                        <strong style={{ color: '#ffcc00', fontSize: '10px', flexShrink: 0 }}>{order.trackingStatus.replaceAll('_', ' ').toUpperCase()}</strong>
+                      </div>
+                      <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: '0 0 5px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
+                      <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         </section>
       )}
@@ -4850,6 +5081,79 @@ export default function App() {
             </div>
             <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPosterPreview.city} / {getGigDate(selectedPosterPreview)} / {getGigHtm(selectedPosterPreview)} / {getGigCp(selectedPosterPreview)}</p>
           </div>
+        </div>
+      )}
+
+      {activeCheckout && checkoutProduct && (
+        <div
+          onClick={() => setActiveCheckout(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1450, backgroundColor: 'rgba(0,0,0,0.94)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}
+        >
+          <form
+            onSubmit={handleCheckoutSubmit}
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: 'min(720px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: '#070707', border: '1px solid rgba(0,210,255,0.34)', borderRadius: '16px', padding: isTinyLayout ? '16px' : '20px', boxSizing: 'border-box', boxShadow: '0 28px 90px rgba(0,0,0,0.7)' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>WISPACE CHECKOUT</p>
+                <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '22px' : '28px', fontWeight: '900', lineHeight: 1, margin: 0 }}>{checkoutTitle.toUpperCase()}</h3>
+                <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '8px 0 0 0' }}>{(activeCheckout.type || '').toUpperCase()} / {(checkoutSellerName || 'Band WiSpace').toUpperCase()}</p>
+              </div>
+              <button type="button" onClick={() => setActiveCheckout(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '12px', padding: '9px 11px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
+                <strong style={{ color: '#00d2ff', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutSubtotal.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Payment demo status langsung paid. Gateway Midtrans/Xendit bisa kita sambung nanti.</p>
+              </div>
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>SPLIT OTOMATIS 80/20</p>
+                <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
+                  <span>Band net: <strong style={{ color: '#fff' }}>Rp {checkoutBandNet.toLocaleString('id-ID')}</strong></span>
+                  <span>Fee WiSpace: <strong style={{ color: '#00d2ff' }}>Rp {checkoutPlatformFee.toLocaleString('id-ID')}</strong></span>
+                  <span>Payout: <strong style={{ color: '#ffcc00' }}>Tanggal 1, min Rp 100.000</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <input type="text" placeholder="NAMA PEMBELI" value={checkoutDraft.buyerName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, buyerName: event.target.value })} required style={formInputStyle} />
+              <input type="email" placeholder="EMAIL PEMBELI" value={checkoutDraft.buyerEmail} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, buyerEmail: event.target.value })} required style={formInputStyle} />
+            </div>
+
+            {activeCheckout.type === 'merch' && (
+              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', marginBottom: '14px' }}>
+                <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>DATA PENGIRIMAN MERCH</p>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                  <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required style={formInputStyle} />
+                  <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required style={formInputStyle} />
+                  <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, city: event.target.value })} required style={formInputStyle} />
+                  <input type="text" placeholder="KODE POS" value={checkoutDraft.postalCode} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, postalCode: event.target.value })} required style={formInputStyle} />
+                  <select value={checkoutDraft.courier} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, courier: event.target.value })} style={formInputStyle}>
+                    <option value="JNE REG">JNE REG</option>
+                    <option value="J&T EZ">J&T EZ</option>
+                    <option value="SiCepat REG">SiCepat REG</option>
+                    <option value="Anteraja REG">Anteraja REG</option>
+                    <option value="POS Kilat">POS Kilat</option>
+                  </select>
+                  <input type="text" placeholder="CATATAN OPSIONAL" value={checkoutDraft.note} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, note: event.target.value })} style={formInputStyle} />
+                </div>
+                <textarea placeholder="ALAMAT LENGKAP" value={checkoutDraft.address} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, address: event.target.value })} required rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5, marginTop: '12px' }} />
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih placeholder. Nanti bisa disambung ke API ekspedisi buat tarif dan tracking real-time.</p>
+              </div>
+            )}
+
+            {activeCheckout.type !== 'merch' && (
+              <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '12px', marginBottom: '14px' }}>
+                <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Setelah bayar, item masuk Library terenkripsi. File bisa diputar dari player WiSpace dan tidak untuk distribusi ulang.</p>
+              </div>
+            )}
+
+            <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BAYAR DEMO & KONFIRMASI ORDER</button>
+          </form>
         </div>
       )}
 
