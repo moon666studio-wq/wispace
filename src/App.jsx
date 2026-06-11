@@ -3268,9 +3268,9 @@ export default function App() {
 
       {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromEventOverlay && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '22px', left: '50%', transform: 'translateX(-50%)', zIndex: 1350, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(760px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.36)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '72px 1fr auto' : '96px 1fr auto', gap: isTinyLayout ? '10px' : '14px', alignItems: 'start' }}>
-            <div style={{ width: isTinyLayout ? '72px' : '96px', aspectRatio: '3/4', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center' }}>
-              {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
+          <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '108px 1fr auto' : '168px 1fr auto', gap: isTinyLayout ? '10px' : '14px', alignItems: 'start' }}>
+            <div style={{ width: isTinyLayout ? '108px' : '168px', maxHeight: isTinyLayout ? '72px' : '104px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center' }}>
+              {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: 'auto', maxHeight: isTinyLayout ? '72px' : '104px', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
             </div>
             <div style={{ minWidth: 0 }}>
               <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>DETAIL EVENT</p>
