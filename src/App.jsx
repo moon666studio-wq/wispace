@@ -1986,7 +1986,7 @@ export default function App() {
         persistAudienceLibraryLocal(nextLibrary);
         return nextLibrary;
       });
-      const sale = recordBandSale({
+      recordBandSale({
         productType: 'album',
         productTitle: album.title,
         amount: album.price,
@@ -1997,7 +1997,7 @@ export default function App() {
         buyerEmail
       });
       setActiveCheckout(null);
-      alert(`${album.title} masuk Library. Payment paid, payout band masuk siklus tanggal 1. Band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
+      alert(`${album.title} masuk Library. Pembelian berhasil dan akses sudah aktif.`);
       return;
     }
 
@@ -2031,7 +2031,7 @@ export default function App() {
         persistAudienceLibraryLocal(nextLibrary);
         return nextLibrary;
       });
-      const sale = recordBandSale({
+      recordBandSale({
         productType: 'track',
         productTitle: track.title,
         amount: track.price,
@@ -2043,7 +2043,7 @@ export default function App() {
         buyerEmail
       });
       setActiveCheckout(null);
-      alert(`${track.title} masuk Library sebagai track. Payment paid, band net Rp ${sale.bandNet.toLocaleString('id-ID')}.`);
+      alert(`${track.title} masuk Library sebagai track. Pembelian berhasil dan akses sudah aktif.`);
       return;
     }
 
@@ -2126,7 +2126,7 @@ export default function App() {
       }
 
       setActiveCheckout(null);
-      alert(`${item.name} masuk order merch. Payment paid, band net Rp ${sale.bandNet.toLocaleString('id-ID')}. Band tinggal proses pengiriman.`);
+      alert(`${item.name} masuk order merch. Pembelian berhasil, band akan proses pengiriman.`);
     }
   };
 
@@ -2640,8 +2640,6 @@ export default function App() {
     ? checkoutAlbumContext?.bandName
     : checkoutProduct?.bandName;
   const checkoutSubtotal = normalizePriceValue(checkoutProduct?.price);
-  const checkoutPlatformFee = Math.round(checkoutSubtotal * 0.2);
-  const checkoutBandNet = Math.max(0, checkoutSubtotal - checkoutPlatformFee);
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -3186,7 +3184,7 @@ export default function App() {
                 <h2 style={{ fontSize: isTinyLayout ? '36px' : 'clamp(54px, 7vw, 88px)', fontWeight: '900', margin: '0 0 14px 0', color: '#fff', maxWidth: '1040px', lineHeight: isTinyLayout ? 0.98 : 0.88 }}>{currentExclusiveBanner.title}</h2>
                 <p style={{ color: '#c7c7c7', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '720px', margin: '0 0 30px 0', lineHeight: '1.55', fontWeight: '700' }}>{currentExclusiveBanner.desc}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
-                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromHero: true })} style={{ ...glassButtonStyle, background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.72)', color: '#000', padding: isTinyLayout ? '11px 18px' : '12px 32px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px', boxShadow: '0 18px 36px rgba(0,0,0,0.35)' }}>LIHAT DETAIL EVENT</button>
+                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromEventOverlay: true })} style={{ ...glassButtonStyle, background: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.72)', color: '#000', padding: isTinyLayout ? '11px 18px' : '12px 32px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px', boxShadow: '0 18px 36px rgba(0,0,0,0.35)' }}>LIHAT DETAIL EVENT</button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: isTinyLayout ? '10px' : '18px', maxWidth: '100%', overflowX: 'auto' }}>
                     {exclusiveEventBanners.map((banner, index) => {
                       const isActiveSlide = currentExclusiveBannerIndex === index;
@@ -3268,31 +3266,7 @@ export default function App() {
         </section>
       )}
 
-      {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromHero && (
-        <section style={{ margin: '0 0 34px 0', padding: '18px', background: 'linear-gradient(180deg, rgba(10,10,10,0.94), rgba(3,3,3,0.98))', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 360px) 1fr auto', gap: '18px', alignItems: 'start', boxShadow: '0 20px 64px rgba(0,0,0,0.54)' }}>
-          <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
-            {selectedGigDetail.image ? (
-              <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
-            ) : (
-              <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>NO PAMFLET</span>
-            )}
-          </div>
-          <div>
-            <p style={{ color: '#a8f1ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>DETAIL EVENT</p>
-            <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>{selectedGigDetail.title?.toUpperCase()}</h3>
-            <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px', lineHeight: 1.45 }}>
-              <span>DATE: <strong style={{ color: '#fff' }}>{getGigDate(selectedGigDetail)}</strong></span>
-              <span>VENUE: <strong style={{ color: '#fff' }}>{selectedGigDetail.city?.toUpperCase()}</strong></span>
-              <span>HTM: <strong style={{ color: '#00d2ff' }}>{getGigHtm(selectedGigDetail).toUpperCase()}</strong></span>
-              <span>CP INFO: <strong style={{ color: '#fff' }}>{getGigCp(selectedGigDetail)}</strong></span>
-              {isApprovedHomepageGig(selectedGigDetail) && <span>TAYANG SAMPAI: <strong style={{ color: '#ffcc00' }}>{getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong></span>}
-            </div>
-          </div>
-          <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
-        </section>
-      )}
-
-      {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromBulletin && (
+      {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromEventOverlay && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '22px', left: '50%', transform: 'translateX(-50%)', zIndex: 1350, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(760px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.36)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '72px 1fr auto' : '96px 1fr auto', gap: isTinyLayout ? '10px' : '14px', alignItems: 'start' }}>
             <div style={{ width: isTinyLayout ? '72px' : '96px', aspectRatio: '3/4', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center' }}>
@@ -4986,7 +4960,7 @@ export default function App() {
                 key={gig.id} 
                 onMouseEnter={() => setHoveredCard(gig.id)} 
                 onMouseLeave={() => setHoveredCard(null)} 
-                onClick={() => setSelectedGigDetail(selectedGigDetail?.id === gig.id && selectedGigDetail?.fromBulletin ? null : { ...gig, fromBulletin: true })}
+                onClick={() => setSelectedGigDetail(selectedGigDetail?.id === gig.id && selectedGigDetail?.fromEventOverlay ? null : { ...gig, fromEventOverlay: true })}
                 style={{ ...glassStyle(gig.id), ...bulletinCardStyle }}
               >
                 <button
@@ -5108,14 +5082,14 @@ export default function App() {
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
                 <strong style={{ color: '#00d2ff', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutSubtotal.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Payment demo status langsung paid. Gateway Midtrans/Xendit bisa kita sambung nanti.</p>
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Payment demo status langsung berhasil. Gateway Midtrans/Xendit bisa kita sambung nanti.</p>
               </div>
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>SPLIT OTOMATIS 80/20</p>
+                <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>RINGKASAN AKSES</p>
                 <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
-                  <span>Band net: <strong style={{ color: '#fff' }}>Rp {checkoutBandNet.toLocaleString('id-ID')}</strong></span>
-                  <span>Fee WiSpace: <strong style={{ color: '#00d2ff' }}>Rp {checkoutPlatformFee.toLocaleString('id-ID')}</strong></span>
-                  <span>Payout: <strong style={{ color: '#ffcc00' }}>Tanggal 1, min Rp 100.000</strong></span>
+                  <span>Item: <strong style={{ color: '#fff' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
+                  <span>Status: <strong style={{ color: '#39ff14' }}>Akses aktif setelah pembayaran</strong></span>
+                  <span>{activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.'}</span>
                 </div>
               </div>
             </div>
