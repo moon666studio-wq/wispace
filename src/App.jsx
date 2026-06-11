@@ -189,6 +189,7 @@ const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
+const PUBLIC_ASSET_BUCKET = 'band-assets';
 
 const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -637,6 +638,59 @@ const formatFileSize = (size) => `${(size / (1024 * 1024)).toFixed(1)}MB`;
 
 const clearFileInput = (event) => {
   event.target.value = '';
+};
+
+const createStorageSafeName = (name = 'asset') => (
+  String(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 90) || 'asset'
+);
+
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = () => reject(reader.error || new Error('Gagal baca file.'));
+  reader.readAsDataURL(file);
+});
+
+const loadImageDimensions = (src) => new Promise((resolve, reject) => {
+  const previewImage = new Image();
+  previewImage.onload = () => resolve({ width: previewImage.width, height: previewImage.height });
+  previewImage.onerror = () => reject(new Error('Gagal baca ukuran gambar.'));
+  previewImage.src = src;
+});
+
+const uploadPublicAsset = async (file, folder, user) => {
+  const fallbackPreview = await readFileAsDataUrl(file);
+  if (!isSupabaseConfigured || !user?.id) {
+    return { publicUrl: fallbackPreview, fallbackPreview, stored: false, error: null, path: '' };
+  }
+
+  const safeName = createStorageSafeName(file.name || 'asset');
+  const storagePath = `${user.id}/${folder}/${Date.now()}-${safeName}`;
+  const { error } = await supabase
+    .storage
+    .from(PUBLIC_ASSET_BUCKET)
+    .upload(storagePath, file, {
+      cacheControl: '3600',
+      contentType: file.type || undefined,
+      upsert: true
+    });
+
+  if (error) {
+    return { publicUrl: fallbackPreview, fallbackPreview, stored: false, error, path: storagePath };
+  }
+
+  const { data } = supabase.storage.from(PUBLIC_ASSET_BUCKET).getPublicUrl(storagePath);
+  return {
+    publicUrl: data?.publicUrl || fallbackPreview,
+    fallbackPreview,
+    stored: Boolean(data?.publicUrl),
+    error: null,
+    path: storagePath
+  };
 };
 
 const trimOversizedBandPreview = (profile) => ({
@@ -1749,38 +1803,43 @@ export default function App() {
     }
   };
 
-  const handleGigPosterImport = (event) => {
+  const handleGigPosterImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       alert('File pamflet harus gambar ya bro: JPG, PNG, atau WEBP.');
-      event.target.value = '';
+      clearFileInput(event);
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
       alert('Ukuran gambar maksimal 2MB dulu bro, biar upload dan preview tetap ringan.');
-      event.target.value = '';
+      clearFileInput(event);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const imageData = reader.result;
-      setNewPosterImage(imageData);
+    try {
+      const uploadResult = await uploadPublicAsset(file, newGigRequestType === 'exclusive' ? 'gigs/exclusive' : 'gigs/free', userSession);
+      setNewPosterImage(uploadResult.publicUrl);
       setNewPosterName(file.name);
-      const previewImage = new Image();
-      previewImage.onload = () => {
-        const ratio = previewImage.width / previewImage.height;
-        const isExclusiveFit = ratio >= 1.6 && ratio <= 1.85;
-        const isPosterFit = ratio >= 0.72 && ratio <= 0.85;
-        const isCurrentFit = newGigRequestType === 'exclusive' ? isExclusiveFit : isPosterFit;
-        setNewPosterNotice(isCurrentFit
-          ? `Ukuran file kebaca ${previewImage.width} x ${previewImage.height}px. Rasio sudah cocok buat ${newGigRequestType === 'exclusive' ? 'exclusive slide' : 'free bulletin'}.`
-          : `Ukuran file kebaca ${previewImage.width} x ${previewImage.height}px. Ideal ${newGigRequestType === 'exclusive' ? 'exclusive slide: 1920 x 1080 px / 16:9 landscape' : 'free bulletin: 1080 x 1440 px / 3:4 poster'}.`);
-      };
-      previewImage.src = imageData;
-    };
-    reader.readAsDataURL(file);
+
+      const dimensions = await loadImageDimensions(uploadResult.fallbackPreview);
+      const ratio = dimensions.width / dimensions.height;
+      const isExclusiveFit = ratio >= 1.6 && ratio <= 1.85;
+      const isPosterFit = ratio >= 0.72 && ratio <= 0.85;
+      const isCurrentFit = newGigRequestType === 'exclusive' ? isExclusiveFit : isPosterFit;
+      const storageNote = uploadResult.stored
+        ? ' Tersimpan ke Supabase Storage.'
+        : uploadResult.error
+          ? ` Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`
+          : ' Preview lokal dipakai dulu sampai login/storage siap.';
+
+      setNewPosterNotice(isCurrentFit
+        ? `Ukuran file kebaca ${dimensions.width} x ${dimensions.height}px. Rasio sudah cocok buat ${newGigRequestType === 'exclusive' ? 'exclusive slide' : 'free bulletin'}.${storageNote}`
+        : `Ukuran file kebaca ${dimensions.width} x ${dimensions.height}px. Ideal ${newGigRequestType === 'exclusive' ? 'exclusive slide: 1920 x 1080 px / 16:9 landscape' : 'free bulletin: 1080 x 1440 px / 3:4 poster'}.${storageNote}`);
+    } catch (error) {
+      alert(`Gagal baca pamflet: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
   const handleScheduleSubmit = (event) => {
@@ -2006,7 +2065,7 @@ export default function App() {
     }
   };
 
-  const handleBandPhotoImport = (event) => {
+  const handleBandPhotoImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -2020,39 +2079,50 @@ export default function App() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'profiles/photos', userSession);
       setBandProfile((current) => {
-        const nextProfile = { ...current, photoName: file.name, photoPreview: reader.result };
+        const nextProfile = { ...current, photoName: file.name, photoPreview: uploadResult.publicUrl };
         persistBandProfileLocal(nextProfile);
         return nextProfile;
       });
-    };
-    reader.readAsDataURL(file);
+      if (uploadResult.error) alert(`Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import foto profile: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
-  const handleAudiencePhotoImport = (event) => {
+  const handleAudiencePhotoImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      alert('Foto profile harus file gambar ya bro.');
+      clearFileInput(event);
+      return;
+    }
     if (file.size > BAND_PHOTO_MAX_SIZE) {
       alert('Foto profile maksimal 1MB dulu bro, biar app tetap ringan.');
-      event.target.value = '';
+      clearFileInput(event);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'audience/photos', userSession);
       setAudienceProfile((current) => {
-        const nextProfile = { ...current, photoName: file.name, photoPreview: reader.result };
+        const nextProfile = { ...current, photoName: file.name, photoPreview: uploadResult.publicUrl };
         persistAudienceProfileLocal(nextProfile);
         return nextProfile;
       });
-    };
-    reader.readAsDataURL(file);
+      if (uploadResult.error) alert(`Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import foto profile: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
-  const handleBandCoverImport = (event) => {
+  const handleBandCoverImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -2066,25 +2136,40 @@ export default function App() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'profiles/covers', userSession);
       setBandProfile((current) => {
-        const nextProfile = { ...current, coverName: file.name, coverPreview: reader.result };
+        const nextProfile = { ...current, coverName: file.name, coverPreview: uploadResult.publicUrl };
         persistBandProfileLocal(nextProfile);
         return nextProfile;
       });
-    };
-    reader.readAsDataURL(file);
+      if (uploadResult.error) alert(`Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import banner band: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
-  const handleAlbumCoverImport = (event) => {
+  const handleAlbumCoverImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Cover album harus file gambar ya bro.');
+      clearFileInput(event);
+      return;
+    }
 
-    setAlbumDraft((current) => {
-      if (current.coverPreview) URL.revokeObjectURL(current.coverPreview);
-      return { ...current, coverName: file.name, coverPreview: URL.createObjectURL(file) };
-    });
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'releases/covers', userSession);
+      setAlbumDraft((current) => {
+        if (current.coverPreview?.startsWith('blob:')) URL.revokeObjectURL(current.coverPreview);
+        return { ...current, coverName: file.name, coverPreview: uploadResult.publicUrl };
+      });
+      if (uploadResult.error) alert(`Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import cover album: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
   const handleAlbumAudioImport = (event) => {
@@ -2110,14 +2195,26 @@ export default function App() {
     }));
   };
 
-  const handleMerchImageImport = (event) => {
+  const handleMerchImageImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Foto merch harus file gambar ya bro.');
+      clearFileInput(event);
+      return;
+    }
 
-    setMerchDraft((current) => {
-      if (current.imagePreview) URL.revokeObjectURL(current.imagePreview);
-      return { ...current, imageName: file.name, imagePreview: URL.createObjectURL(file) };
-    });
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'merch/images', userSession);
+      setMerchDraft((current) => {
+        if (current.imagePreview?.startsWith('blob:')) URL.revokeObjectURL(current.imagePreview);
+        return { ...current, imageName: file.name, imagePreview: uploadResult.publicUrl };
+      });
+      if (uploadResult.error) alert(`Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import foto merch: ${error.message}`);
+      clearFileInput(event);
+    }
   };
 
   const handleBandProfileSave = (event) => {
@@ -2134,7 +2231,7 @@ export default function App() {
       publishPublicBandProfile(nextProfile);
       return nextProfile;
     });
-    alert('Profile band tersimpan dan aman saat refresh di browser ini. Step production berikutnya: sambungkan ke Supabase Storage + table band_profiles.');
+    alert('Profile band tersimpan dan aman saat refresh di browser ini. Foto/banner akan pakai Supabase Storage kalau bucket band-assets sudah aktif.');
   };
 
   const handleAlbumDraftSubmit = (event) => {
@@ -2185,7 +2282,7 @@ export default function App() {
       accepted: false
     });
     setBandProfileTab('album');
-    alert('Album masuk draft rilisan dan sudah muncul di Explore. Nanti ini akan lanjut ke storage, agreement log, dan checkout.');
+    alert('Album masuk draft rilisan dan sudah muncul di Explore. Cover sudah siap ke Storage; audio private nanti lanjut ke signed URL untuk buyer.');
   };
 
   const handleDeleteAlbum = (album) => {
@@ -3331,7 +3428,7 @@ export default function App() {
     {
       title: 'Asset storage',
       status: localAssetCount ? 'demo' : 'scaffold',
-      note: localAssetCount ? `${localAssetCount} asset masih blob/data URL. Next pindah ke Supabase Storage.` : 'Bucket sudah disiapkan di SQL, tinggal wiring upload file.'
+      note: localAssetCount ? `${localAssetCount} asset masih blob/data URL, biasanya audio private atau fallback upload. Gambar public sudah diarahkan ke bucket band-assets.` : 'Gambar public sudah diarahkan ke bucket band-assets; audio private masih tahap berikutnya.'
     },
     {
       title: 'Private audio',

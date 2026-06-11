@@ -144,6 +144,24 @@ values
   ('release-audio', 'release-audio', false)
 on conflict (id) do nothing;
 
--- Storage policies can be tightened later. During MVP:
--- - band-assets is public for covers, avatars, banners, and merch images.
+drop policy if exists "Public can read band assets" on storage.objects;
+create policy "Public can read band assets"
+on storage.objects for select
+using (bucket_id = 'band-assets');
+
+drop policy if exists "Users can upload own band assets" on storage.objects;
+create policy "Users can upload own band assets"
+on storage.objects for insert
+to authenticated
+with check (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Users can update own band assets" on storage.objects;
+create policy "Users can update own band assets"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text)
+with check (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Storage policies can be tightened later per asset type. During MVP:
+-- - band-assets is public for covers, avatars, banners, merch images, and posters.
 -- - release-audio is private; app should issue signed URLs for purchased users.
