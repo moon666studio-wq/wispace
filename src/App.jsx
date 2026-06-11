@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
-const fetchCloudData = async () => {
+const fetchCloudData = async (user = null) => {
   const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
   const { data: tracksData } = await supabase.from('tracks').select('*').order('created_at', { ascending: false }).limit(10);
   const { data: bandProfilesData, error: bandProfilesError } = await supabase.from('band_profiles').select('*').order('updated_at', { ascending: false });
@@ -11,6 +11,19 @@ const fetchCloudData = async () => {
   const { data: articlesData, error: articlesError } = await supabase.from('band_articles').select('*').order('created_at', { ascending: false });
   const { data: merchData, error: merchError } = await supabase.from('merch_items').select('*').order('created_at', { ascending: false });
   const { data: commentsData, error: commentsError } = await supabase.from('article_comments').select('*').order('created_at', { ascending: false });
+  const { data: transactionsData, error: transactionsError } = user?.id
+    ? await supabase.from('sales_transactions').select('*').order('created_at', { ascending: false })
+    : { data: null, error: null };
+  const { data: merchOrdersData, error: merchOrdersError } = user?.id
+    ? await supabase.from('merch_orders').select('*, merch_items(name, band_name, band_slug)').order('created_at', { ascending: false })
+    : { data: null, error: null };
+  const { data: subscriptionsData, error: subscriptionsError } = user?.id
+    ? await supabase.from('band_subscriptions').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
+    : { data: null, error: null };
+  const { data: notificationReadsData, error: notificationReadsError } = user?.id
+    ? await supabase.from('audience_notification_reads').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
+    : { data: null, error: null };
+  const { data: updateNotificationsData, error: updateNotificationsError } = await supabase.from('band_update_notifications').select('*').order('created_at', { ascending: false }).limit(100);
 
   return {
     gigsData: gigsData || [],
@@ -26,6 +39,11 @@ const fetchCloudData = async () => {
       ? loadPublicMerchRegistry()
       : (merchData || []).filter((row) => row.is_active !== false).map(mapMerchFromRow),
     articleCommentsData: commentsError ? loadArticleComments() : mapArticleCommentsFromRows(commentsData || []),
+    saleTransactionsData: !user?.id || transactionsError ? loadTransactionLedger() : (transactionsData || []).map(mapTransactionFromRow),
+    merchOrdersData: !user?.id || merchOrdersError ? loadMerchOrders() : (merchOrdersData || []).map(mapMerchOrderFromRow),
+    subscribedBandsData: subscriptionsError ? [] : (subscriptionsData || []).map(mapBandSubscriptionFromRow),
+    notificationReadsData: notificationReadsError ? [] : (notificationReadsData || []).map((row) => row.notification_id).filter(Boolean),
+    updateNotificationsData: updateNotificationsError ? [] : (updateNotificationsData || []).map(mapBandUpdateNotificationFromRow),
   };
 };
 
@@ -326,6 +344,7 @@ const mapReleaseFromRow = (row = {}) => {
     signedBy: row.signed_by || row.band_name || 'Band WiSpace',
     releaseType: row.release_type || 'album',
     isActive: row.is_active !== false,
+    bandUserId: row.band_user_id || '',
     updatedAt: row.updated_at || row.created_at || ''
   };
 };
@@ -343,6 +362,7 @@ const mapMerchFromRow = (row = {}) => ({
   genre: row.genre || 'Indie',
   city: row.city || 'Indonesia',
   isActive: row.is_active !== false,
+  bandUserId: row.band_user_id || '',
   updatedAt: row.updated_at || row.created_at || ''
 });
 
@@ -378,6 +398,74 @@ const mapArticleCommentsFromRows = (rows = []) => rows.reduce((commentsByArticle
   };
 }, {});
 
+const mapTransactionFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  orderId: row.order_id || '',
+  productType: row.product_type || 'order',
+  productTitle: row.product_title || 'Transaksi WiSpace',
+  sellerBandName: row.seller_band_name || 'WiSpace',
+  sellerBandSlug: row.seller_band_slug || createSlug(row.seller_band_name || 'wispace'),
+  buyerName: row.buyer_name || 'Audience WiSpace',
+  buyerEmail: row.buyer_email || '',
+  grossAmount: Number(row.gross_amount || 0),
+  platformFee: Number(row.platform_fee || 0),
+  bandNet: Number(row.band_net || 0),
+  revenueShare: row.revenue_share || '80/20',
+  status: row.status || 'paid_settled',
+  paymentStatus: row.status || 'paid',
+  paymentMethod: row.payment_method || row.payment_provider || 'demo_checkout',
+  fulfillmentStatus: row.fulfillment_status || '',
+  payoutStatus: row.payout_status || 'available_next_cycle',
+  gigId: row.gig_id || '',
+  paidAt: row.paid_at || '',
+  createdAt: row.created_at
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
+    : ''
+});
+
+const mapMerchOrderFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  transactionId: row.transaction_id || '',
+  orderId: row.order_id || '',
+  merchItemId: row.merch_item_id || '',
+  itemName: row.merch_items?.name || 'Merch WiSpace',
+  sellerBandName: row.merch_items?.band_name || 'Band WiSpace',
+  sellerBandSlug: row.merch_items?.band_slug || '',
+  buyerName: row.shipping_recipient || 'Audience WiSpace',
+  buyerEmail: '',
+  recipientName: row.shipping_recipient || '',
+  recipientPhone: row.shipping_phone || '',
+  address: row.shipping_address || '',
+  city: row.shipping_city || '',
+  postalCode: row.shipping_postal_code || '',
+  courier: row.courier_service || row.courier_code || 'Kurir belum dipilih',
+  note: '',
+  trackingStatus: row.tracking_status || 'order_paid_waiting_band',
+  createdAt: row.created_at
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
+    : ''
+});
+
+const mapBandSubscriptionFromRow = (row = {}) => ({
+  slug: row.band_slug || '',
+  name: row.band_name || 'Band WiSpace',
+  genre: row.genre || 'Indie',
+  city: row.city || 'Indonesia',
+  subscribedAt: row.created_at || new Date().toISOString()
+});
+
+const mapBandUpdateNotificationFromRow = (row = {}) => ({
+  id: row.source_id || row.id || createClientId(),
+  type: row.update_type || 'update',
+  title: row.title || 'UPDATE BAND',
+  body: row.body || '',
+  bandName: row.band_name || 'Band WiSpace',
+  bandSlug: row.band_slug || '',
+  createdAt: row.created_at
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(row.created_at))
+    : ''
+});
+
 const saveUserScopedData = (prefix, user, value) => {
   if (typeof window === 'undefined') return;
   try {
@@ -405,6 +493,23 @@ const saveBandGlobalData = (prefix, slug, value) => {
   } catch (error) {
     console.warn('WiSpace band metric save skipped:', error);
   }
+};
+
+const cacheBandUpdateNotifications = (notifications = []) => {
+  const groupedNotifications = notifications.reduce((groups, notification) => {
+    if (!notification.bandSlug) return groups;
+    return {
+      ...groups,
+      [notification.bandSlug]: [
+        ...(groups[notification.bandSlug] || []),
+        notification
+      ]
+    };
+  }, {});
+
+  Object.entries(groupedNotifications).forEach(([bandSlug, bandNotifications]) => {
+    saveBandGlobalData(BAND_UPDATE_FEED_STORAGE_PREFIX, bandSlug, bandNotifications);
+  });
 };
 
 const isImageTooLarge = (file, maxSize) => file.size > maxSize;
@@ -683,6 +788,7 @@ export default function App() {
       ...release,
       id: releaseId,
       bandSlug: release.bandSlug || bandProfile.slug || createSlug(release.bandName || bandProfile.name || signatureName || 'band-wispace'),
+      bandUserId: release.bandUserId || userSession?.id || '',
       isPublished: true,
       updatedAt: new Date().toISOString()
     };
@@ -757,6 +863,7 @@ export default function App() {
       id: merchId,
       bandName,
       bandSlug: bandProfile.slug || createSlug(bandName),
+      bandUserId: item.bandUserId || userSession?.id || '',
       genre: bandProfile.genre || item.genre || 'Indie',
       city: bandProfile.city || item.city || 'Indonesia',
       updatedAt: new Date().toISOString()
@@ -952,10 +1059,34 @@ export default function App() {
       if (Array.isArray(storedNotificationReads)) {
         setReadSubscribedUpdateIds(storedNotificationReads);
       }
+
+      if (isSupabaseConfigured && userSession?.id) {
+        void fetchCloudData(userSession).then(({
+          saleTransactionsData,
+          merchOrdersData,
+          subscribedBandsData,
+          notificationReadsData,
+          updateNotificationsData
+        }) => {
+          setSaleTransactions(saleTransactionsData);
+          setMerchOrders(merchOrdersData);
+          cacheBandUpdateNotifications(updateNotificationsData);
+          if (subscribedBandsData.length) {
+            setSubscribedBands(subscribedBandsData);
+            persistBandSubscriptionsLocal(subscribedBandsData, userSession);
+          }
+          if (notificationReadsData.length) {
+            setReadSubscribedUpdateIds(notificationReadsData);
+            persistSubscribedUpdateReadsLocal(notificationReadsData, userSession);
+          }
+          saveTransactionLedger(saleTransactionsData);
+          saveMerchOrders(merchOrdersData);
+        });
+      }
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
-  }, [persistBandProfileLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
+  }, [persistBandProfileLocal, persistBandSubscriptionsLocal, persistSubscribedUpdateReadsLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
 
   const stopAudioPlayback = () => {
     window.clearTimeout(audioPreviewTimerRef.current);
@@ -1040,7 +1171,7 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData } = await fetchCloudData();
+    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData } = await fetchCloudData(userSession);
     setGigs(gigsData);
     setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
@@ -1048,11 +1179,20 @@ export default function App() {
     setPublicArticleItems(articlesData);
     setPublicMerchItems(merchData);
     setArticleComments(articleCommentsData);
+    setSaleTransactions(saleTransactionsData);
+    setMerchOrders(merchOrdersData);
+    if (userSession?.id) {
+      setSubscribedBands((current) => subscribedBandsData.length ? subscribedBandsData : current);
+      setReadSubscribedUpdateIds((current) => notificationReadsData.length ? notificationReadsData : current);
+    }
+    cacheBandUpdateNotifications(updateNotificationsData);
     savePublicBandRegistry(bandProfilesData);
     savePublicReleaseRegistry(releasesData);
     savePublicArticleRegistry(articlesData);
     savePublicMerchRegistry(merchData);
     saveArticleComments(articleCommentsData);
+    saveTransactionLedger(saleTransactionsData);
+    saveMerchOrders(merchOrdersData);
     setLoading(false);
   };
 
@@ -1060,7 +1200,7 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData } = await fetchCloudData();
+      const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
@@ -1070,11 +1210,16 @@ export default function App() {
       setPublicArticleItems(articlesData);
       setPublicMerchItems(merchData);
       setArticleComments(articleCommentsData);
+      setSaleTransactions(saleTransactionsData);
+      setMerchOrders(merchOrdersData);
+      cacheBandUpdateNotifications(updateNotificationsData);
       savePublicBandRegistry(bandProfilesData);
       savePublicReleaseRegistry(releasesData);
       savePublicArticleRegistry(articlesData);
       savePublicMerchRegistry(merchData);
       saveArticleComments(articleCommentsData);
+      saveTransactionLedger(saleTransactionsData);
+      saveMerchOrders(merchOrdersData);
       setLoading(false);
     };
 
@@ -1950,6 +2095,7 @@ export default function App() {
     const bandNet = Math.max(0, grossAmount - platformFee);
     const sellerBandName = sale.sellerBandName || bandProfile.name || signatureName || 'Band WiSpace';
     const sellerBandSlug = sale.sellerBandSlug || bandProfile.slug || createSlug(sellerBandName);
+    const sellerBandUserId = sale.sellerBandUserId || sale.bandUserId || '';
     const transactionId = createClientId();
     const nextTransaction = {
       id: transactionId,
@@ -1958,6 +2104,7 @@ export default function App() {
       productTitle: sale.productTitle || 'Transaksi WiSpace',
       sellerBandName,
       sellerBandSlug,
+      sellerBandUserId,
       buyerName: sale.buyerName || audienceProfile.displayName || userSession?.email?.split('@')[0] || 'Audience WiSpace',
       buyerEmail: sale.buyerEmail || userSession?.email || '',
       grossAmount,
@@ -1984,6 +2131,7 @@ export default function App() {
         id: nextTransaction.id,
         order_id: nextTransaction.orderId || null,
         buyer_user_id: userSession.id,
+        seller_band_user_id: nextTransaction.sellerBandUserId || null,
         seller_band_slug: nextTransaction.sellerBandSlug,
         seller_band_name: nextTransaction.sellerBandName,
         buyer_name: nextTransaction.buyerName,
@@ -2010,6 +2158,23 @@ export default function App() {
 
     return nextTransaction;
   }, [audienceProfile.displayName, bandProfile.name, bandProfile.slug, signatureName, userSession]);
+
+  const syncAudienceLibraryPurchase = (purchase) => {
+    if (!isSupabaseConfigured || !userSession?.id) return;
+
+    void supabase.from('audience_library').insert([{
+      audience_user_id: userSession.id,
+      release_id: purchase.releaseId || null,
+      track_id: purchase.trackId || null,
+      purchase_type: purchase.purchaseType || 'album',
+      access_type: 'encrypted_library',
+      redistribution_allowed: false
+    }]).then(({ error }) => {
+      if (error && !isMissingColumnError(error)) {
+        console.warn('Gagal sync library audience ke Supabase:', error.message);
+      }
+    });
+  };
 
   const handlePurchaseAlbum = (album) => {
     if (!userSession) {
@@ -2124,12 +2289,14 @@ export default function App() {
         amount: album.price,
         sellerBandName: album.bandName,
         sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
+        sellerBandUserId: album.bandUserId || '',
         releaseId: album.id,
         orderId: activeCheckout.checkoutRef,
         fulfillmentStatus: 'library_active',
         buyerName,
         buyerEmail
       });
+      syncAudienceLibraryPurchase({ purchaseType: 'album', releaseId: album.id });
       setActiveCheckout(null);
       alert(`${album.title} masuk Library. Pembelian berhasil dan akses sudah aktif.`);
       return;
@@ -2171,6 +2338,7 @@ export default function App() {
         amount: track.price,
         sellerBandName: album.bandName,
         sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
+        sellerBandUserId: album.bandUserId || '',
         releaseId: album.id,
         trackId: track.id,
         orderId: activeCheckout.checkoutRef,
@@ -2178,6 +2346,7 @@ export default function App() {
         buyerName,
         buyerEmail
       });
+      syncAudienceLibraryPurchase({ purchaseType: 'track', releaseId: album.id, trackId: track.id });
       setActiveCheckout(null);
       alert(`${track.title} masuk Library sebagai track. Pembelian berhasil dan akses sudah aktif.`);
       return;
@@ -2191,6 +2360,7 @@ export default function App() {
         amount: item.price,
         sellerBandName: item.bandName,
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || ''),
+        sellerBandUserId: item.bandUserId || '',
         merchItemId: item.id,
         orderId: activeCheckout.checkoutRef,
         fulfillmentStatus: 'order_paid_waiting_band',
@@ -2248,6 +2418,7 @@ export default function App() {
           transaction_id: sale.id,
           order_id: nextOrder.orderId || null,
           buyer_user_id: userSession.id,
+          seller_band_user_id: item.bandUserId || null,
           merch_item_id: item.id,
           quantity: 1,
           shipping_recipient: nextOrder.recipientName,
@@ -5616,7 +5787,7 @@ export default function App() {
                 <h3 style={{ color: '#ff3333', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldCheck size={16}/> MANIFESTO HUKUM & DISTRIBUSI WISPACE</h3>
                 <div style={{ maxHeight: '180px', overflowY: 'auto', backgroundColor: '#000', padding: '12px', borderRadius: '12px', fontSize: '11px', color: '#aaa', lineHeight: '1.4', marginBottom: '16px', border: '1px solid #141414' }}>
                   <p style={{ margin: '0 0 10px 0' }}>1. Segala bentuk file audio (MP3/WAV), foto, dan poster acara yang di-upload sepenuhnya merupakan <strong>tanggung jawab hukum band masing-masing</strong>. WiSpace murni bertindak sebagai wadah distribusi digital independen.</p>
-                  <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi sebesar <strong>15% hingga 20%</strong> dari setiap nominal karya lagu/album yang berhasil terjual untuk kebutuhan operasional server backend cloud.</p>
+                  <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi tetap sebesar <strong>20%</strong> dari setiap nominal karya lagu/album/merch yang berhasil terjual untuk kebutuhan operasional platform.</p>
                   <p style={{ margin: '0 0 10px 0' }}>3. Pihak band/musisi diberikan kebebasan mutlak 100% untuk <strong>menentukan harga jual sendiri</strong> terhadap karya tunggal maupun album penuh mereka.</p>
                   <p style={{ margin: '0 0 10px 0' }}>4. Laporan keuangan komprehensif dapat dipantau real-time di profil band, dan dana hasil penjualan dapat dicairkan aman <strong>setiap tanggal 1 awal bulan (Minimal Saldo Rp 100.000)</strong>.</p>
                   <p style={{ margin: '0' }}>5. Tindakan Plagiarisme dilarang keras! Apabila di masa depan ditemukan indikasi plagiat karya orang lain, hal tersebut adalah <strong>pelanggaran mutlak band</strong> dan WiSpace lepas dari segala tuntutan hukum (karena admin tidak mengurasi orisinalitas nada satu per satu).</p>
