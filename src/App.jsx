@@ -3292,6 +3292,28 @@ export default function App() {
         </section>
       )}
 
+      {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromBulletin && (
+        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '22px', left: '50%', transform: 'translateX(-50%)', zIndex: 1350, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(760px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.36)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '72px 1fr auto' : '96px 1fr auto', gap: isTinyLayout ? '10px' : '14px', alignItems: 'start' }}>
+            <div style={{ width: isTinyLayout ? '72px' : '96px', aspectRatio: '3/4', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center' }}>
+              {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>DETAIL EVENT</p>
+              <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '16px' : '20px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 8px 0', overflowWrap: 'anywhere' }}>{selectedGigDetail.title?.toUpperCase()}</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '5px 12px', color: '#aaa', fontSize: '11px', lineHeight: 1.35 }}>
+                <span>DATE: <strong style={{ color: '#fff' }}>{getGigDate(selectedGigDetail)}</strong></span>
+                <span>VENUE: <strong style={{ color: '#fff' }}>{selectedGigDetail.city?.toUpperCase()}</strong></span>
+                <span>HTM: <strong style={{ color: getGigHtm(selectedGigDetail).toLowerCase() === 'free' ? '#39ff14' : '#00d2ff' }}>{getGigHtm(selectedGigDetail).toUpperCase()}</strong></span>
+                <span>CP: <strong style={{ color: '#fff' }}>{getGigCp(selectedGigDetail)}</strong></span>
+                {isApprovedHomepageGig(selectedGigDetail) && <span style={{ gridColumn: isTinyLayout ? 'auto' : '1 / -1' }}>TAYANG SAMPAI: <strong style={{ color: '#ffcc00' }}>{getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong></span>}
+              </div>
+            </div>
+            <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.14)', color: '#fff', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+          </div>
+        </div>
+      )}
+
       {/* ADMIN MODERATION PANEL */}
       {!loading && isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={pageShellStyle}>
@@ -4964,7 +4986,7 @@ export default function App() {
                 key={gig.id} 
                 onMouseEnter={() => setHoveredCard(gig.id)} 
                 onMouseLeave={() => setHoveredCard(null)} 
-                onClick={() => setSelectedGigDetail(selectedGigDetail?.id === gig.id ? null : gig)} // Klik buat buka/tutup laci
+                onClick={() => setSelectedGigDetail(selectedGigDetail?.id === gig.id && selectedGigDetail?.fromBulletin ? null : { ...gig, fromBulletin: true })}
                 style={{ ...glassStyle(gig.id), ...bulletinCardStyle }}
               >
                 <button
@@ -4999,27 +5021,6 @@ export default function App() {
                 {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: isTinyLayout ? '10px' : '12px', marginBottom: isTinyLayout ? '10px' : '14px' })}
                 <h3 style={{ fontSize: isTinyLayout ? '12px' : '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#fff', lineHeight: 1.15 }}>{gig.title.toUpperCase()}</h3>
                 <p style={{ color: '#00d2ff', fontSize: isTinyLayout ? '10px' : '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>📍 {gig.city.toUpperCase()}</p>
-                
-                {/* LACI GESER DETAIL (POP-DRAWER GAYA 3) - MUNCUL DI BAWAH POSTER YANG DIKLIK */}
-                {selectedGigDetail?.id === gig.id && (
-                  <div style={{ marginTop: '14px', padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.3)', borderRadius: '12px', animation: 'slideDown 0.2s ease-out' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontFamily: FONT_STACK }}>
-                      <div style={{ color: '#fff' }}><span style={{ color: '#666' }}>📅 DATE:</span> {getGigDate(gig)}</div>
-                      <div style={{ color: '#fff' }}><span style={{ color: '#666' }}>📍 VENUE:</span> {gig.city.toUpperCase()}</div>
-                      <div style={{ color: getGigHtm(gig).toLowerCase() === 'free' ? '#39ff14' : '#00d2ff', fontWeight: '900' }}>
-                        <span style={{ color: '#666', fontWeight: 'normal' }}>🎟️ HTM:</span> {getGigHtm(gig).toUpperCase()}
-                      </div>
-                      {isApprovedHomepageGig(gig) && (
-                        <div style={{ color: '#00d2ff', fontWeight: '900' }}>
-                          <span style={{ color: '#666', fontWeight: 'normal' }}>⏱ TAYANG SAMPAI:</span> {(getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE').toUpperCase()}
-                        </div>
-                      )}
-                      <div style={{ borderTop: '1px solid #141414', paddingTop: '6px', marginTop: '4px', color: '#fff', fontWeight: '700' }}>
-                        <span style={{ color: '#666', fontWeight: 'normal' }}>📞 CP INFO:</span> {getGigCp(gig)}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
