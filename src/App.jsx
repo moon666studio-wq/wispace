@@ -3178,48 +3178,37 @@ export default function App() {
       )}
 
       {userSession && showNotificationPopout && !isAdminPage && !loading && (
-        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : '70px', left: isTinyLayout ? '12px' : '50%', right: isTinyLayout ? '12px' : 'auto', transform: isTinyLayout ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(360px, calc(100vw - 40px))', padding: '12px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.34)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.68)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
+        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : '70px', left: isTinyLayout ? '12px' : '50%', right: isTinyLayout ? '12px' : 'auto', transform: isTinyLayout ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(340px, calc(100vw - 40px))', padding: '12px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.34)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.68)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '9999px', backgroundColor: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.28)', display: 'grid', placeItems: 'center', color: '#00d2ff' }}>
+              <div style={{ width: '26px', height: '26px', borderRadius: '9999px', backgroundColor: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.28)', display: 'grid', placeItems: 'center', color: '#00d2ff' }}>
                 <Bell size={14} />
               </div>
               <div>
                 <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 3px 0' }}>NOTIFICATIONS</p>
-                <h3 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>{unreadNotificationTotal} UNREAD</h3>
+                <h3 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>{unreadNotificationTotal} unread update</h3>
               </div>
             </div>
-            <button type="button" onClick={() => setShowNotificationPopout(false)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ padding: '9px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
-              <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>MESSAGES</p>
-              <strong style={{ color: unreadMessages ? '#ff3333' : '#fff', fontSize: '18px', fontWeight: '900' }}>{unreadMessages}</strong>
-            </div>
-            <div style={{ padding: '9px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
-              <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>BAND NOTIF</p>
-              <strong style={{ color: isBandAccount && unreadBandNotifications ? '#39ff14' : '#fff', fontSize: '18px', fontWeight: '900' }}>{isBandAccount ? unreadBandNotifications : 0}</strong>
-            </div>
+            <button type="button" onClick={() => setShowNotificationPopout(false)} style={{ background: 'transparent', border: 'none', color: '#777', padding: '4px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
           </div>
 
           {notificationPreviewItems.length === 0 ? (
-            <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '0 0 10px 0' }}>Belum ada notif baru bro.</p>
+            <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Belum ada notif baru bro.</p>
           ) : (
-            <div style={{ display: 'grid', gap: '7px', marginBottom: '10px' }}>
+            <div style={{ display: 'grid', gap: '6px', marginBottom: '10px' }}>
               {notificationPreviewItems.map((item) => (
-                <div key={item.id} style={{ padding: '9px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                <button type="button" key={item.id} onClick={openNotificationCenter} style={{ textAlign: 'left', padding: '9px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
                   <p style={{ color: item.label === 'MESSAGE' ? '#00d2ff' : '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.label}</p>
                   <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title).toUpperCase()}</h4>
                   <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.body}</p>
-                </div>
+                </button>
               ))}
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <button type="button" onClick={openNotificationCenter} style={{ ...glassButtonStyle, padding: '10px', fontSize: '10px' }}>BUKA INBOX</button>
-            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '10px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+            <button type="button" onClick={openNotificationCenter} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '10px' }}>INBOX</button>
           </div>
         </div>
       )}
