@@ -533,6 +533,7 @@ export default function App() {
   const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
+  const [showNotificationPopout, setShowNotificationPopout] = useState(false);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -1138,6 +1139,7 @@ export default function App() {
       window.history.pushState({ page: 'band_public', slug: getBandProfileSlug(profile) }, '', bandPath);
     }
     setShowAuthModal(false);
+    setShowNotificationPopout(false);
     setViewedBandSlug(getBandProfileSlug(profile));
     setIsViewingOwnBandProfile(isOwnerView);
     setActivePage('band_public');
@@ -1150,6 +1152,7 @@ export default function App() {
     }
     setSelectedGigDetail(null);
     setSelectedPosterPreview(null);
+    setShowNotificationPopout(false);
     setActivePage(page);
     if (options.exploreTab) setExploreTab(options.exploreTab);
     if (options.clearSearch) setSearchTerm('');
@@ -2732,11 +2735,29 @@ export default function App() {
   const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
   const unreadNotificationTotal = unreadMessages + (isBandAccount ? unreadBandNotifications : 0);
+  const toggleNotificationPopout = () => {
+    setShowNotificationPopout((current) => !current);
+  };
   const openNotificationCenter = () => {
+    setShowNotificationPopout(false);
     navigateInternalPage('message_center');
     markMessagesAsRead();
     if (isBandAccount) markBandNotificationsRead();
   };
+  const notificationPreviewItems = [
+    ...visibleMessages.filter((message) => !message.read).slice(0, 2).map((message) => ({
+      id: `message-${message.id}`,
+      label: 'MESSAGE',
+      title: message.subject || message.sender || 'Pesan baru',
+      body: message.body || message.contact || 'Ada pesan baru masuk.'
+    })),
+    ...(isBandAccount ? bandNotifications.filter((notification) => !notification.read).slice(0, 2).map((notification) => ({
+      id: `band-${notification.id}`,
+      label: 'BAND NOTIF',
+      title: notification.title || 'Notif baru',
+      body: notification.body || 'Ada update baru untuk band.'
+    })) : [])
+  ].slice(0, 3);
 
   useEffect(() => {
     const metricTimer = window.setTimeout(() => {
@@ -3094,11 +3115,11 @@ export default function App() {
               </>
             ) : (
               <>
-                <button title="Notifications" onClick={openNotificationCenter} style={{ position: 'relative', background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', marginRight: '10px', fontFamily: FONT_STACK, flexShrink: 0 }}>
+                <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: showNotificationPopout ? 'rgba(0,210,255,0.12)' : 'rgba(255,255,255,0.035)', border: showNotificationPopout ? '1px solid rgba(0,210,255,0.42)' : '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', marginRight: '10px', fontFamily: FONT_STACK, flexShrink: 0 }}>
                   <Bell size={14} />
                   {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
                 </button>
-                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
+                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(30, '110px')}</button>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
               </>
             )}
@@ -3132,7 +3153,7 @@ export default function App() {
           {userSession && (
             <>
               <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
-              <button title="Notifications" onClick={openNotificationCenter} style={{ position: 'relative', background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
+              <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: showNotificationPopout ? 'rgba(0,210,255,0.12)' : 'rgba(255,255,255,0.035)', border: showNotificationPopout ? '1px solid rgba(0,210,255,0.42)' : '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                 <Bell size={14} />
                 {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
               </button>
@@ -3149,10 +3170,57 @@ export default function App() {
             </>
           ) : (
             <>
-              <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(20, '110px')}</button>
+              <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(30, '110px')}</button>
               <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
             </>
           )}
+        </div>
+      )}
+
+      {userSession && showNotificationPopout && !isAdminPage && !loading && (
+        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : '70px', left: isTinyLayout ? '12px' : '50%', right: isTinyLayout ? '12px' : 'auto', transform: isTinyLayout ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(360px, calc(100vw - 40px))', padding: '12px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.34)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.68)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '9999px', backgroundColor: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.28)', display: 'grid', placeItems: 'center', color: '#00d2ff' }}>
+                <Bell size={14} />
+              </div>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 3px 0' }}>NOTIFICATIONS</p>
+                <h3 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>{unreadNotificationTotal} UNREAD</h3>
+              </div>
+            </div>
+            <button type="button" onClick={() => setShowNotificationPopout(false)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+            <div style={{ padding: '9px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+              <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>MESSAGES</p>
+              <strong style={{ color: unreadMessages ? '#ff3333' : '#fff', fontSize: '18px', fontWeight: '900' }}>{unreadMessages}</strong>
+            </div>
+            <div style={{ padding: '9px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+              <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>BAND NOTIF</p>
+              <strong style={{ color: isBandAccount && unreadBandNotifications ? '#39ff14' : '#fff', fontSize: '18px', fontWeight: '900' }}>{isBandAccount ? unreadBandNotifications : 0}</strong>
+            </div>
+          </div>
+
+          {notificationPreviewItems.length === 0 ? (
+            <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '0 0 10px 0' }}>Belum ada notif baru bro.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: '7px', marginBottom: '10px' }}>
+              {notificationPreviewItems.map((item) => (
+                <div key={item.id} style={{ padding: '9px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                  <p style={{ color: item.label === 'MESSAGE' ? '#00d2ff' : '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.label}</p>
+                  <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title).toUpperCase()}</h4>
+                  <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.body}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <button type="button" onClick={openNotificationCenter} style={{ ...glassButtonStyle, padding: '10px', fontSize: '10px' }}>BUKA INBOX</button>
+            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+          </div>
         </div>
       )}
 
