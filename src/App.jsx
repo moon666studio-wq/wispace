@@ -521,12 +521,13 @@ const mapMerchOrderFromRow = (row = {}) => ({
   transactionId: row.transaction_id || '',
   orderId: row.order_id || '',
   merchItemId: row.merch_item_id || '',
+  buyerUserId: row.buyer_user_id || '',
   itemName: row.merch_items?.name || 'Merch WiSpace',
   sellerBandName: row.merch_items?.band_name || 'Band WiSpace',
   sellerBandSlug: row.merch_items?.band_slug || '',
   sellerBandUserId: row.seller_band_user_id || '',
   buyerName: row.shipping_recipient || 'Audience WiSpace',
-  buyerEmail: '',
+  buyerEmail: row.buyer_email || '',
   recipientName: row.shipping_recipient || '',
   recipientPhone: row.shipping_phone || '',
   address: row.shipping_address || '',
@@ -2527,6 +2528,7 @@ export default function App() {
         sellerBandName: item.bandName || 'Band WiSpace',
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || 'band-wispace'),
         sellerBandUserId: item.bandUserId || '',
+        buyerUserId: userSession.id,
         buyerName,
         buyerEmail,
         recipientName: checkoutDraft.recipientName.trim(),
@@ -3200,6 +3202,7 @@ export default function App() {
   const isMessagePage = activePage === 'message_center';
   const isAudienceProfilePage = activePage === 'audience_profile';
   const isAudienceLibraryPage = activePage === 'audience_library';
+  const isAudienceOrdersPage = activePage === 'audience_orders';
   const isExplorePage = activePage === 'explore';
   const isMerchMarketPage = activePage === 'merch_market';
   const isArticlesPage = activePage === 'articles';
@@ -3243,6 +3246,10 @@ export default function App() {
   const bandMerchOrders = merchOrders.filter((order) => (
     order.sellerBandUserId === userSession?.id || order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
   ));
+  const audienceMerchOrders = merchOrders.filter((order) => (
+    order.buyerUserId === userSession?.id || (userSession?.email && order.buyerEmail === userSession.email)
+  ));
+  const activeAudienceOrders = audienceMerchOrders.filter((order) => !['completed', 'cancelled'].includes(order.trackingStatus));
   const adminBandPayoutTotal = saleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const adminWaitingMerchOrders = merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
@@ -3707,7 +3714,7 @@ export default function App() {
       {/* ========================================================
           FIXED FLOATING BADGE (IKON CYBER-LINE & KONTROL SMART ROLE)
          ======================================================== */}
-      {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
+      {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={homeFloatingWrapStyle}>
           <div style={homeFloatingBadgeStyle}>
             <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: isTinyLayout ? '4px' : '16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>WI.ID UP</span>
@@ -3738,7 +3745,7 @@ export default function App() {
       )}
 
       {/* FLOATING MENU UNTUK PAGE DALAM */}
-      {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
+      {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '6px' : '10px', padding: isTinyLayout ? '7px 8px' : '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
           <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
@@ -3758,6 +3765,7 @@ export default function App() {
           {userSession && (
             <>
               <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
+              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: activePage === 'audience_orders' ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'audience_orders' ? '1px solid rgba(0,210,255,0.32)' : 'none', borderRadius: '10px', color: activePage === 'audience_orders' ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px' }}>ORDERS</button>
               <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: showNotificationPopout ? 'rgba(0,210,255,0.12)' : 'rgba(255,255,255,0.035)', border: showNotificationPopout ? '1px solid rgba(0,210,255,0.42)' : '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                 <Bell size={14} />
                 {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
@@ -3834,7 +3842,7 @@ export default function App() {
       )}
 
       {/* HEADER UTAMA BINGKAI ATAS */}
-      {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
+      {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '30px' : '46px', borderRadius: isTinyLayout ? '14px' : '18px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.075)', boxShadow: '0 28px 90px rgba(0,0,0,0.74), inset 0 1px 0 rgba(255,255,255,0.045)' }}>
           <header style={homeHeaderStyle}>
             <div style={homeBrandWrapStyle}>
@@ -3954,7 +3962,7 @@ export default function App() {
       )}
 
       {/* ADMIN MODERATION PANEL */}
-      {!loading && isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
+      {!loading && isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={pageShellStyle}>
           {!isAdminUnlocked ? (
             <div style={{ minHeight: 'calc(100vh - 96px)', display: 'grid', placeItems: 'center' }}>
@@ -5188,6 +5196,10 @@ export default function App() {
                   <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MESSAGES</p>
                   <h3 style={{ color: '#fff', fontSize: '32px', fontWeight: '900', margin: 0 }}>{visibleMessages.length}</h3>
                 </div>
+                <div style={{ ...glassStyle('audience-order-stat'), padding: '18px', backgroundColor: '#090909' }}>
+                  <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH ORDERS</p>
+                  <h3 style={{ color: activeAudienceOrders.length ? '#ffcc00' : '#fff', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audienceMerchOrders.length}</h3>
+                </div>
                 <div style={{ ...glassStyle('audience-secure-stat'), padding: '18px', backgroundColor: '#090909' }}>
                   <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>SECURE ACCESS</p>
                   <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: 0 }}>ON</h3>
@@ -5199,6 +5211,7 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
                   <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>EXPLORE RILISAN</button>
                   <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY LIBRARY</button>
+                  <button onClick={() => navigateInternalPage('audience_orders')} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY ORDERS</button>
                   <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MESSAGES</button>
                 </div>
               </section>
@@ -5340,6 +5353,82 @@ export default function App() {
                   <button onClick={() => selectedLibraryTracks[0] && handlePlayLibraryTrack(selectedLibraryTracks[0])} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY {selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</button>
                   <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SECURE DOWNLOAD</button>
                 </div>
+              </aside>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* AUDIENCE ORDERS PAGE */}
+      {!loading && isAudienceOrdersPage && (
+        <section style={pageShellStyle}>
+          <div style={pageHeaderStyle}>
+            <div>
+              <p style={eyebrowStyle}>AUDIENCE ORDERS</p>
+              <h2 style={pageTitleStyle}>MY MERCH ORDERS</h2>
+              <p style={pageLeadStyle}>Pantau merchandise yang sudah dibeli, status proses band, kurir, dan nomor resi. Tracking ekspedisi real-time bisa disambung setelah API kurir siap.</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px' }}>
+                {[
+                  ['TOTAL', audienceMerchOrders.length],
+                  ['AKTIF', activeAudienceOrders.length],
+                  ['SELESAI', audienceMerchOrders.filter((order) => order.trackingStatus === 'completed').length]
+                ].map(([label, value]) => (
+                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '9999px', color: label === 'AKTIF' && value ? '#ffcc00' : '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
+                    {label}: <strong style={{ color: '#fff' }}>{value}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
+          </div>
+
+          {audienceMerchOrders.length === 0 ? (
+            <div style={{ ...glassStyle('orders-empty'), padding: '28px', backgroundColor: '#090909' }}>
+              <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>BELUM ADA ORDER MERCH</h3>
+              <p style={{ color: '#666', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, masuk tab Merch, lalu checkout item fisik dari band. Status order akan tampil di sini.</p>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) 280px', gap: '18px', alignItems: 'start' }}>
+              <section style={{ ...glassStyle('audience-orders-list'), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909' }}>
+                <h3 style={sectionHeadingStyle}>ORDER HISTORY</h3>
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {audienceMerchOrders.map((order) => (
+                    <article key={order.id} style={{ ...compactRowStyle, border: `1px solid ${['completed', 'cancelled'].includes(order.trackingStatus) ? '#141414' : 'rgba(0,210,255,0.22)'}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
+                          <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}</p>
+                        </div>
+                        <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '10px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '10px', marginBottom: '8px' }}>
+                        <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#fff' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
+                        <p style={{ color: order.trackingNumber ? '#39ff14' : '#777', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
+                      </div>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <aside style={{ ...glassStyle('audience-orders-guide'), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909' }}>
+                <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {[
+                    ['order_paid_waiting_band', 'Pembayaran tercatat, band belum proses.'],
+                    ['processing', 'Band sedang siapkan paket.'],
+                    ['shipped', 'Band sudah input resi dan paket dikirim.'],
+                    ['completed', 'Order selesai.']
+                  ].map(([status, description]) => (
+                    <div key={status} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                      <strong style={{ color: getMerchOrderStatusColor(status), fontSize: '10px', fontWeight: '900' }}>{getMerchOrderStatusLabel(status)}</strong>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{description}</p>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => navigateInternalPage('message_center')} style={{ ...glassButtonStyle, width: '100%', marginTop: '12px', padding: '11px', fontSize: '11px' }}>BUKA INBOX</button>
               </aside>
             </div>
           )}
@@ -5852,7 +5941,7 @@ export default function App() {
       )}
 
       {/* BULLETIN MADING GIGS */}
-      {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
+      {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ marginBottom: '60px' }}>
           <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#f5f5f5', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
           <div style={bulletinGridStyle}>
@@ -5903,7 +5992,7 @@ export default function App() {
       )}
 
       {/* INTERACTIVE 3 COLUMNS LOWER ROW */}
-      {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
+      {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
           <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={{ ...glassStyle('c1'), padding: isTinyLayout ? '18px' : '24px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><Radio size={14} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
