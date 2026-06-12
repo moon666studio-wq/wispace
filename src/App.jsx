@@ -189,6 +189,7 @@ const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
+const MINIMUM_PAYOUT_AMOUNT = 100000;
 const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 const PUBLIC_ASSET_BUCKET = 'band-assets';
 const PUBLIC_PREVIEW_BUCKET = 'release-previews';
@@ -792,6 +793,7 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [adminError, setAdminError] = useState('');
+  const [adminFinanceFilter, setAdminFinanceFilter] = useState('all');
 
   // STATE USER & ROLE MANAGEMENT
   const [userSession, setUserSession] = useState(null);
@@ -2118,7 +2120,7 @@ export default function App() {
     const confirmed = window.confirm(`Bayar slot exclusive Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} untuk "${gig.title}"? Ini demo payment dulu.`);
     if (!confirmed) return;
 
-    const paymentReference = `demo-exclusive-${gig.id}-${Date.now()}`;
+    const paymentReference = `demo-exclusive-${gig.id}-${createClientId().slice(0, 8)}`;
     const error = await updateGigStatus(gig.id, {
       status: 'paid_waiting_activation',
       payment_status: 'paid',
@@ -3633,14 +3635,15 @@ export default function App() {
   ));
   const bandBalance = financeTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const bandGrossRevenue = financeTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
-  const adminMerchFeeRevenue = saleTransactions
-    .filter((transaction) => transaction.productType === 'merch')
-    .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
-  const adminReleaseFeeRevenue = saleTransactions
-    .filter((transaction) => ['album', 'track'].includes(transaction.productType))
-    .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
-  const adminGrossSalesRevenue = saleTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
   const paidSaleTransactions = saleTransactions.filter((transaction) => (transaction.paymentStatus || transaction.status || '').includes('paid'));
+  const adminDigitalTransactions = paidSaleTransactions.filter((transaction) => ['album', 'track'].includes(transaction.productType));
+  const adminMerchTransactions = paidSaleTransactions.filter((transaction) => transaction.productType === 'merch');
+  const adminPosterTransactions = paidSaleTransactions.filter((transaction) => transaction.productType === 'exclusive_poster');
+  const adminGrossSalesRevenue = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
+  const adminMerchFeeRevenue = adminMerchTransactions
+    .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const adminReleaseFeeRevenue = adminDigitalTransactions
+    .reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
   const bandMerchOrders = merchOrders.filter((order) => (
     order.sellerBandUserId === userSession?.id || order.sellerBandSlug === currentBandSlug || order.sellerBandName === displayBandProfile.name || order.sellerBandName === bandProfile.name
   ));
@@ -3648,16 +3651,39 @@ export default function App() {
     order.buyerUserId === userSession?.id || (userSession?.email && order.buyerEmail === userSession.email)
   ));
   const activeAudienceOrders = audienceMerchOrders.filter((order) => !['completed', 'cancelled'].includes(order.trackingStatus));
-  const adminBandPayoutTotal = saleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
+  const adminBandPayoutTotal = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const adminWaitingMerchOrders = merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
+  const adminPayoutByBand = paidSaleTransactions
+    .filter((transaction) => Number(transaction.bandNet || 0) > 0)
+    .reduce((bands, transaction) => {
+      const key = transaction.sellerBandSlug || createSlug(transaction.sellerBandName || 'band-wispace');
+      const current = bands[key] || {
+        slug: key,
+        name: transaction.sellerBandName || 'Band WiSpace',
+        amount: 0,
+        transactions: 0
+      };
+      return {
+        ...bands,
+        [key]: {
+          ...current,
+          amount: current.amount + Number(transaction.bandNet || 0),
+          transactions: current.transactions + 1
+        }
+      };
+    }, {});
+  const adminPayoutBands = Object.values(adminPayoutByBand).sort((first, second) => second.amount - first.amount);
+  const adminPayoutReadyBands = adminPayoutBands.filter((band) => band.amount >= MINIMUM_PAYOUT_AMOUNT);
+  const adminPayoutReadyTotal = adminPayoutReadyBands.reduce((total, band) => total + band.amount, 0);
+  const adminPayoutBelowMinimumTotal = Math.max(0, adminBandPayoutTotal - adminPayoutReadyTotal);
   const financeDigitalRevenue = financeTransactions
     .filter((transaction) => ['album', 'track'].includes(transaction.productType))
     .reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const financeMerchRevenue = financeTransactions
     .filter((transaction) => transaction.productType === 'merch')
     .reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
-  const exclusivePosterTransactions = saleTransactions.filter((transaction) => transaction.productType === 'exclusive_poster');
+  const exclusivePosterTransactions = adminPosterTransactions;
   const adminExclusivePosterRevenue = Math.max(
     exclusivePosterTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || transaction.grossAmount || 0), 0),
     paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE
@@ -3751,6 +3777,20 @@ export default function App() {
   ];
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
+  const adminFinanceFilters = [
+    { id: 'all', label: 'ALL', count: saleTransactions.length },
+    { id: 'digital', label: 'RILISAN', count: adminDigitalTransactions.length },
+    { id: 'merch', label: 'MERCH', count: adminMerchTransactions.length },
+    { id: 'poster', label: 'PAMFLET', count: adminExclusivePosterPaidCount },
+    { id: 'payout', label: 'PAYOUT', count: adminPayoutReadyBands.length }
+  ];
+  const adminFilteredTransactions = saleTransactions.filter((transaction) => {
+    if (adminFinanceFilter === 'digital') return ['album', 'track'].includes(transaction.productType);
+    if (adminFinanceFilter === 'merch') return transaction.productType === 'merch';
+    if (adminFinanceFilter === 'poster') return transaction.productType === 'exclusive_poster';
+    if (adminFinanceFilter === 'payout') return Number(transaction.bandNet || 0) > 0;
+    return true;
+  });
   const openContentReports = contentReports.filter((report) => report.status !== 'resolved');
   const recentArticleComments = Object.entries(articleComments)
     .flatMap(([articleId, comments]) => (comments || []).map((comment) => ({
@@ -4530,8 +4570,51 @@ export default function App() {
                 <strong style={compactMetricValueStyle}>Rp {adminBandPayoutTotal.toLocaleString('id-ID')}</strong>
               </div>
               <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>SIAP CAIR MIN 100K</p>
+                <strong style={{ ...compactMetricValueStyle, color: adminPayoutReadyTotal ? '#39ff14' : '#555' }}>Rp {adminPayoutReadyTotal.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminPayoutReadyBands.length} band tembus minimum.</p>
+              </div>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>BELUM MINIMUM</p>
+                <strong style={compactMetricValueStyle}>Rp {adminPayoutBelowMinimumTotal.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{Math.max(0, adminPayoutBands.length - adminPayoutReadyBands.length)} band belum 100rb.</p>
+              </div>
+              <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ORDER PERLU PROSES</p>
                 <strong style={{ ...compactMetricValueStyle, color: adminWaitingMerchOrders ? '#ffcc00' : '#555' }}>{adminWaitingMerchOrders}</strong>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.18)', borderRadius: '10px' }}>
+                <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYOUT READY QUEUE</p>
+                {adminPayoutReadyBands.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada band yang tembus minimum pencairan Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '6px' }}>
+                    {adminPayoutReadyBands.slice(0, 4).map((band) => (
+                      <div key={band.slug} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', color: '#aaa', fontSize: '10px', fontWeight: '900' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{band.name.toUpperCase()}</span>
+                        <strong style={{ color: '#fff', whiteSpace: 'nowrap' }}>Rp {band.amount.toLocaleString('id-ID')}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>FINANCE MIX</p>
+                <div style={{ display: 'grid', gap: '6px' }}>
+                  {[
+                    ['RILISAN DIGITAL', adminDigitalTransactions.length, adminReleaseFeeRevenue],
+                    ['MERCH', adminMerchTransactions.length, adminMerchFeeRevenue],
+                    ['PAMFLET EXCLUSIVE', adminExclusivePosterPaidCount, adminExclusivePosterRevenue]
+                  ].map(([label, count, amount]) => (
+                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center', color: '#777', fontSize: '10px', fontWeight: '900' }}>
+                      <span>{label}</span>
+                      <strong style={{ color: '#aaa' }}>{count}x</strong>
+                      <strong style={{ color: '#fff' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
@@ -4679,11 +4762,23 @@ export default function App() {
               </div>
               <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
             </div>
-            {saleTransactions.length === 0 ? (
-              <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian rilisan, track, merch, dan slot exclusive akan masuk ke ledger ini.</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '12px' }}>
+              {adminFinanceFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => setAdminFinanceFilter(filter.id)}
+                  style={{ padding: '7px 9px', borderRadius: '9999px', border: adminFinanceFilter === filter.id ? '1px solid rgba(0,210,255,0.55)' : '1px solid rgba(255,255,255,0.1)', backgroundColor: adminFinanceFilter === filter.id ? 'rgba(0,210,255,0.12)' : '#000', color: adminFinanceFilter === filter.id ? '#00d2ff' : '#777', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
+                >
+                  {filter.label} / {filter.count}
+                </button>
+              ))}
+            </div>
+            {adminFilteredTransactions.length === 0 ? (
+              <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi di filter ini. Pembelian rilisan, track, merch, dan slot exclusive akan masuk ke ledger admin.</p>
             ) : (
               <div style={{ display: 'grid', gap: '7px' }}>
-                {saleTransactions.slice(0, 12).map((transaction) => (
+                {adminFilteredTransactions.slice(0, 12).map((transaction) => (
                   <div key={transaction.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(180px, 1.35fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr) minmax(130px, 0.9fr) auto', gap: isTinyLayout ? '6px' : '9px', alignItems: 'center' }}>
                     <div style={{ minWidth: 0 }}>
                       <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 }}>{(transaction.orderId || transaction.id).toUpperCase()} / {(transaction.productType || 'order').toUpperCase()}</p>
@@ -6156,7 +6251,7 @@ export default function App() {
             </div>
             <div style={{ ...glassStyle('finance-minimum'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
               <p style={compactMetricLabelStyle}>MINIMUM PENARIKAN</p>
-              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp 100.000</h3>
+              <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}</h3>
             </div>
             <div style={{ ...glassStyle('finance-split'), ...compactMetricCardStyle, backgroundColor: '#090909' }}>
               <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
@@ -6179,18 +6274,18 @@ export default function App() {
           <div style={{ ...glassStyle('finance-progress'), padding: isTinyLayout ? '12px' : '14px', backgroundColor: '#090909', marginBottom: '18px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '8px', color: '#aaa', fontSize: '10px', fontWeight: '900' }}>
               <span>PROGRESS MENUJU PENCAIRAN</span>
-              <span>{Math.min(100, Math.round((bandBalance / 100000) * 100))}%</span>
+              <span>{Math.min(100, Math.round((bandBalance / MINIMUM_PAYOUT_AMOUNT) * 100))}%</span>
             </div>
             <div style={{ height: '7px', backgroundColor: '#000', borderRadius: '9999px', overflow: 'hidden', border: '1px solid #141414' }}>
-              <div style={{ width: `${Math.min(100, (bandBalance / 100000) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #39ff14, #00d2ff)' }} />
+              <div style={{ width: `${Math.min(100, (bandBalance / MINIMUM_PAYOUT_AMOUNT) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #39ff14, #00d2ff)' }} />
             </div>
-            <p style={{ color: bandBalance >= 100000 ? '#39ff14' : '#ff3333', fontSize: '10px', fontWeight: '900', margin: '9px 0 0 0' }}>{bandBalance >= 100000 ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(100000 - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
+            <p style={{ color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#39ff14' : '#ff3333', fontSize: '10px', fontWeight: '900', margin: '9px 0 0 0' }}>{bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '14px' }}>
             <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
-              <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp 100.000. Nominal saldo yang tampil adalah dana bersih milik band.</p>
+              <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band.</p>
             </section>
             <section style={{ ...glassStyle('finance-history'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>RIWAYAT TRANSAKSI</h3>
@@ -6473,7 +6568,7 @@ export default function App() {
 
                   <div style={{ backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.2)', borderRadius: '14px', padding: '14px', marginBottom: '14px' }}>
                     <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 8px 0' }}>AGREEMENT UPLOAD ALBUM</p>
-                    <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Band menyatakan punya hak atas karya ini. Penjualan dibagi 80% untuk band dan 20% untuk WiSpace dari penjualan bersih. Pencairan minimal Rp 100.000 setiap tanggal 1.</p>
+                    <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Band menyatakan punya hak atas karya ini. Penjualan dibagi 80% untuk band dan 20% untuk WiSpace dari penjualan bersih. Pencairan minimal Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')} setiap tanggal 1.</p>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ddd', fontSize: '12px', fontWeight: '800', marginBottom: '12px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={albumDraft.accepted} onChange={(e) => setAlbumDraft({ ...albumDraft, accepted: e.target.checked })} />
                       SAYA SETUJU DAN BERTANGGUNG JAWAB ATAS KARYA INI
@@ -6850,7 +6945,7 @@ export default function App() {
                 <p style={{ margin: '0 0 10px 0' }}>1. Segala bentuk file audio MP3, foto, dan poster acara yang di-upload sepenuhnya merupakan <strong>tanggung jawab hukum band masing-masing</strong>. WiSpace murni bertindak sebagai wadah distribusi digital independen. Simpan WAV/master hi-res di arsip pribadi band.</p>
                   <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi tetap sebesar <strong>20%</strong> dari setiap nominal karya lagu/album/merch yang berhasil terjual untuk kebutuhan operasional platform.</p>
                   <p style={{ margin: '0 0 10px 0' }}>3. Pihak band/musisi diberikan kebebasan mutlak 100% untuk <strong>menentukan harga jual sendiri</strong> terhadap karya tunggal maupun album penuh mereka.</p>
-                  <p style={{ margin: '0 0 10px 0' }}>4. Laporan keuangan komprehensif dapat dipantau real-time di profil band, dan dana hasil penjualan dapat dicairkan aman <strong>setiap tanggal 1 awal bulan (Minimal Saldo Rp 100.000)</strong>.</p>
+                  <p style={{ margin: '0 0 10px 0' }}>4. Laporan keuangan komprehensif dapat dipantau real-time di profil band, dan dana hasil penjualan dapat dicairkan aman <strong>setiap tanggal 1 awal bulan (Minimal Saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')})</strong>.</p>
                   <p style={{ margin: '0' }}>5. Tindakan Plagiarisme dilarang keras! Apabila di masa depan ditemukan indikasi plagiat karya orang lain, hal tersebut adalah <strong>pelanggaran mutlak band</strong> dan WiSpace lepas dari segala tuntutan hukum (karena admin tidak mengurasi orisinalitas nada satu per satu).</p>
                 </div>
                 <p style={{ color: '#fff', fontSize: '12px', fontWeight: '700', marginBottom: '8px' }}>Ketik Nama Band Lu Untuk Tanda Tangan Digital Sah:</p>
@@ -6868,9 +6963,9 @@ export default function App() {
                 <div style={{ backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.2)', padding: '14px', borderRadius: '16px', marginBottom: '20px', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div><span style={{ color: '#666', fontSize: '11px', fontWeight: '900' }}>TOTAL SALDO SIAP CAIR</span><h4 style={{ margin: 0, fontSize: '24px', color: '#fff', fontWeight: '900', display: 'flex', alignItems: 'center' }}><DollarSign size={20} color="#00d2ff"/> Rp {bandBalance.toLocaleString('id-ID')}</h4></div>
-                    <button disabled={bandBalance < 100000} style={{ padding: '8px 14px', backgroundColor: bandBalance >= 100000 ? '#00d2ff' : '#141414', border: 'none', borderRadius: '16px', color: bandBalance >= 100000 ? '#000' : '#444', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= 100000 ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>TARIK DANA</button>
+                    <button disabled={bandBalance < MINIMUM_PAYOUT_AMOUNT} style={{ padding: '8px 14px', backgroundColor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#00d2ff' : '#141414', border: 'none', borderRadius: '16px', color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#000' : '#444', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>TARIK DANA</button>
                   </div>
-                  <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 15-20%. Pencairan berkala tiap tanggal 1. {bandBalance < 100000 && <span style={{ color: '#ff3333' }}>Kurang Rp {(100000 - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, breo!</span>}</p>
+                  <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 20%. Pencairan berkala tiap tanggal 1. {bandBalance < MINIMUM_PAYOUT_AMOUNT && <span style={{ color: '#ff3333' }}>Kurang Rp {(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, bro!</span>}</p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
