@@ -140,6 +140,7 @@ const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
 const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
 const RELEASE_AGREEMENT_LEDGER_STORAGE_KEY = 'wispace_release_agreement_ledger';
+const MONTHLY_FINANCE_REPORTS_STORAGE_KEY = 'wispace_monthly_finance_reports';
 const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
 const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
@@ -334,6 +335,15 @@ const loadReleaseAgreementLedger = () => {
 
 const saveReleaseAgreementLedger = (agreements) => {
   window.localStorage.setItem(RELEASE_AGREEMENT_LEDGER_STORAGE_KEY, JSON.stringify(agreements));
+};
+
+const loadMonthlyFinanceReports = () => {
+  const reports = readLocalJson(MONTHLY_FINANCE_REPORTS_STORAGE_KEY);
+  return Array.isArray(reports) ? reports : [];
+};
+
+const saveMonthlyFinanceReports = (reports) => {
+  window.localStorage.setItem(MONTHLY_FINANCE_REPORTS_STORAGE_KEY, JSON.stringify(reports));
 };
 
 const loadMerchOrders = () => {
@@ -937,6 +947,7 @@ export default function App() {
   const [publicMerchItems, setPublicMerchItems] = useState(loadPublicMerchRegistry);
   const [saleTransactions, setSaleTransactions] = useState(loadTransactionLedger);
   const [releaseAgreements, setReleaseAgreements] = useState(loadReleaseAgreementLedger);
+  const [monthlyFinanceReports, setMonthlyFinanceReports] = useState(loadMonthlyFinanceReports);
   const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
@@ -1533,6 +1544,7 @@ export default function App() {
     setContentReports([]);
     setSaleTransactions([]);
     setReleaseAgreements([]);
+    setMonthlyFinanceReports([]);
     setMerchOrders([]);
     setPurchasedAlbums([]);
     setDownloadLogs([]);
@@ -2564,6 +2576,101 @@ export default function App() {
     const link = document.createElement('a');
     link.href = url;
     link.download = `${createSlug(agreement.releaseTitle || 'wispace-agreement')}-agreement.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const buildMonthlyFinanceReportText = (report) => [
+    `WiSpace Monthly Finance Report - ${report.periodLabel}`,
+    `Generated at: ${report.generatedAt}`,
+    '',
+    `Gross paid: Rp ${Number(report.totalGross || 0).toLocaleString('id-ID')}`,
+    `WiSpace fee: Rp ${Number(report.totalPlatformFee || 0).toLocaleString('id-ID')}`,
+    `Band payout total: Rp ${Number(report.totalBandNet || 0).toLocaleString('id-ID')}`,
+    `Ready payout: Rp ${Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')}`,
+    `Transaction count: ${report.transactionCount}`,
+    '',
+    'Band payout rows:',
+    ...(report.rows || []).map((row, index) => [
+      `${index + 1}. ${row.name}`,
+      `   Status: ${row.ready ? 'READY PAYOUT' : 'HOLD - CEK MINIMUM/REKENING'}`,
+      `   Gross: Rp ${Number(row.grossAmount || 0).toLocaleString('id-ID')}`,
+      `   WiSpace fee: Rp ${Number(row.platformFee || 0).toLocaleString('id-ID')}`,
+      `   Net band: Rp ${Number(row.amount || 0).toLocaleString('id-ID')}`,
+      `   Transaksi: ${row.transactions || 0}`,
+      `   Rekening: ${row.bankName ? `${row.bankName} / ${row.bankAccountName} / ${row.bankAccountNumber}` : 'BELUM LENGKAP'}`
+    ].join('\n'))
+  ].join('\n');
+
+  const handleGenerateMonthlyFinanceReport = () => {
+    if (!adminPayoutReportRows.length) {
+      alert('Belum ada transaksi paid buat report payout bro.');
+      return;
+    }
+
+    const report = {
+      id: createClientId(),
+      periodKey: nextPayoutPeriodKey,
+      periodLabel: nextPayoutLabel,
+      generatedAt: new Date().toISOString(),
+      rows: adminPayoutReportRows,
+      totalGross: adminGrossSalesRevenue,
+      totalPlatformFee: adminPlatformRevenue,
+      totalBandNet: adminBandPayoutTotal,
+      readyPayoutTotal: adminPayoutReadyTotal,
+      transactionCount: paidSaleTransactions.length,
+      missingBankCount: bandsMissingPayoutAccount.length
+    };
+    report.reportText = buildMonthlyFinanceReportText(report);
+
+    setMonthlyFinanceReports((current) => {
+      const nextReports = [
+        report,
+        ...current.filter((item) => item.periodKey !== report.periodKey)
+      ];
+      saveMonthlyFinanceReports(nextReports);
+      return nextReports;
+    });
+
+    if (isSupabaseConfigured) {
+      const reportRows = report.rows.map((row) => ({
+        period_key: report.periodKey,
+        band_slug: row.slug,
+        band_name: row.name,
+        payout_bank_name: row.bankName || null,
+        payout_account_name: row.bankAccountName || null,
+        payout_account_number: row.bankAccountNumber || null,
+        gross_amount: Number(row.grossAmount || 0),
+        platform_fee: Number(row.platformFee || 0),
+        band_net: Number(row.amount || 0),
+        transaction_count: Number(row.transactions || 0),
+        payout_status: row.ready ? 'ready_for_payout' : 'hold_review',
+        generated_at: report.generatedAt
+      }));
+      void supabase
+        .from('monthly_finance_reports')
+        .upsert(reportRows, { onConflict: 'period_key,band_slug' })
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Report bulanan tersimpan lokal. Supabase report butuh policy/service-role:', error.message);
+          }
+        });
+    }
+
+    alert(`Report ${report.periodLabel} sudah dibuat. ${report.rows.length} band masuk daftar, ${report.rows.filter((row) => row.ready).length} ready payout.`);
+  };
+
+  const handleDownloadMonthlyFinanceReport = (report = latestMonthlyFinanceReport) => {
+    if (!report) {
+      alert('Belum ada report yang bisa didownload bro. Generate dulu.');
+      return;
+    }
+    const text = report.reportText || buildMonthlyFinanceReportText(report);
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wispace-finance-report-${report.periodKey}.txt`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -3911,6 +4018,8 @@ export default function App() {
         slug: key,
         name: transaction.sellerBandName || 'Band WiSpace',
         amount: 0,
+        grossAmount: 0,
+        platformFee: 0,
         transactions: 0
       };
       return {
@@ -3918,6 +4027,8 @@ export default function App() {
         [key]: {
           ...current,
           amount: current.amount + Number(transaction.bandNet || 0),
+          grossAmount: current.grossAmount + Number(transaction.grossAmount || 0),
+          platformFee: current.platformFee + Number(transaction.platformFee || 0),
           transactions: current.transactions + 1
         }
       };
@@ -4032,6 +4143,7 @@ export default function App() {
   const nextPayoutDate = new Date();
   nextPayoutDate.setMonth(nextPayoutDate.getMonth() + (nextPayoutDate.getDate() >= 1 ? 1 : 0), 1);
   const nextPayoutLabel = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }).format(nextPayoutDate);
+  const nextPayoutPeriodKey = `${nextPayoutDate.getFullYear()}-${String(nextPayoutDate.getMonth() + 1).padStart(2, '0')}`;
   const adminPayoutReportRows = adminPayoutBands.map((band) => {
     const profile = publicBandProfiles.find((item) => item.slug === band.slug || item.name === band.name) || {};
     return {
@@ -4039,9 +4151,12 @@ export default function App() {
       bankName: profile.bankName || '',
       bankAccountName: profile.bankAccountName || '',
       bankAccountNumber: profile.bankAccountNumber || '',
+      grossAmount: band.grossAmount || 0,
+      platformFee: band.platformFee || 0,
       ready: band.amount >= MINIMUM_PAYOUT_AMOUNT && profile.bankName && profile.bankAccountName && profile.bankAccountNumber
     };
   });
+  const latestMonthlyFinanceReport = monthlyFinanceReports.find((report) => report.periodKey === nextPayoutPeriodKey) || monthlyFinanceReports[0] || null;
   const adminActionNotifications = [
     {
       title: 'PAYOUT SIAP TANGGAL 1',
@@ -4066,7 +4181,63 @@ export default function App() {
       count: exclusivePaidWaitingActivationGigs.length,
       color: '#ffcc00',
       note: 'Setelah pembayaran terkonfirmasi, admin activate 10 hari.'
+    },
+    {
+      title: 'REPORT BULANAN TERAKHIR',
+      count: monthlyFinanceReports.length,
+      color: latestMonthlyFinanceReport ? '#39ff14' : '#777',
+      note: latestMonthlyFinanceReport ? `${latestMonthlyFinanceReport.periodLabel} / ${latestMonthlyFinanceReport.rows.length} band.` : 'Belum pernah generate report.'
     }
+  ];
+  const adminNotificationQueue = [
+    ...pendingGigs.slice(0, 6).map((gig) => ({
+      id: `pending-gig-${gig.id}`,
+      title: 'Pamflet baru perlu kurasi',
+      body: `${gig.title} / ${gig.city || 'WiSpace'} / ${getGigDate(gig)}`,
+      badge: 'PAMFLET',
+      color: '#ffcc00',
+      targetSection: 'pamflet'
+    })),
+    ...exclusivePaidWaitingActivationGigs.slice(0, 6).map((gig) => ({
+      id: `paid-gig-${gig.id}`,
+      title: 'Pembayaran exclusive perlu activate',
+      body: `${gig.title} sudah paid, aktifkan 10 hari setelah dicek.`,
+      badge: 'PAYMENT',
+      color: '#00d2ff',
+      targetSection: 'pamflet'
+    })),
+    ...merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).slice(0, 6).map((order) => ({
+      id: `merch-order-${order.id}`,
+      title: 'Order merch perlu dipantau',
+      body: `${order.itemName || 'Merch'} / ${order.sellerBandName || 'Band'} / ${order.orderId || order.id}`,
+      badge: 'MERCH',
+      color: '#39ff14',
+      targetSection: 'ledger'
+    })),
+    ...bandsMissingPayoutAccount.slice(0, 6).map((profile) => ({
+      id: `missing-bank-${profile.slug || profile.name}`,
+      title: 'Rekening band belum lengkap',
+      body: `${profile.name || 'Band WiSpace'} harus isi rekening sebelum upload dan payout.`,
+      badge: 'BANK',
+      color: '#ffcc00',
+      targetSection: 'finance'
+    })),
+    ...releaseAgreements.slice(0, 4).map((agreement) => ({
+      id: `agreement-${agreement.id}`,
+      title: 'Agreement rilisan terekam',
+      body: `${agreement.releaseTitle} / ${agreement.bandName} / ${agreement.createdAt || 'baru'}`,
+      badge: 'LEGAL',
+      color: '#00d2ff',
+      targetSection: 'finance'
+    })),
+    ...(latestMonthlyFinanceReport ? [{
+      id: `latest-report-${latestMonthlyFinanceReport.id}`,
+      title: 'Report bulanan siap diunduh',
+      body: `${latestMonthlyFinanceReport.periodLabel} / ${latestMonthlyFinanceReport.rows.length} band / Rp ${Number(latestMonthlyFinanceReport.readyPayoutTotal || 0).toLocaleString('id-ID')} ready.`,
+      badge: 'REPORT',
+      color: '#39ff14',
+      targetSection: 'finance'
+    }] : [])
   ];
   const adminFinanceFilters = [
     { id: 'all', label: 'ALL', count: saleTransactions.length },
@@ -4885,6 +5056,7 @@ export default function App() {
           <nav style={{ ...glassStyle('admin-section-nav'), padding: '10px', backgroundColor: '#090909', display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20 }}>
             {[
               ['finance', 'FINANCE'],
+              ['notifications', `NOTIF ${adminNotificationQueue.length}`],
               ['setup', 'SETUP'],
               ['ledger', 'LEDGER'],
               ['article', 'ARTIKEL'],
@@ -4909,7 +5081,11 @@ export default function App() {
                 <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>WISPACE FINANCE REPORT</p>
                 <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>PEMASUKAN PLATFORM</h3>
               </div>
-              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ini laporan admin untuk fee platform. Dashboard band hanya menampilkan saldo milik band.</p>
+              <div style={{ display: 'flex', gap: '7px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={handleGenerateMonthlyFinanceReport} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '9px' }}>GENERATE REPORT TGL 1</button>
+                <button type="button" onClick={() => handleDownloadMonthlyFinanceReport()} disabled={!latestMonthlyFinanceReport} style={{ background: latestMonthlyFinanceReport ? 'rgba(255,255,255,0.04)' : '#080808', border: '1px solid rgba(255,255,255,0.12)', color: latestMonthlyFinanceReport ? '#fff' : '#444', borderRadius: '9px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: latestMonthlyFinanceReport ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>DOWNLOAD TXT</button>
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Report admin berisi fee platform, payout band, rekening, dan status pencairan tanggal 1.</p>
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '9px' }}>
               <div style={compactMetricCardStyle}>
@@ -5042,6 +5218,36 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </section>
+          )}
+
+          {adminActiveSection === 'notifications' && (
+          <section style={{ ...glassStyle('admin-notification-center'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN NOTIFICATION CENTER</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>ANTRIAN AKSI ADMIN</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan hal yang perlu dicek: kurasi, pembayaran, order, rekening, legal, dan report.</p>
+            </div>
+            {adminNotificationQueue.length === 0 ? (
+              <div style={{ padding: '18px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', textAlign: 'center' }}>
+                <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notifikasi admin. Kalau ada upload pamflet, order merch, atau report baru, masuk sini.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '7px' }}>
+                {adminNotificationQueue.map((item) => (
+                  <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'auto minmax(0,1fr) auto', gap: '9px', alignItems: 'center', padding: '9px', backgroundColor: '#000', border: `1px solid ${item.color}30`, borderRadius: '10px' }}>
+                    <span style={{ color: item.color, border: `1px solid ${item.color}45`, borderRadius: '9999px', padding: '5px 7px', fontSize: '8px', fontWeight: '900', width: 'fit-content' }}>{item.badge}</span>
+                    <div style={{ minWidth: 0 }}>
+                      <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title.toUpperCase()}</h4>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{item.body}</p>
+                    </div>
+                    <button type="button" onClick={() => setAdminActiveSection(item.targetSection)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>BUKA</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
           )}
 
