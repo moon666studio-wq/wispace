@@ -797,6 +797,7 @@ export default function App() {
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [adminError, setAdminError] = useState('');
   const [adminFinanceFilter, setAdminFinanceFilter] = useState('all');
+  const [adminActiveSection, setAdminActiveSection] = useState('finance');
 
   // STATE USER & ROLE MANAGEMENT
   const [userSession, setUserSession] = useState(null);
@@ -4067,8 +4068,10 @@ export default function App() {
       </div>
     )
   );
-  const renderCompactSearchResults = () => (
-    <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '14px', boxShadow: '0 18px 50px rgba(0,0,0,0.66)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+  const renderCompactSearchResults = (placement = 'inline') => {
+    const isFixedPlacement = placement === 'fixed';
+    return (
+    <div style={isFixedPlacement ? { position: 'fixed', top: isTinyLayout ? '64px' : '74px', left: '50%', transform: 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(360px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(5,5,5,0.98)', border: '1px solid rgba(0,210,255,0.32)', borderRadius: '14px', boxShadow: '0 22px 62px rgba(0,0,0,0.7)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' } : { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '14px', boxShadow: '0 18px 50px rgba(0,0,0,0.66)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
         <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS</p>
         <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', color: '#777', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
@@ -4093,6 +4096,7 @@ export default function App() {
       )}
     </div>
   );
+  };
 
   const openProfileModal = () => {
     if (isBandAccount) {
@@ -4439,7 +4443,6 @@ export default function App() {
           <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
             <Search size={12} color="#666" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#fff', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
-            {normalizedSearchTerm && renderCompactSearchResults()}
           </div>
           {!userSession ? (
             <>
@@ -4454,6 +4457,8 @@ export default function App() {
           )}
         </div>
       )}
+
+      {normalizedSearchTerm && !isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && renderCompactSearchResults('fixed')}
 
       {userSession && showNotificationPopout && !isAdminPage && !loading && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : activePage === 'home' ? '78px' : '70px', left: isTinyLayout ? '12px' : activePage === 'home' ? 'auto' : '50%', right: isTinyLayout ? '12px' : activePage === 'home' ? '30px' : 'auto', transform: isTinyLayout || activePage === 'home' ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(300px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.34)', borderRadius: '14px', boxShadow: '0 22px 62px rgba(0,0,0,0.66)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
@@ -4678,23 +4683,25 @@ export default function App() {
 
           <nav style={{ ...glassStyle('admin-section-nav'), padding: '10px', backgroundColor: '#090909', display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20 }}>
             {[
-              ['admin-finance-section', 'FINANCE'],
-              ['admin-ledger-section', 'LEDGER'],
-              ['admin-article-section', 'ARTIKEL'],
-              ['admin-moderation-section', 'MODERASI'],
-              ['admin-pamflet-section', 'PAMFLET']
-            ].map(([targetId, label]) => (
+              ['finance', 'FINANCE'],
+              ['setup', 'SETUP'],
+              ['ledger', 'LEDGER'],
+              ['article', 'ARTIKEL'],
+              ['moderation', 'MODERASI'],
+              ['pamflet', 'PAMFLET']
+            ].map(([sectionId, label]) => (
               <button
-                key={targetId}
+                key={sectionId}
                 type="button"
-                onClick={() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '10px' }}
+                onClick={() => setAdminActiveSection(sectionId)}
+                style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '10px', background: adminActiveSection === sectionId ? 'rgba(0,210,255,0.14)' : glassButtonStyle.background, color: adminActiveSection === sectionId ? '#fff' : '#00d2ff', border: adminActiveSection === sectionId ? '1px solid rgba(0,210,255,0.48)' : glassButtonStyle.border }}
               >
                 {label}
               </button>
             ))}
           </nav>
 
+          {adminActiveSection === 'finance' && (
           <section id="admin-finance-section" style={{ ...glassStyle('admin-income-report'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
@@ -4783,7 +4790,10 @@ export default function App() {
               </div>
             </div>
           </section>
+          )}
 
+          {adminActiveSection === 'setup' && (
+          <>
           <section style={{ ...glassStyle('admin-real-flow-checklist'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
@@ -4918,7 +4928,10 @@ export default function App() {
             </div>
             <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser dengan prefix WiSpace. Data Supabase live dan file lokal project tidak ikut terhapus.</p>
           </section>
+          </>
+          )}
 
+          {adminActiveSection === 'ledger' && (
           <section id="admin-ledger-section" style={{ ...glassStyle('admin-transaction-ledger'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
@@ -4958,7 +4971,9 @@ export default function App() {
               </div>
             )}
           </section>
+          )}
 
+          {adminActiveSection === 'article' && (
           <section id="admin-article-section" style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px', scrollMarginTop: '110px' }}>
             <div style={{ marginBottom: '14px' }}>
               <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE EDITORIAL</p>
@@ -4974,7 +4989,9 @@ export default function App() {
               <button type="submit" style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px', width: 'fit-content' }}>PUBLISH ARTIKEL WISPACE</button>
             </form>
           </section>
+          )}
 
+          {adminActiveSection === 'moderation' && (
           <section id="admin-moderation-section" style={{ ...glassStyle('admin-content-moderation'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px', scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
               <div>
@@ -5036,7 +5053,9 @@ export default function App() {
               </div>
             </div>
           </section>
+          )}
 
+          {adminActiveSection === 'pamflet' && (
           <div id="admin-pamflet-section" style={{ scrollMarginTop: '110px' }}>
           {pendingGigs.length === 0 ? (
             <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#090909', textAlign: 'center' }}>
@@ -5084,7 +5103,9 @@ export default function App() {
             </div>
           )}
           </div>
+          )}
 
+          {adminActiveSection === 'pamflet' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
             {[
               { title: 'EXCLUSIVE WAITING PAYMENT', items: exclusiveWaitingPaymentGigs, color: '#ffcc00', mode: 'waiting' },
@@ -5116,7 +5137,9 @@ export default function App() {
               </section>
             ))}
           </div>
+          )}
 
+          {adminActiveSection === 'pamflet' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
             {[
               { title: 'FREE BULLETIN LIVE', items: approvedFreeGigs, color: '#39ff14' },
@@ -5144,6 +5167,7 @@ export default function App() {
               </section>
             ))}
           </div>
+          )}
             </>
           )}
         </section>
