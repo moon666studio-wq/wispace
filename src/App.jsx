@@ -2395,6 +2395,11 @@ export default function App() {
     if (!albumDraft.accepted) return alert('Centang agreement upload album dulu bro.');
     if (!albumDraft.signature.trim()) return alert('Isi nama penanggung jawab / tanda tangan digital dulu bro.');
     if (albumDraft.audioFiles.length === 0) return alert('Import minimal satu file MP3/WAV dulu bro.');
+    const masterFallbackTracks = albumDraft.audioFiles.filter((file) => !file.audioPath);
+    if (masterFallbackTracks.length) {
+      const shouldContinue = window.confirm(`${masterFallbackTracks.length} master audio belum masuk private Storage. Publish tetap lanjut? File lokal/fallback bisa hilang setelah refresh/deploy sampai bucket release-audio siap.`);
+      if (!shouldContinue) return;
+    }
     const paidTracksWithoutPreview = albumDraft.audioFiles.filter((file, index) => (
       String(index) !== String(albumDraft.freeTrackIndex) && !file.previewUrl
     ));
@@ -3455,6 +3460,9 @@ export default function App() {
   const selectedRelease = selectedReleaseId
     ? albumItems.find((album) => String(album.id) === String(selectedReleaseId))
     : null;
+  const selectedReleasePrivateTrackCount = (selectedRelease?.tracks || []).filter((track) => track.audioPath).length;
+  const selectedReleasePreviewTrackCount = (selectedRelease?.tracks || []).filter((track) => track.previewUrl).length;
+  const selectedReleaseFreeFullCount = (selectedRelease?.tracks || []).filter((track) => track.freeFull).length;
   const selectedMerch = selectedMerchId
     ? publicMerchList.find((item) => String(item.id) === String(selectedMerchId))
     : null;
@@ -3565,6 +3573,7 @@ export default function App() {
     })))
     .slice(0, 5);
   const hasFreeFullBandTrack = bandPublicTracks.some((track) => track.freeFull) || displayBandAlbums.some((album) => (album.tracks || []).some((track) => track.freeFull));
+  const bandPublicPreviewReadyCount = bandPublicTracks.filter((track) => track.previewUrl || track.url || track.freeFull).length;
   const albumDraftMasterStoredCount = albumDraft.audioFiles.filter((file) => file.audioPath).length;
   const albumDraftPreviewReadyCount = albumDraft.audioFiles.filter((file) => file.previewUrl).length;
   const albumDraftPaidTrackCount = albumDraft.audioFiles.filter((_, index) => String(index) !== String(albumDraft.freeTrackIndex)).length;
@@ -3630,6 +3639,13 @@ export default function App() {
   const publicPreviewClipCount = albumItems
     .flatMap((album) => album.tracks || [])
     .filter((track) => Boolean(track.previewUrl)).length;
+  const totalReleaseTrackCount = albumItems.flatMap((album) => album.tracks || []).length;
+  const paidReleaseTrackCount = albumItems
+    .flatMap((album) => album.tracks || [])
+    .filter((track) => !track.freeFull).length;
+  const previewMissingTrackCount = albumItems
+    .flatMap((album) => album.tracks || [])
+    .filter((track) => !track.freeFull && !track.previewUrl).length;
   const demoPaymentTransactions = saleTransactions.filter((transaction) => (
     transaction.paymentMethod === 'demo_checkout' || transaction.paymentStatus === 'demo_paid'
   )).length;
@@ -3679,6 +3695,17 @@ export default function App() {
       status: merchOrders.some((order) => order.trackingNumber) ? 'scaffold' : 'demo',
       note: 'Band bisa input resi manual. API ekspedisi real-time belum tersambung.'
     }
+  ];
+  const readinessStatusCounts = productionReadinessItems.reduce((counts, item) => ({
+    ...counts,
+    [item.status]: (counts[item.status] || 0) + 1
+  }), {});
+  const productionBlockers = productionReadinessItems.filter((item) => ['todo', 'demo'].includes(item.status));
+  const storageHealthItems = [
+    ['LOCAL/FALLBACK ASSET', localAssetCount, localAssetCount ? '#ffcc00' : '#39ff14'],
+    ['PRIVATE MASTER', `${privateAudioPathCount}/${totalReleaseTrackCount}`, privateAudioPathCount && privateAudioPathCount === totalReleaseTrackCount ? '#39ff14' : '#ffcc00'],
+    ['PUBLIC PREVIEW', `${publicPreviewClipCount}/${paidReleaseTrackCount}`, previewMissingTrackCount ? '#ffcc00' : '#39ff14'],
+    ['MISSING PREVIEW', previewMissingTrackCount, previewMissingTrackCount ? '#ff3333' : '#777']
   ];
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
@@ -4512,6 +4539,43 @@ export default function App() {
               </div>
               <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Panel internal buat tahu mana yang aman dites sekarang dan mana yang masih perlu wiring sebelum pembayaran asli.</p>
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                ['READY', readinessStatusCounts.ready || 0, '#39ff14'],
+                ['SCAFFOLD', readinessStatusCounts.scaffold || 0, '#00d2ff'],
+                ['DEMO', readinessStatusCounts.demo || 0, '#ffcc00'],
+                ['TODO', readinessStatusCounts.todo || 0, '#ff3333']
+              ].map(([label, value, color]) => (
+                <div key={label} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>STORAGE HEALTH</p>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  {storageHealthItems.map(([label, value, color]) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', color: '#777', fontSize: '10px', fontWeight: '900' }}>
+                      <span>{label}</span>
+                      <strong style={{ color }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(255,204,0,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>NEXT BLOCKERS</p>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  {productionBlockers.slice(0, 4).map((item) => (
+                    <div key={`blocker-${item.title}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
+                      <span style={{ color: '#aaa', fontSize: '10px', fontWeight: '900' }}>{item.title.toUpperCase()}</span>
+                      <strong style={{ color: getReadinessColor(item.status), fontSize: '9px' }}>{item.status.toUpperCase()}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
               {productionReadinessItems.map((item) => (
                 <div key={item.title} style={compactRowStyle}>
@@ -4808,6 +4872,15 @@ export default function App() {
                     <button onClick={() => setSelectedReleaseId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
                   </div>
                   {selectedRelease.description && <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedRelease.description}</p>}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                    {[
+                      ['PRIVATE MASTER', `${selectedReleasePrivateTrackCount}/${selectedRelease.trackCount || (selectedRelease.tracks || []).length}`, selectedReleasePrivateTrackCount ? '#39ff14' : '#777'],
+                      ['PREVIEW READY', `${selectedReleasePreviewTrackCount}/${Math.max(0, (selectedRelease.tracks || []).length - selectedReleaseFreeFullCount)}`, selectedReleasePreviewTrackCount ? '#00d2ff' : '#777'],
+                      ['FREE FULL', selectedReleaseFreeFullCount, selectedReleaseFreeFullCount ? '#39ff14' : '#777']
+                    ].map(([label, value, color]) => (
+                      <span key={label} style={{ padding: '7px 9px', backgroundColor: '#000', border: `1px solid ${color}33`, borderRadius: '9999px', color, fontSize: '10px', fontWeight: '900' }}>{label}: <strong style={{ color: '#fff' }}>{value}</strong></span>
+                    ))}
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                     <strong style={{ color: '#fff', fontSize: '18px', fontWeight: '900' }}>Full Album Rp {Number(selectedRelease.price || 0).toLocaleString('id-ID')}</strong>
                     <button onClick={() => handlePurchaseAlbum(selectedRelease)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === selectedRelease.id) ? 'BUKA LIBRARY' : 'BELI FULL ALBUM'}</button>
@@ -5313,6 +5386,18 @@ export default function App() {
                     <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(57,255,20,0.1)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14', fontSize: '10px', fontWeight: '900' }}>1 FREE FULL TRACK</span>
                   )}
                 </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: '8px', marginBottom: '14px' }}>
+                  {[
+                    ['PROMO TRACKS', bandPublicTracks.length, '#fff'],
+                    ['PREVIEW READY', bandPublicPreviewReadyCount, bandPublicPreviewReadyCount ? '#00d2ff' : '#777'],
+                    ['FREE FULL', hasFreeFullBandTrack ? 1 : 0, hasFreeFullBandTrack ? '#39ff14' : '#777']
+                  ].map(([label, value, color]) => (
+                    <div key={label} style={{ padding: '9px', backgroundColor: '#000', border: `1px solid ${color}22`, borderRadius: '10px' }}>
+                      <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.6px', margin: '0 0 4px 0' }}>{label}</p>
+                      <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
                 {bandPublicTracks.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada lagu promo. Upload album dulu, lalu pilih track preview/free full di Band Studio.</p>
                 ) : (
@@ -5777,6 +5862,10 @@ export default function App() {
                       <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', color: '#fff', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
                     </div>
                     <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Secret encrypted access. Full playback buat archive yang sudah dibeli.</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', color: '#00d2ff', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', color: '#aaa', fontSize: '9px', fontWeight: '900' }}>DOWNLOAD PER TRACK</span>
+                    </div>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gap: '9px', marginBottom: '16px' }}>
@@ -5805,6 +5894,7 @@ export default function App() {
                   <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
                   <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Full album ZIP download belum aktif. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
               </aside>
             </div>
           )}
