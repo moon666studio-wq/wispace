@@ -3565,6 +3565,15 @@ export default function App() {
     })))
     .slice(0, 5);
   const hasFreeFullBandTrack = bandPublicTracks.some((track) => track.freeFull) || displayBandAlbums.some((album) => (album.tracks || []).some((track) => track.freeFull));
+  const albumDraftMasterStoredCount = albumDraft.audioFiles.filter((file) => file.audioPath).length;
+  const albumDraftPreviewReadyCount = albumDraft.audioFiles.filter((file) => file.previewUrl).length;
+  const albumDraftPaidTrackCount = albumDraft.audioFiles.filter((_, index) => String(index) !== String(albumDraft.freeTrackIndex)).length;
+  const albumDraftMissingPreviewCount = albumDraft.audioFiles.filter((file, index) => String(index) !== String(albumDraft.freeTrackIndex) && !file.previewUrl).length;
+  const albumDraftFreeFullLabel = albumDraft.freeTrackIndex !== '' && albumDraft.audioFiles[albumDraft.freeTrackIndex]
+    ? albumDraft.audioFiles[albumDraft.freeTrackIndex].name.replace(/\.(mp3|wav)$/i, '')
+    : hasFreeFullBandTrack
+      ? 'SUDAH ADA DI PROFILE'
+      : 'BELUM DIPILIH';
   const displayBandMerchItems = publicMerchList.filter((item) => (
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
   ));
@@ -6252,8 +6261,21 @@ export default function App() {
                       <p style={{ color: hasFreeFullBandTrack ? '#555' : '#00d2ff', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
                         {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru bisa punya preview 30 detik terpisah.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain bisa diberi file preview 30 detik terpisah.'}
                       </p>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+                        {[
+                          ['MASTER PRIVATE', `${albumDraftMasterStoredCount}/${albumDraft.audioFiles.length}`, albumDraftMasterStoredCount === albumDraft.audioFiles.length ? '#39ff14' : '#ffcc00'],
+                          ['PREVIEW READY', `${albumDraftPreviewReadyCount}/${albumDraftPaidTrackCount}`, albumDraftMissingPreviewCount ? '#ffcc00' : '#39ff14'],
+                          ['MISSING PREVIEW', albumDraftMissingPreviewCount, albumDraftMissingPreviewCount ? '#ff3333' : '#777'],
+                          ['FREE FULL', albumDraftFreeFullLabel, albumDraft.freeTrackIndex !== '' || hasFreeFullBandTrack ? '#39ff14' : '#777']
+                        ].map(([label, value, color]) => (
+                          <div key={label} style={{ padding: '10px', backgroundColor: '#050505', border: `1px solid ${color === '#ff3333' ? 'rgba(255,51,51,0.25)' : color === '#39ff14' ? 'rgba(57,255,20,0.18)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '10px', minWidth: 0 }}>
+                            <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                            <strong style={{ display: 'block', color, fontSize: '12px', fontWeight: '900', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</strong>
+                          </div>
+                        ))}
+                      </div>
                       {albumDraft.audioFiles.map((file, index) => (
-                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: hasFreeFullBandTrack ? '1fr minmax(88px, 120px) auto' : 'auto 1fr minmax(88px, 120px) auto', gap: '10px', padding: '8px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
+                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'auto minmax(0, 1fr)' : hasFreeFullBandTrack ? 'minmax(0, 1.4fr) minmax(118px, 0.7fr) minmax(92px, 112px) auto' : 'auto minmax(0, 1.4fr) minmax(118px, 0.7fr) minmax(92px, 112px) auto', gap: '10px', padding: '10px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
                           {!hasFreeFullBandTrack && (
                             <input
                               type="radio"
@@ -6263,25 +6285,28 @@ export default function App() {
                               title="Jadikan lagu ini free full listen"
                             />
                           )}
-                          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {String(index + 1).padStart(2, '0')} / {file.name}
-                            <small style={{ color: file.storageStatus === 'stored' ? '#39ff14' : file.storageStatus === 'fallback' ? '#ffcc00' : '#777', marginLeft: '8px', fontWeight: '900' }}>
-                              {file.storageStatus === 'stored' ? 'PRIVATE STORAGE' : file.storageStatus === 'fallback' ? 'LOCAL FALLBACK' : 'LOCAL'}
-                            </small>
-                            <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', marginLeft: '8px', color: file.previewUrl ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>
+                          <div style={{ minWidth: 0, gridColumn: isTinyLayout ? '2 / -1' : 'auto' }}>
+                            <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {file.name}</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                              <small style={{ color: file.storageStatus === 'stored' ? '#39ff14' : file.storageStatus === 'fallback' ? '#ffcc00' : '#777', fontWeight: '900' }}>
+                                {file.storageStatus === 'stored' ? 'PRIVATE MASTER' : file.storageStatus === 'fallback' ? 'MASTER FALLBACK' : 'LOCAL MASTER'}
+                              </small>
+                              <small style={{ color: file.previewUrl ? '#39ff14' : '#777', fontWeight: '900' }}>{file.previewUrl ? 'PREVIEW READY' : 'NO PREVIEW'}</small>
+                            </div>
+                          </div>
+                          <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', minHeight: '34px', padding: '0 10px', border: `1px solid ${file.previewUrl ? 'rgba(57,255,20,0.25)' : 'rgba(0,210,255,0.25)'}`, borderRadius: '10px', backgroundColor: file.previewUrl ? 'rgba(57,255,20,0.06)' : 'rgba(0,210,255,0.06)', color: file.previewUrl ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
                               <input type="file" accept="audio/mpeg,audio/wav,.mp3,.wav" onChange={(event) => handleTrackPreviewImport(index, event)} style={{ display: 'none' }} />
                               {file.previewUrl ? 'PREVIEW READY' : 'ADD 30S PREVIEW'}
-                            </label>
-                          </span>
+                          </label>
                           <input
                             type="number"
                             min="0"
                             placeholder="Rp/track"
                             value={file.price}
                             onChange={(event) => updateAlbumTrackPrice(index, event.target.value)}
-                            style={{ width: '100%', backgroundColor: '#050505', border: '1px solid #222', borderRadius: '10px', color: '#fff', padding: '8px', fontSize: '11px', fontFamily: FONT_STACK, boxSizing: 'border-box' }}
+                            style={{ width: '100%', backgroundColor: '#050505', border: '1px solid #222', borderRadius: '10px', color: '#fff', padding: '8px', fontSize: '11px', fontFamily: FONT_STACK, boxSizing: 'border-box', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}
                           />
-                          <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? '#39ff14' : '#666', fontWeight: '900' }}>
+                          <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? '#39ff14' : '#666', fontWeight: '900', textAlign: isTinyLayout ? 'left' : 'right', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
                             {String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'FREE FULL' : `${(file.size / (1024 * 1024)).toFixed(2)} MB`}
                           </span>
                         </div>
