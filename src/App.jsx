@@ -858,6 +858,7 @@ export default function App() {
   const [selectedArticleId, setSelectedArticleId] = useState(null);
   const [selectedReleaseId, setSelectedReleaseId] = useState(null);
   const [selectedMerchId, setSelectedMerchId] = useState(null);
+  const [selectedLibraryTrackId, setSelectedLibraryTrackId] = useState(null);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
   const [messageDraft, setMessageDraft] = useState({
     sender: '',
@@ -3262,8 +3263,8 @@ export default function App() {
     handlePlayTrack(buildLibraryPlaybackTrack(track, libraryItem), libraryQueue);
   };
 
-  const handleSecureLibraryDownload = async () => {
-    const targetTrack = selectedLibraryTracks[0];
+  const handleSecureLibraryDownload = async (trackOverride = null) => {
+    const targetTrack = trackOverride || selectedLibraryTrack || selectedLibraryTracks[0];
     if (!targetTrack) return alert('Pilih rilisan di Library dulu bro.');
 
     try {
@@ -3427,6 +3428,7 @@ export default function App() {
           freeFull: true
         }]
       : [];
+  const selectedLibraryTrack = selectedLibraryTracks.find((track) => String(track.id) === String(selectedLibraryTrackId)) || selectedLibraryTracks[0] || null;
   const checkoutProduct = activeCheckout?.type === 'album'
     ? activeCheckout.album
     : activeCheckout?.type === 'track'
@@ -5630,7 +5632,10 @@ export default function App() {
                     return (
                     <article
                       key={album.id}
-                      onClick={() => setSelectedLibraryItemId(album.id)}
+                      onClick={() => {
+                        setSelectedLibraryItemId(album.id);
+                        setSelectedLibraryTrackId(null);
+                      }}
                       style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: isSelectedLibraryItem ? 'rgba(0,210,255,0.06)' : '#000', border: isSelectedLibraryItem ? '1px solid rgba(0,210,255,0.45)' : '1px solid #141414', borderRadius: '12px', cursor: 'pointer' }}
                     >
                       <div style={{ width: '72px', height: '72px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
@@ -5644,6 +5649,7 @@ export default function App() {
                         onClick={(event) => {
                           event.stopPropagation();
                           setSelectedLibraryItemId(album.id);
+                          setSelectedLibraryTrackId(firstTrack?.id || null);
                           if (firstTrack) handlePlayLibraryTrack(firstTrack, album, album.tracks || [firstTrack]);
                         }}
                         style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}
@@ -5677,21 +5683,27 @@ export default function App() {
                   {selectedLibraryTracks.map((track, index) => {
                     const libraryTrackId = `library-${selectedLibraryItem?.id || 'item'}-${track.id}`;
                     const isLibraryTrackActive = activeTrack?.id === libraryTrackId && isPlaying;
+                    const isSelectedLibraryTrack = selectedLibraryTrack?.id === track.id;
 
                     return (
-                      <div key={track.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                      <div
+                        key={track.id}
+                        onClick={() => setSelectedLibraryTrackId(track.id)}
+                        style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', gap: '10px', alignItems: 'center', padding: '10px', backgroundColor: isSelectedLibraryTrack ? 'rgba(0,210,255,0.06)' : '#000', border: isSelectedLibraryTrack ? '1px solid rgba(0,210,255,0.38)' : '1px solid #141414', borderRadius: '12px', cursor: 'pointer' }}
+                      >
                         <div>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
-                          <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>FULL OWNED PLAYBACK</p>
+                          <p style={{ color: track.audioPath ? '#39ff14' : '#555', fontSize: '11px', margin: 0 }}>{track.audioPath ? 'PRIVATE STORAGE / FULL OWNED' : 'LOCAL FALLBACK / FULL OWNED'}</p>
                         </div>
-                        <button onClick={() => handlePlayLibraryTrack(track)} style={{ ...glassButtonStyle, padding: '8px 11px', fontSize: '10px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
+                        {!isTinyLayout && <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handleSecureLibraryDownload(track); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD</button>}
+                        <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handlePlayLibraryTrack(track); }} style={{ ...glassButtonStyle, padding: '8px 11px', fontSize: '10px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
                       </div>
                     );
                   })}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <button onClick={() => selectedLibraryTracks[0] && handlePlayLibraryTrack(selectedLibraryTracks[0])} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY {selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</button>
-                  <button onClick={handleSecureLibraryDownload} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SECURE DOWNLOAD</button>
+                  <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
+                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
               </aside>
             </div>
