@@ -140,6 +140,7 @@ const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
+const AUDIENCE_DOWNLOAD_LOG_STORAGE_PREFIX = 'wispace_audience_download_log';
 const AUDIENCE_NOTIFICATION_READ_PREFIX = 'wispace_audience_notification_read';
 const LOCAL_RESET_KEY_PREFIXES = [
   'wispace_'
@@ -876,6 +877,7 @@ export default function App() {
   const [articleComments, setArticleComments] = useState(loadArticleComments);
   const [articleCommentDrafts, setArticleCommentDrafts] = useState({});
   const [contentReports, setContentReports] = useState(loadContentReports);
+  const [downloadLogs, setDownloadLogs] = useState([]);
   const [subscribedBands, setSubscribedBands] = useState([]);
   const [bandSubscriberCount, setBandSubscriberCount] = useState(0);
   const [bandNotifications, setBandNotifications] = useState([]);
@@ -958,6 +960,9 @@ export default function App() {
   }, [userSession]);
   const persistAudienceLibraryLocal = useCallback((library, user = userSession) => {
     saveUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, user, library);
+  }, [userSession]);
+  const persistAudienceDownloadLogLocal = useCallback((logs, user = userSession) => {
+    saveUserScopedData(AUDIENCE_DOWNLOAD_LOG_STORAGE_PREFIX, user, logs);
   }, [userSession]);
   const persistSubscribedUpdateReadsLocal = useCallback((reads, user = userSession) => {
     saveUserScopedData(AUDIENCE_NOTIFICATION_READ_PREFIX, user, reads);
@@ -1270,6 +1275,7 @@ export default function App() {
       const storedSubscriptions = loadUserScopedData(BAND_SUBSCRIPTIONS_STORAGE_PREFIX, userSession);
       const storedAudienceProfile = loadUserScopedData(AUDIENCE_PROFILE_STORAGE_PREFIX, userSession);
       const storedAudienceLibrary = loadUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, userSession);
+      const storedAudienceDownloadLog = loadUserScopedData(AUDIENCE_DOWNLOAD_LOG_STORAGE_PREFIX, userSession);
       const storedNotificationReads = loadUserScopedData(AUDIENCE_NOTIFICATION_READ_PREFIX, userSession);
 
       if (storedProfile) {
@@ -1321,6 +1327,10 @@ export default function App() {
         setPurchasedAlbums(storedAudienceLibrary);
       }
 
+      if (Array.isArray(storedAudienceDownloadLog)) {
+        setDownloadLogs(storedAudienceDownloadLog);
+      }
+
       if (Array.isArray(storedNotificationReads)) {
         setReadSubscribedUpdateIds(storedNotificationReads);
       }
@@ -1356,7 +1366,7 @@ export default function App() {
     }, 0);
 
     return () => window.clearTimeout(restoreTimer);
-  }, [persistAudienceLibraryLocal, persistBandProfileLocal, persistBandSubscriptionsLocal, persistSubscribedUpdateReadsLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
+  }, [persistAudienceLibraryLocal, persistAudienceDownloadLogLocal, persistBandProfileLocal, persistBandSubscriptionsLocal, persistSubscribedUpdateReadsLocal, persistUserRole, publishPublicArticle, publishPublicBandProfile, publishPublicMerch, userSession]);
 
   const stopAudioPlayback = () => {
     window.clearTimeout(audioPreviewTimerRef.current);
@@ -1388,6 +1398,7 @@ export default function App() {
     setReadSubscribedUpdateIds([]);
     setAudienceProfile(createEmptyAudienceProfile());
     setPurchasedAlbums([]);
+    setDownloadLogs([]);
     setSelectedLibraryItemId(null);
     setSelectedReleaseId(null);
     setSelectedMerchId(null);
@@ -1445,6 +1456,7 @@ export default function App() {
     setSaleTransactions([]);
     setMerchOrders([]);
     setPurchasedAlbums([]);
+    setDownloadLogs([]);
     setSubscribedBands([]);
     setReadSubscribedUpdateIds([]);
     setBandNotifications([]);
@@ -3366,6 +3378,29 @@ export default function App() {
       document.body.appendChild(downloadLink);
       downloadLink.click();
       downloadLink.remove();
+
+      const nextLog = {
+        id: createClientId(),
+        trackId: targetTrack.id || '',
+        trackTitle: targetTrack.title || targetTrack.fileName || 'WiSpace track',
+        albumTitle: selectedLibraryItem?.parentAlbumTitle || selectedLibraryItem?.title || playableTrack.albumTitle || 'WiSpace archive',
+        bandName: selectedLibraryItem?.bandName || playableTrack.bandName || 'WiSpace',
+        fileName: targetTrack.fileName || downloadLink.download,
+        source: targetTrack.audioPath ? 'signed_private_audio' : 'local_fallback',
+        downloadedAt: new Date().toLocaleString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      };
+
+      setDownloadLogs((currentLogs) => {
+        const nextLogs = [nextLog, ...currentLogs].slice(0, 20);
+        persistAudienceDownloadLogLocal(nextLogs);
+        return nextLogs;
+      });
     } catch (error) {
       alert(`Secure download belum bisa dibuka: ${error.message}`);
     }
@@ -3520,6 +3555,13 @@ export default function App() {
         }]
       : [];
   const selectedLibraryTrack = selectedLibraryTracks.find((track) => String(track.id) === String(selectedLibraryTrackId)) || selectedLibraryTracks[0] || null;
+  const selectedLibraryDownloadLogs = selectedLibraryItem
+    ? downloadLogs.filter((log) => (
+        log.albumTitle === selectedLibraryItem.title
+        || log.albumTitle === selectedLibraryItem.parentAlbumTitle
+        || log.bandName === selectedLibraryItem.bandName
+      ))
+    : downloadLogs;
   const checkoutProduct = activeCheckout?.type === 'album'
     ? activeCheckout.album
     : activeCheckout?.type === 'track'
@@ -5865,6 +5907,7 @@ export default function App() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
                       <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', color: '#00d2ff', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
                       <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', color: '#aaa', fontSize: '9px', fontWeight: '900' }}>DOWNLOAD PER TRACK</span>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.16)', color: '#39ff14', fontSize: '9px', fontWeight: '900' }}>PERSONAL LICENSE</span>
                     </div>
                   </div>
                 </div>
@@ -5894,7 +5937,28 @@ export default function App() {
                   <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
                   <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
-                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Full album ZIP download belum aktif. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Download hanya untuk akun pembeli, personal listening, dan tidak untuk distribusi ulang. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
+                <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
+                    <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: 0 }}>DOWNLOAD LOG</p>
+                    <span style={{ color: '#666', fontSize: '9px', fontWeight: '900' }}>{downloadLogs.length} RECORD</span>
+                  </div>
+                  {selectedLibraryDownloadLogs.length === 0 ? (
+                    <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>Belum ada download di device ini.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '7px' }}>
+                      {selectedLibraryDownloadLogs.slice(0, 3).map((log) => (
+                        <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '8px' }}>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ color: '#fff', fontSize: '10px', fontWeight: '900', margin: '0 0 3px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.trackTitle.toUpperCase()}</p>
+                            <p style={{ color: '#777', fontSize: '9px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.albumTitle} / {log.bandName}</p>
+                          </div>
+                          <span style={{ color: '#555', fontSize: '8px', fontWeight: '900', textAlign: 'right', whiteSpace: 'nowrap' }}>{log.downloadedAt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </aside>
             </div>
           )}
