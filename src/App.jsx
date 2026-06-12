@@ -141,6 +141,7 @@ const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
 const RELEASE_AGREEMENT_LEDGER_STORAGE_KEY = 'wispace_release_agreement_ledger';
 const MONTHLY_FINANCE_REPORTS_STORAGE_KEY = 'wispace_monthly_finance_reports';
+const PENDING_PAYMENTS_STORAGE_KEY = 'wispace_pending_payments';
 const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
 const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
@@ -346,6 +347,15 @@ const saveMonthlyFinanceReports = (reports) => {
   window.localStorage.setItem(MONTHLY_FINANCE_REPORTS_STORAGE_KEY, JSON.stringify(reports));
 };
 
+const loadPendingPayments = () => {
+  const payments = readLocalJson(PENDING_PAYMENTS_STORAGE_KEY);
+  return Array.isArray(payments) ? payments : [];
+};
+
+const savePendingPayments = (payments) => {
+  window.localStorage.setItem(PENDING_PAYMENTS_STORAGE_KEY, JSON.stringify(payments));
+};
+
 const loadMerchOrders = () => {
   const orders = readLocalJson(MERCH_ORDERS_STORAGE_KEY);
   return Array.isArray(orders) ? orders : [];
@@ -515,6 +525,7 @@ const mapTransactionFromRow = (row = {}) => ({
   sellerBandName: row.seller_band_name || 'WiSpace',
   sellerBandSlug: row.seller_band_slug || createSlug(row.seller_band_name || 'wispace'),
   sellerBandUserId: row.seller_band_user_id || '',
+  buyerUserId: row.buyer_user_id || '',
   buyerName: row.buyer_name || 'Audience WiSpace',
   buyerEmail: row.buyer_email || '',
   grossAmount: Number(row.gross_amount || 0),
@@ -948,6 +959,7 @@ export default function App() {
   const [saleTransactions, setSaleTransactions] = useState(loadTransactionLedger);
   const [releaseAgreements, setReleaseAgreements] = useState(loadReleaseAgreementLedger);
   const [monthlyFinanceReports, setMonthlyFinanceReports] = useState(loadMonthlyFinanceReports);
+  const [pendingPayments, setPendingPayments] = useState(loadPendingPayments);
   const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
@@ -1545,6 +1557,7 @@ export default function App() {
     setSaleTransactions([]);
     setReleaseAgreements([]);
     setMonthlyFinanceReports([]);
+    setPendingPayments([]);
     setMerchOrders([]);
     setPurchasedAlbums([]);
     setDownloadLogs([]);
@@ -2852,6 +2865,7 @@ export default function App() {
       sellerBandName,
       sellerBandSlug,
       sellerBandUserId,
+      buyerUserId: sale.buyerUserId || userSession?.id || '',
       buyerName: sale.buyerName || audienceProfile.displayName || userSession?.email?.split('@')[0] || 'Audience WiSpace',
       buyerEmail: sale.buyerEmail || userSession?.email || '',
       grossAmount,
@@ -2877,7 +2891,7 @@ export default function App() {
       void supabase.from('sales_transactions').insert([{
         id: nextTransaction.id,
         order_id: nextTransaction.orderId || null,
-        buyer_user_id: userSession.id,
+        buyer_user_id: nextTransaction.buyerUserId || userSession.id,
         seller_band_user_id: nextTransaction.sellerBandUserId || null,
         seller_band_slug: nextTransaction.sellerBandSlug,
         seller_band_name: nextTransaction.sellerBandName,
@@ -2907,10 +2921,11 @@ export default function App() {
   }, [audienceProfile.displayName, bandProfile.name, bandProfile.slug, signatureName, userSession]);
 
   const syncAudienceLibraryPurchase = (purchase) => {
-    if (!isSupabaseConfigured || !userSession?.id) return;
+    const audienceUserId = purchase.audienceUserId || userSession?.id;
+    if (!isSupabaseConfigured || !audienceUserId) return;
 
     void supabase.from('audience_library').insert([{
-      audience_user_id: userSession.id,
+      audience_user_id: audienceUserId,
       release_id: purchase.releaseId || null,
       track_id: purchase.trackId || null,
       purchase_type: purchase.purchaseType || 'album',
@@ -2992,7 +3007,7 @@ export default function App() {
     if (!activeCheckout) return;
     if (activeCheckout.status === 'processing_payment') return;
 
-    if (['paid', 'cancelled'].includes(activeCheckout.status)) {
+    if (['waiting_admin_confirmation', 'paid', 'cancelled'].includes(activeCheckout.status)) {
       setActiveCheckout(null);
       return;
     }
@@ -3012,10 +3027,72 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const createCheckoutPendingPayment = (buyerName, buyerEmail) => {
+    const product = activeCheckout.type === 'album'
+      ? activeCheckout.album
+      : activeCheckout.type === 'track'
+        ? activeCheckout.track
+        : activeCheckout.item;
+    const albumContext = activeCheckout.album || null;
+    return {
+      id: createClientId(),
+      checkoutRef: activeCheckout.checkoutRef,
+      type: activeCheckout.type,
+      buyerUserId: userSession?.id || '',
+      buyerName,
+      buyerEmail,
+      amount: normalizePriceValue(product?.price),
+      productTitle: product?.title || product?.name || 'Checkout WiSpace',
+      sellerBandName: activeCheckout.type === 'track' ? albumContext?.bandName : product?.bandName,
+      sellerBandSlug: activeCheckout.type === 'track' ? albumContext?.bandSlug : product?.bandSlug,
+      sellerBandUserId: activeCheckout.type === 'track' ? albumContext?.bandUserId : product?.bandUserId,
+      album: albumContext,
+      track: activeCheckout.track || null,
+      trackPurchaseId: activeCheckout.trackPurchaseId || '',
+      item: activeCheckout.item || null,
+      releaseId: activeCheckout.type === 'track' ? albumContext?.id : activeCheckout.album?.id,
+      trackId: activeCheckout.track?.id || '',
+      merchItemId: activeCheckout.item?.id || '',
+      shipping: activeCheckout.type === 'merch'
+        ? {
+            recipientName: checkoutDraft.recipientName.trim(),
+            recipientPhone: checkoutDraft.recipientPhone.trim(),
+            address: checkoutDraft.address.trim(),
+            city: checkoutDraft.city.trim(),
+            postalCode: checkoutDraft.postalCode.trim(),
+            courier: checkoutDraft.courier,
+            note: checkoutDraft.note.trim()
+          }
+        : null,
+      status: 'waiting_admin_confirmation',
+      submittedAt: new Date().toISOString(),
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+  };
+
+  const markPendingPayment = (payment) => {
+    setPendingPayments((current) => {
+      const nextPayments = [
+        payment,
+        ...current.filter((item) => item.checkoutRef !== payment.checkoutRef)
+      ];
+      savePendingPayments(nextPayments);
+      return nextPayments;
+    });
+  };
+
+  const removePendingPayment = (paymentId) => {
+    setPendingPayments((current) => {
+      const nextPayments = current.filter((payment) => payment.id !== paymentId);
+      savePendingPayments(nextPayments);
+      return nextPayments;
+    });
+  };
+
   const handleCheckoutSubmit = (event) => {
     event.preventDefault();
     if (!activeCheckout || !userSession) return;
-    if (['processing_payment', 'paid', 'cancelled'].includes(activeCheckout.status)) return;
+    if (['processing_payment', 'waiting_admin_confirmation', 'paid', 'cancelled'].includes(activeCheckout.status)) return;
 
     const buyerName = checkoutDraft.buyerName.trim() || audienceProfile.displayName || userSession.email?.split('@')[0] || 'Audience WiSpace';
     const buyerEmail = checkoutDraft.buyerEmail.trim() || userSession.email || '';
@@ -3034,29 +3111,50 @@ export default function App() {
       }
     }
 
-    setActiveCheckout((current) => current ? { ...current, status: 'processing_payment' } : current);
+    const pendingPayment = createCheckoutPendingPayment(buyerName, buyerEmail);
+    markPendingPayment(pendingPayment);
+    setActiveCheckout((current) => current ? {
+      ...current,
+      status: 'waiting_admin_confirmation',
+      pendingPaymentId: pendingPayment.id,
+      paymentStatus: 'waiting_admin_confirmation',
+      successMessage: `Order ${pendingPayment.checkoutRef} sudah masuk antrean admin. Akses/order aktif setelah admin confirm paid.`
+    } : current);
+    alert(`Payment request ${pendingPayment.checkoutRef} masuk ke admin. Setelah admin confirm paid, akses/order baru aktif.`);
+  };
 
-    if (activeCheckout.type === 'album') {
-      const album = activeCheckout.album;
-      const alreadyOwned = purchasedAlbums.some((item) => item.id === album.id);
-      if (alreadyOwned) {
-        setActiveCheckout(null);
-        setActivePage('audience_library');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+  const handleConfirmPendingPayment = (payment) => {
+    if (!payment) return;
+    const confirmed = window.confirm(`Confirm paid untuk ${payment.productTitle} / ${payment.buyerName}?`);
+    if (!confirmed) return;
+
+    if (payment.type === 'album') {
+      const album = payment.album;
+      const buyerAccount = { id: payment.buyerUserId || userSession?.id || '', email: payment.buyerEmail || '' };
+      const isCurrentBuyer = !payment.buyerUserId || payment.buyerUserId === userSession?.id;
+      const buyerLibrary = isCurrentBuyer
+        ? purchasedAlbums
+        : (loadUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, buyerAccount) || []);
+      const alreadyOwned = buyerLibrary.some((item) => item.id === album.id);
+      const libraryItem = {
+        ...album,
+        purchaseType: 'album',
+        purchasedAt: 'Baru saja',
+        paymentStatus: 'paid',
+        accessType: 'encrypted_library'
+      };
+      if (!alreadyOwned && isCurrentBuyer) {
+        setPurchasedAlbums((current) => {
+          const nextLibrary = [libraryItem, ...current];
+          persistAudienceLibraryLocal(nextLibrary);
+          return nextLibrary;
+        });
+      } else if (!alreadyOwned) {
+        persistAudienceLibraryLocal([libraryItem, ...buyerLibrary], buyerAccount);
       }
-
-      setPurchasedAlbums((current) => {
-        const nextLibrary = [{
-          ...album,
-          purchaseType: 'album',
-          purchasedAt: 'Baru saja',
-          paymentStatus: 'paid',
-          accessType: 'encrypted_library'
-        }, ...current];
-        persistAudienceLibraryLocal(nextLibrary);
-        return nextLibrary;
-      });
+      if (!alreadyOwned) {
+        syncAudienceLibraryPurchase({ audienceUserId: payment.buyerUserId, purchaseType: 'album', releaseId: album.id });
+      }
       recordBandSale({
         productType: 'album',
         productTitle: album.title,
@@ -3065,16 +3163,19 @@ export default function App() {
         sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
         sellerBandUserId: album.bandUserId || '',
         releaseId: album.id,
-        orderId: activeCheckout.checkoutRef,
+        orderId: payment.checkoutRef,
         fulfillmentStatus: 'library_active',
-        buyerName,
-        buyerEmail
+        buyerName: payment.buyerName,
+        buyerEmail: payment.buyerEmail,
+        buyerUserId: payment.buyerUserId,
+        paymentStatus: 'paid',
+        paymentMethod: 'admin_confirmed_manual'
       });
-      syncAudienceLibraryPurchase({ purchaseType: 'album', releaseId: album.id });
-      setActiveCheckout((current) => current ? {
+      removePendingPayment(payment.id);
+      setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
-        paymentStatus: 'demo_paid',
+        paymentStatus: 'paid',
         fulfillmentStatus: 'library_active',
         paidAt: new Date().toISOString(),
         successMessage: `${album.title} masuk Library. Akses sudah aktif.`
@@ -3082,36 +3183,39 @@ export default function App() {
       return;
     }
 
-    if (activeCheckout.type === 'track') {
-      const { album, track, trackPurchaseId } = activeCheckout;
-      const alreadyOwned = purchasedAlbums.some((item) => item.id === trackPurchaseId);
-      if (alreadyOwned) {
-        setActiveCheckout(null);
-        setActivePage('audience_library');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+    if (payment.type === 'track') {
+      const { album, track, trackPurchaseId } = payment;
+      const buyerAccount = { id: payment.buyerUserId || userSession?.id || '', email: payment.buyerEmail || '' };
+      const isCurrentBuyer = !payment.buyerUserId || payment.buyerUserId === userSession?.id;
+      const buyerLibrary = isCurrentBuyer
+        ? purchasedAlbums
+        : (loadUserScopedData(AUDIENCE_LIBRARY_STORAGE_PREFIX, buyerAccount) || []);
+      const alreadyOwned = buyerLibrary.some((item) => item.id === trackPurchaseId);
+      const libraryItem = {
+        ...album,
+        id: trackPurchaseId,
+        title: track.title,
+        price: track.price,
+        trackCount: 1,
+        purchaseType: 'track',
+        parentAlbumTitle: album.title,
+        tracks: [track],
+        purchasedAt: 'Baru saja',
+        paymentStatus: 'paid',
+        accessType: 'encrypted_library'
+      };
+      if (!alreadyOwned && isCurrentBuyer) {
+        setPurchasedAlbums((current) => {
+          const nextLibrary = [libraryItem, ...current];
+          persistAudienceLibraryLocal(nextLibrary);
+          return nextLibrary;
+        });
+      } else if (!alreadyOwned) {
+        persistAudienceLibraryLocal([libraryItem, ...buyerLibrary], buyerAccount);
       }
-
-      setPurchasedAlbums((current) => {
-        const nextLibrary = [
-          {
-            ...album,
-            id: trackPurchaseId,
-            title: track.title,
-            price: track.price,
-            trackCount: 1,
-            purchaseType: 'track',
-            parentAlbumTitle: album.title,
-            tracks: [track],
-            purchasedAt: 'Baru saja',
-            paymentStatus: 'paid',
-            accessType: 'encrypted_library'
-          },
-          ...current
-        ];
-        persistAudienceLibraryLocal(nextLibrary);
-        return nextLibrary;
-      });
+      if (!alreadyOwned) {
+        syncAudienceLibraryPurchase({ audienceUserId: payment.buyerUserId, purchaseType: 'track', releaseId: album.id, trackId: track.id });
+      }
       recordBandSale({
         productType: 'track',
         productTitle: track.title,
@@ -3121,16 +3225,19 @@ export default function App() {
         sellerBandUserId: album.bandUserId || '',
         releaseId: album.id,
         trackId: track.id,
-        orderId: activeCheckout.checkoutRef,
+        orderId: payment.checkoutRef,
         fulfillmentStatus: 'library_active',
-        buyerName,
-        buyerEmail
+        buyerName: payment.buyerName,
+        buyerEmail: payment.buyerEmail,
+        buyerUserId: payment.buyerUserId,
+        paymentStatus: 'paid',
+        paymentMethod: 'admin_confirmed_manual'
       });
-      syncAudienceLibraryPurchase({ purchaseType: 'track', releaseId: album.id, trackId: track.id });
-      setActiveCheckout((current) => current ? {
+      removePendingPayment(payment.id);
+      setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
-        paymentStatus: 'demo_paid',
+        paymentStatus: 'paid',
         fulfillmentStatus: 'library_active',
         paidAt: new Date().toISOString(),
         successMessage: `${track.title} masuk Library sebagai track. Akses sudah aktif.`
@@ -3138,8 +3245,8 @@ export default function App() {
       return;
     }
 
-    if (activeCheckout.type === 'merch') {
-      const item = activeCheckout.item;
+    if (payment.type === 'merch') {
+      const item = payment.item;
       const sale = recordBandSale({
         productType: 'merch',
         productTitle: item.name,
@@ -3148,10 +3255,13 @@ export default function App() {
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || ''),
         sellerBandUserId: item.bandUserId || '',
         merchItemId: item.id,
-        orderId: activeCheckout.checkoutRef,
+        orderId: payment.checkoutRef,
         fulfillmentStatus: 'order_paid_waiting_band',
-        buyerName,
-        buyerEmail
+        buyerName: payment.buyerName,
+        buyerEmail: payment.buyerEmail,
+        buyerUserId: payment.buyerUserId,
+        paymentStatus: 'paid',
+        paymentMethod: 'admin_confirmed_manual'
       });
       const nextOrder = {
         id: createClientId(),
@@ -3162,16 +3272,16 @@ export default function App() {
         sellerBandName: item.bandName || 'Band WiSpace',
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || 'band-wispace'),
         sellerBandUserId: item.bandUserId || '',
-        buyerUserId: userSession.id,
-        buyerName,
-        buyerEmail,
-        recipientName: checkoutDraft.recipientName.trim(),
-        recipientPhone: checkoutDraft.recipientPhone.trim(),
-        address: checkoutDraft.address.trim(),
-        city: checkoutDraft.city.trim(),
-        postalCode: checkoutDraft.postalCode.trim(),
-        courier: checkoutDraft.courier,
-        note: checkoutDraft.note.trim(),
+        buyerUserId: payment.buyerUserId || userSession?.id || '',
+        buyerName: payment.buyerName,
+        buyerEmail: payment.buyerEmail,
+        recipientName: payment.shipping?.recipientName || '',
+        recipientPhone: payment.shipping?.recipientPhone || '',
+        address: payment.shipping?.address || '',
+        city: payment.shipping?.city || '',
+        postalCode: payment.shipping?.postalCode || '',
+        courier: payment.shipping?.courier || 'JNE REG',
+        note: payment.shipping?.note || '',
         trackingNumber: '',
         trackingStatus: 'order_paid_waiting_band',
         createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -3206,7 +3316,7 @@ export default function App() {
           id: nextOrder.id,
           transaction_id: sale.id,
           order_id: nextOrder.orderId || null,
-          buyer_user_id: userSession.id,
+          buyer_user_id: payment.buyerUserId || userSession.id,
           seller_band_user_id: item.bandUserId || null,
           merch_item_id: item.id,
           quantity: 1,
@@ -3225,15 +3335,28 @@ export default function App() {
         });
       }
 
-      setActiveCheckout((current) => current ? {
+      removePendingPayment(payment.id);
+      setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
-        paymentStatus: 'demo_paid',
+        paymentStatus: 'paid',
         fulfillmentStatus: 'order_paid_waiting_band',
         paidAt: new Date().toISOString(),
         successMessage: `${item.name} masuk order merch. Band akan proses pengiriman.`
       } : current);
     }
+  };
+
+  const handleRejectPendingPayment = (payment) => {
+    if (!payment) return;
+    const confirmed = window.confirm(`Reject/cancel payment request ${payment.checkoutRef}?`);
+    if (!confirmed) return;
+    removePendingPayment(payment.id);
+    setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
+      ...current,
+      status: 'cancelled',
+      cancelledAt: new Date().toISOString()
+    } : current);
   };
 
   const updateMerchOrderLocal = (orderId, updatePayload) => {
@@ -3913,6 +4036,7 @@ export default function App() {
   const checkoutReference = activeCheckout?.checkoutRef || 'WSP-DEMO-ORDER';
   const checkoutPaymentStatus = activeCheckout?.status || 'pending_payment';
   const checkoutIsProcessing = checkoutPaymentStatus === 'processing_payment';
+  const checkoutIsAwaitingAdmin = checkoutPaymentStatus === 'waiting_admin_confirmation';
   const checkoutIsPaid = checkoutPaymentStatus === 'paid';
   const checkoutIsCancelled = checkoutPaymentStatus === 'cancelled';
   const checkoutAccessStatus = checkoutIsPaid
@@ -3921,6 +4045,8 @@ export default function App() {
       : 'library_active'
     : checkoutIsCancelled
       ? 'cancelled'
+      : checkoutIsAwaitingAdmin
+        ? 'waiting_admin_confirmation'
       : 'waiting_payment';
   const checkoutStatusCopy = checkoutIsPaid
     ? activeCheckout?.type === 'merch'
@@ -3928,6 +4054,8 @@ export default function App() {
       : 'Payment paid - library aktif'
     : checkoutIsCancelled
       ? 'Checkout dibatalkan'
+      : checkoutIsAwaitingAdmin
+        ? 'Menunggu admin confirm paid'
       : checkoutIsProcessing
         ? 'Memproses simulasi payment'
         : 'Menunggu konfirmasi pembayaran';
@@ -4190,6 +4318,16 @@ export default function App() {
     }
   ];
   const adminNotificationQueue = [
+    ...pendingPayments.slice(0, 10).map((payment) => ({
+      id: `pending-payment-${payment.id}`,
+      title: 'Payment buyer perlu confirm paid',
+      body: `${payment.productTitle} / ${payment.buyerName} / Rp ${Number(payment.amount || 0).toLocaleString('id-ID')} / ${payment.checkoutRef}`,
+      badge: 'PAYMENT',
+      color: '#ffcc00',
+      targetSection: 'notifications',
+      actionType: 'confirm_payment',
+      payment
+    })),
     ...pendingGigs.slice(0, 6).map((gig) => ({
       id: `pending-gig-${gig.id}`,
       title: 'Pamflet baru perlu kurasi',
@@ -5243,7 +5381,14 @@ export default function App() {
                       <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title.toUpperCase()}</h4>
                       <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{item.body}</p>
                     </div>
-                    <button type="button" onClick={() => setAdminActiveSection(item.targetSection)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>BUKA</button>
+                    {item.actionType === 'confirm_payment' ? (
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
+                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)' }}>CONFIRM PAID</button>
+                        <button type="button" onClick={() => handleRejectPendingPayment(item.payment)} style={{ background: 'rgba(255,51,51,0.08)', border: '1px solid rgba(255,51,51,0.28)', color: '#ff3333', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setAdminActiveSection(item.targetSection)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>BUKA</button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -7474,7 +7619,7 @@ export default function App() {
                 <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '22px' : '28px', fontWeight: '900', lineHeight: 1, margin: 0 }}>{checkoutTitle.toUpperCase()}</h3>
                 <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: '8px 0 0 0' }}>{(activeCheckout.type || '').toUpperCase()} / {(checkoutSellerName || 'Band WiSpace').toUpperCase()}</p>
               </div>
-              <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: checkoutIsProcessing ? '#555' : '#fff', borderRadius: '12px', padding: '9px 11px', fontSize: '11px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled ? 'CLOSE' : 'CANCEL'}</button>
+              <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: checkoutIsProcessing ? '#555' : '#fff', borderRadius: '12px', padding: '9px 11px', fontSize: '11px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin ? 'CLOSE' : 'CANCEL'}</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
@@ -7488,44 +7633,44 @@ export default function App() {
                 <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
                   <span>Order ID: <strong style={{ color: '#00d2ff' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#fff' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
-                  <span>Payment: <strong style={{ color: checkoutIsPaid ? '#39ff14' : checkoutIsCancelled ? '#ff3333' : '#ffcc00' }}>{checkoutPaymentStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
-                  <span>Status: <strong style={{ color: checkoutIsPaid ? '#39ff14' : checkoutIsCancelled ? '#ff3333' : '#ffcc00' }}>{checkoutStatusCopy}</strong></span>
+                  <span>Payment: <strong style={{ color: checkoutIsPaid ? '#39ff14' : checkoutIsCancelled ? '#ff3333' : checkoutIsAwaitingAdmin ? '#00d2ff' : '#ffcc00' }}>{checkoutPaymentStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
+                  <span>Status: <strong style={{ color: checkoutIsPaid ? '#39ff14' : checkoutIsCancelled ? '#ff3333' : checkoutIsAwaitingAdmin ? '#00d2ff' : '#ffcc00' }}>{checkoutStatusCopy}</strong></span>
                   <span>Fulfillment: <strong style={{ color: checkoutIsPaid ? activeCheckout.type === 'merch' ? '#ffcc00' : '#39ff14' : '#777' }}>{checkoutAccessStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
-                  <span>{checkoutIsPaid ? activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.' : 'Belum ada akses/order aktif sebelum payment paid.'}</span>
+                  <span>{checkoutIsPaid ? activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.' : checkoutIsAwaitingAdmin ? 'Payment request sudah masuk admin. Belum ada akses/order aktif.' : 'Belum ada akses/order aktif sebelum payment paid.'}</span>
                 </div>
               </div>
             </div>
 
-            {(checkoutIsPaid || checkoutIsCancelled) && (
-              <div style={{ padding: '12px', backgroundColor: '#000', border: `1px solid ${checkoutIsPaid ? 'rgba(57,255,20,0.28)' : 'rgba(255,51,51,0.28)'}`, borderRadius: '12px', marginBottom: '14px' }}>
-                <p style={{ color: checkoutIsPaid ? '#39ff14' : '#ff3333', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : 'CHECKOUT CANCELLED'}</p>
-                <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Pembayaran berhasil dan akses/order sudah aktif.' : 'Checkout dibatalkan. Tidak ada transaksi, saldo, order, atau library yang dibuat.'}</p>
+            {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
+              <div style={{ padding: '12px', backgroundColor: '#000', border: `1px solid ${checkoutIsPaid ? 'rgba(57,255,20,0.28)' : checkoutIsAwaitingAdmin ? 'rgba(0,210,255,0.28)' : 'rgba(255,51,51,0.28)'}`, borderRadius: '12px', marginBottom: '14px' }}>
+                <p style={{ color: checkoutIsPaid ? '#39ff14' : checkoutIsAwaitingAdmin ? '#00d2ff' : '#ff3333', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : checkoutIsAwaitingAdmin ? 'WAITING ADMIN CONFIRM' : 'CHECKOUT CANCELLED'}</p>
+                <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Pembayaran berhasil dan akses/order sudah aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Request pembayaran sudah masuk ke admin. Akses/order aktif setelah admin confirm paid.' : 'Checkout dibatalkan. Tidak ada transaksi, saldo, order, atau library yang dibuat.'}</p>
               </div>
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-              <input type="text" placeholder="NAMA PEMBELI" value={checkoutDraft.buyerName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, buyerName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-              <input type="email" placeholder="EMAIL PEMBELI" value={checkoutDraft.buyerEmail} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, buyerEmail: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+              <input type="text" placeholder="NAMA PEMBELI" value={checkoutDraft.buyerName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, buyerName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+              <input type="email" placeholder="EMAIL PEMBELI" value={checkoutDraft.buyerEmail} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, buyerEmail: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
             </div>
 
             {activeCheckout.type === 'merch' && (
               <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', marginBottom: '14px' }}>
                 <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>DATA PENGIRIMAN MERCH</p>
                 <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
-                  <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-                  <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-                  <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, city: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-                  <input type="text" placeholder="KODE POS" value={checkoutDraft.postalCode} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, postalCode: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-                  <select value={checkoutDraft.courier} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, courier: event.target.value })} disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle}>
+                  <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, city: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="KODE POS" value={checkoutDraft.postalCode} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, postalCode: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <select value={checkoutDraft.courier} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, courier: event.target.value })} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle}>
                     <option value="JNE REG">JNE REG</option>
                     <option value="J&T EZ">J&T EZ</option>
                     <option value="SiCepat REG">SiCepat REG</option>
                     <option value="Anteraja REG">Anteraja REG</option>
                     <option value="POS Kilat">POS Kilat</option>
                   </select>
-                  <input type="text" placeholder="CATATAN OPSIONAL" value={checkoutDraft.note} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, note: event.target.value })} disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="CATATAN OPSIONAL" value={checkoutDraft.note} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, note: event.target.value })} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                 </div>
-                <textarea placeholder="ALAMAT LENGKAP" value={checkoutDraft.address} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, address: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsPaid || checkoutIsCancelled} rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5, marginTop: '12px' }} />
+                <textarea placeholder="ALAMAT LENGKAP" value={checkoutDraft.address} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, address: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5, marginTop: '12px' }} />
                 <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih placeholder. Nanti bisa disambung ke API ekspedisi buat tarif dan tracking real-time.</p>
               </div>
             )}
@@ -7538,11 +7683,11 @@ export default function App() {
 
             {checkoutIsPaid ? (
               <button type="button" onClick={closeCompletedCheckout} style={{ width: '100%', padding: '14px', backgroundColor: '#39ff14', color: '#000', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{activeCheckout.type === 'merch' ? 'BUKA MY ORDERS' : 'BUKA LIBRARY'}</button>
-            ) : checkoutIsCancelled ? (
+            ) : checkoutIsCancelled || checkoutIsAwaitingAdmin ? (
               <button type="button" onClick={() => setActiveCheckout(null)} style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(255,255,255,0.04)', color: '#fff', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TUTUP CHECKOUT</button>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr auto', gap: '10px' }}>
-                <button type="submit" disabled={checkoutIsProcessing} style={{ width: '100%', padding: '14px', backgroundColor: checkoutIsProcessing ? '#141414' : '#00d2ff', color: checkoutIsProcessing ? '#555' : '#000', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsProcessing ? 'MEMPROSES PAYMENT...' : 'SIMULASI PAYMENT PAID'}</button>
+                <button type="submit" disabled={checkoutIsProcessing} style={{ width: '100%', padding: '14px', backgroundColor: checkoutIsProcessing ? '#141414' : '#00d2ff', color: checkoutIsProcessing ? '#555' : '#000', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsProcessing ? 'MEMPROSES REQUEST...' : 'KIRIM REQUEST KONFIRMASI PAYMENT'}</button>
                 <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ padding: '14px', backgroundColor: 'rgba(255,51,51,0.08)', color: checkoutIsProcessing ? '#555' : '#ff3333', border: '1px solid rgba(255,51,51,0.28)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>CANCEL</button>
               </div>
             )}
