@@ -87,6 +87,29 @@ create table if not exists public.sales_transactions (
   paid_at timestamptz
 );
 
+create table if not exists public.payment_requests (
+  id uuid primary key default gen_random_uuid(),
+  checkout_ref text not null unique,
+  buyer_user_id uuid references auth.users(id) on delete set null,
+  buyer_name text,
+  buyer_email text,
+  seller_band_user_id uuid references auth.users(id) on delete set null,
+  seller_band_slug text,
+  seller_band_name text,
+  payment_type text not null,
+  product_title text not null,
+  amount integer not null default 0,
+  status text not null default 'waiting_admin_confirmation',
+  payload jsonb not null default '{}'::jsonb,
+  submitted_at timestamptz not null default now(),
+  confirmed_at timestamptz,
+  confirmed_by text,
+  rejected_at timestamptz,
+  rejected_by text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.release_agreements (
   id uuid primary key default gen_random_uuid(),
   release_id uuid references public.releases(id) on delete set null,
@@ -201,6 +224,12 @@ add column if not exists payment_method text,
 add column if not exists fulfillment_status text,
 add column if not exists payout_status text not null default 'available_next_cycle';
 
+alter table if exists public.payment_requests
+add column if not exists payload jsonb not null default '{}'::jsonb,
+add column if not exists confirmed_by text,
+add column if not exists rejected_by text,
+add column if not exists updated_at timestamptz not null default now();
+
 alter table if exists public.merch_orders
 add column if not exists order_id text;
 
@@ -231,6 +260,15 @@ on public.sales_transactions (gig_id, created_at desc);
 create index if not exists sales_transactions_payout_idx
 on public.sales_transactions (payout_status, created_at desc);
 
+create index if not exists payment_requests_status_idx
+on public.payment_requests (status, submitted_at desc);
+
+create index if not exists payment_requests_buyer_idx
+on public.payment_requests (buyer_user_id, submitted_at desc);
+
+create index if not exists payment_requests_seller_idx
+on public.payment_requests (seller_band_user_id, submitted_at desc);
+
 create index if not exists release_agreements_band_idx
 on public.release_agreements (band_slug, signed_at desc);
 
@@ -257,6 +295,7 @@ alter table public.article_comments enable row level security;
 alter table public.content_reports enable row level security;
 alter table public.merch_items enable row level security;
 alter table public.sales_transactions enable row level security;
+alter table public.payment_requests enable row level security;
 alter table public.release_agreements enable row level security;
 alter table public.monthly_finance_reports enable row level security;
 alter table public.merch_orders enable row level security;
@@ -328,6 +367,16 @@ create policy "Bands can update own transaction fulfillment"
 on public.sales_transactions for update
 using (auth.uid() = seller_band_user_id)
 with check (auth.uid() = seller_band_user_id);
+
+drop policy if exists "Audience can create own payment requests" on public.payment_requests;
+create policy "Audience can create own payment requests"
+on public.payment_requests for insert
+with check (auth.uid() = buyer_user_id);
+
+drop policy if exists "Payment participants can read payment requests" on public.payment_requests;
+create policy "Payment participants can read payment requests"
+on public.payment_requests for select
+using (auth.uid() = buyer_user_id or auth.uid() = seller_band_user_id);
 
 drop policy if exists "Bands can read own release agreements" on public.release_agreements;
 create policy "Bands can read own release agreements"

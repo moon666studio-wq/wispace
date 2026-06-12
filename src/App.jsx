@@ -862,7 +862,7 @@ export default function App() {
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [adminError, setAdminError] = useState('');
   const [adminFinanceFilter, setAdminFinanceFilter] = useState('all');
-  const [adminActiveSection, setAdminActiveSection] = useState('finance');
+  const [adminActiveSection, setAdminActiveSection] = useState('payment');
 
   // STATE USER & ROLE MANAGEMENT
   const [userSession, setUserSession] = useState(null);
@@ -2611,7 +2611,13 @@ export default function App() {
       `   WiSpace fee: Rp ${Number(row.platformFee || 0).toLocaleString('id-ID')}`,
       `   Net band: Rp ${Number(row.amount || 0).toLocaleString('id-ID')}`,
       `   Transaksi: ${row.transactions || 0}`,
-      `   Rekening: ${row.bankName ? `${row.bankName} / ${row.bankAccountName} / ${row.bankAccountNumber}` : 'BELUM LENGKAP'}`
+      `   Rekening: ${row.bankName ? `${row.bankName} / ${row.bankAccountName} / ${row.bankAccountNumber}` : 'BELUM LENGKAP'}`,
+      '   Detail transaksi:',
+      ...((row.transactionDetails || []).length
+        ? row.transactionDetails.map((transaction) => (
+            `   - ${transaction.createdAt || transaction.paidAt || '-'} / ${transaction.orderId || '-'} / ${transaction.productType || 'order'} / ${transaction.productTitle || '-'} / Buyer: ${transaction.buyerName || '-'} / Gross Rp ${Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(transaction.bandNet || 0).toLocaleString('id-ID')}`
+          ))
+        : ['   - Belum ada detail transaksi'])
     ].join('\n'))
   ].join('\n');
 
@@ -3079,14 +3085,54 @@ export default function App() {
       savePendingPayments(nextPayments);
       return nextPayments;
     });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase.from('payment_requests').upsert([{
+        id: payment.id,
+        checkout_ref: payment.checkoutRef,
+        buyer_user_id: payment.buyerUserId || userSession.id,
+        buyer_name: payment.buyerName,
+        buyer_email: payment.buyerEmail,
+        seller_band_user_id: payment.sellerBandUserId || null,
+        seller_band_slug: payment.sellerBandSlug || null,
+        seller_band_name: payment.sellerBandName || null,
+        payment_type: payment.type,
+        product_title: payment.productTitle,
+        amount: Number(payment.amount || 0),
+        status: payment.status || 'waiting_admin_confirmation',
+        payload: payment,
+        submitted_at: payment.submittedAt || new Date().toISOString()
+      }], { onConflict: 'checkout_ref' }).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync payment request ke Supabase:', error.message);
+        }
+      });
+    }
   };
 
-  const removePendingPayment = (paymentId) => {
+  const updatePendingPaymentRecord = (paymentId, updates) => {
     setPendingPayments((current) => {
-      const nextPayments = current.filter((payment) => payment.id !== paymentId);
+      const nextPayments = current.map((payment) => (
+        payment.id === paymentId ? { ...payment, ...updates } : payment
+      ));
       savePendingPayments(nextPayments);
       return nextPayments;
     });
+
+    if (isSupabaseConfigured) {
+      void supabase.from('payment_requests').update({
+        status: updates.status || updates.paymentStatus,
+        confirmed_at: updates.confirmedAt || null,
+        confirmed_by: updates.confirmedBy || null,
+        rejected_at: updates.rejectedAt || null,
+        rejected_by: updates.rejectedBy || null,
+        updated_at: new Date().toISOString()
+      }).eq('id', paymentId).then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Payment request status belum bisa diupdate client-side. Gunakan service role/webhook untuk produksi:', error.message);
+        }
+      });
+    }
   };
 
   const handleCheckoutSubmit = (event) => {
@@ -3125,6 +3171,10 @@ export default function App() {
 
   const handleConfirmPendingPayment = (payment) => {
     if (!payment) return;
+    if (payment.status && payment.status !== 'waiting_admin_confirmation') {
+      alert(`Payment request ini sudah ${payment.status.replaceAll('_', ' ')} bro.`);
+      return;
+    }
     const confirmed = window.confirm(`Confirm paid untuk ${payment.productTitle} / ${payment.buyerName}?`);
     if (!confirmed) return;
 
@@ -3171,7 +3221,12 @@ export default function App() {
         paymentStatus: 'paid',
         paymentMethod: 'admin_confirmed_manual'
       });
-      removePendingPayment(payment.id);
+      updatePendingPaymentRecord(payment.id, {
+        status: 'paid',
+        paymentStatus: 'paid',
+        confirmedAt: new Date().toISOString(),
+        confirmedBy: userSession?.email || 'adminwispace'
+      });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
@@ -3233,7 +3288,12 @@ export default function App() {
         paymentStatus: 'paid',
         paymentMethod: 'admin_confirmed_manual'
       });
-      removePendingPayment(payment.id);
+      updatePendingPaymentRecord(payment.id, {
+        status: 'paid',
+        paymentStatus: 'paid',
+        confirmedAt: new Date().toISOString(),
+        confirmedBy: userSession?.email || 'adminwispace'
+      });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
@@ -3335,7 +3395,12 @@ export default function App() {
         });
       }
 
-      removePendingPayment(payment.id);
+      updatePendingPaymentRecord(payment.id, {
+        status: 'paid',
+        paymentStatus: 'paid',
+        confirmedAt: new Date().toISOString(),
+        confirmedBy: userSession?.email || 'adminwispace'
+      });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
@@ -3349,9 +3414,18 @@ export default function App() {
 
   const handleRejectPendingPayment = (payment) => {
     if (!payment) return;
+    if (payment.status && payment.status !== 'waiting_admin_confirmation') {
+      alert(`Payment request ini sudah ${payment.status.replaceAll('_', ' ')} bro.`);
+      return;
+    }
     const confirmed = window.confirm(`Reject/cancel payment request ${payment.checkoutRef}?`);
     if (!confirmed) return;
-    removePendingPayment(payment.id);
+    updatePendingPaymentRecord(payment.id, {
+      status: 'rejected',
+      paymentStatus: 'rejected',
+      rejectedAt: new Date().toISOString(),
+      rejectedBy: userSession?.email || 'adminwispace'
+    });
     setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
       ...current,
       status: 'cancelled',
@@ -4148,7 +4222,8 @@ export default function App() {
         amount: 0,
         grossAmount: 0,
         platformFee: 0,
-        transactions: 0
+        transactions: 0,
+        transactionDetails: []
       };
       return {
         ...bands,
@@ -4157,7 +4232,21 @@ export default function App() {
           amount: current.amount + Number(transaction.bandNet || 0),
           grossAmount: current.grossAmount + Number(transaction.grossAmount || 0),
           platformFee: current.platformFee + Number(transaction.platformFee || 0),
-          transactions: current.transactions + 1
+          transactions: current.transactions + 1,
+          transactionDetails: [
+            ...current.transactionDetails,
+            {
+              orderId: transaction.orderId || transaction.id,
+              productType: transaction.productType || 'order',
+              productTitle: transaction.productTitle || 'Transaksi WiSpace',
+              buyerName: transaction.buyerName || 'Audience WiSpace',
+              grossAmount: Number(transaction.grossAmount || 0),
+              platformFee: Number(transaction.platformFee || 0),
+              bandNet: Number(transaction.bandNet || 0),
+              paidAt: transaction.paidAt || transaction.createdAt || '',
+              createdAt: transaction.createdAt || ''
+            }
+          ]
         }
       };
     }, {});
@@ -4202,8 +4291,14 @@ export default function App() {
   const previewMissingTrackCount = albumItems
     .flatMap((album) => album.tracks || [])
     .filter((track) => !track.freeFull && !track.previewUrl).length;
-  const demoPaymentTransactions = saleTransactions.filter((transaction) => (
-    transaction.paymentMethod === 'demo_checkout' || transaction.paymentStatus === 'demo_paid'
+  const waitingAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'waiting_admin_confirmation');
+  const paidAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'paid');
+  const rejectedAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'rejected');
+  const recentProcessedPaymentRequests = pendingPayments
+    .filter((payment) => payment.status && payment.status !== 'waiting_admin_confirmation')
+    .sort((first, second) => new Date(second.confirmedAt || second.rejectedAt || second.submittedAt || 0) - new Date(first.confirmedAt || first.rejectedAt || first.submittedAt || 0));
+  const manualConfirmedPaymentTransactions = saleTransactions.filter((transaction) => (
+    transaction.paymentMethod === 'admin_confirmed_manual'
   )).length;
   const productionReadinessItems = [
     {
@@ -4223,8 +4318,8 @@ export default function App() {
     },
     {
       title: 'Payment gateway',
-      status: demoPaymentTransactions ? 'demo' : 'demo',
-      note: `Masih demo checkout. ${demoPaymentTransactions} transaksi demo tercatat; nanti diganti webhook Midtrans/Xendit.`
+      status: waitingAdminPaymentRequests.length || manualConfirmedPaymentTransactions ? 'scaffold' : 'demo',
+      note: `Manual admin-confirm sudah jalan: ${waitingAdminPaymentRequests.length} waiting, ${manualConfirmedPaymentTransactions} paid manual. Gateway Midtrans/Xendit masih tahap berikutnya.`
     },
     {
       title: 'Asset storage',
@@ -4287,6 +4382,12 @@ export default function App() {
   const latestMonthlyFinanceReport = monthlyFinanceReports.find((report) => report.periodKey === nextPayoutPeriodKey) || monthlyFinanceReports[0] || null;
   const adminActionNotifications = [
     {
+      title: 'PAYMENT BUYER PERLU CONFIRM',
+      count: waitingAdminPaymentRequests.length,
+      color: waitingAdminPaymentRequests.length ? '#ffcc00' : '#777',
+      note: 'Confirm paid dulu sebelum library/order aktif.'
+    },
+    {
       title: 'PAYOUT SIAP TANGGAL 1',
       count: adminPayoutReportRows.filter((band) => band.ready).length,
       color: '#39ff14',
@@ -4318,13 +4419,13 @@ export default function App() {
     }
   ];
   const adminNotificationQueue = [
-    ...pendingPayments.slice(0, 10).map((payment) => ({
+    ...waitingAdminPaymentRequests.slice(0, 10).map((payment) => ({
       id: `pending-payment-${payment.id}`,
       title: 'Payment buyer perlu confirm paid',
       body: `${payment.productTitle} / ${payment.buyerName} / Rp ${Number(payment.amount || 0).toLocaleString('id-ID')} / ${payment.checkoutRef}`,
       badge: 'PAYMENT',
       color: '#ffcc00',
-      targetSection: 'notifications',
+      targetSection: 'payment',
       actionType: 'confirm_payment',
       payment
     })),
@@ -4358,7 +4459,7 @@ export default function App() {
       body: `${profile.name || 'Band WiSpace'} harus isi rekening sebelum upload dan payout.`,
       badge: 'BANK',
       color: '#ffcc00',
-      targetSection: 'finance'
+      targetSection: 'legal'
     })),
     ...releaseAgreements.slice(0, 4).map((agreement) => ({
       id: `agreement-${agreement.id}`,
@@ -4366,7 +4467,7 @@ export default function App() {
       body: `${agreement.releaseTitle} / ${agreement.bandName} / ${agreement.createdAt || 'baru'}`,
       badge: 'LEGAL',
       color: '#00d2ff',
-      targetSection: 'finance'
+      targetSection: 'legal'
     })),
     ...(latestMonthlyFinanceReport ? [{
       id: `latest-report-${latestMonthlyFinanceReport.id}`,
@@ -5162,8 +5263,8 @@ export default function App() {
           <div style={pageHeaderStyle}>
             <div>
               <p style={eyebrowStyle}>WISPACE ADMIN GATE</p>
-              <h2 style={pageTitleStyle}>KURASI PAMFLET EVENT</h2>
-              <p style={pageLeadStyle}>Semua upload pamflet masuk pending dulu. Admin bisa approve sebagai event free untuk bulletin, approve sebagai exclusive untuk slide besar, atau reject kalau belum layak tayang.</p>
+              <h2 style={pageTitleStyle}>ADMIN CONTROL CENTER</h2>
+              <p style={pageLeadStyle}>Kelola confirm payment, kurasi pamflet, finance payout, legal agreement, artikel, dan laporan konten dari satu panel.</p>
             </div>
             <button onClick={closeAdminGate} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BACK HOME</button>
           </div>
@@ -5193,7 +5294,9 @@ export default function App() {
 
           <nav style={{ ...glassStyle('admin-section-nav'), padding: '10px', backgroundColor: '#090909', display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20 }}>
             {[
+              ['payment', `PAYMENT ${waitingAdminPaymentRequests.length}`],
               ['finance', 'FINANCE'],
+              ['legal', `LEGAL ${releaseAgreements.length}`],
               ['notifications', `NOTIF ${adminNotificationQueue.length}`],
               ['setup', 'SETUP'],
               ['ledger', 'LEDGER'],
@@ -5211,6 +5314,81 @@ export default function App() {
               </button>
             ))}
           </nav>
+
+          {adminActiveSection === 'payment' && (
+          <section id="admin-payment-section" style={{ ...glassStyle('admin-payment-requests'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN PAYMENT CONTROL</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>CONFIRM PAID BUYER</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pembelian album, track, dan merch masuk waiting dulu. Library/order baru aktif setelah admin klik confirm paid.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                ['WAITING', waitingAdminPaymentRequests.length, '#ffcc00'],
+                ['PAID', paidAdminPaymentRequests.length, '#39ff14'],
+                ['REJECTED', rejectedAdminPaymentRequests.length, '#ff3333'],
+                ['ALL REQUEST', pendingPayments.length, '#00d2ff']
+              ].map(([label, value, color]) => (
+                <div key={label} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '10px' }}>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,204,0,0.18)', borderRadius: '10px' }}>
+                <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>WAITING ADMIN CONFIRM</p>
+                {waitingAdminPaymentRequests.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada payment buyer yang menunggu confirm.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
+                    {waitingAdminPaymentRequests.map((payment) => (
+                      <div key={payment.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
+                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)' }}>CONFIRM PAID</button>
+                          <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(255,51,51,0.08)', border: '1px solid rgba(255,51,51,0.28)', color: '#ff3333', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>RECENT PAYMENT HISTORY</p>
+                {recentProcessedPaymentRequests.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Histori paid/rejected akan muncul setelah admin proses request.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
+                    {recentProcessedPaymentRequests.slice(0, 12).map((payment) => {
+                      const isPaidPayment = payment.status === 'paid';
+                      const paymentProcessedAt = payment.confirmedAt || payment.rejectedAt || payment.submittedAt || '';
+                      const paymentProcessedLabel = paymentProcessedAt
+                        ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(paymentProcessedAt))
+                        : '-';
+                      return (
+                        <div key={payment.id} style={{ padding: '8px', backgroundColor: '#050505', border: `1px solid ${isPaidPayment ? 'rgba(57,255,20,0.16)' : 'rgba(255,51,51,0.16)'}`, borderRadius: '9px' }}>
+                          <p style={{ color: isPaidPayment ? '#39ff14' : '#ff3333', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()} / {payment.checkoutRef}</p>
+                          <h4 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Payment').toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.buyerName || '-'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / {paymentProcessedLabel}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+          )}
 
           {adminActiveSection === 'finance' && (
           <section id="admin-finance-section" style={{ ...glassStyle('admin-income-report'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
@@ -5353,6 +5531,90 @@ export default function App() {
                       <strong style={{ color: '#fff' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          </section>
+          )}
+
+          {adminActiveSection === 'legal' && (
+          <section id="admin-legal-section" style={{ ...glassStyle('admin-legal-archive'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LEGAL & PAYOUT RECORD</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>ARSIP AGREEMENT BAND</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setiap upload album merekam penanda tangan, email, rekening payout, versi agreement, dan waktu tanda tangan.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                ['AGREEMENT', releaseAgreements.length, '#00d2ff'],
+                ['REKENING KURANG', bandsMissingPayoutAccount.length, '#ffcc00'],
+                ['REPORT BULANAN', monthlyFinanceReports.length, '#39ff14']
+              ].map(([label, value, color]) => (
+                <div key={label} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '10px' }}>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '10px' }}>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>RELEASE AGREEMENT LEDGER</p>
+                {releaseAgreements.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada agreement upload album yang terekam.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '7px', maxHeight: '340px', overflowY: 'auto' }}>
+                    {releaseAgreements.map((agreement) => (
+                      <div key={agreement.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{agreement.agreementVersion || RELEASE_AGREEMENT_VERSION} / {agreement.createdAt || new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(agreement.signedAt))}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agreement.releaseTitle.toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{agreement.bandName} / TTD: {agreement.signerName} / {agreement.signerEmail || '-'}</p>
+                          <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{agreement.payoutBankName ? `${agreement.payoutBankName} / ${agreement.payoutAccountName} / ${agreement.payoutAccountNumber}` : 'Rekening belum ada di agreement ini'}</p>
+                        </div>
+                        <button type="button" onClick={() => handleDownloadAgreementText(agreement)} style={{ ...glassButtonStyle, padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>TXT</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,204,0,0.16)', borderRadius: '10px' }}>
+                  <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>BAND REKENING BELUM LENGKAP</p>
+                  {bandsMissingPayoutAccount.length === 0 ? (
+                    <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Semua band published sudah punya data rekening.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '7px', maxHeight: '155px', overflowY: 'auto' }}>
+                      {bandsMissingPayoutAccount.map((profile) => (
+                        <div key={profile.slug || profile.name} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', color: '#aaa', fontSize: '10px', fontWeight: '900' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(profile.name || 'Band WiSpace').toUpperCase()}</span>
+                          <strong style={{ color: '#ffcc00', whiteSpace: 'nowrap' }}>HOLD</strong>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.16)', borderRadius: '10px' }}>
+                  <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>FINANCE REPORT ARCHIVE</p>
+                  {monthlyFinanceReports.length === 0 ? (
+                    <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada report bulanan yang digenerate.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '7px', maxHeight: '155px', overflowY: 'auto' }}>
+                      {monthlyFinanceReports.slice(0, 8).map((report) => (
+                        <div key={report.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ minWidth: 0 }}>
+                            <h4 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.periodLabel}</h4>
+                            <p style={{ color: '#777', fontSize: '10px', margin: 0 }}>Rp {Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')} ready / {report.rows?.length || 0} band</p>
+                          </div>
+                          <button type="button" onClick={() => handleDownloadMonthlyFinanceReport(report)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>TXT</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
