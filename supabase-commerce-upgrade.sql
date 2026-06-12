@@ -110,6 +110,13 @@ create table if not exists public.payment_requests (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.admin_users (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text unique,
+  role text not null default 'admin',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.release_agreements (
   id uuid primary key default gen_random_uuid(),
   release_id uuid references public.releases(id) on delete set null,
@@ -296,6 +303,7 @@ alter table public.content_reports enable row level security;
 alter table public.merch_items enable row level security;
 alter table public.sales_transactions enable row level security;
 alter table public.payment_requests enable row level security;
+alter table public.admin_users enable row level security;
 alter table public.release_agreements enable row level security;
 alter table public.monthly_finance_reports enable row level security;
 alter table public.merch_orders enable row level security;
@@ -378,6 +386,37 @@ create policy "Payment participants can read payment requests"
 on public.payment_requests for select
 using (auth.uid() = buyer_user_id or auth.uid() = seller_band_user_id);
 
+drop policy if exists "Admins can read all payment requests" on public.payment_requests;
+create policy "Admins can read all payment requests"
+on public.payment_requests for select
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Admins can update payment requests" on public.payment_requests;
+create policy "Admins can update payment requests"
+on public.payment_requests for update
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Admins can read own admin row" on public.admin_users;
+create policy "Admins can read own admin row"
+on public.admin_users for select
+using (auth.uid() = user_id);
+
 drop policy if exists "Bands can read own release agreements" on public.release_agreements;
 create policy "Bands can read own release agreements"
 on public.release_agreements for select
@@ -450,3 +489,7 @@ using (
 
 -- Server-side integrations should insert/update payment and shipment status using a service role.
 -- Client-side MVP can read its own purchases, band-side sales, and public catalog data.
+-- To enable real admin payment sync without service-role API, insert your admin auth user id:
+-- insert into public.admin_users (user_id, email)
+-- values ('YOUR_AUTH_USER_UUID', 'admin@wispace.my.id')
+-- on conflict (user_id) do update set email = excluded.email;

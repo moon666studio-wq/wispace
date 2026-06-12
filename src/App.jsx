@@ -182,13 +182,25 @@ const PAYMENT_FLOW_STEPS = [
   },
   {
     title: 'Payment confirmed',
-    status: 'demo_paid',
-    note: 'MVP sekarang langsung mensimulasikan paid. Nanti diganti webhook Midtrans/Xendit.'
+    status: 'waiting_admin_confirmation / paid',
+    note: 'Buyer kirim request, admin confirm paid, lalu akses/order aktif. Gateway Midtrans/Xendit tahap berikutnya.'
   },
   {
     title: 'Access / fulfillment',
     status: 'library_active / order_paid_waiting_band',
     note: 'Digital masuk Library, merch masuk antrean proses band.'
+  }
+];
+const WISPACE_MANUAL_PAYMENT_CHANNELS = [
+  {
+    title: 'Transfer Manual Admin',
+    detail: 'Gunakan rekening/QRIS resmi WiSpace yang nanti ditampilkan admin.',
+    note: 'Cantumkan Order ID di berita transfer.'
+  },
+  {
+    title: 'Konfirmasi Bukti Bayar',
+    detail: 'Kirim bukti pembayaran ke admin WiSpace atau channel support resmi.',
+    note: 'Akses baru aktif setelah admin confirm paid.'
   }
 ];
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
@@ -543,6 +555,34 @@ const mapTransactionFromRow = (row = {}) => ({
     ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
     : ''
 });
+
+const mapPaymentRequestFromRow = (row = {}) => {
+  const payload = row.payload && typeof row.payload === 'object' ? row.payload : {};
+  return {
+    ...payload,
+    id: row.id || payload.id || createClientId(),
+    checkoutRef: row.checkout_ref || payload.checkoutRef || '',
+    type: row.payment_type || payload.type || 'order',
+    buyerUserId: row.buyer_user_id || payload.buyerUserId || '',
+    buyerName: row.buyer_name || payload.buyerName || 'Audience WiSpace',
+    buyerEmail: row.buyer_email || payload.buyerEmail || '',
+    sellerBandUserId: row.seller_band_user_id || payload.sellerBandUserId || '',
+    sellerBandSlug: row.seller_band_slug || payload.sellerBandSlug || '',
+    sellerBandName: row.seller_band_name || payload.sellerBandName || 'Band WiSpace',
+    productTitle: row.product_title || payload.productTitle || 'Checkout WiSpace',
+    amount: Number(row.amount ?? payload.amount ?? 0),
+    status: row.status || payload.status || 'waiting_admin_confirmation',
+    paymentStatus: row.status || payload.paymentStatus || 'waiting_admin_confirmation',
+    submittedAt: row.submitted_at || payload.submittedAt || row.created_at || '',
+    confirmedAt: row.confirmed_at || payload.confirmedAt || '',
+    confirmedBy: row.confirmed_by || payload.confirmedBy || '',
+    rejectedAt: row.rejected_at || payload.rejectedAt || '',
+    rejectedBy: row.rejected_by || payload.rejectedBy || '',
+    createdAt: payload.createdAt || (row.created_at
+      ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
+      : '')
+  };
+};
 
 const mapReleaseAgreementFromRow = (row = {}) => ({
   id: row.id || createClientId(),
@@ -1041,6 +1081,23 @@ export default function App() {
   const persistSubscribedUpdateReadsLocal = useCallback((reads, user = userSession) => {
     saveUserScopedData(AUDIENCE_NOTIFICATION_READ_PREFIX, user, reads);
   }, [userSession]);
+
+  const fetchAdminPaymentRequests = useCallback(async () => {
+    if (!isSupabaseConfigured || !userSession?.id) return;
+    const { data, error } = await supabase
+      .from('payment_requests')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+      .limit(100);
+    if (error) {
+      if (!isMissingColumnError(error)) console.warn('Admin payment sync butuh akun di admin_users:', error.message);
+      return;
+    }
+    const mappedPayments = (data || []).map(mapPaymentRequestFromRow);
+    setPendingPayments(mappedPayments);
+    savePendingPayments(mappedPayments);
+  }, [userSession]);
+
   const publishBandUpdateNotification = useCallback((bandSlug, update) => {
     if (!bandSlug) return;
     const nextUpdate = {
@@ -1517,6 +1574,7 @@ export default function App() {
       setIsAdminUnlocked(true);
       setAdminPassword('');
       setAdminError('');
+      void fetchAdminPaymentRequests();
       return;
     }
 
@@ -3023,6 +3081,16 @@ export default function App() {
       status: 'cancelled',
       cancelledAt: new Date().toISOString()
     });
+  };
+
+  const handleCopyCheckoutReference = async () => {
+    if (!activeCheckout?.checkoutRef) return;
+    try {
+      await navigator.clipboard.writeText(activeCheckout.checkoutRef);
+      alert(`Order ID ${activeCheckout.checkoutRef} sudah dicopy.`);
+    } catch {
+      alert(`Order ID: ${activeCheckout.checkoutRef}`);
+    }
   };
 
   const closeCompletedCheckout = () => {
@@ -5322,7 +5390,10 @@ export default function App() {
                 <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN PAYMENT CONTROL</p>
                 <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>CONFIRM PAID BUYER</h3>
               </div>
-              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pembelian album, track, dan merch masuk waiting dulu. Library/order baru aktif setelah admin klik confirm paid.</p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => void fetchAdminPaymentRequests()} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>REFRESH SYNC</button>
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pembelian album, track, dan merch masuk waiting dulu. Library/order baru aktif setelah admin klik confirm paid.</p>
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '12px' }}>
@@ -7837,7 +7908,31 @@ export default function App() {
               </div>
             )}
           </div>
-          <div style={{ ...glassStyle('c3'), padding: isTinyLayout ? '12px' : '16px' }}><h3 style={{ fontSize: '12px', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#a8f1ff"/> DISTRO BAND MERCHANDISE</h3></div>
+          <div style={{ ...glassStyle('c3'), padding: isTinyLayout ? '12px' : '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '12px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#a8f1ff"/> DISTRO BAND MERCHANDISE</h3>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
+            </div>
+            {publicMerchList.length === 0 ? (
+              <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch band. Nanti kaos, CD, kaset, bundle, dan item fisik muncul di sini.</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : '1fr', gap: '8px', maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
+                {publicMerchList.slice(0, 4).map((item) => (
+                  <button key={`home-merch-${item.id}`} onClick={() => { navigateInternalPage('explore', { exploreTab: 'merch' }); setSelectedMerchId(item.id); }} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '52px 1fr auto', gap: '9px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', cursor: 'pointer', textAlign: 'left', fontFamily: FONT_STACK, minWidth: 0 }}>
+                    <div style={{ width: isTinyLayout ? '100%' : '52px', aspectRatio: isTinyLayout ? '4/3' : '1/1', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
+                      {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                      <p style={{ color: '#777', fontSize: '9px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                    </div>
+                    {!isTinyLayout && <span style={{ color: '#555', fontSize: '9px', fontWeight: '900' }}>BUY</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       )}
 
@@ -7900,6 +7995,25 @@ export default function App() {
                   <span>Fulfillment: <strong style={{ color: checkoutIsPaid ? activeCheckout.type === 'merch' ? '#ffcc00' : '#39ff14' : '#777' }}>{checkoutAccessStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
                   <span>{checkoutIsPaid ? activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.' : checkoutIsAwaitingAdmin ? 'Payment request sudah masuk admin. Belum ada akses/order aktif.' : 'Belum ada akses/order aktif sebelum payment paid.'}</span>
                 </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '12px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
+                  <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Simpan Order ID dan nominal persis. Buyer tidak perlu lihat pembagian fee internal WiSpace.</p>
+                </div>
+                <button type="button" onClick={handleCopyCheckoutReference} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY ORDER ID</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+                {WISPACE_MANUAL_PAYMENT_CHANNELS.map((channel) => (
+                  <div key={channel.title} style={{ padding: '9px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '9px' }}>
+                    <p style={{ color: '#fff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{channel.title.toUpperCase()}</p>
+                    <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0' }}>{channel.detail}</p>
+                    <p style={{ color: '#666', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{channel.note}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
