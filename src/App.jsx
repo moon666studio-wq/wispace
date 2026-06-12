@@ -583,6 +583,9 @@ const mapBandSubscriptionFromRow = (row = {}) => ({
 
 const mapBandUpdateNotificationFromRow = (row = {}) => ({
   id: row.source_id || row.id || createClientId(),
+  sourceId: row.source_id || row.id || '',
+  targetId: String(row.source_id || '').replace(/^(release|merch|article|schedule)-/, ''),
+  targetType: row.update_type || 'update',
   type: row.update_type || 'update',
   title: row.title || 'UPDATE BAND',
   body: row.body || '',
@@ -978,6 +981,9 @@ export default function App() {
       body: update.body || '',
       bandName: update.bandName || bandProfile.name || signatureName || 'Band WiSpace',
       bandSlug,
+      sourceId: update.sourceId || update.id || '',
+      targetId: update.targetId || String(update.id || '').replace(/^(release|merch|article|schedule)-/, ''),
+      targetType: update.targetType || update.type || 'update',
       createdAt: update.createdAt || new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
     };
     const currentFeed = loadBandGlobalData(BAND_UPDATE_FEED_STORAGE_PREFIX, bandSlug, []);
@@ -1051,7 +1057,9 @@ export default function App() {
       type: 'release',
       title: 'RILISAN BARU',
       body: `${publicRelease.bandName || bandProfile.name || 'Band WiSpace'} upload ${publicRelease.title}.`,
-      bandName: publicRelease.bandName || bandProfile.name || 'Band WiSpace'
+      bandName: publicRelease.bandName || bandProfile.name || 'Band WiSpace',
+      targetId: releaseId,
+      targetType: 'release'
     });
 
     const localReleases = [
@@ -1145,7 +1153,9 @@ export default function App() {
       type: 'merch',
       title: 'MERCH BARU',
       body: `${publicItem.bandName} upload merch ${publicItem.name}.`,
-      bandName: publicItem.bandName
+      bandName: publicItem.bandName,
+      targetId: merchId,
+      targetType: 'merch'
     });
     const nextItems = [
       publicItem,
@@ -1199,7 +1209,9 @@ export default function App() {
       type: 'article',
       title: 'ARTIKEL BARU',
       body: `${publicArticle.bandName} publish artikel ${publicArticle.title}.`,
-      bandName: publicArticle.bandName
+      bandName: publicArticle.bandName,
+      targetId: articleId,
+      targetType: 'article'
     });
     const nextArticles = [
       publicArticle,
@@ -1950,13 +1962,29 @@ export default function App() {
 
   const handleScheduleSubmit = (event) => {
     event.preventDefault();
+    const scheduleId = createClientId();
+    const scheduleBandName = bandProfile.name || signatureName || 'Band WiSpace';
+    const scheduleBandSlug = bandProfile.slug || createSlug(scheduleBandName);
+    const nextSchedule = {
+      id: scheduleId,
+      ...scheduleDraft,
+      bandName: scheduleBandName,
+      bandSlug: scheduleBandSlug,
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
     setBandScheduleItems((current) => [
-      {
-        id: Date.now(),
-        ...scheduleDraft
-      },
+      nextSchedule,
       ...current
     ]);
+    publishBandUpdateNotification(scheduleBandSlug, {
+      id: `schedule-${scheduleId}`,
+      type: 'schedule',
+      title: 'JADWAL MANGGUNG',
+      body: `${scheduleBandName} update jadwal: ${scheduleDraft.title} di ${scheduleDraft.venue}.`,
+      bandName: scheduleBandName,
+      targetId: scheduleId,
+      targetType: 'schedule'
+    });
     setScheduleDraft({ title: '', venue: '', date: '', htm: '', cp: '' });
     alert('Jadwal manggung masuk ke profile band. Ini tidak tampil di homepage dan tidak masuk kurasi pamflet.');
   };
@@ -3904,6 +3932,62 @@ export default function App() {
     if (isBandAccount) markBandNotificationsRead();
     markSubscribedUpdatesRead();
   };
+  const getNotificationTargetId = (notification = {}) => (
+    notification.targetId
+    || String(notification.sourceId || notification.id || '').replace(/^(release|merch|article|schedule)-/, '')
+  );
+  const openSubscribedUpdate = (notification) => {
+    if (!notification) return;
+    const targetId = getNotificationTargetId(notification);
+    setShowNotificationPopout(false);
+    markSubscribedUpdatesRead();
+
+    if (notification.type === 'release') {
+      const release = albumItems.find((album) => String(album.id) === String(targetId));
+      if (release) {
+        openReleaseDetail(release);
+        return;
+      }
+      navigateInternalPage('explore', { exploreTab: 'rilisan' });
+      return;
+    }
+
+    if (notification.type === 'merch') {
+      const merch = publicMerchList.find((item) => String(item.id) === String(targetId));
+      if (merch) {
+        openMerchDetail(merch);
+        return;
+      }
+      navigateInternalPage('explore', { exploreTab: 'merch' });
+      return;
+    }
+
+    if (notification.type === 'article') {
+      const article = publicArticleList.find((item) => String(item.id) === String(targetId));
+      if (article) {
+        openArticleReader(article);
+        return;
+      }
+      navigateInternalPage('articles');
+      return;
+    }
+
+    const profile = publicBandProfiles.find((item) => item.slug === notification.bandSlug) || {
+      name: notification.bandName || 'Band WiSpace',
+      slug: notification.bandSlug || createSlug(notification.bandName || 'band-wispace')
+    };
+    openBandPublicProfile(false, profile);
+    if (notification.type === 'schedule') {
+      window.setTimeout(() => document.getElementById('band-gig-schedule')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    }
+  };
+  const openNotificationPreview = (item) => {
+    if (item?.notification) {
+      openSubscribedUpdate(item.notification);
+      return;
+    }
+    openNotificationCenter();
+  };
   const notificationPreviewItems = [
     ...visibleMessages.filter((message) => !message.read).slice(0, 2).map((message) => ({
       id: `message-${message.id}`,
@@ -3920,7 +4004,8 @@ export default function App() {
       id: notification.id,
       label: 'SUBSCRIBED',
       title: notification.title || 'Update baru',
-      body: notification.body || `${notification.bandName || 'Band'} punya update baru.`
+      body: notification.body || `${notification.bandName || 'Band'} punya update baru.`,
+      notification
     })))
   ].slice(0, 3);
 
@@ -4389,7 +4474,7 @@ export default function App() {
           ) : (
             <div style={{ display: 'grid', gap: '6px', marginBottom: '10px' }}>
               {notificationPreviewItems.map((item) => (
-                <button type="button" key={item.id} onClick={openNotificationCenter} style={{ textAlign: 'left', padding: '8px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                <button type="button" key={item.id} onClick={() => openNotificationPreview(item)} style={{ textAlign: 'left', padding: '8px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
                   <p style={{ color: item.label === 'MESSAGE' ? '#00d2ff' : '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.label}</p>
                   <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title).toUpperCase()}</h4>
                   <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.body}</p>
