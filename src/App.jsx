@@ -4439,6 +4439,7 @@ export default function App() {
           <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
             <Search size={12} color="#666" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#fff', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+            {normalizedSearchTerm && renderCompactSearchResults()}
           </div>
           {!userSession ? (
             <>
@@ -4491,16 +4492,15 @@ export default function App() {
       )}
 
       {activeTrack && !loading && (
-        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '12px' : '20px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(520px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '9px 10px' : '10px 12px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', backgroundColor: 'rgba(5,5,5,0.92)', border: '1px solid rgba(0,210,255,0.32)', borderRadius: '16px', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 18px 48px rgba(0,0,0,0.55)' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '10px' : '16px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 28px)' : 'min(390px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '7px 8px' : '8px 10px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '9px', alignItems: 'center', backgroundColor: 'rgba(5,5,5,0.86)', border: '1px solid rgba(0,210,255,0.22)', borderRadius: '13px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 14px 36px rgba(0,0,0,0.45)' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ color: isPlaying ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>{isPlaying ? 'NOW PLAYING' : 'PAUSED'}</p>
-            <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 3px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
-            <p style={{ color: '#666', fontSize: '11px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(activeTrack.albumTitle || activeTrack.band || activeTrack.bandName || 'WISPACE PLAYER').toUpperCase()}</p>
+            <p style={{ color: isPlaying ? '#39ff14' : '#00d2ff', fontSize: '8px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 3px 0' }}>{isPlaying ? 'PLAYING' : 'PAUSED'}</p>
+            <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '32px', height: '32px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipBack size={14} /></button>
-            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '38px', height: '38px', borderRadius: '9999px', border: '1px solid rgba(0,210,255,0.38)', backgroundColor: '#00d2ff', color: '#000', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 0 24px rgba(0,210,255,0.24)' }}>{isPlaying ? <Pause size={17} fill="#000" /> : <Play size={17} fill="#000" />}</button>
-            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '32px', height: '32px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipForward size={14} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '27px', height: '27px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipBack size={12} /></button>
+            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '32px', height: '32px', borderRadius: '9999px', border: '1px solid rgba(0,210,255,0.32)', backgroundColor: '#00d2ff', color: '#000', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 0 18px rgba(0,210,255,0.18)' }}>{isPlaying ? <Pause size={14} fill="#000" /> : <Play size={14} fill="#000" />}</button>
+            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '27px', height: '27px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipForward size={12} /></button>
           </div>
         </div>
       )}
@@ -4676,7 +4676,26 @@ export default function App() {
             </div>
           </div>
 
-          <section style={{ ...glassStyle('admin-income-report'), ...compactPanelStyle }}>
+          <nav style={{ ...glassStyle('admin-section-nav'), padding: '10px', backgroundColor: '#090909', display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20 }}>
+            {[
+              ['admin-finance-section', 'FINANCE'],
+              ['admin-ledger-section', 'LEDGER'],
+              ['admin-article-section', 'ARTIKEL'],
+              ['admin-moderation-section', 'MODERASI'],
+              ['admin-pamflet-section', 'PAMFLET']
+            ].map(([targetId, label]) => (
+              <button
+                key={targetId}
+                type="button"
+                onClick={() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '10px' }}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <section id="admin-finance-section" style={{ ...glassStyle('admin-income-report'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>WISPACE FINANCE REPORT</p>
@@ -4900,7 +4919,7 @@ export default function App() {
             <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser dengan prefix WiSpace. Data Supabase live dan file lokal project tidak ikut terhapus.</p>
           </section>
 
-          <section style={{ ...glassStyle('admin-transaction-ledger'), ...compactPanelStyle }}>
+          <section id="admin-ledger-section" style={{ ...glassStyle('admin-transaction-ledger'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PAYMENT LEDGER</p>
@@ -4940,7 +4959,7 @@ export default function App() {
             )}
           </section>
 
-          <section style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
+          <section id="admin-article-section" style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px', scrollMarginTop: '110px' }}>
             <div style={{ marginBottom: '14px' }}>
               <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE EDITORIAL</p>
               <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>PUBLISH ARTIKEL ADMIN</h3>
@@ -4956,7 +4975,7 @@ export default function App() {
             </form>
           </section>
 
-          <section style={{ ...glassStyle('admin-content-moderation'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px' }}>
+          <section id="admin-moderation-section" style={{ ...glassStyle('admin-content-moderation'), padding: '18px', backgroundColor: '#090909', marginBottom: '24px', scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>CONTENT MODERATION</p>
@@ -5018,6 +5037,7 @@ export default function App() {
             </div>
           </section>
 
+          <div id="admin-pamflet-section" style={{ scrollMarginTop: '110px' }}>
           {pendingGigs.length === 0 ? (
             <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#090909', textAlign: 'center' }}>
               <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>ANTREAN BERSIH</h3>
@@ -5063,6 +5083,7 @@ export default function App() {
               })}
             </div>
           )}
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
             {[
@@ -5793,7 +5814,7 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {displayBandMerchItems.slice(0, 4).map((item) => (
-                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '54px 1fr' : '54px 1fr auto', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
                         <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
@@ -5801,6 +5822,9 @@ export default function App() {
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.name.toUpperCase()}</p>
                           <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                         </div>
+                        {!showBandOwnerControls && (
+                          <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '8px' : '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>{userSession ? 'BUY' : 'JOIN TO BUY'}</button>
+                        )}
                       </div>
                     ))}
                   </div>
