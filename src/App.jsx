@@ -190,6 +190,7 @@ const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-se
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 const PUBLIC_ASSET_BUCKET = 'band-assets';
+const PUBLIC_PREVIEW_BUCKET = 'release-previews';
 const PRIVATE_AUDIO_BUCKET = 'release-audio';
 
 const createClientId = () => {
@@ -404,6 +405,8 @@ const mapReleaseFromRow = (row = {}) => {
         size: track.file_size || 0,
         url: track.audio_url || '',
         audioPath: track.audio_path || '',
+        previewUrl: track.preview_audio_url || '',
+        previewPath: track.preview_audio_path || '',
         price: track.price || '',
         freeFull: Boolean(track.free_full)
       })),
@@ -721,6 +724,36 @@ const uploadPrivateAudio = async (file, folder, user) => {
   }
 
   return { url: localUrl, audioPath: storagePath, stored: true, error: null };
+};
+
+const uploadPublicPreviewAudio = async (file, folder, user) => {
+  const localUrl = URL.createObjectURL(file);
+  if (!isSupabaseConfigured || !user?.id) {
+    return { previewUrl: localUrl, previewPath: '', stored: false, error: null };
+  }
+
+  const safeName = createStorageSafeName(file.name || 'preview');
+  const storagePath = `${user.id}/${folder}/${Date.now()}-${safeName}`;
+  const { error } = await supabase
+    .storage
+    .from(PUBLIC_PREVIEW_BUCKET)
+    .upload(storagePath, file, {
+      cacheControl: '3600',
+      contentType: file.type || undefined,
+      upsert: true
+    });
+
+  if (error) {
+    return { previewUrl: localUrl, previewPath: '', stored: false, error };
+  }
+
+  const { data } = supabase.storage.from(PUBLIC_PREVIEW_BUCKET).getPublicUrl(storagePath);
+  return {
+    previewUrl: data?.publicUrl || localUrl,
+    previewPath: storagePath,
+    stored: Boolean(data?.publicUrl),
+    error: null
+  };
 };
 
 const createSignedAudioUrl = async (audioPath) => {
@@ -1048,6 +1081,8 @@ export default function App() {
         file_size: track.size || 0,
         audio_url: track.url?.startsWith('blob:') ? '' : track.url || '',
         audio_path: track.audioPath || '',
+        preview_audio_url: track.previewUrl?.startsWith('blob:') ? '' : track.previewUrl || '',
+        preview_audio_path: track.previewPath || '',
         price: normalizePriceValue(track.price),
         free_full: Boolean(track.freeFull)
       }));
@@ -1063,6 +1098,8 @@ export default function App() {
               const legacyTrackRows = trackRows.map((trackRow) => {
                 const legacyTrackRow = { ...trackRow };
                 delete legacyTrackRow.audio_path;
+                delete legacyTrackRow.preview_audio_url;
+                delete legacyTrackRow.preview_audio_path;
                 return legacyTrackRow;
               });
               void supabase.from('release_tracks').upsert(legacyTrackRows).then(({ error: legacyTrackError }) => {
@@ -2281,6 +2318,39 @@ export default function App() {
     }));
   };
 
+  const handleTrackPreviewImport = async (index, event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!isSupportedAudioFile(file)) {
+      alert('Preview track harus MP3 atau WAV dulu bro.');
+      clearFileInput(event);
+      return;
+    }
+
+    try {
+      const uploadResult = await uploadPublicPreviewAudio(file, 'releases/previews', userSession);
+      setAlbumDraft((current) => ({
+        ...current,
+        audioFiles: current.audioFiles.map((trackFile, fileIndex) => {
+          if (fileIndex !== index) return trackFile;
+          if (trackFile.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(trackFile.previewUrl);
+          return {
+            ...trackFile,
+            previewName: file.name,
+            previewUrl: uploadResult.previewUrl,
+            previewPath: uploadResult.previewPath,
+            previewStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local',
+            previewError: uploadResult.error?.message || ''
+          };
+        })
+      }));
+      if (uploadResult.error) alert(`Preview belum masuk Storage, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import preview track: ${error.message}`);
+      clearFileInput(event);
+    }
+  };
+
   const handleMerchImageImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -2343,6 +2413,9 @@ export default function App() {
         size: file.size,
         url: file.url,
         audioPath: file.audioPath || '',
+        previewUrl: file.previewUrl || '',
+        previewPath: file.previewPath || '',
+        previewName: file.previewName || '',
         price: file.price,
         freeFull: String(index) === String(albumDraft.freeTrackIndex)
       })),
@@ -3191,6 +3264,9 @@ export default function App() {
         if (!track.url) throw error;
       }
     }
+    if (!track.isOwned && !track.freeFull && track.previewUrl) {
+      return { ...track, url: track.previewUrl };
+    }
     return track.url ? track : null;
   };
 
@@ -3390,7 +3466,7 @@ export default function App() {
       meta: `${track.bandName || 'Band WiSpace'} / ${track.albumTitle || 'Rilisan'} / ${track.freeFull ? 'free full' : 'preview'}`,
       onSelect: () => {
         navigateInternalPage('explore', { exploreTab: 'rilisan' });
-        if (track.url) handlePlayTrack(track, filteredAlbumTracks);
+        if (track.url || track.previewUrl || track.freeFull) handlePlayTrack(track, filteredAlbumTracks);
       }
     })),
     ...filteredBandProfiles.slice(0, 3).map((profile) => ({
@@ -6159,7 +6235,7 @@ export default function App() {
                     <div style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
                       <p style={{ color: hasFreeFullBandTrack ? '#555' : '#00d2ff', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
-                        {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru tetap jadi preview 30 detik.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain otomatis preview 30 detik.'}
+                        {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru bisa punya preview 30 detik terpisah.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain bisa diberi file preview 30 detik terpisah.'}
                       </p>
                       {albumDraft.audioFiles.map((file, index) => (
                         <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: hasFreeFullBandTrack ? '1fr minmax(88px, 120px) auto' : 'auto 1fr minmax(88px, 120px) auto', gap: '10px', padding: '8px 0', borderTop: index ? '1px solid #111' : 'none', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
@@ -6177,6 +6253,10 @@ export default function App() {
                             <small style={{ color: file.storageStatus === 'stored' ? '#39ff14' : file.storageStatus === 'fallback' ? '#ffcc00' : '#777', marginLeft: '8px', fontWeight: '900' }}>
                               {file.storageStatus === 'stored' ? 'PRIVATE STORAGE' : file.storageStatus === 'fallback' ? 'LOCAL FALLBACK' : 'LOCAL'}
                             </small>
+                            <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', marginLeft: '8px', color: file.previewUrl ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: 'pointer' }}>
+                              <input type="file" accept="audio/mpeg,audio/wav,.mp3,.wav" onChange={(event) => handleTrackPreviewImport(index, event)} style={{ display: 'none' }} />
+                              {file.previewUrl ? 'PREVIEW READY' : 'ADD 30S PREVIEW'}
+                            </label>
                           </span>
                           <input
                             type="number"

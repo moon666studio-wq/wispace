@@ -40,6 +40,12 @@ add column if not exists file_size bigint not null default 0;
 alter table public.release_tracks
 add column if not exists audio_path text;
 
+alter table public.release_tracks
+add column if not exists preview_audio_url text;
+
+alter table public.release_tracks
+add column if not exists preview_audio_path text;
+
 create table if not exists public.audience_library (
   id uuid primary key default gen_random_uuid(),
   audience_user_id uuid not null references auth.users(id) on delete cascade,
@@ -62,6 +68,9 @@ on public.release_tracks (release_id, track_order);
 
 create index if not exists release_tracks_audio_path_idx
 on public.release_tracks (audio_path);
+
+create index if not exists release_tracks_preview_audio_path_idx
+on public.release_tracks (preview_audio_path);
 
 create index if not exists audience_library_user_idx
 on public.audience_library (audience_user_id, purchased_at desc);
@@ -147,6 +156,7 @@ with check (auth.uid() = audience_user_id);
 insert into storage.buckets (id, name, public)
 values
   ('band-assets', 'band-assets', true),
+  ('release-previews', 'release-previews', true),
   ('release-audio', 'release-audio', false)
 on conflict (id) do nothing;
 
@@ -167,6 +177,24 @@ on storage.objects for update
 to authenticated
 using (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text)
 with check (bucket_id = 'band-assets' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Public can read release previews" on storage.objects;
+create policy "Public can read release previews"
+on storage.objects for select
+using (bucket_id = 'release-previews');
+
+drop policy if exists "Users can upload own release previews" on storage.objects;
+create policy "Users can upload own release previews"
+on storage.objects for insert
+to authenticated
+with check (bucket_id = 'release-previews' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Users can update own release previews" on storage.objects;
+create policy "Users can update own release previews"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'release-previews' and (storage.foldername(name))[1] = auth.uid()::text)
+with check (bucket_id = 'release-previews' and (storage.foldername(name))[1] = auth.uid()::text);
 
 drop policy if exists "Bands can upload own private audio" on storage.objects;
 create policy "Bands can upload own private audio"
@@ -214,4 +242,5 @@ using (
 
 -- Storage policies can be tightened later per asset type. During MVP:
 -- - band-assets is public for covers, avatars, banners, merch images, and posters.
+-- - release-previews is public for deliberate 30-second preview clips.
 -- - release-audio is private; owner, buyer, and free-full tracks get signed URLs.
