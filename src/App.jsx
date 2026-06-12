@@ -27,6 +27,9 @@ const fetchCloudData = async (user = null) => {
     ? await supabase.from('audience_notification_reads').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
     : { data: null, error: null };
   const { data: updateNotificationsData, error: updateNotificationsError } = await supabase.from('band_update_notifications').select('*').order('created_at', { ascending: false }).limit(100);
+  const { data: releaseAgreementsData, error: releaseAgreementsError } = user?.id
+    ? await supabase.from('release_agreements').select('*').order('signed_at', { ascending: false })
+    : { data: null, error: null };
 
   return {
     gigsData: gigsData || [],
@@ -48,6 +51,7 @@ const fetchCloudData = async (user = null) => {
     subscribedBandsData: subscriptionsError ? [] : (subscriptionsData || []).map(mapBandSubscriptionFromRow),
     notificationReadsData: notificationReadsError ? [] : (notificationReadsData || []).map((row) => row.notification_id).filter(Boolean),
     updateNotificationsData: updateNotificationsError ? [] : (updateNotificationsData || []).map(mapBandUpdateNotificationFromRow),
+    releaseAgreementsData: releaseAgreementsError ? loadReleaseAgreementLedger() : (releaseAgreementsData || []).map(mapReleaseAgreementFromRow),
   };
 };
 
@@ -135,6 +139,7 @@ const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
 const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
 const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
 const PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY = 'wispace_public_transaction_ledger';
+const RELEASE_AGREEMENT_LEDGER_STORAGE_KEY = 'wispace_release_agreement_ledger';
 const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
 const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
@@ -190,6 +195,7 @@ const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const MINIMUM_PAYOUT_AMOUNT = 100000;
+const RELEASE_AGREEMENT_VERSION = 'wispace-release-agreement-v1';
 const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 const PUBLIC_ASSET_BUCKET = 'band-assets';
 const PUBLIC_PREVIEW_BUCKET = 'release-previews';
@@ -240,6 +246,9 @@ const createEmptyBandProfile = () => ({
   email: '',
   instagram: '',
   bio: '',
+  bankName: '',
+  bankAccountName: '',
+  bankAccountNumber: '',
   coverName: '',
   coverPreview: '',
   photoName: '',
@@ -318,6 +327,15 @@ const saveTransactionLedger = (transactions) => {
   window.localStorage.setItem(PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY, JSON.stringify(transactions));
 };
 
+const loadReleaseAgreementLedger = () => {
+  const agreements = readLocalJson(RELEASE_AGREEMENT_LEDGER_STORAGE_KEY);
+  return Array.isArray(agreements) ? agreements : [];
+};
+
+const saveReleaseAgreementLedger = (agreements) => {
+  window.localStorage.setItem(RELEASE_AGREEMENT_LEDGER_STORAGE_KEY, JSON.stringify(agreements));
+};
+
 const loadMerchOrders = () => {
   const orders = readLocalJson(MERCH_ORDERS_STORAGE_KEY);
   return Array.isArray(orders) ? orders : [];
@@ -357,6 +375,9 @@ const mapBandProfileFromRow = (row = {}) => ({
   email: row.email || '',
   instagram: row.instagram || '',
   bio: row.bio || '',
+  bankName: row.bank_name || '',
+  bankAccountName: row.bank_account_name || '',
+  bankAccountNumber: row.bank_account_number || '',
   coverName: row.cover_name || '',
   coverPreview: row.cover_preview || '',
   photoName: row.photo_name || '',
@@ -378,6 +399,9 @@ const mapBandProfileToRow = (profile = {}, user) => ({
   email: profile.email || '',
   instagram: profile.instagram || '',
   bio: profile.bio || '',
+  bank_name: profile.bankName || '',
+  bank_account_name: profile.bankAccountName || '',
+  bank_account_number: profile.bankAccountNumber || '',
   cover_name: profile.coverName || '',
   cover_preview: profile.coverPreview || '',
   photo_name: profile.photoName || '',
@@ -496,6 +520,26 @@ const mapTransactionFromRow = (row = {}) => ({
   paidAt: row.paid_at || '',
   createdAt: row.created_at
     ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
+    : ''
+});
+
+const mapReleaseAgreementFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  releaseId: row.release_id || '',
+  releaseTitle: row.release_title || 'Rilisan WiSpace',
+  bandUserId: row.band_user_id || '',
+  bandName: row.band_name || 'Band WiSpace',
+  bandSlug: row.band_slug || createSlug(row.band_name || 'band-wispace'),
+  signerName: row.signer_name || row.signature_name || 'Penanggung Jawab',
+  signerEmail: row.signer_email || '',
+  agreementVersion: row.agreement_version || RELEASE_AGREEMENT_VERSION,
+  agreementText: row.agreement_text || '',
+  payoutBankName: row.payout_bank_name || '',
+  payoutAccountName: row.payout_account_name || '',
+  payoutAccountNumber: row.payout_account_number || '',
+  signedAt: row.signed_at || row.created_at || new Date().toISOString(),
+  createdAt: row.signed_at
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.signed_at))
     : ''
 });
 
@@ -892,6 +936,7 @@ export default function App() {
   const [publicArticleItems, setPublicArticleItems] = useState(loadPublicArticleRegistry);
   const [publicMerchItems, setPublicMerchItems] = useState(loadPublicMerchRegistry);
   const [saleTransactions, setSaleTransactions] = useState(loadTransactionLedger);
+  const [releaseAgreements, setReleaseAgreements] = useState(loadReleaseAgreementLedger);
   const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
@@ -1034,6 +1079,21 @@ export default function App() {
         .from('band_profiles')
         .upsert(bandProfileRow, { onConflict: 'user_id' })
         .then(({ error }) => {
+          if (error && isMissingColumnError(error)) {
+            const legacyProfileRow = { ...bandProfileRow };
+            delete legacyProfileRow.bank_name;
+            delete legacyProfileRow.bank_account_name;
+            delete legacyProfileRow.bank_account_number;
+            void supabase
+              .from('band_profiles')
+              .upsert(legacyProfileRow, { onConflict: 'user_id' })
+              .then(({ error: legacyError }) => {
+                if (legacyError && !isMissingColumnError(legacyError)) {
+                  console.warn('Gagal sync band profile legacy ke Supabase:', legacyError.message);
+                }
+              });
+            return;
+          }
           if (error && !isMissingColumnError(error)) {
             console.warn('Gagal sync band profile ke Supabase:', error.message);
           }
@@ -1357,9 +1417,11 @@ export default function App() {
           merchOrdersData,
           subscribedBandsData,
           notificationReadsData,
-          updateNotificationsData
+          updateNotificationsData,
+          releaseAgreementsData
         }) => {
           setSaleTransactions(saleTransactionsData);
+          setReleaseAgreements(releaseAgreementsData);
           if (audienceLibraryData?.length) {
             setPurchasedAlbums(audienceLibraryData);
             persistAudienceLibraryLocal(audienceLibraryData, userSession);
@@ -1375,6 +1437,7 @@ export default function App() {
             persistSubscribedUpdateReadsLocal(notificationReadsData, userSession);
           }
           saveTransactionLedger(saleTransactionsData);
+          saveReleaseAgreementLedger(releaseAgreementsData);
           saveMerchOrders(merchOrdersData);
         });
       }
@@ -1469,6 +1532,7 @@ export default function App() {
     setArticleComments({});
     setContentReports([]);
     setSaleTransactions([]);
+    setReleaseAgreements([]);
     setMerchOrders([]);
     setPurchasedAlbums([]);
     setDownloadLogs([]);
@@ -1515,7 +1579,7 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData } = await fetchCloudData(userSession);
+    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData } = await fetchCloudData(userSession);
     setGigs(gigsData);
     setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
@@ -1524,6 +1588,7 @@ export default function App() {
     setPublicMerchItems(merchData);
     setArticleComments(articleCommentsData);
     setSaleTransactions(saleTransactionsData);
+    setReleaseAgreements(releaseAgreementsData);
     if (audienceLibraryData?.length) {
       setPurchasedAlbums(audienceLibraryData);
       persistAudienceLibraryLocal(audienceLibraryData, userSession);
@@ -1540,6 +1605,7 @@ export default function App() {
     savePublicMerchRegistry(merchData);
     saveArticleComments(articleCommentsData);
     saveTransactionLedger(saleTransactionsData);
+    saveReleaseAgreementLedger(releaseAgreementsData);
     saveMerchOrders(merchOrdersData);
     setLoading(false);
   };
@@ -2092,6 +2158,7 @@ export default function App() {
         revenue_share: nextTransaction.revenueShare,
         payment_method: nextTransaction.paymentMethod,
         fulfillment_status: nextTransaction.fulfillmentStatus,
+        payout_status: nextTransaction.payoutStatus,
         status: nextTransaction.status,
         paid_at: nextTransaction.paidAt
       }]).then(({ error }) => {
@@ -2433,8 +2500,77 @@ export default function App() {
     alert('Profile band tersimpan dan aman saat refresh di browser ini. Foto/banner akan pakai Supabase Storage kalau bucket band-assets sudah aktif.');
   };
 
+  const buildReleaseAgreementText = (agreement) => [
+    `WiSpace Digital Release Agreement (${agreement.agreementVersion})`,
+    `Release: ${agreement.releaseTitle}`,
+    `Band: ${agreement.bandName}`,
+    `Signer: ${agreement.signerName}`,
+    `Signer email: ${agreement.signerEmail || '-'}`,
+    `Signed at: ${agreement.signedAt}`,
+    '',
+    'Terms:',
+    '1. Band menjamin memiliki hak penuh untuk mengunggah, menjual, dan mendistribusikan MP3 yang dikirim ke WiSpace.',
+    '2. Band bertanggung jawab atas klaim plagiarisme, SARA, pelanggaran hak cipta, atau sengketa karya yang timbul dari rilisan ini.',
+    '3. Pembagian pendapatan bersih adalah 80% untuk band dan 20% untuk WiSpace.',
+    `4. Pencairan saldo diproses setiap tanggal 1 dengan minimum Rp ${MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}.`,
+    '5. Rekening payout yang tercatat dipakai untuk report dan proses pencairan sampai band memperbarui data rekening.'
+  ].join('\n');
+
+  const persistReleaseAgreementRecord = (agreement) => {
+    const completeAgreement = {
+      ...agreement,
+      agreementText: agreement.agreementText || buildReleaseAgreementText(agreement)
+    };
+    setReleaseAgreements((current) => {
+      const nextAgreements = [
+        completeAgreement,
+        ...current.filter((item) => String(item.id) !== String(completeAgreement.id))
+      ];
+      saveReleaseAgreementLedger(nextAgreements);
+      return nextAgreements;
+    });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      void supabase
+        .from('release_agreements')
+        .upsert({
+          id: completeAgreement.id,
+          release_id: completeAgreement.releaseId,
+          release_title: completeAgreement.releaseTitle,
+          band_user_id: userSession.id,
+          band_name: completeAgreement.bandName,
+          band_slug: completeAgreement.bandSlug,
+          signer_name: completeAgreement.signerName,
+          signer_email: completeAgreement.signerEmail || null,
+          agreement_version: completeAgreement.agreementVersion,
+          agreement_text: completeAgreement.agreementText,
+          payout_bank_name: completeAgreement.payoutBankName,
+          payout_account_name: completeAgreement.payoutAccountName,
+          payout_account_number: completeAgreement.payoutAccountNumber,
+          signed_at: completeAgreement.signedAt
+        }, { onConflict: 'id' })
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync agreement rilisan ke Supabase:', error.message);
+          }
+        });
+    }
+  };
+
+  const handleDownloadAgreementText = (agreement) => {
+    const text = agreement.agreementText || buildReleaseAgreementText(agreement);
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${createSlug(agreement.releaseTitle || 'wispace-agreement')}-agreement.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleAlbumDraftSubmit = (event) => {
     event.preventDefault();
+    if (!hasBandPayoutAccount) return alert('Lengkapi nama bank, nama pemegang rekening, dan nomor rekening di Profile Band dulu bro. Ini wajib sebelum upload album atau merch.');
     if (!albumDraft.accepted) return alert('Centang agreement upload album dulu bro.');
     if (!albumDraft.signature.trim()) return alert('Isi nama penanggung jawab / tanda tangan digital dulu bro.');
     if (albumDraft.audioFiles.length === 0) return alert('Import minimal satu file MP3 dulu bro.');
@@ -2481,6 +2617,23 @@ export default function App() {
     };
 
     const publicAlbum = publishPublicRelease(nextAlbum);
+    const releaseAgreement = {
+      id: createClientId(),
+      releaseId: publicAlbum.id,
+      releaseTitle: publicAlbum.title,
+      bandUserId: userSession?.id || '',
+      bandName: publicAlbum.bandName || bandProfile.name || signatureName || 'Band WiSpace',
+      bandSlug: publicAlbum.bandSlug || bandProfile.slug || createSlug(publicAlbum.bandName || bandProfile.name || 'band-wispace'),
+      signerName: albumDraft.signature.trim(),
+      signerEmail: userSession?.email || '',
+      agreementVersion: RELEASE_AGREEMENT_VERSION,
+      payoutBankName: bandProfile.bankName,
+      payoutAccountName: bandProfile.bankAccountName,
+      payoutAccountNumber: bandProfile.bankAccountNumber,
+      signedAt: new Date().toISOString(),
+      createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+    persistReleaseAgreementRecord(releaseAgreement);
     setAlbumItems((current) => [
       publicAlbum,
       ...current.filter((item) => String(item.id) !== String(publicAlbum.id))
@@ -3051,6 +3204,7 @@ export default function App() {
 
   const handleMerchDraftSubmit = (event) => {
     event.preventDefault();
+    if (!hasBandPayoutAccount) return alert('Lengkapi data rekening payout di Profile Band dulu bro sebelum upload merch.');
     const nextItem = {
       id: createClientId(),
       ...merchDraft,
@@ -3717,6 +3871,11 @@ export default function App() {
     : hasFreeFullBandTrack
       ? 'SUDAH ADA DI PROFILE'
       : 'BELUM DIPILIH';
+  const hasBandPayoutAccount = Boolean(
+    bandProfile.bankName?.trim()
+    && bandProfile.bankAccountName?.trim()
+    && bandProfile.bankAccountNumber?.trim()
+  );
   const displayBandMerchItems = publicMerchList.filter((item) => (
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
   ));
@@ -3867,6 +4026,48 @@ export default function App() {
   ];
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
+  const bandsMissingPayoutAccount = publicBandProfiles.filter((profile) => (
+    profile.isPublished && (!profile.bankName || !profile.bankAccountName || !profile.bankAccountNumber)
+  ));
+  const nextPayoutDate = new Date();
+  nextPayoutDate.setMonth(nextPayoutDate.getMonth() + (nextPayoutDate.getDate() >= 1 ? 1 : 0), 1);
+  const nextPayoutLabel = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }).format(nextPayoutDate);
+  const adminPayoutReportRows = adminPayoutBands.map((band) => {
+    const profile = publicBandProfiles.find((item) => item.slug === band.slug || item.name === band.name) || {};
+    return {
+      ...band,
+      bankName: profile.bankName || '',
+      bankAccountName: profile.bankAccountName || '',
+      bankAccountNumber: profile.bankAccountNumber || '',
+      ready: band.amount >= MINIMUM_PAYOUT_AMOUNT && profile.bankName && profile.bankAccountName && profile.bankAccountNumber
+    };
+  });
+  const adminActionNotifications = [
+    {
+      title: 'PAYOUT SIAP TANGGAL 1',
+      count: adminPayoutReportRows.filter((band) => band.ready).length,
+      color: '#39ff14',
+      note: `Report berikutnya: ${nextPayoutLabel}.`
+    },
+    {
+      title: 'REKENING BAND BELUM LENGKAP',
+      count: bandsMissingPayoutAccount.length,
+      color: '#ffcc00',
+      note: 'Band harus lengkapi rekening sebelum upload album/merch.'
+    },
+    {
+      title: 'AGREEMENT RILISAN TEREKAM',
+      count: releaseAgreements.length,
+      color: '#00d2ff',
+      note: 'Arsip legal per upload album/track.'
+    },
+    {
+      title: 'PAMFLET PAID PERLU ACTIVATE',
+      count: exclusivePaidWaitingActivationGigs.length,
+      color: '#ffcc00',
+      note: 'Setelah pembayaran terkonfirmasi, admin activate 10 hari.'
+    }
+  ];
   const adminFinanceFilters = [
     { id: 'all', label: 'ALL', count: saleTransactions.length },
     { id: 'digital', label: 'RILISAN', count: adminDigitalTransactions.length },
@@ -4756,6 +4957,58 @@ export default function App() {
                 <strong style={{ ...compactMetricValueStyle, color: adminWaitingMerchOrders ? '#ffcc00' : '#555' }}>{adminWaitingMerchOrders}</strong>
               </div>
             </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '8px', marginTop: '10px' }}>
+              {adminActionNotifications.map((notification) => (
+                <div key={notification.title} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${notification.color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: notification.color, fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{notification.title}</p>
+                  <strong style={{ color: '#fff', fontSize: '18px', fontWeight: '900' }}>{notification.count}</strong>
+                  <p style={{ color: '#666', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{notification.note}</p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '8px', marginTop: '10px' }}>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.18)', borderRadius: '10px' }}>
+                <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>REPORT PENCAIRAN TANGGAL 1 / {nextPayoutLabel.toUpperCase()}</p>
+                {adminPayoutReportRows.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada transaksi paid untuk report payout.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '6px', maxHeight: '190px', overflowY: 'auto' }}>
+                    {adminPayoutReportRows.slice(0, 10).map((band) => (
+                      <div key={band.slug} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', padding: '8px', backgroundColor: '#050505', border: `1px solid ${band.ready ? 'rgba(57,255,20,0.18)' : 'rgba(255,204,0,0.18)'}`, borderRadius: '9px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: band.ready ? '#39ff14' : '#ffcc00', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{band.ready ? 'READY PAYOUT' : 'CEK REKENING / MINIMUM'}</p>
+                          <h4 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{band.name.toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{band.bankName ? `${band.bankName} / ${band.bankAccountName} / ${band.bankAccountNumber}` : 'Rekening belum lengkap'}</p>
+                        </div>
+                        <strong style={{ color: '#fff', fontSize: '11px', whiteSpace: 'nowrap' }}>Rp {band.amount.toLocaleString('id-ID')}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '10px' }}>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ARSIP AGREEMENT RILISAN</p>
+                {releaseAgreements.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada agreement upload album yang terekam.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '6px', maxHeight: '190px', overflowY: 'auto' }}>
+                    {releaseAgreements.slice(0, 8).map((agreement) => (
+                      <div key={agreement.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '9px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{agreement.createdAt || new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(agreement.signedAt))}</p>
+                          <h4 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agreement.releaseTitle.toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{agreement.bandName} / TTD: {agreement.signerName}</p>
+                        </div>
+                        <button type="button" onClick={() => handleDownloadAgreementText(agreement)} style={{ ...glassButtonStyle, padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>TXT</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '8px', marginTop: '10px' }}>
               <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.18)', borderRadius: '10px' }}>
                 <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYOUT READY QUEUE</p>
@@ -6480,6 +6733,10 @@ export default function App() {
             <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
               <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band.</p>
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#000', border: `1px solid ${hasBandPayoutAccount ? 'rgba(57,255,20,0.18)' : 'rgba(255,204,0,0.22)'}`, borderRadius: '10px' }}>
+                <p style={{ color: hasBandPayoutAccount ? '#39ff14' : '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
+                <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{hasBandPayoutAccount ? `${bandProfile.bankName} / ${bandProfile.bankAccountName} / ${bandProfile.bankAccountNumber}` : 'Belum lengkap. Isi di Edit Profile Band sebelum upload dan sebelum report payout.'}</p>
+              </div>
             </section>
             <section style={{ ...glassStyle('finance-history'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
               <h3 style={{ color: '#39ff14', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>RIWAYAT TRANSAKSI</h3>
@@ -6660,6 +6917,20 @@ export default function App() {
                     <input type="email" placeholder="EMAIL BAND" value={bandProfile.email} onChange={(e) => setBandProfile({ ...bandProfile, email: e.target.value })} style={formInputStyle} />
                     <input type="text" placeholder="INSTAGRAM / SOSMED" value={bandProfile.instagram} onChange={(e) => setBandProfile({ ...bandProfile, instagram: e.target.value })} style={formInputStyle} />
                   </div>
+                  <div style={{ backgroundColor: '#000', border: `1px solid ${hasBandPayoutAccount ? 'rgba(57,255,20,0.22)' : 'rgba(255,204,0,0.26)'}`, borderRadius: '14px', padding: '14px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                      <div>
+                        <p style={{ color: hasBandPayoutAccount ? '#39ff14' : '#ffcc00', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
+                        <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum upload album atau merch. Data ini dipakai report tanggal 1 dan proses pencairan.</p>
+                      </div>
+                      <strong style={{ color: hasBandPayoutAccount ? '#39ff14' : '#ffcc00', fontSize: '10px' }}>{hasBandPayoutAccount ? 'READY' : 'BELUM LENGKAP'}</strong>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                      <input type="text" placeholder="NAMA BANK (BCA / BNI / MANDIRI)" value={bandProfile.bankName || ''} onChange={(e) => setBandProfile({ ...bandProfile, bankName: e.target.value })} style={formInputStyle} />
+                      <input type="text" placeholder="NAMA PEMEGANG REKENING" value={bandProfile.bankAccountName || ''} onChange={(e) => setBandProfile({ ...bandProfile, bankAccountName: e.target.value })} style={formInputStyle} />
+                      <input type="text" inputMode="numeric" placeholder="NOMOR REKENING" value={bandProfile.bankAccountNumber || ''} onChange={(e) => setBandProfile({ ...bandProfile, bankAccountNumber: e.target.value })} style={formInputStyle} />
+                    </div>
+                  </div>
                   <textarea placeholder="BIO BAND" value={bandProfile.bio} onChange={(e) => setBandProfile({ ...bandProfile, bio: e.target.value })} rows={6} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                     <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(0,210,255,0.35)', borderRadius: '14px', backgroundColor: '#000', cursor: 'pointer' }}>
@@ -6679,6 +6950,12 @@ export default function App() {
 
               {bandProfileTab === 'album' && (
                 <form onSubmit={handleAlbumDraftSubmit}>
+                  {!hasBandPayoutAccount && (
+                    <div style={{ backgroundColor: 'rgba(255,204,0,0.06)', border: '1px solid rgba(255,204,0,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                      <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>LENGKAPI REKENING DULU</p>
+                      <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Upload album butuh nama bank, nama pemegang rekening, dan nomor rekening di tab Profile Band supaya agreement dan report payout valid.</p>
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     <input type="text" placeholder="JUDUL ALBUM / EP" value={albumDraft.title} onChange={(e) => setAlbumDraft({ ...albumDraft, title: e.target.value })} required style={formInputStyle} />
                     <input type="number" min="0" placeholder="HARGA JUAL (Rp)" value={albumDraft.price} onChange={(e) => setAlbumDraft({ ...albumDraft, price: e.target.value })} required style={formInputStyle} />
@@ -6801,6 +7078,12 @@ export default function App() {
 
               {bandProfileTab === 'merch' && (
                 <form onSubmit={handleMerchDraftSubmit}>
+                  {!hasBandPayoutAccount && (
+                    <div style={{ backgroundColor: 'rgba(255,204,0,0.06)', border: '1px solid rgba(255,204,0,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                      <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>REKENING PAYOUT WAJIB</p>
+                      <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     <input type="text" placeholder="NAMA MERCH (Kaos, CD, Kaset, Sticker)" value={merchDraft.name} onChange={(e) => setMerchDraft({ ...merchDraft, name: e.target.value })} required style={formInputStyle} />
                     <input type="number" min="0" placeholder="HARGA JUAL (Rp)" value={merchDraft.price} onChange={(e) => setMerchDraft({ ...merchDraft, price: e.target.value })} required style={formInputStyle} />

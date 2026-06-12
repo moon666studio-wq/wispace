@@ -14,6 +14,9 @@ create table if not exists public.band_profiles (
   email text,
   instagram text,
   bio text,
+  bank_name text,
+  bank_account_name text,
+  bank_account_number text,
   cover_name text,
   cover_preview text,
   photo_name text,
@@ -27,6 +30,11 @@ on public.band_profiles (slug);
 
 create index if not exists band_profiles_published_updated_idx
 on public.band_profiles (is_published, updated_at desc);
+
+alter table if exists public.band_profiles
+add column if not exists bank_name text,
+add column if not exists bank_account_name text,
+add column if not exists bank_account_number text;
 
 create table if not exists public.band_agreements (
   user_id uuid primary key references auth.users(id) on delete cascade,
