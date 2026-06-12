@@ -699,7 +699,7 @@ const uploadPublicAsset = async (file, folder, user) => {
 };
 
 const isSupportedAudioFile = (file) => (
-  file?.type?.startsWith('audio/') || /\.(mp3|wav)$/i.test(file?.name || '')
+  file?.type === 'audio/mpeg' || /\.mp3$/i.test(file?.name || '')
 );
 
 const uploadPrivateAudio = async (file, folder, user) => {
@@ -2269,7 +2269,7 @@ export default function App() {
     if (!files.length) return;
     const unsupportedFile = files.find((file) => !isSupportedAudioFile(file));
     if (unsupportedFile) {
-      alert(`File ${unsupportedFile.name} belum didukung. Pakai MP3 atau WAV dulu bro.`);
+      alert(`File ${unsupportedFile.name} belum didukung. Untuk WiSpace pakai MP3 saja dulu bro, supaya master WAV/hi-res band tetap aman.`);
       clearFileInput(event);
       return;
     }
@@ -2322,7 +2322,7 @@ export default function App() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!isSupportedAudioFile(file)) {
-      alert('Preview track harus MP3 atau WAV dulu bro.');
+      alert('Preview track harus MP3 dulu bro.');
       clearFileInput(event);
       return;
     }
@@ -2394,7 +2394,7 @@ export default function App() {
     event.preventDefault();
     if (!albumDraft.accepted) return alert('Centang agreement upload album dulu bro.');
     if (!albumDraft.signature.trim()) return alert('Isi nama penanggung jawab / tanda tangan digital dulu bro.');
-    if (albumDraft.audioFiles.length === 0) return alert('Import minimal satu file MP3/WAV dulu bro.');
+    if (albumDraft.audioFiles.length === 0) return alert('Import minimal satu file MP3 dulu bro.');
     const masterFallbackTracks = albumDraft.audioFiles.filter((file) => !file.audioPath);
     if (masterFallbackTracks.length) {
       const shouldContinue = window.confirm(`${masterFallbackTracks.length} master audio belum masuk private Storage. Publish tetap lanjut? File lokal/fallback bisa hilang setelah refresh/deploy sampai bucket release-audio siap.`);
@@ -2420,7 +2420,7 @@ export default function App() {
       releaseType: albumDraft.audioFiles.length === 1 ? 'single' : 'album',
       tracks: albumDraft.audioFiles.map((file, index) => ({
         id: createClientId(),
-        title: file.name.replace(/\.(mp3|wav)$/i, ''),
+        title: file.name.replace(/\.mp3$/i, ''),
         fileName: file.name,
         size: file.size,
         url: file.url,
@@ -3579,7 +3579,7 @@ export default function App() {
   const albumDraftPaidTrackCount = albumDraft.audioFiles.filter((_, index) => String(index) !== String(albumDraft.freeTrackIndex)).length;
   const albumDraftMissingPreviewCount = albumDraft.audioFiles.filter((file, index) => String(index) !== String(albumDraft.freeTrackIndex) && !file.previewUrl).length;
   const albumDraftFreeFullLabel = albumDraft.freeTrackIndex !== '' && albumDraft.audioFiles[albumDraft.freeTrackIndex]
-    ? albumDraft.audioFiles[albumDraft.freeTrackIndex].name.replace(/\.(mp3|wav)$/i, '')
+    ? albumDraft.audioFiles[albumDraft.freeTrackIndex].name.replace(/\.mp3$/i, '')
     : hasFreeFullBandTrack
       ? 'SUDAH ADA DI PROFILE'
       : 'BELUM DIPILIH';
@@ -3678,7 +3678,7 @@ export default function App() {
     {
       title: 'Private audio',
       status: privateAudioPathCount ? 'scaffold' : 'todo',
-      note: privateAudioPathCount ? `${privateAudioPathCount} track punya private audio path. Library player meminta signed URL untuk owner/buyer/free full.` : 'MP3/WAV sudah di-wire ke bucket release-audio; upload baru akan punya private path setelah SQL policy dijalankan.'
+      note: privateAudioPathCount ? `${privateAudioPathCount} track punya private audio path. Library player meminta signed URL untuk owner/buyer/free full.` : 'MP3 sudah di-wire ke bucket release-audio; upload baru akan punya private path setelah SQL policy dijalankan.'
     },
     {
       title: 'Preview clips',
@@ -6339,9 +6339,9 @@ export default function App() {
                       <p style={{ color: '#555', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.coverName || 'Artwork/cover album.'}</p>
                     </label>
                     <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(0,210,255,0.35)', borderRadius: '14px', backgroundColor: '#000', cursor: 'pointer' }}>
-                      <input type="file" accept="audio/mpeg,audio/wav,.mp3,.wav" multiple onChange={handleAlbumAudioImport} style={{ display: 'none' }} />
-                      <span style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900' }}>IMPORT MP3 / WAV</span>
-                      <p style={{ color: '#555', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload` : 'Pilih semua track album.'}</p>
+                      <input type="file" accept="audio/mpeg,.mp3" multiple onChange={handleAlbumAudioImport} style={{ display: 'none' }} />
+                      <span style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900' }}>IMPORT MP3</span>
+                      <p style={{ color: '#555', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload` : 'Pilih track MP3 album. Simpan WAV/master di arsip band.'}</p>
                     </label>
                   </div>
 
@@ -6385,7 +6385,7 @@ export default function App() {
                             </div>
                           </div>
                           <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', minHeight: '34px', padding: '0 10px', border: `1px solid ${file.previewUrl ? 'rgba(57,255,20,0.25)' : 'rgba(0,210,255,0.25)'}`, borderRadius: '10px', backgroundColor: file.previewUrl ? 'rgba(57,255,20,0.06)' : 'rgba(0,210,255,0.06)', color: file.previewUrl ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
-                              <input type="file" accept="audio/mpeg,audio/wav,.mp3,.wav" onChange={(event) => handleTrackPreviewImport(index, event)} style={{ display: 'none' }} />
+                              <input type="file" accept="audio/mpeg,.mp3" onChange={(event) => handleTrackPreviewImport(index, event)} style={{ display: 'none' }} />
                               {file.previewUrl ? 'PREVIEW READY' : 'ADD 30S PREVIEW'}
                           </label>
                           <input
@@ -6783,7 +6783,7 @@ export default function App() {
               <form onSubmit={handleContractSignature}>
                 <h3 style={{ color: '#ff3333', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldCheck size={16}/> MANIFESTO HUKUM & DISTRIBUSI WISPACE</h3>
                 <div style={{ maxHeight: '180px', overflowY: 'auto', backgroundColor: '#000', padding: '12px', borderRadius: '12px', fontSize: '11px', color: '#aaa', lineHeight: '1.4', marginBottom: '16px', border: '1px solid #141414' }}>
-                  <p style={{ margin: '0 0 10px 0' }}>1. Segala bentuk file audio (MP3/WAV), foto, dan poster acara yang di-upload sepenuhnya merupakan <strong>tanggung jawab hukum band masing-masing</strong>. WiSpace murni bertindak sebagai wadah distribusi digital independen.</p>
+                <p style={{ margin: '0 0 10px 0' }}>1. Segala bentuk file audio MP3, foto, dan poster acara yang di-upload sepenuhnya merupakan <strong>tanggung jawab hukum band masing-masing</strong>. WiSpace murni bertindak sebagai wadah distribusi digital independen. Simpan WAV/master hi-res di arsip pribadi band.</p>
                   <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi tetap sebesar <strong>20%</strong> dari setiap nominal karya lagu/album/merch yang berhasil terjual untuk kebutuhan operasional platform.</p>
                   <p style={{ margin: '0 0 10px 0' }}>3. Pihak band/musisi diberikan kebebasan mutlak 100% untuk <strong>menentukan harga jual sendiri</strong> terhadap karya tunggal maupun album penuh mereka.</p>
                   <p style={{ margin: '0 0 10px 0' }}>4. Laporan keuangan komprehensif dapat dipantau real-time di profil band, dan dana hasil penjualan dapat dicairkan aman <strong>setiap tanggal 1 awal bulan (Minimal Saldo Rp 100.000)</strong>.</p>
@@ -6877,7 +6877,7 @@ export default function App() {
                 <h3 style={{ color: '#00d2ff', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900' }}>🎵 SUNTIK RILISAN LAGU BARU</h3>
                 <input type="text" placeholder="NAMA BAND" value={trackBand} onChange={(e) => setTrackBand(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', boxSizing: 'border-box' }} />
                 <input type="text" placeholder="JUDUL SINGLE / LAGU" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="url" placeholder="LINK AUDIO CLOUD URL (MP3/WAV)" value={trackUrl} onChange={(e) => setTrackUrl(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '20px', boxSizing: 'border-box' }} />
+                <input type="url" placeholder="LINK AUDIO CLOUD URL (MP3)" value={trackUrl} onChange={(e) => setTrackUrl(e.target.value)} required style={{ width: '100%', backgroundColor: '#000', border: '1px solid #222', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#fff', marginBottom: '20px', boxSizing: 'border-box' }} />
                 <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer' }}>LUNCURKAN RILISAN BARU</button>
               </form>
             )}
