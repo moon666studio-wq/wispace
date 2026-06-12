@@ -4318,12 +4318,12 @@ export default function App() {
 
   // STYLING INTERFACE ASYMMETRIC ROUNDED `16PX`
   const glassStyle = (id) => ({
-    background: 'linear-gradient(180deg, rgba(18, 18, 18, 0.78), rgba(8, 8, 8, 0.88))',
-    backdropFilter: 'blur(18px)',
-    WebkitBackdropFilter: 'blur(18px)',
-    borderRadius: '14px',
+    background: 'linear-gradient(180deg, rgba(15, 15, 15, 0.76), rgba(6, 6, 6, 0.9))',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    borderRadius: '12px',
     border: hoveredCard === id ? '1px solid rgba(0, 210, 255, 0.34)' : '1px solid rgba(255, 255, 255, 0.075)',
-    boxShadow: hoveredCard === id ? '0 22px 70px rgba(0, 0, 0, 0.72), 0 0 28px rgba(0, 210, 255, 0.18)' : '0 18px 48px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255,255,255,0.035)',
+    boxShadow: hoveredCard === id ? '0 18px 54px rgba(0, 0, 0, 0.7), 0 0 22px rgba(0, 210, 255, 0.16)' : '0 13px 34px rgba(0, 0, 0, 0.54), inset 0 1px 0 rgba(255,255,255,0.032)',
     transition: 'border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease'
   });
 
@@ -4336,9 +4336,9 @@ export default function App() {
     width: '100%',
     backgroundColor: '#000',
     border: '1px solid #222',
-    borderRadius: '12px',
-    padding: '12px',
-    fontSize: '13px',
+    borderRadius: '10px',
+    padding: '10px',
+    fontSize: '12px',
     color: '#fff',
     fontFamily: FONT_STACK,
     boxSizing: 'border-box',
@@ -4347,18 +4347,18 @@ export default function App() {
 
   const isCompactLayout = viewportWidth < 820;
   const isTinyLayout = viewportWidth < 560;
-  const innerPagePadding = isTinyLayout ? '88px 16px 20px' : isCompactLayout ? '90px 20px 24px' : '92px 30px 34px';
-  const splitGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.25fr) minmax(260px, 0.75fr)';
-  const studioGridColumns = isCompactLayout ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))';
+  const innerPagePadding = isTinyLayout ? '82px 12px 18px' : isCompactLayout ? '84px 18px 22px' : '86px 24px 28px';
+  const splitGridColumns = isCompactLayout ? '1fr' : 'minmax(260px, 1.25fr) minmax(240px, 0.75fr)';
+  const studioGridColumns = isCompactLayout ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))';
   const publicBandHeroColumns = isTinyLayout ? '1fr' : '136px minmax(0, 1fr)';
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
-  const compactPanelStyle = { padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909', marginBottom: isTinyLayout ? '18px' : '22px' };
-  const compactMetricCardStyle = { padding: isTinyLayout ? '10px' : '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', minWidth: 0 };
-  const compactMetricLabelStyle = { color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15 };
-  const compactMetricValueStyle = { color: '#fff', fontSize: isTinyLayout ? '18px' : '21px', fontWeight: '900', lineHeight: 1 };
-  const compactRowStyle = { padding: isTinyLayout ? '9px' : '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' };
+  const compactPanelStyle = { padding: isTinyLayout ? '11px' : '13px', backgroundColor: '#090909', marginBottom: isTinyLayout ? '12px' : '16px' };
+  const compactMetricCardStyle = { padding: isTinyLayout ? '8px' : '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '9px', minWidth: 0 };
+  const compactMetricLabelStyle = { color: '#666', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 };
+  const compactMetricValueStyle = { color: '#fff', fontSize: isTinyLayout ? '16px' : '19px', fontWeight: '900', lineHeight: 1 };
+  const compactRowStyle = { padding: isTinyLayout ? '7px' : '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '9px' };
   const homeShellPadding = isTinyLayout ? '12px' : '20px';
   const homeHeroHeight = isTinyLayout ? 'calc(100vh - 88px)' : 'calc(100vh - 96px)';
   const homeHeaderStyle = {
@@ -4453,33 +4453,33 @@ export default function App() {
         gridAutoFlow: 'column',
         gridAutoColumns: 'calc((100vw - 48px) / 2)',
         gridTemplateRows: '1fr',
-        gap: '12px',
+        gap: '8px',
         overflowX: 'auto',
-        paddingBottom: '8px',
+        paddingBottom: '6px',
         scrollSnapType: 'x mandatory',
         scrollbarWidth: 'none'
       }
     : {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-        gap: '24px'
+        gap: '14px'
       };
   const bulletinCardStyle = {
-    padding: isTinyLayout ? '10px' : '14px',
+    padding: isTinyLayout ? '8px' : '10px',
     background: 'linear-gradient(180deg, rgba(14,14,14,0.92), rgba(4,4,4,0.98))',
     position: 'relative',
     cursor: 'pointer',
     scrollSnapAlign: 'start',
     minWidth: 0,
-    borderRadius: '12px'
+    borderRadius: '10px'
   };
   const ownerActionsPanelStyle = {
     ...glassStyle('band-owner-actions'),
-    padding: isTinyLayout ? '9px' : '10px',
+    padding: isTinyLayout ? '7px' : '8px',
     backgroundColor: '#080808',
-    marginBottom: isTinyLayout ? '16px' : '18px',
+    marginBottom: isTinyLayout ? '10px' : '12px',
     display: showBandOwnerControls ? 'block' : 'none',
-    borderRadius: '12px'
+    borderRadius: '10px'
   };
   const ownerActionsGridStyle = {
     display: 'grid',
@@ -4488,11 +4488,11 @@ export default function App() {
   };
   const ownerActionButtonStyle = {
     ...glassButtonStyle,
-    padding: isTinyLayout ? '8px 7px' : '9px 8px',
-    fontSize: '10px',
+    padding: isTinyLayout ? '7px 6px' : '8px 7px',
+    fontSize: '9px',
     lineHeight: 1.15,
-    borderRadius: '10px',
-    minHeight: isTinyLayout ? '34px' : '36px'
+    borderRadius: '9px',
+    minHeight: isTinyLayout ? '30px' : '32px'
   };
 
   const pageShellStyle = {
@@ -4508,8 +4508,8 @@ export default function App() {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    gap: '24px',
-    marginBottom: '30px',
+    gap: '14px',
+    marginBottom: isTinyLayout ? '16px' : '20px',
     flexWrap: 'wrap',
     borderBottom: 'none',
     paddingBottom: 0
@@ -4517,15 +4517,15 @@ export default function App() {
 
   const eyebrowStyle = {
     color: '#a8f1ff',
-    fontSize: '11px',
+    fontSize: '10px',
     fontWeight: '900',
-    letterSpacing: '1.4px',
-    margin: '0 0 9px 0'
+    letterSpacing: '1.2px',
+    margin: '0 0 6px 0'
   };
 
   const pageTitleStyle = {
     color: '#fff',
-    fontSize: 'clamp(30px, 5vw, 48px)',
+    fontSize: 'clamp(25px, 4.2vw, 40px)',
     fontWeight: '900',
     margin: 0,
     lineHeight: 0.95
@@ -4533,10 +4533,10 @@ export default function App() {
 
   const pageLeadStyle = {
     color: '#8a8a8a',
-    fontSize: '14px',
-    margin: '12px 0 0 0',
-    maxWidth: '760px',
-    lineHeight: 1.55
+    fontSize: '13px',
+    margin: '8px 0 0 0',
+    maxWidth: '680px',
+    lineHeight: 1.45
   };
 
   const sectionHeadingStyle = {
@@ -4698,15 +4698,15 @@ export default function App() {
       )}
 
       {activeTrack && !loading && (
-        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '10px' : '16px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 28px)' : 'min(390px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '7px 8px' : '8px 10px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '9px', alignItems: 'center', backgroundColor: 'rgba(5,5,5,0.86)', border: '1px solid rgba(0,210,255,0.22)', borderRadius: '13px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 14px 36px rgba(0,0,0,0.45)' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '8px' : '12px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 34px)' : 'min(320px, calc(100vw - 56px))', boxSizing: 'border-box', padding: isTinyLayout ? '5px 7px' : '6px 8px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '6px', alignItems: 'center', backgroundColor: 'rgba(5,5,5,0.84)', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '11px', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', boxShadow: '0 10px 26px rgba(0,0,0,0.42)' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ color: isPlaying ? '#39ff14' : '#00d2ff', fontSize: '8px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 3px 0' }}>{isPlaying ? 'PLAYING' : 'PAUSED'}</p>
-            <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
+            <p style={{ color: isPlaying ? '#39ff14' : '#00d2ff', fontSize: '7px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 2px 0' }}>{isPlaying ? 'PLAYING' : 'PAUSED'}</p>
+            <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '10px' : '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.05 }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '27px', height: '27px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipBack size={12} /></button>
-            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '32px', height: '32px', borderRadius: '9999px', border: '1px solid rgba(0,210,255,0.32)', backgroundColor: '#00d2ff', color: '#000', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 0 18px rgba(0,210,255,0.18)' }}>{isPlaying ? <Pause size={14} fill="#000" /> : <Play size={14} fill="#000" />}</button>
-            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '27px', height: '27px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer' }}><SkipForward size={12} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.09)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipBack size={10} /></button>
+            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '27px', height: '27px', borderRadius: '9999px', border: '1px solid rgba(0,210,255,0.28)', backgroundColor: '#00d2ff', color: '#000', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: '0 0 14px rgba(0,210,255,0.16)', padding: 0 }}>{isPlaying ? <Pause size={12} fill="#000" /> : <Play size={12} fill="#000" />}</button>
+            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.09)', backgroundColor: '#000', color: playerQueue.length <= 1 ? '#333' : '#fff', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipForward size={10} /></button>
           </div>
         </div>
       )}
@@ -7196,35 +7196,35 @@ export default function App() {
 
       {/* INTERACTIVE 3 COLUMNS LOWER ROW */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={{ ...glassStyle('c1'), padding: isTinyLayout ? '18px' : '24px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><Radio size={14} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px' }}>
+          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={{ ...glassStyle('c1'), padding: isTinyLayout ? '12px' : '16px' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
             {top10Tracks.map(track => (
-              <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
-                <div><h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '12px', color: '#666', margin: 0 }}>{track.band.toUpperCase()}</p></div>
-                <button onClick={() => handlePlayTrack(track, top10Tracks)} style={{ ...glassButtonStyle, padding: '6px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
+              <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
+                <div style={{ minWidth: 0 }}><h4 style={{ fontSize: '12px', color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '10px', color: '#666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.band.toUpperCase()}</p></div>
+                <button onClick={() => handlePlayTrack(track, top10Tracks)} style={{ ...glassButtonStyle, padding: '5px 10px', fontSize: '10px', flexShrink: 0 }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
               </div>
             ))}
           </div>
-          <div style={{ ...glassStyle('c2'), padding: isTinyLayout ? '18px' : '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '14px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><FileText size={14} color="#a8f1ff"/> 10 ARTIKEL BAND TERBARU</h3>
-              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
+          <div style={{ ...glassStyle('c2'), padding: isTinyLayout ? '12px' : '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '12px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><FileText size={13} color="#a8f1ff"/> 10 ARTIKEL BAND TERBARU</h3>
+              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
             {publicArticleList.length === 0 ? (
-              <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
+              <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
             ) : (
-              <div style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ display: 'grid', gap: '7px' }}>
                 {publicArticleList.slice(0, 10).map((article) => (
-                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '10px 0', border: 'none', borderTop: '1px solid #141414', background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
-                    <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
-                    <p style={{ color: '#777', fontSize: '11px', margin: 0 }}>{article.category} / {article.bandName}</p>
+                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '7px 0', border: 'none', borderTop: '1px solid #141414', background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                    <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0' }}>{article.title.toUpperCase()}</p>
+                    <p style={{ color: '#777', fontSize: '10px', margin: 0 }}>{article.category} / {article.bandName}</p>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <div style={{ ...glassStyle('c3'), padding: isTinyLayout ? '18px' : '24px' }}><h3 style={{ fontSize: '14px', color: '#f5f5f5', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.8px' }}><ShoppingBag size={14} color="#a8f1ff"/> DISTRO BAND MERCHANDISE</h3></div>
+          <div style={{ ...glassStyle('c3'), padding: isTinyLayout ? '12px' : '16px' }}><h3 style={{ fontSize: '12px', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#a8f1ff"/> DISTRO BAND MERCHANDISE</h3></div>
         </section>
       )}
 
