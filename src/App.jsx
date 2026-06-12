@@ -2395,6 +2395,13 @@ export default function App() {
     if (!albumDraft.accepted) return alert('Centang agreement upload album dulu bro.');
     if (!albumDraft.signature.trim()) return alert('Isi nama penanggung jawab / tanda tangan digital dulu bro.');
     if (albumDraft.audioFiles.length === 0) return alert('Import minimal satu file MP3/WAV dulu bro.');
+    const paidTracksWithoutPreview = albumDraft.audioFiles.filter((file, index) => (
+      String(index) !== String(albumDraft.freeTrackIndex) && !file.previewUrl
+    ));
+    if (paidTracksWithoutPreview.length) {
+      const shouldContinue = window.confirm(`${paidTracksWithoutPreview.length} track berbayar belum punya file preview 30 detik. Publish tetap lanjut? Preview publik bisa tidak tersedia setelah refresh sampai preview clip diupload.`);
+      if (!shouldContinue) return;
+    }
 
     const albumId = createClientId();
     const nextAlbum = {
@@ -2442,7 +2449,7 @@ export default function App() {
       accepted: false
     });
     setBandProfileTab('album');
-    alert('Album masuk draft rilisan dan sudah muncul di Explore. Cover sudah siap ke Storage; audio private nanti lanjut ke signed URL untuk buyer.');
+    alert('Album masuk draft rilisan dan sudah muncul di Explore. Master audio private untuk buyer; preview publik memakai file preview 30 detik kalau tersedia.');
   };
 
   const handleDeleteAlbum = (album) => {
@@ -3611,6 +3618,9 @@ export default function App() {
   const privateAudioPathCount = albumItems
     .flatMap((album) => album.tracks || [])
     .filter((track) => Boolean(track.audioPath)).length;
+  const publicPreviewClipCount = albumItems
+    .flatMap((album) => album.tracks || [])
+    .filter((track) => Boolean(track.previewUrl)).length;
   const demoPaymentTransactions = saleTransactions.filter((transaction) => (
     transaction.paymentMethod === 'demo_checkout' || transaction.paymentStatus === 'demo_paid'
   )).length;
@@ -3644,6 +3654,11 @@ export default function App() {
       title: 'Private audio',
       status: privateAudioPathCount ? 'scaffold' : 'todo',
       note: privateAudioPathCount ? `${privateAudioPathCount} track punya private audio path. Library player meminta signed URL untuk owner/buyer/free full.` : 'MP3/WAV sudah di-wire ke bucket release-audio; upload baru akan punya private path setelah SQL policy dijalankan.'
+    },
+    {
+      title: 'Preview clips',
+      status: publicPreviewClipCount ? 'scaffold' : 'todo',
+      note: publicPreviewClipCount ? `${publicPreviewClipCount} track punya preview clip public terpisah. Ini menjaga master audio tetap private.` : 'Track berbayar sebaiknya punya file preview 30 detik di bucket release-previews.'
     },
     {
       title: 'Encrypted download',
@@ -4794,7 +4809,7 @@ export default function App() {
                         <span style={{ color: '#555', fontSize: '10px', fontWeight: '900' }}>{String(index + 1).padStart(2, '0')}</span>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</p>
-                          <p style={{ color: track.freeFull ? '#39ff14' : '#777', fontSize: '10px', fontWeight: '800', margin: 0 }}>{track.freeFull ? 'FREE FULL TRACK' : '30 SECOND PREVIEW'}</p>
+                          <p style={{ color: track.freeFull ? '#39ff14' : track.previewUrl || track.url ? '#00d2ff' : '#777', fontSize: '10px', fontWeight: '800', margin: 0 }}>{track.freeFull ? 'FREE FULL TRACK' : track.previewUrl || track.url ? '30 SECOND PREVIEW' : 'PREVIEW PENDING'}</p>
                         </div>
                         <button onClick={() => handlePlayTrack({ ...track, albumTitle: selectedRelease.title, bandName: selectedRelease.bandName, albumCover: selectedRelease.coverPreview }, (selectedRelease.tracks || []).map((item) => ({ ...item, albumTitle: selectedRelease.title, bandName: selectedRelease.bandName, albumCover: selectedRelease.coverPreview })))} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
                         <button onClick={() => handlePurchaseTrack(selectedRelease, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(57,255,20,0.08)' : 'rgba(0,210,255,0.08)', border: `1px solid ${track.freeFull ? 'rgba(57,255,20,0.25)' : 'rgba(0,210,255,0.25)'}`, color: track.freeFull ? '#39ff14' : '#00d2ff', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
@@ -5301,7 +5316,7 @@ export default function App() {
                             {track.albumCover ? <img src={track.albumCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : String(index + 1).padStart(2, '0')}
                           </div>
                           <div style={{ minWidth: 0 }}>
-                            <p style={{ color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : '30 SEC PREVIEW'} / {track.albumTitle?.toUpperCase()}</p>
+                            <p style={{ color: track.freeFull ? '#39ff14' : track.previewUrl || track.url ? '#00d2ff' : '#777', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : track.previewUrl || track.url ? '30 SEC PREVIEW' : 'PREVIEW PENDING'} / {track.albumTitle?.toUpperCase()}</p>
                             <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                               <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
