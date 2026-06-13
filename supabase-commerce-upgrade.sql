@@ -210,6 +210,26 @@ create table if not exists public.audience_notification_reads (
   unique (audience_user_id, notification_id)
 );
 
+create table if not exists public.wispace_messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_user_id uuid references auth.users(id) on delete set null,
+  sender_name text not null,
+  sender_contact text,
+  subject text not null,
+  body text not null,
+  category text not null default 'lainnya',
+  scope text not null default 'band',
+  source text not null default 'user',
+  target_band_slug text,
+  target_band_name text,
+  is_read boolean not null default false,
+  replied boolean not null default false,
+  last_reply text,
+  parent_message_id uuid references public.wispace_messages(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.shipment_tracking_events (
   id uuid primary key default gen_random_uuid(),
   merch_order_id uuid not null references public.merch_orders(id) on delete cascade,
@@ -249,6 +269,24 @@ add column if not exists updated_at timestamptz not null default now();
 
 alter table if exists public.merch_orders
 add column if not exists order_id text;
+
+alter table if exists public.wispace_messages
+add column if not exists sender_user_id uuid references auth.users(id) on delete set null,
+add column if not exists sender_name text not null default 'WiSpace User',
+add column if not exists sender_contact text,
+add column if not exists subject text not null default 'Pesan WiSpace',
+add column if not exists body text not null default '',
+add column if not exists category text not null default 'lainnya',
+add column if not exists scope text not null default 'band',
+add column if not exists source text not null default 'user',
+add column if not exists target_band_slug text,
+add column if not exists target_band_name text,
+add column if not exists is_read boolean not null default false,
+add column if not exists replied boolean not null default false,
+add column if not exists last_reply text,
+add column if not exists parent_message_id uuid references public.wispace_messages(id) on delete set null,
+add column if not exists created_at timestamptz not null default now(),
+add column if not exists updated_at timestamptz not null default now();
 
 create index if not exists band_articles_published_idx
 on public.band_articles (is_published, created_at desc);
@@ -304,6 +342,15 @@ on public.band_update_notifications (band_slug, created_at desc);
 create index if not exists audience_notification_reads_user_idx
 on public.audience_notification_reads (audience_user_id, created_at desc);
 
+create index if not exists wispace_messages_scope_idx
+on public.wispace_messages (scope, created_at desc);
+
+create index if not exists wispace_messages_target_band_idx
+on public.wispace_messages (target_band_slug, created_at desc);
+
+create index if not exists wispace_messages_sender_idx
+on public.wispace_messages (sender_user_id, created_at desc);
+
 create index if not exists shipment_events_order_idx
 on public.shipment_tracking_events (merch_order_id, event_time desc);
 
@@ -320,6 +367,7 @@ alter table public.merch_orders enable row level security;
 alter table public.band_subscriptions enable row level security;
 alter table public.band_update_notifications enable row level security;
 alter table public.audience_notification_reads enable row level security;
+alter table public.wispace_messages enable row level security;
 alter table public.shipment_tracking_events enable row level security;
 
 drop policy if exists "Published articles are readable by everyone" on public.band_articles;
@@ -485,6 +533,79 @@ create policy "Audience can manage own notification reads"
 on public.audience_notification_reads for all
 using (auth.uid() = audience_user_id)
 with check (auth.uid() = audience_user_id);
+
+drop policy if exists "Admins can manage all wispace messages" on public.wispace_messages;
+create policy "Admins can manage all wispace messages"
+on public.wispace_messages for all
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Message senders can read own messages" on public.wispace_messages;
+create policy "Message senders can read own messages"
+on public.wispace_messages for select
+using (auth.uid() = sender_user_id);
+
+drop policy if exists "Authenticated users can send wispace messages" on public.wispace_messages;
+create policy "Authenticated users can send wispace messages"
+on public.wispace_messages for insert
+with check (
+  auth.uid() = sender_user_id
+  and scope in ('band', 'admin', 'audience')
+);
+
+drop policy if exists "Bands can read own band messages" on public.wispace_messages;
+create policy "Bands can read own band messages"
+on public.wispace_messages for select
+using (
+  scope = 'band'
+  and (
+    target_band_slug is null
+    or target_band_slug = 'all'
+    or exists (
+      select 1 from public.band_profiles
+      where band_profiles.slug = wispace_messages.target_band_slug
+      and band_profiles.user_id = auth.uid()
+    )
+  )
+);
+
+drop policy if exists "Bands can update own band messages" on public.wispace_messages;
+create policy "Bands can update own band messages"
+on public.wispace_messages for update
+using (
+  scope = 'band'
+  and (
+    target_band_slug is null
+    or target_band_slug = 'all'
+    or exists (
+      select 1 from public.band_profiles
+      where band_profiles.slug = wispace_messages.target_band_slug
+      and band_profiles.user_id = auth.uid()
+    )
+  )
+)
+with check (
+  scope = 'band'
+  and (
+    target_band_slug is null
+    or target_band_slug = 'all'
+    or exists (
+      select 1 from public.band_profiles
+      where band_profiles.slug = wispace_messages.target_band_slug
+      and band_profiles.user_id = auth.uid()
+    )
+  )
+);
 
 drop policy if exists "Order participants can read shipment events" on public.shipment_tracking_events;
 create policy "Order participants can read shipment events"

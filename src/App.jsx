@@ -30,6 +30,9 @@ const fetchCloudData = async (user = null) => {
   const { data: releaseAgreementsData, error: releaseAgreementsError } = user?.id
     ? await supabase.from('release_agreements').select('*').order('signed_at', { ascending: false })
     : { data: null, error: null };
+  const { data: messagesData, error: messagesError } = user?.id
+    ? await supabase.from('wispace_messages').select('*').order('created_at', { ascending: false }).limit(200)
+    : { data: null, error: null };
 
   return {
     gigsData: gigsData || [],
@@ -52,6 +55,7 @@ const fetchCloudData = async (user = null) => {
     notificationReadsData: notificationReadsError ? [] : (notificationReadsData || []).map((row) => row.notification_id).filter(Boolean),
     updateNotificationsData: updateNotificationsError ? [] : (updateNotificationsData || []).map(mapBandUpdateNotificationFromRow),
     releaseAgreementsData: releaseAgreementsError ? loadReleaseAgreementLedger() : (releaseAgreementsData || []).map(mapReleaseAgreementFromRow),
+    messagesData: !user?.id || messagesError ? loadMessageLedger() : (messagesData || []).map(mapMessageFromRow),
   };
 };
 
@@ -145,6 +149,7 @@ const PENDING_PAYMENTS_STORAGE_KEY = 'wispace_pending_payments';
 const ARTICLE_COMMENTS_STORAGE_KEY = 'wispace_article_comments';
 const CONTENT_REPORTS_STORAGE_KEY = 'wispace_content_reports';
 const MERCH_ORDERS_STORAGE_KEY = 'wispace_merch_orders';
+const MESSAGE_LEDGER_STORAGE_KEY = 'wispace_message_ledger';
 const AUDIENCE_PROFILE_STORAGE_PREFIX = 'wispace_audience_profile';
 const AUDIENCE_LIBRARY_STORAGE_PREFIX = 'wispace_audience_library';
 const AUDIENCE_DOWNLOAD_LOG_STORAGE_PREFIX = 'wispace_audience_download_log';
@@ -220,6 +225,7 @@ const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
+const isUuidLike = (value = '') => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value));
 
 const normalizePriceValue = (value) => {
   const parsedValue = Number(String(value || '').replace(/[^\d]/g, ''));
@@ -383,6 +389,28 @@ const saveMerchOrders = (orders) => {
   window.localStorage.setItem(MERCH_ORDERS_STORAGE_KEY, JSON.stringify(orders));
 };
 
+const DEFAULT_MESSAGE_LEDGER = [
+  {
+    id: 1,
+    sender: 'Promotor Kolektif Timur',
+    contact: '@kolektiftimur',
+    subject: 'Undangan gig bulan depan',
+    body: 'Halo, kami mau ngajak band kamu main di acara showcase independen bulan depan. Bisa diskusi jadwal?',
+    scope: 'band',
+    read: false,
+    createdAt: 'Hari ini'
+  }
+];
+
+const loadMessageLedger = () => {
+  const ledger = readLocalJson(MESSAGE_LEDGER_STORAGE_KEY);
+  return Array.isArray(ledger) ? ledger : DEFAULT_MESSAGE_LEDGER;
+};
+
+const saveMessageLedger = (messages) => {
+  window.localStorage.setItem(MESSAGE_LEDGER_STORAGE_KEY, JSON.stringify(messages));
+};
+
 const loadArticleComments = () => {
   const comments = readLocalJson(ARTICLE_COMMENTS_STORAGE_KEY);
   return comments && typeof comments === 'object' && !Array.isArray(comments) ? comments : {};
@@ -391,6 +419,27 @@ const loadArticleComments = () => {
 const saveArticleComments = (comments) => {
   window.localStorage.setItem(ARTICLE_COMMENTS_STORAGE_KEY, JSON.stringify(comments));
 };
+
+const mapMessageFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  sender: row.sender_name || 'WiSpace',
+  contact: row.sender_contact || '',
+  subject: row.subject || 'Pesan WiSpace',
+  body: row.body || '',
+  category: row.category || 'lainnya',
+  scope: row.scope || 'band',
+  source: row.source || 'user',
+  targetBandSlug: row.target_band_slug || '',
+  targetBandName: row.target_band_name || '',
+  read: Boolean(row.is_read),
+  replied: Boolean(row.replied),
+  lastReply: row.last_reply || '',
+  parentMessageId: row.parent_message_id || '',
+  createdAt: row.created_at
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(row.created_at))
+    : 'Baru saja',
+  createdAtRaw: row.created_at || ''
+});
 
 const loadContentReports = () => {
   const reports = readLocalJson(CONTENT_REPORTS_STORAGE_KEY);
@@ -1045,18 +1094,7 @@ export default function App() {
   const [playerQueueIndex, setPlayerQueueIndex] = useState(0);
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyDraft, setReplyDraft] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'Promotor Kolektif Timur',
-      contact: '@kolektiftimur',
-      subject: 'Undangan gig bulan depan',
-      body: 'Halo, kami mau ngajak band kamu main di acara showcase independen bulan depan. Bisa diskusi jadwal?',
-      scope: 'band',
-      read: false,
-      createdAt: 'Hari ini'
-    }
-  ]);
+  const [messages, setMessages] = useState(loadMessageLedger);
 
   // DATA REAL DARI CLOUD
   const [gigs, setGigs] = useState([]);
@@ -1523,10 +1561,13 @@ export default function App() {
           subscribedBandsData,
           notificationReadsData,
           updateNotificationsData,
-          releaseAgreementsData
+          releaseAgreementsData,
+          messagesData
         }) => {
           setSaleTransactions(saleTransactionsData);
           setReleaseAgreements(releaseAgreementsData);
+          setMessages(messagesData);
+          saveMessageLedger(messagesData);
           if (audienceLibraryData?.length) {
             setPurchasedAlbums(audienceLibraryData);
             persistAudienceLibraryLocal(audienceLibraryData, userSession);
@@ -1687,7 +1728,7 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData } = await fetchCloudData(userSession);
+    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData, messagesData } = await fetchCloudData(userSession);
     setGigs(gigsData);
     setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
@@ -1702,6 +1743,7 @@ export default function App() {
       persistAudienceLibraryLocal(audienceLibraryData, userSession);
     }
     setMerchOrders(merchOrdersData);
+    setMessages(messagesData);
     if (userSession?.id) {
       setSubscribedBands((current) => subscribedBandsData.length ? subscribedBandsData : current);
       setReadSubscribedUpdateIds((current) => notificationReadsData.length ? notificationReadsData : current);
@@ -1715,6 +1757,7 @@ export default function App() {
     saveTransactionLedger(saleTransactionsData);
     saveReleaseAgreementLedger(releaseAgreementsData);
     saveMerchOrders(merchOrdersData);
+    saveMessageLedger(messagesData);
     setLoading(false);
   };
 
@@ -1722,7 +1765,7 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData } = await fetchCloudData();
+      const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
@@ -1734,6 +1777,7 @@ export default function App() {
       setArticleComments(articleCommentsData);
       setSaleTransactions(saleTransactionsData);
       setMerchOrders(merchOrdersData);
+      setMessages(messagesData);
       cacheBandUpdateNotifications(updateNotificationsData);
       savePublicBandRegistry(bandProfilesData);
       savePublicReleaseRegistry(releasesData);
@@ -1742,6 +1786,7 @@ export default function App() {
       saveArticleComments(articleCommentsData);
       saveTransactionLedger(saleTransactionsData);
       saveMerchOrders(merchOrdersData);
+      saveMessageLedger(messagesData);
       setLoading(false);
     };
 
@@ -3968,19 +4013,76 @@ export default function App() {
     }
   };
 
+  const syncMessageToCloud = (message) => {
+    if (!isSupabaseConfigured || !userSession?.id) return;
+
+    const row = {
+      sender_user_id: userSession.id,
+      sender_name: message.sender || userSession.email || 'WiSpace User',
+      sender_contact: message.contact || userSession.email || '',
+      subject: message.subject || 'Pesan WiSpace',
+      body: message.body || '',
+      category: message.category || 'lainnya',
+      scope: message.scope || 'band',
+      source: message.source || (isBandAccount ? 'band' : 'audience'),
+      target_band_slug: message.targetBandSlug || null,
+      target_band_name: message.targetBandName || null,
+      is_read: Boolean(message.read),
+      replied: Boolean(message.replied),
+      last_reply: message.lastReply || null,
+      parent_message_id: isUuidLike(message.parentMessageId) ? message.parentMessageId : null
+    };
+
+    void supabase
+      .from('wispace_messages')
+      .insert([row])
+      .then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync message ke Supabase:', error.message);
+        }
+      });
+  };
+
+  const syncMessageReplyToCloud = (message, replyText) => {
+    if (!isSupabaseConfigured || !userSession?.id || !isUuidLike(message?.id)) return;
+
+    void supabase
+      .from('wispace_messages')
+      .update({
+        is_read: true,
+        replied: true,
+        last_reply: replyText,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', message.id)
+      .then(({ error }) => {
+        if (error && !isMissingColumnError(error)) {
+          console.warn('Gagal sync reply message ke Supabase:', error.message);
+        }
+      });
+  };
+
   const handleMessageSubmit = (event) => {
     event.preventDefault();
     const nextMessage = {
       id: createClientId(),
       ...messageDraft,
       scope: 'band',
+      source: isBandAccount ? 'band' : 'audience',
+      targetBandSlug: currentBandSlug,
+      targetBandName: selectedPublicBandProfile?.name || bandProfile.name || signatureName || 'Band WiSpace',
       read: false,
       createdAt: 'Baru saja'
     };
 
-    setMessages((current) => [nextMessage, ...current]);
+    setMessages((current) => {
+      const nextMessages = [nextMessage, ...current];
+      saveMessageLedger(nextMessages);
+      return nextMessages;
+    });
+    syncMessageToCloud(nextMessage);
     setMessageDraft({ sender: '', contact: '', subject: '', body: '' });
-    alert('Pesan terkirim ke inbox. Nanti ini kita sambungkan ke Supabase realtime notifications.');
+    alert('Pesan terkirim ke inbox band.');
   };
 
   const handleAdminMessageSubmit = (event) => {
@@ -4008,7 +4110,12 @@ export default function App() {
       createdAt: 'Baru saja'
     };
 
-    setMessages((current) => [nextMessage, ...current]);
+    setMessages((current) => {
+      const nextMessages = [nextMessage, ...current];
+      saveMessageLedger(nextMessages);
+      return nextMessages;
+    });
+    syncMessageToCloud(nextMessage);
     setAdminMessageDraft({ targetBandSlug: 'all', category: 'payment', subject: '', body: '' });
     alert(`Pesan admin terkirim ke ${nextMessage.targetBandName}.`);
   };
@@ -4036,15 +4143,40 @@ export default function App() {
       createdAt: 'Baru saja'
     };
 
-    setMessages((current) => [nextMessage, ...current]);
+    setMessages((current) => {
+      const nextMessages = [nextMessage, ...current];
+      saveMessageLedger(nextMessages);
+      return nextMessages;
+    });
+    syncMessageToCloud(nextMessage);
     setBandSupportDraft({ category: 'payment', subject: '', body: '' });
     alert('Pesan ke admin WiSpace sudah masuk antrean support.');
   };
 
   const markMessagesAsRead = () => {
-    setMessages((current) => current.map((message) => (
-      isBandAccount || message.scope === 'audience' ? { ...message, read: true } : message
-    )));
+    const cloudMessageIds = visibleMessages
+      .filter((message) => !message.read && isUuidLike(message.id) && message.targetBandSlug && message.targetBandSlug !== 'all')
+      .map((message) => message.id);
+
+    setMessages((current) => {
+      const nextMessages = current.map((message) => (
+        isBandAccount || message.scope === 'audience' ? { ...message, read: true } : message
+      ));
+      saveMessageLedger(nextMessages);
+      return nextMessages;
+    });
+
+    if (isSupabaseConfigured && userSession?.id && cloudMessageIds.length) {
+      void supabase
+        .from('wispace_messages')
+        .update({ is_read: true, updated_at: new Date().toISOString() })
+        .in('id', cloudMessageIds)
+        .then(({ error }) => {
+          if (error && !isMissingColumnError(error)) {
+            console.warn('Gagal sync read message ke Supabase:', error.message);
+          }
+        });
+    }
   };
 
   const handleReplySubmit = (event, message) => {
@@ -4063,6 +4195,7 @@ export default function App() {
       source: 'band',
       targetBandSlug: currentBandSlug,
       targetBandName: bandProfile.name || signatureName || 'Band WiSpace',
+      parentMessageId: isUuidLike(message.id) ? message.id : '',
       read: false,
       createdAt: 'Baru saja'
     } : null;
@@ -4071,8 +4204,12 @@ export default function App() {
       const updated = current.map((item) => (
         item.id === message.id ? { ...item, read: true, replied: true, lastReply: replyText } : item
       ));
-      return adminReplyMessage ? [adminReplyMessage, ...updated] : updated;
+      const nextMessages = adminReplyMessage ? [adminReplyMessage, ...updated] : updated;
+      saveMessageLedger(nextMessages);
+      return nextMessages;
     });
+    syncMessageReplyToCloud(message, replyText);
+    if (adminReplyMessage) syncMessageToCloud(adminReplyMessage);
     setReplyDraft('');
     setActiveReplyId(null);
     alert(`Balasan ke ${message.sender} tersimpan${message.source === 'admin' ? ' dan masuk inbox admin' : ''}.`);
