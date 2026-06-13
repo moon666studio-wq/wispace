@@ -589,6 +589,7 @@ const mapPaymentRequestFromRow = (row = {}) => {
     confirmedBy: row.confirmed_by || payload.confirmedBy || '',
     rejectedAt: row.rejected_at || payload.rejectedAt || '',
     rejectedBy: row.rejected_by || payload.rejectedBy || '',
+    rejectionReason: row.rejection_reason || payload.rejectionReason || '',
     createdAt: payload.createdAt || (row.created_at
       ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
       : '')
@@ -2610,6 +2611,47 @@ export default function App() {
     }
   };
 
+  const handlePaymentRequestProofImport = async (payment, event) => {
+    const file = event.target.files?.[0];
+    if (!file || !payment) return;
+    if (!['waiting_admin_confirmation', 'rejected'].includes(payment.status)) {
+      alert('Bukti bayar hanya bisa diganti saat status masih waiting atau rejected bro.');
+      clearFileInput(event);
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Bukti bayar harus berupa gambar PNG/JPG/WebP ya bro.');
+      clearFileInput(event);
+      return;
+    }
+    if (file.size > PAYMENT_PROOF_MAX_SIZE) {
+      alert('Ukuran bukti bayar maksimal 2MB dulu bro.');
+      clearFileInput(event);
+      return;
+    }
+
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'payment-proofs', userSession);
+      updatePendingPaymentRecord(payment.id, {
+        status: 'waiting_admin_confirmation',
+        paymentStatus: 'waiting_admin_confirmation',
+        paymentProofName: file.name,
+        paymentProofPreview: uploadResult.publicUrl,
+        paymentProofUrl: uploadResult.publicUrl,
+        paymentProofPath: uploadResult.path || '',
+        paymentProofStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local',
+        rejectedAt: '',
+        rejectedBy: '',
+        rejectionReason: ''
+      });
+      if (uploadResult.error) alert(`Bukti bayar belum masuk Storage, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+      else alert('Bukti bayar baru sudah diupload. Status balik ke waiting admin confirm.');
+    } catch (error) {
+      alert(`Gagal update bukti bayar: ${error.message}`);
+      clearFileInput(event);
+    }
+  };
+
   const handleBandProfileSave = (event) => {
     event.preventDefault();
     if (!bandProfile.name.trim()) return alert('Isi nama band dulu bro.');
@@ -3241,14 +3283,19 @@ export default function App() {
     });
 
     if (isSupabaseConfigured) {
-      void supabase.from('payment_requests').update({
-        status: updates.status || updates.paymentStatus,
-        confirmed_at: updates.confirmedAt || null,
-        confirmed_by: updates.confirmedBy || null,
-        rejected_at: updates.rejectedAt || null,
-        rejected_by: updates.rejectedBy || null,
-        updated_at: new Date().toISOString()
-      }).eq('id', paymentId).then(({ error }) => {
+      const updateRow = { updated_at: new Date().toISOString() };
+      if (updates.status || updates.paymentStatus) updateRow.status = updates.status || updates.paymentStatus;
+      if (Object.hasOwn(updates, 'confirmedAt')) updateRow.confirmed_at = updates.confirmedAt || null;
+      if (Object.hasOwn(updates, 'confirmedBy')) updateRow.confirmed_by = updates.confirmedBy || null;
+      if (Object.hasOwn(updates, 'rejectedAt')) updateRow.rejected_at = updates.rejectedAt || null;
+      if (Object.hasOwn(updates, 'rejectedBy')) updateRow.rejected_by = updates.rejectedBy || null;
+      if (Object.hasOwn(updates, 'rejectionReason')) updateRow.rejection_reason = updates.rejectionReason || null;
+      if (Object.hasOwn(updates, 'paymentProofName')) updateRow.proof_file_name = updates.paymentProofName || null;
+      if (Object.hasOwn(updates, 'paymentProofUrl') || Object.hasOwn(updates, 'paymentProofPreview')) updateRow.proof_url = updates.paymentProofUrl || updates.paymentProofPreview || null;
+      if (Object.hasOwn(updates, 'paymentProofPath')) updateRow.proof_storage_path = updates.paymentProofPath || null;
+      if (Object.hasOwn(updates, 'paymentProofStatus')) updateRow.proof_status = updates.paymentProofStatus || null;
+
+      void supabase.from('payment_requests').update(updateRow).eq('id', paymentId).then(({ error }) => {
         if (error && !isMissingColumnError(error)) {
           console.warn('Payment request status belum bisa diupdate client-side. Gunakan service role/webhook untuk produksi:', error.message);
         }
@@ -3548,13 +3595,17 @@ export default function App() {
       alert(`Payment request ini sudah ${payment.status.replaceAll('_', ' ')} bro.`);
       return;
     }
-    const confirmed = window.confirm(`Reject/cancel payment request ${payment.checkoutRef}?`);
-    if (!confirmed) return;
+    const reason = window.prompt(`Alasan reject payment ${payment.checkoutRef}?`, 'Bukti bayar belum sesuai / nominal belum cocok.');
+    if (!reason || !reason.trim()) {
+      alert('Alasan reject wajib diisi bro, biar buyer tahu harus revisi apa.');
+      return;
+    }
     updatePendingPaymentRecord(payment.id, {
       status: 'rejected',
       paymentStatus: 'rejected',
       rejectedAt: new Date().toISOString(),
-      rejectedBy: userSession?.email || 'adminwispace'
+      rejectedBy: userSession?.email || 'adminwispace',
+      rejectionReason: reason.trim()
     });
     setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
       ...current,
@@ -7113,8 +7164,17 @@ export default function App() {
                           <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
                           <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
                           <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / Proof: {payment.paymentProofPreview || payment.paymentProofUrl ? 'ready' : 'missing'}</p>
+                          {payment.rejectionReason && <p style={{ color: '#ff3333', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
                         </div>
-                        <strong style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{String(payment.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase()}</strong>
+                        <div style={{ display: 'grid', gap: '6px', justifyItems: isTinyLayout ? 'start' : 'end' }}>
+                          <strong style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{String(payment.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase()}</strong>
+                          {['waiting_admin_confirmation', 'rejected'].includes(payment.status) && (
+                            <label style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', cursor: 'pointer' }}>
+                              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handlePaymentRequestProofImport(payment, event)} style={{ display: 'none' }} />
+                              REUPLOAD PROOF
+                            </label>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -7334,6 +7394,13 @@ export default function App() {
                     <p style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()}</p>
                     <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.productTitle}</h4>
                     <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.checkoutRef} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                    {payment.rejectionReason && <p style={{ color: '#ff3333', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
+                    {['waiting_admin_confirmation', 'rejected'].includes(payment.status) && (
+                      <label style={{ ...glassButtonStyle, display: 'inline-grid', width: 'fit-content', marginTop: '8px', padding: '6px 8px', fontSize: '9px', borderRadius: '8px', cursor: 'pointer' }}>
+                        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handlePaymentRequestProofImport(payment, event)} style={{ display: 'none' }} />
+                        REUPLOAD PROOF
+                      </label>
+                    )}
                   </div>
                 ))}
               </div>

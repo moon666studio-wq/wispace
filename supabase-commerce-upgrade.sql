@@ -110,6 +110,7 @@ create table if not exists public.payment_requests (
   confirmed_by text,
   rejected_at timestamptz,
   rejected_by text,
+  rejection_reason text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -243,6 +244,7 @@ add column if not exists proof_storage_path text,
 add column if not exists proof_status text,
 add column if not exists confirmed_by text,
 add column if not exists rejected_by text,
+add column if not exists rejection_reason text,
 add column if not exists updated_at timestamptz not null default now();
 
 alter table if exists public.merch_orders
