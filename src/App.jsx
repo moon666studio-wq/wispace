@@ -1743,13 +1743,17 @@ export default function App() {
 
   useEffect(() => {
     if (exclusiveEventBanners.length === 0) return undefined;
+    if (selectedGigDetail?.fromEventOverlay) {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      return undefined;
+    }
 
     timerRef.current = window.setInterval(() => {
       setActiveBanner((current) => (current + 1) % exclusiveEventBanners.length);
     }, 6500);
 
     return () => window.clearInterval(timerRef.current);
-  }, [exclusiveEventBanners.length]);
+  }, [exclusiveEventBanners.length, selectedGigDetail?.fromEventOverlay]);
 
   // LOGIKA AUTHENTICATION ASLI
   const handleDaftarAkun = async (e) => {
@@ -5059,18 +5063,25 @@ export default function App() {
     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
   };
   const homeFloatingBadgeStyle = {
-    ...glassStyle('floating-badge'),
     display: 'flex',
     alignItems: 'center',
     flexWrap: isTinyLayout ? 'wrap' : 'nowrap',
-    gap: isTinyLayout ? '6px' : '0',
-    padding: isTinyLayout ? '8px 10px' : '8px 16px',
-    background: 'linear-gradient(180deg, rgba(7,7,7,0.92), rgba(0,0,0,0.86))',
-    border: '1px solid rgba(0,210,255,0.32)',
-    borderRadius: '14px',
+    gap: isTinyLayout ? '8px' : '12px',
+    padding: isTinyLayout ? '7px 9px' : '8px 12px',
+    background: 'rgba(5, 5, 5, 0.72)',
+    border: 'none',
+    borderRadius: '9999px',
+    boxShadow: '0 12px 36px rgba(0,0,0,0.34)',
+    backdropFilter: 'blur(18px)',
+    WebkitBackdropFilter: 'blur(18px)',
     width: isTinyLayout ? '100%' : 'auto',
     boxSizing: 'border-box'
   };
+  const homeRevealStyle = (delay = 0) => ({
+    animation: `wispaceRise 720ms cubic-bezier(0.18, 0.92, 0.22, 1.12) ${delay}ms both`,
+    animationTimeline: 'view()',
+    animationRange: 'entry 0% cover 34%'
+  });
   const homeHeroContentStyle = {
     position: 'absolute',
     bottom: 0,
@@ -5211,6 +5222,13 @@ export default function App() {
 
   return (
     <div style={{ background: 'radial-gradient(circle at 18% 0%, rgba(0,210,255,0.08), transparent 28%), radial-gradient(circle at 82% 12%, rgba(255,255,255,0.045), transparent 24%), linear-gradient(180deg, #040404 0%, #010101 100%)', color: '#ffffff', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
+      <style>{`
+        @keyframes wispaceRise {
+          0% { opacity: 0; transform: translateY(34px) scale(0.985); }
+          62% { opacity: 1; transform: translateY(-5px) scale(1.006); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
       {!isSupabaseConfigured && (
         <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(255,51,51,0.12)', border: '1px solid rgba(255,51,51,0.45)', borderRadius: '14px', color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(0,0,0,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
@@ -5223,21 +5241,21 @@ export default function App() {
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={homeFloatingWrapStyle}>
           <div style={homeFloatingBadgeStyle}>
-            <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', marginRight: isTinyLayout ? '4px' : '16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>WI.ID UP</span>
-            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: isTinyLayout ? '4px' : '12px', fontFamily: FONT_STACK, padding: isTinyLayout ? '6px 4px' : '0', whiteSpace: 'nowrap' }}>EXPLORE</button>
+            <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', whiteSpace: 'nowrap' }}>WI.ID UP</span>
+            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', borderBottom: '1px solid transparent', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, padding: '6px 2px', whiteSpace: 'nowrap' }}>EXPLORE</button>
             
             {!userSession ? (
               <>
-                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: isTinyLayout ? '4px' : '12px', fontFamily: FONT_STACK, padding: isTinyLayout ? '6px 4px' : '0', whiteSpace: 'nowrap' }}>LOGIN</button>
-                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(0, 210, 255, 0.1)', border: '1px solid rgba(0,210,255,0.3)', color: '#00d2ff', borderRadius: '16px', padding: isTinyLayout ? '6px 10px' : '4px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>JOIN</button>
+                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', borderBottom: '1px solid transparent', color: '#aaa', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, padding: '6px 2px', whiteSpace: 'nowrap' }}>LOGIN</button>
+                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,210,255,0.8)', color: '#00d2ff', padding: '6px 2px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>JOIN</button>
               </>
             ) : (
               <>
-                <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: showNotificationPopout ? 'rgba(0,210,255,0.12)' : 'rgba(255,255,255,0.035)', border: showNotificationPopout ? '1px solid rgba(0,210,255,0.42)' : '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', marginRight: '10px', fontFamily: FONT_STACK, flexShrink: 0 }}>
+                <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '28px', height: '28px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                   <Bell size={14} />
                   {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
                 </button>
-                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', marginRight: '12px', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(30, '110px')}</button>
+                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(28, '110px')}</button>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff3333', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
               </>
             )}
@@ -5245,7 +5263,7 @@ export default function App() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: isTinyLayout ? '100%' : 'auto', justifyContent: isTinyLayout ? 'flex-end' : 'flex-start' }}>
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(5, 5, 5, 0.95)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#fff', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
-            <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ ...glassStyle('search-trigger'), padding: '6px 14px', backgroundColor: '#00d2ff', color: '#000', borderRadius: '16px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Search size={12}/> FIND</div>
+            <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ padding: '6px 10px', backgroundColor: '#00d2ff', color: '#000', border: 'none', borderRadius: '9999px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 10px 24px rgba(0,210,255,0.14)' }}><Search size={12}/> FIND</div>
           </div>
         </div>
       )}
@@ -5447,23 +5465,43 @@ export default function App() {
       )}
 
       {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromEventOverlay && (
-        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '22px', left: '50%', transform: 'translateX(-50%)', zIndex: 1350, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(760px, calc(100vw - 48px))', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(5,5,5,0.96)', border: '1px solid rgba(0,210,255,0.36)', borderRadius: '16px', boxShadow: '0 24px 70px rgba(0,0,0,0.72)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '108px 1fr auto' : '168px 1fr auto', gap: isTinyLayout ? '10px' : '14px', alignItems: 'start' }}>
-            <div style={{ width: isTinyLayout ? '108px' : '168px', maxHeight: isTinyLayout ? '72px' : '104px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center' }}>
-              {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: 'auto', maxHeight: isTinyLayout ? '72px' : '104px', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>DETAIL EVENT</p>
-              <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '16px' : '20px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 8px 0', overflowWrap: 'anywhere' }}>{selectedGigDetail.title?.toUpperCase()}</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '5px 12px', color: '#aaa', fontSize: '11px', lineHeight: 1.35 }}>
-                <span>DATE: <strong style={{ color: '#fff' }}>{getGigDate(selectedGigDetail)}</strong></span>
-                <span>VENUE: <strong style={{ color: '#fff' }}>{selectedGigDetail.city?.toUpperCase()}</strong></span>
-                <span>HTM: <strong style={{ color: getGigHtm(selectedGigDetail).toLowerCase() === 'free' ? '#39ff14' : '#00d2ff' }}>{getGigHtm(selectedGigDetail).toUpperCase()}</strong></span>
-                <span>CP: <strong style={{ color: '#fff' }}>{getGigCp(selectedGigDetail)}</strong></span>
-                {isApprovedHomepageGig(selectedGigDetail) && <span style={{ gridColumn: isTinyLayout ? 'auto' : '1 / -1' }}>TAYANG SAMPAI: <strong style={{ color: '#ffcc00' }}>{getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong></span>}
+        <div onClick={() => setSelectedGigDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1350, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(0,0,0,0.34), rgba(0,0,0,0.78))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+          <div onClick={(event) => event.stopPropagation()} style={{ width: isTinyLayout ? '100%' : 'min(960px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '82vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', backgroundColor: 'rgba(5,5,5,0.94)', border: '1.5px solid rgba(0,210,255,0.34)', borderRadius: '18px', boxShadow: '0 30px 90px rgba(0,0,0,0.76)', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(280px, 0.72fr) minmax(0, 1fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch' }}>
+              <div style={{ width: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', borderRadius: '13px', overflow: 'hidden', backgroundColor: '#000', border: '1.5px solid rgba(255,255,255,0.12)', display: 'grid', placeItems: 'center' }}>
+                {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
+              </div>
+              <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '18px' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1.4px', margin: 0 }}>DETAIL EVENT</p>
+                    <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'transparent', border: 'none', color: '#888', padding: 0, fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+                  </div>
+                  <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '26px' : 'clamp(32px, 4vw, 54px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{selectedGigDetail.title?.toUpperCase()}</h3>
+                  <p style={{ color: '#888', fontSize: '12px', lineHeight: 1.5, margin: '0 0 18px 0' }}>Pamflet event yang sedang tayang di WiSpace. Detail ini tidak menggeser layout homepage dan slide premium berhenti sementara saat panel dibuka.</p>
+                  <div style={{ display: 'grid', gap: '8px', color: '#aaa', fontSize: '11px', lineHeight: 1.35 }}>
+                    {[
+                      ['DATE', getGigDate(selectedGigDetail), '#fff'],
+                      ['VENUE', selectedGigDetail.city?.toUpperCase(), '#fff'],
+                      ['HTM', getGigHtm(selectedGigDetail).toUpperCase(), getGigHtm(selectedGigDetail).toLowerCase() === 'free' ? '#39ff14' : '#00d2ff'],
+                      ['CP', getGigCp(selectedGigDetail), '#fff']
+                    ].map(([label, value, color]) => (
+                      <div key={label} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr)', gap: '12px', padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                        <span style={{ color: '#666', fontSize: '10px', fontWeight: '900' }}>{label}</span>
+                        <strong style={{ color, fontSize: '12px', fontWeight: '900', overflowWrap: 'anywhere' }}>{value || '-'}</strong>
+                      </div>
+                    ))}
+                    {isApprovedHomepageGig(selectedGigDetail) && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr)', gap: '12px', padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                        <span style={{ color: '#666', fontSize: '10px', fontWeight: '900' }}>TAYANG</span>
+                        <strong style={{ color: '#ffcc00', fontSize: '12px', fontWeight: '900' }}>SAMPAI {getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setSelectedGigDetail(null)} style={{ ...glassButtonStyle, width: 'fit-content', padding: '10px 14px', fontSize: '11px' }}>TUTUP DETAIL</button>
               </div>
             </div>
-            <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.14)', color: '#fff', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
           </div>
         </div>
       )}
@@ -8074,7 +8112,7 @@ export default function App() {
 
       {/* BULLETIN MADING GIGS */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ marginBottom: '60px' }}>
+        <section style={{ marginBottom: '60px', ...homeRevealStyle(0) }}>
           <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#f5f5f5', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
           <div style={bulletinGridStyle}>
             {filteredGigs.map(gig => (
@@ -8125,7 +8163,7 @@ export default function App() {
 
       {/* INTERACTIVE 3 COLUMNS LOWER ROW */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px' }}>
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px', ...homeRevealStyle(120) }}>
           <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={railPanelStyle}>
             <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
             {top10Tracks.map(track => (
