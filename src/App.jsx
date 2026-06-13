@@ -3520,7 +3520,7 @@ export default function App() {
         status: 'paid',
         paymentStatus: 'paid',
         confirmedAt: new Date().toISOString(),
-        confirmedBy: userSession?.email || 'adminwispace'
+        confirmedBy: userSession?.email || 'admin_wsu'
       });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
@@ -3587,7 +3587,7 @@ export default function App() {
         status: 'paid',
         paymentStatus: 'paid',
         confirmedAt: new Date().toISOString(),
-        confirmedBy: userSession?.email || 'adminwispace'
+        confirmedBy: userSession?.email || 'admin_wsu'
       });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
@@ -3694,7 +3694,7 @@ export default function App() {
         status: 'paid',
         paymentStatus: 'paid',
         confirmedAt: new Date().toISOString(),
-        confirmedBy: userSession?.email || 'adminwispace'
+        confirmedBy: userSession?.email || 'admin_wsu'
       });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
@@ -3722,7 +3722,7 @@ export default function App() {
       status: 'rejected',
       paymentStatus: 'rejected',
       rejectedAt: new Date().toISOString(),
-      rejectedBy: userSession?.email || 'adminwispace',
+      rejectedBy: userSession?.email || 'admin_wsu',
       rejectionReason: reason.trim()
     });
     setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
@@ -4601,7 +4601,7 @@ export default function App() {
       : checkoutIsProcessing
         ? 'Memproses simulasi payment'
         : 'Menunggu konfirmasi pembayaran';
-  const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
+  const isAdminPage = searchTerm.toLowerCase() === 'admin_wsu';
   const isCloudAdmin = Boolean(cloudAdminAccount?.user_id);
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
