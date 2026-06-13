@@ -4955,6 +4955,7 @@ export default function App() {
   const compactMetricValueStyle = { color: '#fff', fontSize: isTinyLayout ? '16px' : '19px', fontWeight: '900', lineHeight: 1 };
   const compactRowStyle = { padding: isTinyLayout ? '7px' : '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '9px' };
   const flatListStyle = { display: 'grid', gap: isTinyLayout ? '8px' : '10px' };
+  const flatLineColor = 'rgba(255,255,255,0.13)';
   const flatItemStyle = {
     display: 'grid',
     alignItems: 'center',
@@ -4962,17 +4963,22 @@ export default function App() {
     padding: isTinyLayout ? '7px 0' : '8px 0',
     background: 'transparent',
     border: 'none',
-    borderTop: '1px solid rgba(255,255,255,0.08)',
+    borderTop: `1.5px solid ${flatLineColor}`,
     borderRadius: 0,
     cursor: 'pointer',
     textAlign: 'left',
     fontFamily: FONT_STACK,
     minWidth: 0
   };
+  const railPanelStyle = {
+    padding: isTinyLayout ? '8px 0 8px 12px' : '10px 0 10px 16px',
+    borderLeft: `2px solid ${flatLineColor}`,
+    background: 'transparent'
+  };
   const flatThumbStyle = {
     overflow: 'hidden',
     backgroundColor: '#101010',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: `1.5px solid ${flatLineColor}`,
     display: 'grid',
     placeItems: 'center',
     flexShrink: 0
@@ -6411,7 +6417,7 @@ export default function App() {
               </section>
             </div>
 
-            <aside style={{ display: 'grid', gap: '18px' }}>
+            <aside style={{ ...railPanelStyle, display: 'grid', gap: '18px' }}>
               <section style={{ padding: '2px 0 0 0' }}>
                 <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
                 {filteredBandProfiles.length === 0 ? (
@@ -6680,7 +6686,7 @@ export default function App() {
                   </div>
                 </article>
               </main>
-              <aside style={{ padding: isTinyLayout ? '10px 0' : '12px 0', position: isCompactLayout ? 'relative' : 'sticky', top: isCompactLayout ? 'auto' : '98px' }}>
+              <aside style={{ ...railPanelStyle, position: isCompactLayout ? 'relative' : 'sticky', top: isCompactLayout ? 'auto' : '98px' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '13px', fontWeight: '900', margin: '0 0 12px 0' }}>ARTIKEL LAINNYA</h3>
                 <div style={flatListStyle}>
                   {publicArticleList.slice(0, 10).map((article) => {
@@ -7275,9 +7281,9 @@ export default function App() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: libraryDetailGridColumns, gap: '24px', alignItems: 'start' }}>
-              <section style={{ padding: isTinyLayout ? '10px 0' : '12px 0' }}>
+              <section style={{ padding: isTinyLayout ? '8px 0' : '10px 0' }}>
                 <h3 style={sectionHeadingStyle}>PURCHASED RELEASES</h3>
-                <div style={flatListStyle}>
+                <div style={{ ...flatListStyle, gap: isTinyLayout ? '5px' : '6px' }}>
                   {purchasedAlbums.map((album) => {
                     const isSelectedLibraryItem = selectedLibraryItem?.id === album.id;
                     const firstTrack = album.tracks?.[0] || null;
@@ -7289,14 +7295,14 @@ export default function App() {
                         setSelectedLibraryItemId(album.id);
                         setSelectedLibraryTrackId(null);
                       }}
-                      style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '58px minmax(0, 1fr)' : '66px minmax(0, 1fr) auto', borderTopColor: isSelectedLibraryItem ? 'rgba(0,210,255,0.45)' : 'rgba(255,255,255,0.08)' }}
+                      style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', gap: isTinyLayout ? '7px' : '9px', padding: isTinyLayout ? '6px 0' : '7px 0', borderTopColor: isSelectedLibraryItem ? 'rgba(0,210,255,0.55)' : flatLineColor }}
                     >
-                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '58px' : '66px', height: isTinyLayout ? '58px' : '66px', borderRadius: '9px' }}>
+                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '7px' }}>
                         {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>COVER</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: '#777', fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
+                        <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.12 }}>{album.title.toUpperCase()}</h4>
+                        <p style={{ color: '#777', fontSize: isTinyLayout ? '9px' : '10px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
                       </div>
                       <button
                         onClick={(event) => {
@@ -7305,7 +7311,7 @@ export default function App() {
                           setSelectedLibraryTrackId(firstTrack?.id || null);
                           if (firstTrack) handlePlayLibraryTrack(firstTrack, album, album.tracks || [firstTrack]);
                         }}
-                        style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}
+                        style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}
                       >
                         {activeTrack?.id === `library-${album.id}-${firstTrack?.id}` && isPlaying ? 'PAUSE' : 'PLAY'}
                       </button>
@@ -7315,7 +7321,7 @@ export default function App() {
                 </div>
               </section>
 
-              <aside style={{ padding: isTinyLayout ? '12px 0' : '14px 0', borderTop: isCompactLayout ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+              <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '12px' : '14px', paddingBottom: isTinyLayout ? '12px' : '14px' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '96px 1fr' : '118px 1fr', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
                   <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', backgroundColor: '#080808', border: '1px solid rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
@@ -7470,7 +7476,7 @@ export default function App() {
                 </div>
               </section>
 
-              <aside style={{ padding: isTinyLayout ? '10px 0' : '12px 0' }}>
+              <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '10px' : '12px', paddingBottom: isTinyLayout ? '10px' : '12px' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
                 <div style={flatListStyle}>
                   {[
@@ -8106,16 +8112,16 @@ export default function App() {
       {/* INTERACTIVE 3 COLUMNS LOWER ROW */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px' }}>
-          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={{ ...glassStyle('c1'), padding: isTinyLayout ? '12px' : '16px' }}>
+          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={railPanelStyle}>
             <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
             {top10Tracks.map(track => (
-              <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
+              <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: `1.5px solid ${flatLineColor}`, alignItems: 'center' }}>
                 <div style={{ minWidth: 0 }}><h4 style={{ fontSize: '12px', color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '10px', color: '#666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.band.toUpperCase()}</p></div>
                 <button onClick={() => handlePlayTrack(track, top10Tracks)} style={{ ...glassButtonStyle, padding: '5px 10px', fontSize: '10px', flexShrink: 0 }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
               </div>
             ))}
           </div>
-          <div style={{ ...glassStyle('c2'), padding: isTinyLayout ? '12px' : '16px' }}>
+          <div style={railPanelStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <h3 style={{ fontSize: '12px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><FileText size={13} color="#a8f1ff"/> 10 ARTIKEL BAND TERBARU</h3>
               <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
@@ -8125,7 +8131,7 @@ export default function App() {
             ) : (
               <div style={{ display: 'grid', gap: '7px' }}>
                 {publicArticleList.slice(0, 10).map((article) => (
-                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '7px 0', border: 'none', borderTop: '1px solid #141414', background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '7px 0', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
                     <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0' }}>{article.title.toUpperCase()}</p>
                     <p style={{ color: '#777', fontSize: '10px', margin: 0 }}>{article.category} / {article.bandName}</p>
                   </button>
@@ -8133,7 +8139,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <div style={{ padding: isTinyLayout ? '8px 0' : '10px 0' }}>
+          <div style={railPanelStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <h3 style={{ fontSize: '12px', color: '#f5f5f5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#a8f1ff"/> DISTRO BAND MERCHANDISE</h3>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
