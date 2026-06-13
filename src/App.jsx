@@ -5233,7 +5233,7 @@ export default function App() {
 
       {/* FLOATING MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
-        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '6px' : '10px', padding: isTinyLayout ? '7px 8px' : '8px 10px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.88)', border: '1px solid rgba(0,210,255,0.35)', borderRadius: '16px', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 18px 45px rgba(0,0,0,0.45)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '8px' : '12px', padding: isTinyLayout ? '7px 9px' : '8px 12px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(5, 5, 5, 0.72)', border: 'none', borderRadius: '9999px', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 12px 36px rgba(0,0,0,0.34)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
           <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
@@ -5244,16 +5244,16 @@ export default function App() {
             <button
               key={tab}
               onClick={() => navigateInternalPage('explore', { exploreTab: tab, clearSearch: true })}
-              style={{ background: activePage === 'explore' && exploreTab === tab ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(0,210,255,0.32)' : '1px solid transparent', borderRadius: '10px', color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px' }}
+              style={{ background: 'transparent', border: 'none', borderBottom: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(0,210,255,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'explore' && exploreTab === tab ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 3px 6px' }}
             >
               {label}
             </button>
           ))}
           {userSession && (
             <>
-              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>LIBRARY</button>
-              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: activePage === 'audience_orders' ? 'rgba(0,210,255,0.12)' : 'transparent', border: activePage === 'audience_orders' ? '1px solid rgba(0,210,255,0.32)' : 'none', borderRadius: '10px', color: activePage === 'audience_orders' ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px' }}>ORDERS</button>
-              <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: showNotificationPopout ? 'rgba(0,210,255,0.12)' : 'rgba(255,255,255,0.035)', border: showNotificationPopout ? '1px solid rgba(0,210,255,0.42)' : '1px solid rgba(255,255,255,0.12)', color: unreadNotificationTotal ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
+              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', borderBottom: activePage === 'audience_library' ? '1px solid rgba(0,210,255,0.85)' : '1px solid transparent', color: activePage === 'audience_library' ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 3px 6px' }}>LIBRARY</button>
+              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: 'transparent', border: 'none', borderBottom: activePage === 'audience_orders' ? '1px solid rgba(0,210,255,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_orders' ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 3px 6px' }}>ORDERS</button>
+              <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#00d2ff' : '#fff', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                 <Bell size={14} />
                 {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#ff3333', color: '#fff', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
               </button>
@@ -6361,21 +6361,21 @@ export default function App() {
                     <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); }} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>BUKA BAND STUDIO</button>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px' }}>
+                  <div style={flatListStyle}>
                     {filteredAlbums.map((album) => (
-                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...glassStyle(`album-${album.id}`), padding: '14px', backgroundColor: selectedRelease?.id === album.id ? 'rgba(0,210,255,0.06)' : '#090909', border: selectedRelease?.id === album.id ? '1px solid rgba(0,210,255,0.32)' : glassStyle(`album-${album.id}`).border, cursor: 'pointer' }}>
-                        <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '12px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '14px', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '62px minmax(0, 1fr)' : '72px minmax(0, 1fr) auto', borderTopColor: selectedRelease?.id === album.id ? 'rgba(0,210,255,0.42)' : 'rgba(255,255,255,0.08)' }}>
+                        <div style={{ ...flatThumbStyle, width: isTinyLayout ? '62px' : '72px', height: isTinyLayout ? '62px' : '72px', borderRadius: '9px' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                         </div>
-                        <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
-                        <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: '0 0 6px 0', lineHeight: 1.1 }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: '#777', fontSize: '12px', margin: '0 0 12px 0' }}>{album.bandName.toUpperCase()} - {album.city.toUpperCase()}</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                          <span style={{ color: '#fff', fontSize: '14px', fontWeight: '900' }}>Full Rp {Number(album.price || 0).toLocaleString('id-ID')}</span>
-                          <button onClick={(event) => { event.stopPropagation(); handlePurchaseAlbum(album); }} style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI FULL'}</button>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
+                          <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '11px', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()} - {album.city.toUpperCase()}</p>
+                          <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>Full Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
                         </div>
+                        <button onClick={(event) => { event.stopPropagation(); handlePurchaseAlbum(album); }} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{!userSession ? 'JOIN' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
                         {(album.tracks || []).length > 0 && (
-                          <div style={{ display: 'grid', gap: '7px', borderTop: '1px solid #141414', paddingTop: '10px' }}>
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gap: '7px', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '8px' }}>
                             {(album.tracks || []).slice(0, 3).map((track) => (
                               <div key={`explore-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
                                 <span style={{ color: track.freeFull ? '#39ff14' : '#aaa', fontSize: '11px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
@@ -6393,12 +6393,12 @@ export default function App() {
 
               <section>
                 <h3 style={sectionHeadingStyle}>30 SECOND PREVIEW TRACKS</h3>
-                <div style={{ ...glassStyle('explore-tracks'), padding: '18px', backgroundColor: '#090909' }}>
+                <div style={flatListStyle}>
                   {filteredTracks.length === 0 ? (
                     <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
                   ) : (
                     filteredTracks.map(track => (
-                      <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', paddingBottom: '12px', marginBottom: '12px', borderBottom: '1px solid #141414', alignItems: 'center' }}>
+                      <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
                         <div>
                           <h4 style={{ fontSize: '14px', color: '#fff', margin: '0 0 3px 0' }}>{track.title.toUpperCase()}</h4>
                           <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>{track.band.toUpperCase()}</p>
@@ -6412,15 +6412,15 @@ export default function App() {
             </div>
 
             <aside style={{ display: 'grid', gap: '18px' }}>
-              <section style={{ ...glassStyle('explore-band-directory'), padding: '18px', backgroundColor: '#090909' }}>
+              <section style={{ padding: '2px 0 0 0' }}>
                 <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
                 {filteredBandProfiles.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
                 ) : (
-                  <div style={{ display: 'grid', gap: '12px' }}>
+                  <div style={flatListStyle}>
                     {filteredBandProfiles.slice(0, 4).map((profile) => (
-                      <div key={`side-${profile.slug}`} style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: '12px', alignItems: 'center' }}>
-                        <div style={{ width: '58px', height: '58px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', display: 'grid', placeItems: 'center' }}>
+                      <div key={`side-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: '54px minmax(0, 1fr)', cursor: 'default' }}>
+                        <div style={{ ...flatThumbStyle, width: '54px', height: '54px', borderRadius: '10px' }}>
                           {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
@@ -6466,17 +6466,17 @@ export default function App() {
           </div>
 
           {exploreTab === 'band' && (
-            <section style={{ ...glassStyle('explore-band-tab'), padding: '22px', backgroundColor: '#090909' }}>
+            <section style={{ padding: isTinyLayout ? '14px 0' : '18px 0' }}>
               <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
               {filteredBandProfiles.length > 0 ? (
-                <div style={{ display: 'grid', gap: '14px' }}>
+                <div style={flatListStyle}>
                   {filteredBandProfiles.map((profile) => (
-                    <div key={`band-tab-${profile.slug}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '68px 1fr' : '86px 1fr auto', gap: '16px', alignItems: 'center', padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px' }}>
-                      <div style={{ width: isTinyLayout ? '68px' : '86px', height: isTinyLayout ? '68px' : '86px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
+                    <div key={`band-tab-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '64px minmax(0, 1fr)' : '76px minmax(0, 1fr) auto', cursor: 'default' }}>
+                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '64px' : '76px', height: isTinyLayout ? '64px' : '76px', borderRadius: '10px' }}>
                         {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                       </div>
-                      <div>
-                        <h4 style={{ color: '#fff', fontSize: '20px', fontWeight: '900', margin: '0 0 6px 0' }}>{profile.name.toUpperCase()}</h4>
+                      <div style={{ minWidth: 0 }}>
+                        <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '15px' : '18px', fontWeight: '900', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name.toUpperCase()}</h4>
                         <p style={{ color: '#777', fontSize: '13px', margin: '0 0 6px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
                         <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
                       </div>
@@ -6491,18 +6491,18 @@ export default function App() {
           )}
 
           {exploreTab === 'artikel' && (
-            <section style={{ ...glassStyle('explore-article-tab'), padding: '22px', backgroundColor: '#090909' }}>
+            <section style={{ padding: isTinyLayout ? '14px 0' : '18px 0' }}>
               <h3 style={sectionHeadingStyle}>ARTIKEL SKENA</h3>
               {filteredArticles.length === 0 ? (
                 <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok. Band bisa tulis artikel dari Band Studio.</p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+                <div style={flatListStyle}>
                   {filteredArticles.map((article) => (
-                    <article key={article.id} onClick={() => openArticleReader(article)} style={{ padding: '16px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', cursor: 'pointer' }}>
-                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 10px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                      <h4 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h4>
+                    <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...flatItemStyle, display: 'block' }}>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
+                      <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '15px' : '17px', fontWeight: '900', lineHeight: 1.08, margin: '0 0 8px 0' }}>{article.title.toUpperCase()}</h4>
                       <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
-                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '12px 0 0 0' }}>BACA ARTIKEL</p>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '10px 0 0 0' }}>BACA ARTIKEL</p>
                     </article>
                   ))}
                 </div>
@@ -6649,7 +6649,7 @@ export default function App() {
           ) : selectedArticle ? (
             <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '22px', alignItems: 'start' }}>
               <main>
-                <article style={{ ...glassStyle(`article-reader-${selectedArticle.id}`), padding: isTinyLayout ? '18px' : '26px', backgroundColor: '#090909' }}>
+                <article style={{ padding: isTinyLayout ? '10px 0 18px' : '14px 0 22px' }}>
                   <button onClick={() => setSelectedArticleId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#888', borderRadius: '9999px', padding: '7px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, marginBottom: '18px' }}>KEMBALI KE ETALASE</button>
                   <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{selectedArticle.category.toUpperCase()} / {selectedArticle.createdAt}</p>
                   <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '30px' : 'clamp(38px, 5vw, 64px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 16px 0' }}>{selectedArticle.title.toUpperCase()}</h3>
@@ -6665,7 +6665,7 @@ export default function App() {
                     {selectedArticleComments.length > 0 && (
                       <div style={{ display: 'grid', gap: '8px', marginBottom: '12px' }}>
                         {selectedArticleComments.slice(0, 5).map((comment) => (
-                          <div key={comment.id} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                          <div key={comment.id} style={{ padding: '9px 0', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                             <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
                             <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
                             <button onClick={() => createContentReport({ type: 'comment', targetId: comment.id, title: `${selectedArticle.title} / ${comment.author}` })} style={{ marginTop: '8px', background: 'transparent', border: 'none', color: '#666', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN KOMENTAR</button>
@@ -6680,13 +6680,13 @@ export default function App() {
                   </div>
                 </article>
               </main>
-              <aside style={{ ...glassStyle('article-sidebar'), padding: '14px', backgroundColor: '#090909', position: isCompactLayout ? 'relative' : 'sticky', top: isCompactLayout ? 'auto' : '98px' }}>
+              <aside style={{ padding: isTinyLayout ? '10px 0' : '12px 0', position: isCompactLayout ? 'relative' : 'sticky', top: isCompactLayout ? 'auto' : '98px' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '13px', fontWeight: '900', margin: '0 0 12px 0' }}>ARTIKEL LAINNYA</h3>
-                <div style={{ display: 'grid', gap: '8px' }}>
+                <div style={flatListStyle}>
                   {publicArticleList.slice(0, 10).map((article) => {
                     const isActiveArticle = String(article.id) === String(selectedArticle.id);
                     return (
-                      <button key={`side-${article.id}`} onClick={() => setSelectedArticleId(article.id)} style={{ textAlign: 'left', padding: '10px', backgroundColor: isActiveArticle ? 'rgba(0,210,255,0.08)' : '#000', border: isActiveArticle ? '1px solid rgba(0,210,255,0.3)' : '1px solid #141414', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                      <button key={`side-${article.id}`} onClick={() => setSelectedArticleId(article.id)} style={{ ...flatItemStyle, display: 'block', borderTopColor: isActiveArticle ? 'rgba(0,210,255,0.4)' : 'rgba(255,255,255,0.08)' }}>
                         <p style={{ color: isActiveArticle ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
                         <p style={{ color: '#777', fontSize: '10px', margin: 0 }}>{article.category} / {article.createdAt}</p>
                       </button>
@@ -6696,15 +6696,15 @@ export default function App() {
               </aside>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+            <div style={flatListStyle}>
               {publicArticleList.map((article, index) => (
-                <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...glassStyle(`article-card-${article.id}`), padding: index === 0 && !isCompactLayout ? '24px' : '16px', backgroundColor: '#090909', minHeight: index === 0 && !isCompactLayout ? '320px' : '220px', display: 'grid', alignContent: 'space-between', cursor: 'pointer', gridColumn: index === 0 && !isCompactLayout ? 'span 2' : 'auto' }}>
+                <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...flatItemStyle, display: 'block' }}>
                   <div>
                     <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                    <h3 style={{ color: '#fff', fontSize: index === 0 && !isCompactLayout ? '34px' : '20px', fontWeight: '900', lineHeight: 1, margin: '0 0 12px 0' }}>{article.title.toUpperCase()}</h3>
-                    <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
+                    <h3 style={{ color: '#fff', fontSize: index === 0 && !isCompactLayout ? '26px' : '18px', fontWeight: '900', lineHeight: 1.04, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h3>
+                    <p style={{ color: '#777', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '820px' }}>{article.excerpt}</p>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginTop: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginTop: '12px' }}>
                     <p style={{ color: '#555', fontSize: '10px', fontWeight: '900', margin: 0 }}>{(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
                     <span style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900' }}>BACA</span>
                   </div>
@@ -6798,12 +6798,12 @@ export default function App() {
                 </section>
               )}
 
-              <section style={{ ...glassStyle('band-public-bio'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
+              <section style={{ padding: isTinyLayout ? '10px 0 18px' : '12px 0 22px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
                 <p style={{ color: '#bbb', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
-              <section style={{ ...glassStyle('band-public-player'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
+              <section style={{ padding: isTinyLayout ? '10px 0 18px' : '12px 0 22px', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
                   <div>
                     <h3 style={{ ...sectionHeadingStyle, margin: '0 0 6px 0' }}>PROMO MUSIC PLAYER</h3>
@@ -6819,7 +6819,7 @@ export default function App() {
                     ['PREVIEW READY', bandPublicPreviewReadyCount, bandPublicPreviewReadyCount ? '#00d2ff' : '#777'],
                     ['FREE FULL', hasFreeFullBandTrack ? 1 : 0, hasFreeFullBandTrack ? '#39ff14' : '#777']
                   ].map(([label, value, color]) => (
-                    <div key={label} style={{ padding: '9px', backgroundColor: '#000', border: `1px solid ${color}22`, borderRadius: '10px' }}>
+                    <div key={label} style={{ padding: '7px 0', borderTop: `1px solid ${color}22` }}>
                       <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.6px', margin: '0 0 4px 0' }}>{label}</p>
                       <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
                     </div>
@@ -6828,12 +6828,12 @@ export default function App() {
                 {bandPublicTracks.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada lagu promo. Upload album dulu, lalu pilih track preview/free full di Band Studio.</p>
                 ) : (
-                  <div style={{ display: 'grid', gap: '10px' }}>
+                  <div style={flatListStyle}>
                     {bandPublicTracks.map((track, index) => {
                       const isActive = activeTrack?.id === track.id && isPlaying;
                       return (
-                        <div key={track.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '44px 1fr' : '52px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: `1px solid ${track.freeFull ? 'rgba(57,255,20,0.26)' : '#141414'}`, borderRadius: '12px' }}>
-                          <div style={{ width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', color: '#00d2ff', fontSize: '11px', fontWeight: '900' }}>
+                        <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', borderTopColor: track.freeFull ? 'rgba(57,255,20,0.26)' : 'rgba(255,255,255,0.08)', cursor: 'default' }}>
+                          <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '9px', color: '#00d2ff', fontSize: '11px', fontWeight: '900' }}>
                             {track.albumCover ? <img src={track.albumCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : String(index + 1).padStart(2, '0')}
                           </div>
                           <div style={{ minWidth: 0 }}>
@@ -6852,23 +6852,25 @@ export default function App() {
                 )}
               </section>
 
-              <section style={{ ...glassStyle('band-public-releases'), padding: '20px', backgroundColor: '#090909', marginBottom: '24px' }}>
+              <section style={{ padding: isTinyLayout ? '10px 0 18px' : '12px 0 22px', marginBottom: '24px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {displayBandAlbums.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                  <div style={flatListStyle}>
                     {displayBandAlbums.map((album) => (
-                      <article key={album.id} style={{ backgroundColor: '#000', border: '1px solid #141414', borderRadius: '14px', padding: '12px' }}>
-                        <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center', marginBottom: '12px' }}>
+                      <article key={album.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '62px minmax(0, 1fr)' : '72px minmax(0, 1fr) auto', cursor: 'default' }}>
+                        <div style={{ ...flatThumbStyle, width: isTinyLayout ? '62px' : '72px', height: isTinyLayout ? '62px' : '72px', borderRadius: '9px' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '11px', fontWeight: '900' }}>COVER</span>}
                         </div>
-                        <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>{album.trackCount} TRACK / FULL ALBUM</p>
-                        <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 6px 0' }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>Full Album Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
-                        <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, width: '100%', padding: '9px', fontSize: '11px', marginBottom: '10px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI FULL ALBUM'}</button>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.trackCount} TRACK / FULL ALBUM</p>
+                          <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
+                          <p style={{ color: '#00d2ff', fontSize: '12px', fontWeight: '900', margin: 0 }}>Full Album Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
+                        </div>
+                        <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{!userSession ? 'JOIN' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
                         {(album.tracks || []).length > 0 && (
-                          <div style={{ display: 'grid', gap: '8px', borderTop: '1px solid #141414', paddingTop: '10px' }}>
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px' }}>
                             {(album.tracks || []).slice(0, 10).map((track, index) => (
                               <div key={track.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center' }}>
                                 <div style={{ minWidth: 0 }}>
@@ -6909,7 +6911,7 @@ export default function App() {
             </main>
 
             <aside style={{ display: 'grid', gap: '18px' }}>
-              <section style={{ ...glassStyle('band-public-contact'), padding: '18px', backgroundColor: '#090909' }}>
+              <section style={{ padding: '2px 0 0 0' }}>
                 <h3 style={sectionHeadingStyle}>CONTACT</h3>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#fff' }}>{displayBandProfile.cp || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#fff' }}>{displayBandProfile.email || '-'}</span></p>
@@ -7273,9 +7275,9 @@ export default function App() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: libraryDetailGridColumns, gap: '24px', alignItems: 'start' }}>
-              <section style={{ ...glassStyle('library-list'), padding: '20px', backgroundColor: '#090909' }}>
+              <section style={{ padding: isTinyLayout ? '10px 0' : '12px 0' }}>
                 <h3 style={sectionHeadingStyle}>PURCHASED RELEASES</h3>
-                <div style={{ display: 'grid', gap: '12px' }}>
+                <div style={flatListStyle}>
                   {purchasedAlbums.map((album) => {
                     const isSelectedLibraryItem = selectedLibraryItem?.id === album.id;
                     const firstTrack = album.tracks?.[0] || null;
@@ -7287,14 +7289,14 @@ export default function App() {
                         setSelectedLibraryItemId(album.id);
                         setSelectedLibraryTrackId(null);
                       }}
-                      style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', alignItems: 'center', padding: '10px', backgroundColor: isSelectedLibraryItem ? 'rgba(0,210,255,0.06)' : '#000', border: isSelectedLibraryItem ? '1px solid rgba(0,210,255,0.45)' : '1px solid #141414', borderRadius: '12px', cursor: 'pointer' }}
+                      style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '58px minmax(0, 1fr)' : '66px minmax(0, 1fr) auto', borderTopColor: isSelectedLibraryItem ? 'rgba(0,210,255,0.45)' : 'rgba(255,255,255,0.08)' }}
                     >
-                      <div style={{ width: '72px', height: '72px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
+                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '58px' : '66px', height: isTinyLayout ? '58px' : '66px', borderRadius: '9px' }}>
                         {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>COVER</span>}
                       </div>
-                      <div>
-                        <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
+                      <div style={{ minWidth: 0 }}>
+                        <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
+                        <p style={{ color: '#777', fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
                       </div>
                       <button
                         onClick={(event) => {
@@ -7303,7 +7305,7 @@ export default function App() {
                           setSelectedLibraryTrackId(firstTrack?.id || null);
                           if (firstTrack) handlePlayLibraryTrack(firstTrack, album, album.tracks || [firstTrack]);
                         }}
-                        style={{ ...glassButtonStyle, padding: '8px 12px', fontSize: '11px' }}
+                        style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}
                       >
                         {activeTrack?.id === `library-${album.id}-${firstTrack?.id}` && isPlaying ? 'PAUSE' : 'PLAY'}
                       </button>
@@ -7313,10 +7315,10 @@ export default function App() {
                 </div>
               </section>
 
-              <aside style={{ ...glassStyle('library-player'), padding: '20px', backgroundColor: '#090909' }}>
+              <aside style={{ padding: isTinyLayout ? '12px 0' : '14px 0', borderTop: isCompactLayout ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '96px 1fr' : '118px 1fr', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '14px', backgroundColor: '#000', border: '1px solid #141414', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', backgroundColor: '#080808', border: '1px solid rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
                     {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '11px', fontWeight: '900' }}>PLAYER</span>}
                   </div>
                   <div style={{ minWidth: 0 }}>
@@ -7345,7 +7347,7 @@ export default function App() {
                       <div
                         key={track.id}
                         onClick={() => setSelectedLibraryTrackId(track.id)}
-                        style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', gap: '10px', alignItems: 'center', padding: '10px', backgroundColor: isSelectedLibraryTrack ? 'rgba(0,210,255,0.06)' : '#000', border: isSelectedLibraryTrack ? '1px solid rgba(0,210,255,0.38)' : '1px solid #141414', borderRadius: '12px', cursor: 'pointer' }}
+                        style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', borderTopColor: isSelectedLibraryTrack ? 'rgba(0,210,255,0.38)' : 'rgba(255,255,255,0.08)' }}
                       >
                         <div>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
@@ -7362,7 +7364,7 @@ export default function App() {
                   <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
                 <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Download hanya untuk akun pembeli, personal listening, dan tidak untuk distribusi ulang. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
-                <div style={{ marginTop: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
                     <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: 0 }}>DOWNLOAD LOG</p>
                     <span style={{ color: '#666', fontSize: '9px', fontWeight: '900' }}>{downloadLogs.length} RECORD</span>
@@ -7372,7 +7374,7 @@ export default function App() {
                   ) : (
                     <div style={{ display: 'grid', gap: '7px' }}>
                       {selectedLibraryDownloadLogs.slice(0, 3).map((log) => (
-                        <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '8px' }}>
+                        <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', padding: '7px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                           <div style={{ minWidth: 0 }}>
                             <p style={{ color: '#fff', fontSize: '10px', fontWeight: '900', margin: '0 0 3px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.trackTitle.toUpperCase()}</p>
                             <p style={{ color: '#777', fontSize: '9px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.albumTitle} / {log.bandName}</p>
@@ -7414,17 +7416,19 @@ export default function App() {
           </div>
 
           {audiencePaymentRequests.length > 0 && (
-            <section style={{ ...glassStyle('audience-order-payment-requests'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909', marginBottom: '16px' }}>
+            <section style={{ padding: isTinyLayout ? '10px 0 14px' : '12px 0 16px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               <h3 style={{ ...sectionHeadingStyle, marginBottom: '12px' }}>PAYMENT REQUEST STATUS</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px' }}>
+              <div style={flatListStyle}>
                 {audiencePaymentRequests.slice(0, 6).map((payment) => (
-                  <div key={`orders-payment-${payment.id}`} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${payment.status === 'paid' ? 'rgba(57,255,20,0.2)' : payment.status === 'rejected' ? 'rgba(255,51,51,0.2)' : 'rgba(255,204,0,0.2)'}`, borderRadius: '10px' }}>
-                    <p style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()}</p>
-                    <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.productTitle}</h4>
-                    <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.checkoutRef} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
-                    {payment.rejectionReason && <p style={{ color: '#ff3333', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
+                  <div key={`orders-payment-${payment.id}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1fr) auto', borderTopColor: payment.status === 'paid' ? 'rgba(57,255,20,0.2)' : payment.status === 'rejected' ? 'rgba(255,51,51,0.25)' : 'rgba(255,204,0,0.22)', cursor: 'default' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()}</p>
+                      <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.productTitle}</h4>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.checkoutRef} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                      {payment.rejectionReason && <p style={{ color: '#ff3333', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
+                    </div>
                     {['waiting_admin_confirmation', 'rejected'].includes(payment.status) && (
-                      <label style={{ ...glassButtonStyle, display: 'inline-grid', width: 'fit-content', marginTop: '8px', padding: '6px 8px', fontSize: '9px', borderRadius: '8px', cursor: 'pointer' }}>
+                      <label style={{ ...glassButtonStyle, display: 'inline-grid', width: 'fit-content', padding: '6px 8px', fontSize: '9px', borderRadius: '8px', cursor: 'pointer' }}>
                         <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handlePaymentRequestProofImport(payment, event)} style={{ display: 'none' }} />
                         REUPLOAD PROOF
                       </label>
@@ -7443,11 +7447,11 @@ export default function App() {
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) 280px', gap: '18px', alignItems: 'start' }}>
-              <section style={{ ...glassStyle('audience-orders-list'), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909' }}>
+              <section style={{ padding: isTinyLayout ? '10px 0' : '12px 0' }}>
                 <h3 style={sectionHeadingStyle}>ORDER HISTORY</h3>
-                <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={flatListStyle}>
                   {audienceMerchOrders.map((order) => (
-                    <article key={order.id} style={{ ...compactRowStyle, border: `1px solid ${['completed', 'cancelled'].includes(order.trackingStatus) ? '#141414' : 'rgba(0,210,255,0.22)'}` }}>
+                    <article key={order.id} style={{ ...flatItemStyle, display: 'block', cursor: 'default', borderTopColor: ['completed', 'cancelled'].includes(order.trackingStatus) ? 'rgba(255,255,255,0.08)' : 'rgba(0,210,255,0.22)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
@@ -7456,7 +7460,7 @@ export default function App() {
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '10px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '10px', marginBottom: '8px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '8px' }}>
                         <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#fff' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
                         <p style={{ color: order.trackingNumber ? '#39ff14' : '#777', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
                       </div>
@@ -7466,16 +7470,16 @@ export default function App() {
                 </div>
               </section>
 
-              <aside style={{ ...glassStyle('audience-orders-guide'), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909' }}>
+              <aside style={{ padding: isTinyLayout ? '10px 0' : '12px 0' }}>
                 <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
-                <div style={{ display: 'grid', gap: '8px' }}>
+                <div style={flatListStyle}>
                   {[
                     ['order_paid_waiting_band', 'Pembayaran tercatat, band belum proses.'],
                     ['processing', 'Band sedang siapkan paket.'],
                     ['shipped', 'Band sudah input resi dan paket dikirim.'],
                     ['completed', 'Order selesai.']
                   ].map(([status, description]) => (
-                    <div key={status} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                    <div key={status} style={{ ...flatItemStyle, display: 'block', cursor: 'default' }}>
                       <strong style={{ color: getMerchOrderStatusColor(status), fontSize: '10px', fontWeight: '900' }}>{getMerchOrderStatusLabel(status)}</strong>
                       <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{description}</p>
                     </div>
