@@ -3392,6 +3392,8 @@ export default function App() {
   };
 
   const updatePendingPaymentRecord = (paymentId, updates) => {
+    const paymentSnapshot = pendingPayments.find((payment) => payment.id === paymentId) || null;
+    const updatedPaymentSnapshot = paymentSnapshot ? { ...paymentSnapshot, ...updates } : null;
     setPendingPayments((current) => {
       const nextPayments = current.map((payment) => (
         payment.id === paymentId ? { ...payment, ...updates } : payment
@@ -3412,6 +3414,7 @@ export default function App() {
       if (Object.hasOwn(updates, 'paymentProofUrl') || Object.hasOwn(updates, 'paymentProofPreview')) updateRow.proof_url = updates.paymentProofUrl || updates.paymentProofPreview || null;
       if (Object.hasOwn(updates, 'paymentProofPath')) updateRow.proof_storage_path = updates.paymentProofPath || null;
       if (Object.hasOwn(updates, 'paymentProofStatus')) updateRow.proof_status = updates.paymentProofStatus || null;
+      if (updatedPaymentSnapshot) updateRow.payload = updatedPaymentSnapshot;
 
       void supabase.from('payment_requests').update(updateRow).eq('id', paymentId).then(({ error }) => {
         if (error && !isMissingColumnError(error)) {

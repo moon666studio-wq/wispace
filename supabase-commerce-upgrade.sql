@@ -434,6 +434,22 @@ on public.sales_transactions for update
 using (auth.uid() = seller_band_user_id)
 with check (auth.uid() = seller_band_user_id);
 
+drop policy if exists "Admins can manage all transactions" on public.sales_transactions;
+create policy "Admins can manage all transactions"
+on public.sales_transactions for all
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
+
 drop policy if exists "Audience can create own payment requests" on public.payment_requests;
 create policy "Audience can create own payment requests"
 on public.payment_requests for insert
@@ -470,6 +486,18 @@ with check (
   )
 );
 
+drop policy if exists "Buyers can update own payment proof requests" on public.payment_requests;
+create policy "Buyers can update own payment proof requests"
+on public.payment_requests for update
+using (
+  auth.uid() = buyer_user_id
+  and status in ('waiting_admin_confirmation', 'rejected')
+)
+with check (
+  auth.uid() = buyer_user_id
+  and status in ('waiting_admin_confirmation', 'rejected')
+);
+
 drop policy if exists "Admins can read own admin row" on public.admin_users;
 create policy "Admins can read own admin row"
 on public.admin_users for select
@@ -484,6 +512,31 @@ drop policy if exists "Bands can insert own release agreements" on public.releas
 create policy "Bands can insert own release agreements"
 on public.release_agreements for insert
 with check (auth.uid() = band_user_id);
+
+do $$
+begin
+  if to_regclass('public.audience_library') is not null then
+    execute $policy$
+      drop policy if exists "Admins can manage audience library" on public.audience_library
+    $policy$;
+    execute $policy$
+      create policy "Admins can manage audience library"
+      on public.audience_library for all
+      using (
+        exists (
+          select 1 from public.admin_users
+          where admin_users.user_id = auth.uid()
+        )
+      )
+      with check (
+        exists (
+          select 1 from public.admin_users
+          where admin_users.user_id = auth.uid()
+        )
+      )
+    $policy$;
+  end if;
+end $$;
 
 drop policy if exists "Bands can read own finance reports" on public.monthly_finance_reports;
 create policy "Bands can read own finance reports"
@@ -505,6 +558,22 @@ create policy "Bands can update own merch orders"
 on public.merch_orders for update
 using (auth.uid() = seller_band_user_id)
 with check (auth.uid() = seller_band_user_id);
+
+drop policy if exists "Admins can manage all merch orders" on public.merch_orders;
+create policy "Admins can manage all merch orders"
+on public.merch_orders for all
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
 
 drop policy if exists "Audience can manage own subscriptions" on public.band_subscriptions;
 create policy "Audience can manage own subscriptions"
