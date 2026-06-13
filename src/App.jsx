@@ -8560,7 +8560,7 @@ export default function App() {
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px', ...homeRevealStyle(120) }}>
           <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={railPanelStyle}>
-            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#a8f1ff"/> RADIO TOP 10 INDIE CLOUD</h3>
+            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#f5f5f5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#a8f1ff"/> MUSIC DIGITAL TERBARU</h3>
             {top10Tracks.map(track => (
               <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: `1.5px solid ${flatLineColor}`, alignItems: 'center' }}>
                 <div style={{ minWidth: 0 }}><h4 style={{ fontSize: '12px', color: '#fff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '10px', color: '#666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.band.toUpperCase()}</p></div>
