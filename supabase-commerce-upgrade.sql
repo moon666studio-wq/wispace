@@ -100,6 +100,10 @@ create table if not exists public.payment_requests (
   product_title text not null,
   amount integer not null default 0,
   status text not null default 'waiting_admin_confirmation',
+  proof_file_name text,
+  proof_url text,
+  proof_storage_path text,
+  proof_status text,
   payload jsonb not null default '{}'::jsonb,
   submitted_at timestamptz not null default now(),
   confirmed_at timestamptz,
@@ -233,6 +237,10 @@ add column if not exists payout_status text not null default 'available_next_cyc
 
 alter table if exists public.payment_requests
 add column if not exists payload jsonb not null default '{}'::jsonb,
+add column if not exists proof_file_name text,
+add column if not exists proof_url text,
+add column if not exists proof_storage_path text,
+add column if not exists proof_status text,
 add column if not exists confirmed_by text,
 add column if not exists rejected_by text,
 add column if not exists updated_at timestamptz not null default now();

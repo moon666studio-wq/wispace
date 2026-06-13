@@ -206,6 +206,7 @@ const WISPACE_MANUAL_PAYMENT_CHANNELS = [
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
+const PAYMENT_PROOF_MAX_SIZE = 2 * 1024 * 1024;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const MINIMUM_PAYOUT_AMOUNT = 100000;
@@ -244,7 +245,12 @@ const createEmptyCheckoutDraft = () => ({
   city: '',
   postalCode: '',
   courier: 'JNE REG',
-  note: ''
+  note: '',
+  paymentProofName: '',
+  paymentProofPreview: '',
+  paymentProofUrl: '',
+  paymentProofPath: '',
+  paymentProofStatus: ''
 });
 
 const createCheckoutReference = (type = 'order') => `WSP-${String(type).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
@@ -571,6 +577,11 @@ const mapPaymentRequestFromRow = (row = {}) => {
     sellerBandName: row.seller_band_name || payload.sellerBandName || 'Band WiSpace',
     productTitle: row.product_title || payload.productTitle || 'Checkout WiSpace',
     amount: Number(row.amount ?? payload.amount ?? 0),
+    paymentProofName: row.proof_file_name || payload.paymentProofName || '',
+    paymentProofPreview: row.proof_url || payload.paymentProofPreview || '',
+    paymentProofUrl: row.proof_url || payload.paymentProofUrl || payload.paymentProofPreview || '',
+    paymentProofPath: row.proof_storage_path || payload.paymentProofPath || '',
+    paymentProofStatus: row.proof_status || payload.paymentProofStatus || '',
     status: row.status || payload.status || 'waiting_admin_confirmation',
     paymentStatus: row.status || payload.paymentStatus || 'waiting_admin_confirmation',
     submittedAt: row.submitted_at || payload.submittedAt || row.created_at || '',
@@ -929,6 +940,7 @@ export default function App() {
   // STATE BARU UNTUK POP-DRAWER DETAIL GIGS
   const [selectedGigDetail, setSelectedGigDetail] = useState(null);
   const [selectedPosterPreview, setSelectedPosterPreview] = useState(null);
+  const [selectedPaymentProofPreview, setSelectedPaymentProofPreview] = useState(null);
   const [selectedMerchDetail, setSelectedMerchDetail] = useState(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
@@ -2566,6 +2578,37 @@ export default function App() {
     }
   };
 
+  const handlePaymentProofImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Bukti bayar harus berupa gambar PNG/JPG/WebP ya bro.');
+      clearFileInput(event);
+      return;
+    }
+    if (file.size > PAYMENT_PROOF_MAX_SIZE) {
+      alert('Ukuran bukti bayar maksimal 2MB dulu bro, biar admin dashboard tetap ringan.');
+      clearFileInput(event);
+      return;
+    }
+
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'payment-proofs', userSession);
+      setCheckoutDraft((current) => ({
+        ...current,
+        paymentProofName: file.name,
+        paymentProofPreview: uploadResult.publicUrl,
+        paymentProofUrl: uploadResult.publicUrl,
+        paymentProofPath: uploadResult.path || '',
+        paymentProofStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local'
+      }));
+      if (uploadResult.error) alert(`Bukti bayar belum masuk Storage, preview lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal import bukti bayar: ${error.message}`);
+      clearFileInput(event);
+    }
+  };
+
   const handleBandProfileSave = (event) => {
     event.preventDefault();
     if (!bandProfile.name.trim()) return alert('Isi nama band dulu bro.');
@@ -3127,6 +3170,11 @@ export default function App() {
       releaseId: activeCheckout.type === 'track' ? albumContext?.id : activeCheckout.album?.id,
       trackId: activeCheckout.track?.id || '',
       merchItemId: activeCheckout.item?.id || '',
+      paymentProofName: checkoutDraft.paymentProofName || '',
+      paymentProofPreview: checkoutDraft.paymentProofPreview || '',
+      paymentProofUrl: checkoutDraft.paymentProofUrl || checkoutDraft.paymentProofPreview || '',
+      paymentProofPath: checkoutDraft.paymentProofPath || '',
+      paymentProofStatus: checkoutDraft.paymentProofStatus || '',
       shipping: activeCheckout.type === 'merch'
         ? {
             recipientName: checkoutDraft.recipientName.trim(),
@@ -3168,6 +3216,10 @@ export default function App() {
         product_title: payment.productTitle,
         amount: Number(payment.amount || 0),
         status: payment.status || 'waiting_admin_confirmation',
+        proof_file_name: payment.paymentProofName || null,
+        proof_url: payment.paymentProofUrl || payment.paymentProofPreview || null,
+        proof_storage_path: payment.paymentProofPath || null,
+        proof_status: payment.paymentProofStatus || null,
         payload: payment,
         submitted_at: payment.submittedAt || new Date().toISOString()
       }], { onConflict: 'checkout_ref' }).then(({ error }) => {
@@ -3223,6 +3275,10 @@ export default function App() {
         alert('Lengkapi data penerima, nomor HP, alamat, kota, dan kode pos dulu bro.');
         return;
       }
+    }
+    if (!checkoutDraft.paymentProofPreview && !checkoutDraft.paymentProofUrl) {
+      alert('Upload bukti bayar dulu bro sebelum kirim request konfirmasi payment.');
+      return;
     }
 
     const pendingPayment = createCheckoutPendingPayment(buyerName, buyerEmail);
@@ -4277,6 +4333,10 @@ export default function App() {
     order.buyerUserId === userSession?.id || (userSession?.email && order.buyerEmail === userSession.email)
   ));
   const activeAudienceOrders = audienceMerchOrders.filter((order) => !['completed', 'cancelled'].includes(order.trackingStatus));
+  const audiencePaymentRequests = pendingPayments.filter((payment) => (
+    payment.buyerUserId === userSession?.id || (userSession?.email && payment.buyerEmail === userSession.email)
+  ));
+  const activeAudiencePaymentRequests = audiencePaymentRequests.filter((payment) => payment.status === 'waiting_admin_confirmation');
   const adminBandPayoutTotal = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const adminWaitingMerchOrders = merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
@@ -5423,6 +5483,18 @@ export default function App() {
                           <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
                           <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
                           <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                          <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginTop: '7px', flexWrap: 'wrap' }}>
+                            {payment.paymentProofPreview || payment.paymentProofUrl ? (
+                              <>
+                                <button type="button" onClick={() => setSelectedPaymentProofPreview(payment)} style={{ width: '54px', height: '34px', borderRadius: '7px', overflow: 'hidden', border: '1px solid rgba(57,255,20,0.28)', background: '#050505', padding: 0, cursor: 'pointer' }}>
+                                  <img src={payment.paymentProofPreview || payment.paymentProofUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                </button>
+                                <span style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900' }}>PROOF READY / {String(payment.paymentProofStatus || 'local').toUpperCase()}</span>
+                              </>
+                            ) : (
+                              <span style={{ color: '#ff3333', fontSize: '9px', fontWeight: '900' }}>NO PROOF</span>
+                            )}
+                          </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                           <button type="button" onClick={() => handleConfirmPendingPayment(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)' }}>CONFIRM PAID</button>
@@ -6995,6 +7067,10 @@ export default function App() {
                   <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH ORDERS</p>
                   <h3 style={{ color: activeAudienceOrders.length ? '#ffcc00' : '#fff', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audienceMerchOrders.length}</h3>
                 </div>
+                <div style={{ ...glassStyle('audience-payment-stat'), padding: '18px', backgroundColor: '#090909' }}>
+                  <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PAYMENT REQUEST</p>
+                  <h3 style={{ color: activeAudiencePaymentRequests.length ? '#ffcc00' : '#fff', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audiencePaymentRequests.length}</h3>
+                </div>
                 <div style={{ ...glassStyle('audience-secure-stat'), padding: '18px', backgroundColor: '#090909' }}>
                   <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>SECURE ACCESS</p>
                   <h3 style={{ color: '#fff', fontSize: '22px', fontWeight: '900', margin: 0 }}>ON</h3>
@@ -7009,6 +7085,29 @@ export default function App() {
                   <button onClick={() => navigateInternalPage('audience_orders')} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY ORDERS</button>
                   <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MESSAGES</button>
                 </div>
+              </section>
+
+              <section style={{ ...glassStyle('audience-payment-requests'), padding: '20px', backgroundColor: '#090909' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ color: '#00d2ff', fontSize: '14px', fontWeight: '900', margin: 0 }}>MY PAYMENT REQUESTS</h3>
+                  <span style={{ color: activeAudiencePaymentRequests.length ? '#ffcc00' : '#666', fontSize: '10px', fontWeight: '900' }}>{activeAudiencePaymentRequests.length} WAITING</span>
+                </div>
+                {audiencePaymentRequests.length === 0 ? (
+                  <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada request pembayaran. Setelah checkout dan upload bukti bayar, statusnya tampil di sini.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {audiencePaymentRequests.slice(0, 6).map((payment) => (
+                      <div key={`audience-payment-${payment.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: `1px solid ${payment.status === 'paid' ? 'rgba(57,255,20,0.22)' : payment.status === 'rejected' ? 'rgba(255,51,51,0.22)' : 'rgba(255,204,0,0.22)'}`, borderRadius: '10px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / Proof: {payment.paymentProofPreview || payment.paymentProofUrl ? 'ready' : 'missing'}</p>
+                        </div>
+                        <strong style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{String(payment.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase()}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <form onSubmit={handleAudienceProfileSave} style={{ ...glassStyle('audience-private-form'), padding: '20px', backgroundColor: '#090909' }}>
@@ -7203,6 +7302,7 @@ export default function App() {
                 {[
                   ['TOTAL', audienceMerchOrders.length],
                   ['AKTIF', activeAudienceOrders.length],
+                  ['PAYMENT WAIT', activeAudiencePaymentRequests.length],
                   ['SELESAI', audienceMerchOrders.filter((order) => order.trackingStatus === 'completed').length]
                 ].map(([label, value]) => (
                   <span key={label} style={{ padding: '7px 10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '9999px', color: label === 'AKTIF' && value ? '#ffcc00' : '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
@@ -7213,6 +7313,21 @@ export default function App() {
             </div>
             <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
           </div>
+
+          {audiencePaymentRequests.length > 0 && (
+            <section style={{ ...glassStyle('audience-order-payment-requests'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909', marginBottom: '16px' }}>
+              <h3 style={{ ...sectionHeadingStyle, marginBottom: '12px' }}>PAYMENT REQUEST STATUS</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px' }}>
+                {audiencePaymentRequests.slice(0, 6).map((payment) => (
+                  <div key={`orders-payment-${payment.id}`} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${payment.status === 'paid' ? 'rgba(57,255,20,0.2)' : payment.status === 'rejected' ? 'rgba(255,51,51,0.2)' : 'rgba(255,204,0,0.2)'}`, borderRadius: '10px' }}>
+                    <p style={{ color: payment.status === 'paid' ? '#39ff14' : payment.status === 'rejected' ? '#ff3333' : '#ffcc00', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()}</p>
+                    <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.productTitle}</h4>
+                    <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.checkoutRef} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {audienceMerchOrders.length === 0 ? (
             <div style={{ ...glassStyle('orders-empty'), padding: '28px', backgroundColor: '#090909' }}>
@@ -7960,6 +8075,30 @@ export default function App() {
         </div>
       )}
 
+      {selectedPaymentProofPreview && (
+        <div
+          onClick={() => setSelectedPaymentProofPreview(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1400, backgroundColor: 'rgba(0,0,0,0.94)', display: 'grid', placeItems: 'center', padding: '24px', boxSizing: 'border-box' }}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: 'min(760px, 96vw)', maxHeight: '92vh', backgroundColor: '#050505', border: '1px solid rgba(57,255,20,0.28)', borderRadius: '16px', padding: '16px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
+              <div>
+                <p style={{ color: '#39ff14', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>BUKTI BAYAR BUYER</p>
+                <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPaymentProofPreview.checkoutRef}</h3>
+              </div>
+              <button onClick={() => setSelectedPaymentProofPreview(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            </div>
+            <div style={{ width: '100%', maxHeight: '70vh', overflow: 'auto', backgroundColor: '#000', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
+              <img src={selectedPaymentProofPreview.paymentProofPreview || selectedPaymentProofPreview.paymentProofUrl} alt="" style={{ maxWidth: '100%', maxHeight: '66vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
+            </div>
+            <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPaymentProofPreview.productTitle} / {selectedPaymentProofPreview.buyerName} / Rp {Number(selectedPaymentProofPreview.amount || 0).toLocaleString('id-ID')}</p>
+          </div>
+        </div>
+      )}
+
       {activeCheckout && checkoutProduct && (
         <div
           onClick={handleCheckoutCancel}
@@ -8016,6 +8155,22 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '96px 1fr auto', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#000', border: checkoutDraft.paymentProofPreview ? '1px solid rgba(57,255,20,0.24)' : '1px dashed rgba(255,204,0,0.36)', borderRadius: '12px', marginBottom: '14px', cursor: checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePaymentProofImport} disabled={checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={{ display: 'none' }} />
+              <div style={{ width: isTinyLayout ? '100%' : '96px', aspectRatio: isTinyLayout ? '16/9' : '4/3', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#050505', border: '1px solid rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center' }}>
+                {checkoutDraft.paymentProofPreview ? (
+                  <img src={checkoutDraft.paymentProofPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ color: '#555', fontSize: '10px', fontWeight: '900' }}>BUKTI</span>
+                )}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ color: checkoutDraft.paymentProofPreview ? '#39ff14' : '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{checkoutDraft.paymentProofPreview ? 'BUKTI BAYAR TERLAMPIR' : 'UPLOAD BUKTI BAYAR'}</p>
+                <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || 'PNG/JPG/WebP maksimal 2MB. Admin cek bukti ini sebelum confirm paid.'}</p>
+              </div>
+              <span style={{ color: checkoutDraft.paymentProofStatus === 'stored' ? '#39ff14' : checkoutDraft.paymentProofPreview ? '#00d2ff' : '#777', fontSize: '9px', fontWeight: '900', justifySelf: isTinyLayout ? 'start' : 'end' }}>{checkoutDraft.paymentProofStatus ? checkoutDraft.paymentProofStatus.toUpperCase() : 'REQUIRED'}</span>
+            </label>
 
             {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
               <div style={{ padding: '12px', backgroundColor: '#000', border: `1px solid ${checkoutIsPaid ? 'rgba(57,255,20,0.28)' : checkoutIsAwaitingAdmin ? 'rgba(0,210,255,0.28)' : 'rgba(255,51,51,0.28)'}`, borderRadius: '12px', marginBottom: '14px' }}>
