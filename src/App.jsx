@@ -961,6 +961,8 @@ export default function App() {
   const [isViewingOwnBandProfile, setIsViewingOwnBandProfile] = useState(true);
   const [adminPassword, setAdminPassword] = useState('');
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+  const [cloudAdminAccount, setCloudAdminAccount] = useState(null);
+  const [adminAuthLoading, setAdminAuthLoading] = useState(false);
   const [adminError, setAdminError] = useState('');
   const [adminFinanceFilter, setAdminFinanceFilter] = useState('all');
   const [adminActiveSection, setAdminActiveSection] = useState('payment');
@@ -1145,8 +1147,40 @@ export default function App() {
     saveUserScopedData(AUDIENCE_NOTIFICATION_READ_PREFIX, user, reads);
   }, [userSession]);
 
-  const fetchAdminPaymentRequests = useCallback(async () => {
-    if (!isSupabaseConfigured || !userSession?.id) return;
+  const verifyCloudAdminAccount = useCallback(async (user = null) => {
+    if (!isSupabaseConfigured || !user?.id) {
+      setCloudAdminAccount(null);
+      return false;
+    }
+
+    setAdminAuthLoading(true);
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('user_id,email,role')
+      .eq('user_id', user.id)
+      .limit(1);
+    setAdminAuthLoading(false);
+
+    if (error) {
+      setCloudAdminAccount(null);
+      if (!isMissingColumnError(error)) console.warn('Gagal cek admin_users:', error.message);
+      return false;
+    }
+
+    const adminRow = Array.isArray(data) ? data[0] : data;
+    if (!adminRow) {
+      setCloudAdminAccount(null);
+      return false;
+    }
+
+    setCloudAdminAccount(adminRow);
+    setIsAdminUnlocked(true);
+    setAdminError('');
+    return true;
+  }, []);
+
+  const fetchAdminPaymentRequests = useCallback(async (user = null) => {
+    if (!isSupabaseConfigured || !user?.id) return;
     const { data, error } = await supabase
       .from('payment_requests')
       .select('*')
@@ -1159,7 +1193,7 @@ export default function App() {
     const mappedPayments = (data || []).map(mapPaymentRequestFromRow);
     setPendingPayments(mappedPayments);
     savePendingPayments(mappedPayments);
-  }, [userSession]);
+  }, []);
 
   const publishBandUpdateNotification = useCallback((bandSlug, update) => {
     if (!bandSlug) return;
@@ -1472,15 +1506,23 @@ export default function App() {
       const sessionUser = session?.user || null;
       setUserSession(sessionUser);
       setUserRole(resolveUserRole(sessionUser));
+      if (sessionUser) void verifyCloudAdminAccount(sessionUser).then((isAdmin) => {
+        if (isAdmin) void fetchAdminPaymentRequests(sessionUser);
+      });
+      else setCloudAdminAccount(null);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const sessionUser = session?.user || null;
       setUserSession(sessionUser);
       setUserRole(resolveUserRole(sessionUser));
+      if (sessionUser) void verifyCloudAdminAccount(sessionUser).then((isAdmin) => {
+        if (isAdmin) void fetchAdminPaymentRequests(sessionUser);
+      });
+      else setCloudAdminAccount(null);
       if(!session) { setUserRole(null); setHasSignedContract(false); }
     });
     return () => subscription.unsubscribe();
-  }, [resolveUserRole]);
+  }, [fetchAdminPaymentRequests, resolveUserRole, verifyCloudAdminAccount]);
 
   useEffect(() => {
     if (!userSession) return;
@@ -1615,6 +1657,10 @@ export default function App() {
     setAuthError('');
     setSearchTerm('');
     setIsSearchExpanded(false);
+    setIsAdminUnlocked(false);
+    setCloudAdminAccount(null);
+    setAdminPassword('');
+    setAdminError('');
     setUserRole(null);
     setHasSignedContract(false);
     setSignatureName('');
@@ -1634,17 +1680,28 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAdminUnlock = (event) => {
+  const handleAdminUnlock = async (event) => {
     event.preventDefault();
+    if (userSession?.id) {
+      const isVerifiedAdmin = await verifyCloudAdminAccount(userSession);
+      if (isVerifiedAdmin) {
+        setAdminPassword('');
+        void fetchAdminPaymentRequests(userSession);
+        return;
+      }
+    }
+
     if (adminPassword === 'wispace2026') {
       setIsAdminUnlocked(true);
       setAdminPassword('');
       setAdminError('');
-      void fetchAdminPaymentRequests();
+      void fetchAdminPaymentRequests(userSession);
       return;
     }
 
-    setAdminError('Password admin salah bro.');
+    setAdminError(userSession?.id
+      ? 'Akun ini belum masuk tabel admin_users, atau password lokal salah bro.'
+      : 'Login akun admin Supabase dulu, atau pakai password lokal buat testing.');
   };
 
   const closeAdminGate = () => {
@@ -1656,6 +1713,7 @@ export default function App() {
     setAdminPassword('');
     setAdminError('');
     setIsAdminUnlocked(false);
+    setCloudAdminAccount(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -4544,6 +4602,7 @@ export default function App() {
         ? 'Memproses simulasi payment'
         : 'Menunggu konfirmasi pembayaran';
   const isAdminPage = searchTerm.toLowerCase() === 'adminwispace';
+  const isCloudAdmin = Boolean(cloudAdminAccount?.user_id);
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
     ? { ratio: '16:9 landscape', size: '1920 x 1080 px', note: 'Cocok buat slide besar homepage. Pastikan teks utama aman di tengah gambar.' }
@@ -5746,11 +5805,18 @@ export default function App() {
               <form onSubmit={handleAdminUnlock} style={{ ...glassStyle('admin-password-gate'), width: '100%', maxWidth: '420px', padding: '28px', backgroundColor: '#090909' }}>
                 <p style={{ color: '#00d2ff', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE ADMIN GATE</p>
                 <h2 style={{ color: '#fff', fontSize: '28px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>ADMIN PASSWORD</h2>
-                <p style={{ color: '#666', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>Masukkan password admin untuk buka kurasi pamflet free dan exclusive.</p>
-                <input type="password" placeholder="PASSWORD ADMIN" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} required style={{ ...formInputStyle, marginBottom: '12px' }} />
+                <p style={{ color: '#666', fontSize: '13px', lineHeight: 1.5, margin: '0 0 12px 0' }}>Login pakai akun admin Supabase untuk mode cloud. Password lokal tetap bisa dipakai buat testing cepat.</p>
+                <div style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${userSession ? 'rgba(0,210,255,0.22)' : 'rgba(255,204,0,0.22)'}`, borderRadius: '12px', marginBottom: '12px' }}>
+                  <p style={{ color: userSession ? '#00d2ff' : '#ffcc00', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{userSession ? 'AKUN LOGIN TERDETEKSI' : 'BELUM LOGIN ADMIN'}</p>
+                  <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{userSession ? `${userSession.email || 'Admin WiSpace'} - klik unlock untuk cek admin_users.` : 'Masuk dulu kalau mau pesan admin, payment, dan data admin tersimpan ke cloud.'}</p>
+                </div>
+                <input type="password" placeholder="PASSWORD LOKAL OPSIONAL" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} style={{ ...formInputStyle, marginBottom: '12px' }} />
                 {adminError && <p style={{ color: '#ff3333', fontSize: '12px', fontWeight: '900', margin: '0 0 12px 0' }}>{adminError}</p>}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <button type="submit" style={{ ...glassButtonStyle, padding: '12px', fontSize: '12px' }}>UNLOCK ADMIN</button>
+                <div style={{ display: 'grid', gridTemplateColumns: userSession ? '1fr 1fr' : '1fr 1fr 1fr', gap: '10px' }}>
+                  <button type="submit" disabled={adminAuthLoading} style={{ ...glassButtonStyle, padding: '12px', fontSize: '12px', cursor: adminAuthLoading ? 'wait' : 'pointer', opacity: adminAuthLoading ? 0.65 : 1 }}>{adminAuthLoading ? 'CEK CLOUD...' : userSession ? 'UNLOCK ADMIN' : 'UNLOCK LOCAL'}</button>
+                  {!userSession && (
+                    <button type="button" onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '12px' }}>LOGIN ADMIN</button>
+                  )}
                   <button type="button" onClick={closeAdminGate} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '12px', padding: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BACK HOME</button>
                 </div>
               </form>
@@ -5762,6 +5828,7 @@ export default function App() {
               <p style={eyebrowStyle}>WISPACE ADMIN GATE</p>
               <h2 style={pageTitleStyle}>ADMIN CONTROL CENTER</h2>
               <p style={pageLeadStyle}>Kelola confirm payment, kurasi pamflet, finance payout, legal agreement, artikel, dan laporan konten dari satu panel.</p>
+              <p style={{ color: isCloudAdmin ? '#39ff14' : '#ffcc00', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '10px 0 0 0' }}>{isCloudAdmin ? `CLOUD ADMIN: ${cloudAdminAccount.email || userSession?.email || 'admin'}` : 'LOCAL PASSWORD MODE: sync admin cloud terbatas sampai akun masuk admin_users'}</p>
             </div>
             <button onClick={closeAdminGate} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BACK HOME</button>
           </div>
@@ -5821,7 +5888,7 @@ export default function App() {
                 <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>CONFIRM PAID BUYER</h3>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => void fetchAdminPaymentRequests()} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>REFRESH SYNC</button>
+                <button type="button" onClick={() => void fetchAdminPaymentRequests(userSession)} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>REFRESH SYNC</button>
                 <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pembelian album, track, dan merch masuk waiting dulu. Library/order baru aktif setelah admin klik confirm paid.</p>
               </div>
             </div>
@@ -6183,7 +6250,7 @@ export default function App() {
                 <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN MESSAGE CENTER</p>
                 <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE BAND</h3>
               </div>
-              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pakai ini buat info payment gagal, revisi pamflet, payout, masalah upload, atau pengumuman penting ke semua band.</p>
+              <p style={{ color: isCloudAdmin ? '#777' : '#ffcc00', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>{isCloudAdmin ? 'Pakai ini buat info payment gagal, revisi pamflet, payout, masalah upload, atau pengumuman penting ke semua band.' : 'Mode lokal: pesan tampil di browser ini dulu. Login akun admin yang ada di admin_users supaya pesan tersimpan cloud.'}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 0.95fr) minmax(0, 1.05fr)', gap: '12px', alignItems: 'start' }}>
