@@ -8199,17 +8199,18 @@ export default function App() {
             {publicMerchList.length === 0 ? (
               <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch band. Nanti kaos, CD, kaset, bundle, dan item fisik muncul di sini.</p>
             ) : (
-              <div style={{ ...compactVisualGridStyle, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
+              <div style={{ ...flatListStyle, maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
                 {publicMerchList.slice(0, 4).map((item) => (
-                  <button key={`home-merch-${item.id}`} onClick={() => { navigateInternalPage('explore', { exploreTab: 'merch' }); setSelectedMerchId(item.id); }} style={{ ...compactVisualCardStyle, padding: '8px', textAlign: 'left', fontFamily: FONT_STACK }}>
-                    <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: '7px', overflow: 'hidden', backgroundColor: '#101010', border: `1.5px solid ${flatLineColor}`, display: 'grid', placeItems: 'center', marginBottom: '7px' }}>
+                  <button key={`home-merch-${item.id}`} onClick={() => { navigateInternalPage('explore', { exploreTab: 'merch' }); setSelectedMerchId(item.id); }} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '46px minmax(0, 1fr)' : '48px minmax(0, 1fr) auto', padding: '7px 0' }}>
+                    <div style={{ ...flatThumbStyle, width: isTinyLayout ? '46px' : '48px', height: isTinyLayout ? '46px' : '48px', borderRadius: '8px' }}>
                       {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: '#fff', fontSize: '10px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                      <p style={{ color: '#777', fontSize: '8px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
-                      <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                      <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                      <p style={{ color: '#777', fontSize: '9px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
+                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                     </div>
+                    {!isTinyLayout && <span style={{ color: '#555', fontSize: '9px', fontWeight: '900' }}>BUY</span>}
                   </button>
                 ))}
               </div>
