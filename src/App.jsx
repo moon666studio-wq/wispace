@@ -940,6 +940,7 @@ export default function App() {
   // STATE BARU UNTUK POP-DRAWER DETAIL GIGS
   const [selectedGigDetail, setSelectedGigDetail] = useState(null);
   const [selectedPosterPreview, setSelectedPosterPreview] = useState(null);
+  const [selectedPaymentDetail, setSelectedPaymentDetail] = useState(null);
   const [selectedPaymentProofPreview, setSelectedPaymentProofPreview] = useState(null);
   const [selectedMerchDetail, setSelectedMerchDetail] = useState(null);
 
@@ -3299,6 +3300,11 @@ export default function App() {
       alert(`Payment request ini sudah ${payment.status.replaceAll('_', ' ')} bro.`);
       return;
     }
+    if (!payment.paymentProofPreview && !payment.paymentProofUrl) {
+      setSelectedPaymentDetail(payment);
+      alert('Bukti bayar belum ada bro. Cek detail request dulu, jangan confirm paid sebelum ada proof.');
+      return;
+    }
     const confirmed = window.confirm(`Confirm paid untuk ${payment.productTitle} / ${payment.buyerName}?`);
     if (!confirmed) return;
 
@@ -5477,14 +5483,16 @@ export default function App() {
                   <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada payment buyer yang menunggu confirm.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
-                    {waitingAdminPaymentRequests.map((payment) => (
+                    {waitingAdminPaymentRequests.map((payment) => {
+                      const hasPaymentProof = Boolean(payment.paymentProofPreview || payment.paymentProofUrl);
+                      return (
                       <div key={payment.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
                           <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
                           <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
                           <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginTop: '7px', flexWrap: 'wrap' }}>
-                            {payment.paymentProofPreview || payment.paymentProofUrl ? (
+                            {hasPaymentProof ? (
                               <>
                                 <button type="button" onClick={() => setSelectedPaymentProofPreview(payment)} style={{ width: '54px', height: '34px', borderRadius: '7px', overflow: 'hidden', border: '1px solid rgba(57,255,20,0.28)', background: '#050505', padding: 0, cursor: 'pointer' }}>
                                   <img src={payment.paymentProofPreview || payment.paymentProofUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -5492,16 +5500,18 @@ export default function App() {
                                 <span style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900' }}>PROOF READY / {String(payment.paymentProofStatus || 'local').toUpperCase()}</span>
                               </>
                             ) : (
-                              <span style={{ color: '#ff3333', fontSize: '9px', fontWeight: '900' }}>NO PROOF</span>
+                              <span style={{ color: '#ff3333', fontSize: '9px', fontWeight: '900' }}>NO PROOF / CONFIRM LOCKED</span>
                             )}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
-                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)' }}>CONFIRM PAID</button>
+                          <button type="button" onClick={() => setSelectedPaymentDetail(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} disabled={!hasPaymentProof} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: hasPaymentProof ? '#39ff14' : '#444', border: hasPaymentProof ? '1px solid rgba(57,255,20,0.35)' : '1px solid rgba(255,255,255,0.08)', cursor: hasPaymentProof ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
                           <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(255,51,51,0.08)', border: '1px solid rgba(255,51,51,0.28)', color: '#ff3333', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -5788,7 +5798,8 @@ export default function App() {
                     </div>
                     {item.actionType === 'confirm_payment' ? (
                       <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
-                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)' }}>CONFIRM PAID</button>
+                        <button type="button" onClick={() => setSelectedPaymentDetail(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} disabled={!item.payment.paymentProofPreview && !item.payment.paymentProofUrl} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: item.payment.paymentProofPreview || item.payment.paymentProofUrl ? '#39ff14' : '#444', border: item.payment.paymentProofPreview || item.payment.paymentProofUrl ? '1px solid rgba(57,255,20,0.35)' : '1px solid rgba(255,255,255,0.08)', cursor: item.payment.paymentProofPreview || item.payment.paymentProofUrl ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
                         <button type="button" onClick={() => handleRejectPendingPayment(item.payment)} style={{ background: 'rgba(255,51,51,0.08)', border: '1px solid rgba(255,51,51,0.28)', color: '#ff3333', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                       </div>
                     ) : (
@@ -8071,6 +8082,84 @@ export default function App() {
               <img src={selectedPosterPreview.image} alt="" style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
             </div>
             <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPosterPreview.city} / {getGigDate(selectedPosterPreview)} / {getGigHtm(selectedPosterPreview)} / {getGigCp(selectedPosterPreview)}</p>
+          </div>
+        </div>
+      )}
+
+      {selectedPaymentDetail && (
+        <div
+          onClick={() => setSelectedPaymentDetail(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1390, backgroundColor: 'rgba(0,0,0,0.94)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: 'min(860px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.28)', borderRadius: '16px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1.2px', margin: '0 0 6px 0' }}>PAYMENT REQUEST DETAIL</p>
+                <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', margin: '0 0 6px 0', lineHeight: 1.05 }}>{String(selectedPaymentDetail.productTitle || 'Checkout WiSpace').toUpperCase()}</h3>
+                <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPaymentDetail.checkoutRef} / {(selectedPaymentDetail.type || 'order').toUpperCase()} / Rp {Number(selectedPaymentDetail.amount || 0).toLocaleString('id-ID')}</p>
+              </div>
+              <button onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '260px minmax(0, 1fr)', gap: '12px', alignItems: 'start' }}>
+              <div style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'rgba(57,255,20,0.22)' : 'rgba(255,51,51,0.22)'}`, borderRadius: '12px' }}>
+                <p style={{ color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? '#39ff14' : '#ff3333', fontSize: '9px', fontWeight: '900', margin: '0 0 8px 0' }}>{selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'PROOF READY' : 'NO PAYMENT PROOF'}</p>
+                <button
+                  type="button"
+                  disabled={!selectedPaymentDetail.paymentProofPreview && !selectedPaymentDetail.paymentProofUrl}
+                  onClick={() => setSelectedPaymentProofPreview(selectedPaymentDetail)}
+                  style={{ width: '100%', aspectRatio: '4/3', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', background: '#050505', padding: 0, display: 'grid', placeItems: 'center', cursor: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'pointer' : 'not-allowed' }}
+                >
+                  {selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? (
+                    <img src={selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  ) : (
+                    <span style={{ color: '#444', fontSize: '11px', fontWeight: '900' }}>PROOF MISSING</span>
+                  )}
+                </button>
+                <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{selectedPaymentDetail.paymentProofName || 'Belum ada file proof.'}<br />{String(selectedPaymentDetail.paymentProofStatus || 'missing').toUpperCase()}</p>
+              </div>
+
+              <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+                  {[
+                    ['STATUS', String(selectedPaymentDetail.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase(), selectedPaymentDetail.status === 'paid' ? '#39ff14' : selectedPaymentDetail.status === 'rejected' ? '#ff3333' : '#ffcc00'],
+                    ['BUYER', `${selectedPaymentDetail.buyerName || '-'} / ${selectedPaymentDetail.buyerEmail || '-'}`, '#fff'],
+                    ['SELLER', selectedPaymentDetail.sellerBandName || 'Band WiSpace', '#fff'],
+                    ['SUBMITTED', selectedPaymentDetail.submittedAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedPaymentDetail.submittedAt)) : '-', '#aaa']
+                  ].map(([label, value, color]) => (
+                    <div key={label} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                      <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
+                      <strong style={{ color, fontSize: '11px', fontWeight: '900', lineHeight: 1.35, overflowWrap: 'anywhere' }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                {selectedPaymentDetail.shipping && (
+                  <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '10px' }}>
+                    <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>SHIPPING MERCH</p>
+                    <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'}</p>
+                    {selectedPaymentDetail.shipping.note && <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Note: {selectedPaymentDetail.shipping.note}</p>}
+                  </div>
+                )}
+
+                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                  <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              {selectedPaymentDetail.status === 'waiting_admin_confirmation' && (
+                <>
+                  <button type="button" onClick={() => { handleRejectPendingPayment(selectedPaymentDetail); setSelectedPaymentDetail(null); }} style={{ background: 'rgba(255,51,51,0.08)', border: '1px solid rgba(255,51,51,0.28)', color: '#ff3333', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
+                  <button type="button" onClick={() => { handleConfirmPendingPayment(selectedPaymentDetail); if (selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl) setSelectedPaymentDetail(null); }} disabled={!selectedPaymentDetail.paymentProofPreview && !selectedPaymentDetail.paymentProofUrl} style={{ ...glassButtonStyle, padding: '9px 11px', fontSize: '10px', borderRadius: '10px', color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? '#39ff14' : '#444', border: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? '1px solid rgba(57,255,20,0.35)' : '1px solid rgba(255,255,255,0.08)', cursor: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
