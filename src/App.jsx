@@ -4975,6 +4975,19 @@ export default function App() {
     borderLeft: `2px solid ${flatLineColor}`,
     background: 'transparent'
   };
+  const compactVisualGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(154px, 1fr))',
+    gap: isTinyLayout ? '10px' : '13px'
+  };
+  const compactVisualCardStyle = {
+    backgroundColor: 'rgba(5,5,5,0.48)',
+    border: `1.5px solid ${flatLineColor}`,
+    borderRadius: '10px',
+    padding: isTinyLayout ? '8px' : '10px',
+    cursor: 'pointer',
+    minWidth: 0
+  };
   const flatThumbStyle = {
     overflow: 'hidden',
     backgroundColor: '#101010',
@@ -6367,28 +6380,28 @@ export default function App() {
                     <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); }} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>BUKA BAND STUDIO</button>
                   </div>
                 ) : (
-                  <div style={flatListStyle}>
+                  <div style={compactVisualGridStyle}>
                     {filteredAlbums.map((album) => (
-                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '62px minmax(0, 1fr)' : '72px minmax(0, 1fr) auto', borderTopColor: selectedRelease?.id === album.id ? 'rgba(0,210,255,0.42)' : 'rgba(255,255,255,0.08)' }}>
-                        <div style={{ ...flatThumbStyle, width: isTinyLayout ? '62px' : '72px', height: isTinyLayout ? '62px' : '72px', borderRadius: '9px' }}>
+                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...compactVisualCardStyle, borderColor: selectedRelease?.id === album.id ? 'rgba(0,210,255,0.46)' : flatLineColor }}>
+                        <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#101010', border: `1.5px solid ${selectedRelease?.id === album.id ? 'rgba(0,210,255,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
-                          <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
-                          <p style={{ color: '#777', fontSize: '11px', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()} - {album.city.toUpperCase()}</p>
-                          <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>Full Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
+                          <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', margin: '0 0 7px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()}</p>
+                          <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
                         </div>
-                        <button onClick={(event) => { event.stopPropagation(); handlePurchaseAlbum(album); }} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{!userSession ? 'JOIN' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
+                        <button onClick={(event) => { event.stopPropagation(); handlePurchaseAlbum(album); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>{!userSession ? 'JOIN' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
                         {(album.tracks || []).length > 0 && (
-                          <div style={{ gridColumn: '1 / -1', display: 'grid', gap: '7px', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '8px' }}>
-                            {(album.tracks || []).slice(0, 3).map((track) => (
+                          <div style={{ display: 'grid', gap: '5px', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '7px', marginTop: '8px' }}>
+                            {(album.tracks || []).slice(0, 2).map((track) => (
                               <div key={`explore-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
-                                <span style={{ color: track.freeFull ? '#39ff14' : '#aaa', fontSize: '11px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
-                                <button onClick={(event) => { event.stopPropagation(); handlePurchaseTrack(album, track); }} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
+                                <span style={{ color: track.freeFull ? '#39ff14' : '#aaa', fontSize: '9px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
+                                <button onClick={(event) => { event.stopPropagation(); handlePurchaseTrack(album, track); }} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? '#39ff14' : '#00d2ff', fontSize: '9px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
                               </div>
                             ))}
-                            {(album.tracks || []).length > 3 && <p style={{ color: '#555', fontSize: '10px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 3} TRACK LAIN DI PROFILE BAND</p>}
+                            {(album.tracks || []).length > 2 && <p style={{ color: '#555', fontSize: '9px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 2} TRACK</p>}
                           </div>
                         )}
                       </article>
@@ -6525,18 +6538,19 @@ export default function App() {
               {filteredMerchItems.length === 0 ? (
                 <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok. Merch sekarang dikumpulkan di Explore, bukan menu terpisah.</p>
               ) : (
-                <div style={flatListStyle}>
+                <div style={compactVisualGridStyle}>
                   {filteredMerchItems.map((item) => (
-                    <article key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '64px minmax(0, 1fr)' : '72px minmax(0, 1fr) auto', borderTopColor: selectedMerch?.id === item.id ? 'rgba(0,210,255,0.42)' : 'rgba(255,255,255,0.08)' }}>
-                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '64px' : '72px', height: isTinyLayout ? '64px' : '72px', borderRadius: '9px' }}>
+                    <article key={item.id} onClick={() => openMerchDetail(item)} style={{ ...compactVisualCardStyle, borderColor: selectedMerch?.id === item.id ? 'rgba(0,210,255,0.46)' : flatLineColor }}>
+                      <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#101010', border: `1.5px solid ${selectedMerch?.id === item.id ? 'rgba(0,210,255,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
                         {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
-                        <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
-                        <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                        <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
+                        <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
+                        <p style={{ color: '#777', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {item.stock || 0}</p>
+                        <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                       </div>
-                      <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{userSession ? 'BUY' : 'JOIN'}</button>
+                      <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>{userSession ? 'BUY' : 'JOIN'}</button>
                     </article>
                   ))}
                 </div>
@@ -8147,18 +8161,17 @@ export default function App() {
             {publicMerchList.length === 0 ? (
               <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch band. Nanti kaos, CD, kaset, bundle, dan item fisik muncul di sini.</p>
             ) : (
-              <div style={{ ...flatListStyle, gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : '1fr', maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
+              <div style={{ ...compactVisualGridStyle, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
                 {publicMerchList.slice(0, 4).map((item) => (
-                  <button key={`home-merch-${item.id}`} onClick={() => { navigateInternalPage('explore', { exploreTab: 'merch' }); setSelectedMerchId(item.id); }} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr' : '48px minmax(0, 1fr) auto', padding: isTinyLayout ? '7px 0' : '8px 0' }}>
-                    <div style={{ ...flatThumbStyle, width: isTinyLayout ? '100%' : '48px', aspectRatio: isTinyLayout ? '4/3' : '1/1', borderRadius: '8px' }}>
+                  <button key={`home-merch-${item.id}`} onClick={() => { navigateInternalPage('explore', { exploreTab: 'merch' }); setSelectedMerchId(item.id); }} style={{ ...compactVisualCardStyle, padding: '8px', textAlign: 'left', fontFamily: FONT_STACK }}>
+                    <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: '7px', overflow: 'hidden', backgroundColor: '#101010', border: `1.5px solid ${flatLineColor}`, display: 'grid', placeItems: 'center', marginBottom: '7px' }}>
                       {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                      <p style={{ color: '#777', fontSize: '9px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
-                      <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                      <p style={{ color: '#fff', fontSize: '10px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                      <p style={{ color: '#777', fontSize: '8px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
+                      <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                     </div>
-                    {!isTinyLayout && <span style={{ color: '#555', fontSize: '9px', fontWeight: '900' }}>BUY</span>}
                   </button>
                 ))}
               </div>
