@@ -998,6 +998,17 @@ export default function App() {
     excerpt: '',
     body: ''
   });
+  const [adminMessageDraft, setAdminMessageDraft] = useState({
+    targetBandSlug: 'all',
+    category: 'payment',
+    subject: '',
+    body: ''
+  });
+  const [bandSupportDraft, setBandSupportDraft] = useState({
+    category: 'payment',
+    subject: '',
+    body: ''
+  });
   const [articleItems, setArticleItems] = useState([]);
   const [articleComments, setArticleComments] = useState(loadArticleComments);
   const [articleCommentDrafts, setArticleCommentDrafts] = useState({});
@@ -3960,7 +3971,7 @@ export default function App() {
   const handleMessageSubmit = (event) => {
     event.preventDefault();
     const nextMessage = {
-      id: Date.now(),
+      id: createClientId(),
       ...messageDraft,
       scope: 'band',
       read: false,
@@ -3970,6 +3981,64 @@ export default function App() {
     setMessages((current) => [nextMessage, ...current]);
     setMessageDraft({ sender: '', contact: '', subject: '', body: '' });
     alert('Pesan terkirim ke inbox. Nanti ini kita sambungkan ke Supabase realtime notifications.');
+  };
+
+  const handleAdminMessageSubmit = (event) => {
+    event.preventDefault();
+    if (!adminMessageDraft.subject.trim() || !adminMessageDraft.body.trim()) {
+      alert('Subject dan isi pesan admin wajib diisi bro.');
+      return;
+    }
+
+    const targetProfile = adminMessageDraft.targetBandSlug === 'all'
+      ? null
+      : publicBandList.find((profile) => (profile.slug || createSlug(profile.name)) === adminMessageDraft.targetBandSlug);
+    const nextMessage = {
+      id: createClientId(),
+      sender: 'Admin WiSpace',
+      contact: 'admin@wispace.my.id',
+      subject: adminMessageDraft.subject.trim(),
+      body: adminMessageDraft.body.trim(),
+      category: adminMessageDraft.category,
+      scope: 'band',
+      source: 'admin',
+      targetBandSlug: adminMessageDraft.targetBandSlug,
+      targetBandName: targetProfile?.name || (adminMessageDraft.targetBandSlug === 'all' ? 'Semua Band' : 'Band WiSpace'),
+      read: false,
+      createdAt: 'Baru saja'
+    };
+
+    setMessages((current) => [nextMessage, ...current]);
+    setAdminMessageDraft({ targetBandSlug: 'all', category: 'payment', subject: '', body: '' });
+    alert(`Pesan admin terkirim ke ${nextMessage.targetBandName}.`);
+  };
+
+  const handleBandSupportSubmit = (event) => {
+    event.preventDefault();
+    if (!bandSupportDraft.subject.trim() || !bandSupportDraft.body.trim()) {
+      alert('Subject dan isi pesan ke admin wajib diisi bro.');
+      return;
+    }
+
+    const bandName = bandProfile.name || signatureName || 'Band WiSpace';
+    const nextMessage = {
+      id: createClientId(),
+      sender: bandName,
+      contact: bandProfile.email || bandProfile.cp || userSession?.email || '-',
+      subject: bandSupportDraft.subject.trim(),
+      body: bandSupportDraft.body.trim(),
+      category: bandSupportDraft.category,
+      scope: 'admin',
+      source: 'band',
+      targetBandSlug: getBandProfileSlug(bandProfile) || createSlug(bandName),
+      targetBandName: bandName,
+      read: false,
+      createdAt: 'Baru saja'
+    };
+
+    setMessages((current) => [nextMessage, ...current]);
+    setBandSupportDraft({ category: 'payment', subject: '', body: '' });
+    alert('Pesan ke admin WiSpace sudah masuk antrean support.');
   };
 
   const markMessagesAsRead = () => {
@@ -3982,12 +4051,31 @@ export default function App() {
     event.preventDefault();
     if (!replyDraft.trim()) return alert('Isi balasan dulu bro.');
 
-    setMessages((current) => current.map((item) => (
-      item.id === message.id ? { ...item, read: true, replied: true, lastReply: replyDraft } : item
-    )));
+    const replyText = replyDraft.trim();
+    const adminReplyMessage = message.source === 'admin' ? {
+      id: createClientId(),
+      sender: bandProfile.name || signatureName || 'Band WiSpace',
+      contact: bandProfile.email || bandProfile.cp || userSession?.email || '-',
+      subject: `Reply: ${message.subject}`,
+      body: replyText,
+      category: message.category || 'lainnya',
+      scope: 'admin',
+      source: 'band',
+      targetBandSlug: currentBandSlug,
+      targetBandName: bandProfile.name || signatureName || 'Band WiSpace',
+      read: false,
+      createdAt: 'Baru saja'
+    } : null;
+
+    setMessages((current) => {
+      const updated = current.map((item) => (
+        item.id === message.id ? { ...item, read: true, replied: true, lastReply: replyText } : item
+      ));
+      return adminReplyMessage ? [adminReplyMessage, ...updated] : updated;
+    });
     setReplyDraft('');
     setActiveReplyId(null);
-    alert(`Balasan ke ${message.sender} tersimpan. Nanti ini dikirim lewat sistem message WiSpace.`);
+    alert(`Balasan ke ${message.sender} tersimpan${message.source === 'admin' ? ' dan masuk inbox admin' : ''}.`);
   };
 
   const handleKirimLaporan = (id, jenis) => {
@@ -4704,7 +4792,14 @@ export default function App() {
     .filter((update) => !readSubscribedUpdateIds.includes(update.id))
     .slice(0, 8);
   const unreadBandNotifications = bandNotifications.filter((notification) => !notification.read).length;
-  const visibleMessages = isBandAccount ? messages : messages.filter((message) => message.scope === 'audience');
+  const isMessageForCurrentBand = (message) => {
+    if (message.scope !== 'band') return false;
+    if (!message.targetBandSlug || message.targetBandSlug === 'all') return true;
+    return message.targetBandSlug === currentBandSlug || message.targetBandName === bandProfile.name || message.targetBandName === signatureName;
+  };
+  const visibleMessages = isBandAccount ? messages.filter(isMessageForCurrentBand) : messages.filter((message) => message.scope === 'audience');
+  const adminSupportMessages = messages.filter((message) => message.scope === 'admin');
+  const adminSentBandMessages = messages.filter((message) => message.scope === 'band' && message.source === 'admin');
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
   const unreadSubscribedUpdates = subscribedBandUpdateNotifications.length;
   const unreadNotificationTotal = unreadMessages + (isBandAccount ? unreadBandNotifications : unreadSubscribedUpdates);
@@ -5563,6 +5658,7 @@ export default function App() {
               ['finance', 'FINANCE'],
               ['legal', `LEGAL ${releaseAgreements.length}`],
               ['notifications', `NOTIF ${adminNotificationQueue.length}`],
+              ['messages', `MESSAGES ${adminSupportMessages.length}`],
               ['setup', 'SETUP'],
               ['ledger', 'LEDGER'],
               ['article', 'ARTIKEL'],
@@ -5940,6 +6036,78 @@ export default function App() {
                 ))}
               </div>
             )}
+          </section>
+          )}
+
+          {adminActiveSection === 'messages' && (
+          <section id="admin-message-section" style={{ ...glassStyle('admin-band-messages'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN MESSAGE CENTER</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE BAND</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pakai ini buat info payment gagal, revisi pamflet, payout, masalah upload, atau pengumuman penting ke semua band.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 0.95fr) minmax(0, 1.05fr)', gap: '12px', alignItems: 'start' }}>
+              <form onSubmit={handleAdminMessageSubmit} style={{ display: 'grid', gap: '10px', padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px' }}>
+                  <select value={adminMessageDraft.targetBandSlug} onChange={(event) => setAdminMessageDraft({ ...adminMessageDraft, targetBandSlug: event.target.value })} style={formInputStyle}>
+                    <option value="all">SEMUA BAND</option>
+                    {publicBandList.map((profile) => (
+                      <option key={profile.slug || createSlug(profile.name)} value={profile.slug || createSlug(profile.name)}>
+                        {profile.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select value={adminMessageDraft.category} onChange={(event) => setAdminMessageDraft({ ...adminMessageDraft, category: event.target.value })} style={formInputStyle}>
+                    {['payment', 'payout', 'pamflet', 'album', 'merch', 'pengumuman', 'lainnya'].map((category) => (
+                      <option key={category} value={category}>{category.toUpperCase()}</option>
+                    ))}
+                  </select>
+                </div>
+                <input type="text" placeholder="SUBJEK PESAN ADMIN" value={adminMessageDraft.subject} onChange={(event) => setAdminMessageDraft({ ...adminMessageDraft, subject: event.target.value })} style={formInputStyle} />
+                <textarea placeholder="ISI PESAN KE BAND..." value={adminMessageDraft.body} onChange={(event) => setAdminMessageDraft({ ...adminMessageDraft, body: event.target.value })} rows={6} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                <button type="submit" style={{ ...glassButtonStyle, padding: '11px', fontSize: '11px' }}>KIRIM PESAN ADMIN</button>
+              </form>
+
+              <div style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(57,255,20,0.16)', borderRadius: '12px' }}>
+                  <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>SUPPORT MASUK DARI BAND</p>
+                  {adminSupportMessages.length === 0 ? (
+                    <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada pesan support dari band.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
+                      {adminSupportMessages.map((message) => (
+                        <div key={message.id} style={{ ...compactRowStyle, border: message.read ? '1px solid #141414' : '1px solid rgba(57,255,20,0.3)' }}>
+                          <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'support').toUpperCase()} / {message.createdAt}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
+                          <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: '0 0 6px 0' }}>{message.body}</p>
+                          <p style={{ color: '#666', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Dari: <span style={{ color: '#fff' }}>{message.sender}</span> / {message.contact}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '12px' }}>
+                  <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PESAN ADMIN TERKIRIM</p>
+                  {adminSentBandMessages.length === 0 ? (
+                    <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada pesan admin yang dikirim ke band.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+                      {adminSentBandMessages.slice(0, 8).map((message) => (
+                        <div key={message.id} style={compactRowStyle}>
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'info').toUpperCase()} / KE {String(message.targetBandName || 'Semua Band').toUpperCase()}</p>
+                          <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{message.replied ? `Reply terakhir: ${message.lastReply}` : message.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </section>
           )}
 
@@ -7557,7 +7725,7 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>WISPACE MESSAGES</p>
               <h2 style={pageTitleStyle}>INBOX</h2>
-              <p style={pageLeadStyle}>{isBandAccount ? 'Pesan dari audience, band lain, promotor, dan kolaborator event masuk di sini. Band bisa membalas langsung dari inbox.' : 'Pesan akun audience masuk di sini. Untuk kirim pesan ke band, buka halaman profile band lalu pakai form message di sana.'}</p>
+              <p style={pageLeadStyle}>{isBandAccount ? 'Pesan dari audience, band lain, promotor, kolaborator event, dan admin WiSpace masuk di sini. Band juga bisa kirim support ke admin.' : 'Pesan akun audience masuk di sini. Untuk kirim pesan ke band, buka halaman profile band lalu pakai form message di sana.'}</p>
             </div>
           </div>
 
@@ -7588,6 +7756,29 @@ export default function App() {
                     ))}
                   </div>
                 )}
+              </section>
+            )}
+            {isBandAccount && (
+              <section style={{ ...glassStyle('band-admin-support'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#090909' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                  <div>
+                    <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>SUPPORT ADMIN</p>
+                    <h3 style={{ ...sectionHeadingStyle, margin: 0, fontSize: '13px' }}>HUBUNGI ADMIN WISPACE</h3>
+                  </div>
+                  <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Buat masalah payout, payment, pamflet, album, merch, atau error upload.</p>
+                </div>
+                <form onSubmit={handleBandSupportSubmit} style={{ display: 'grid', gap: '9px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '160px 1fr', gap: '8px' }}>
+                    <select value={bandSupportDraft.category} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, category: event.target.value })} style={formInputStyle}>
+                      {['payment', 'payout', 'pamflet', 'album', 'merch', 'upload error', 'lainnya'].map((category) => (
+                        <option key={category} value={category}>{category.toUpperCase()}</option>
+                      ))}
+                    </select>
+                    <input type="text" placeholder="SUBJEK KE ADMIN" value={bandSupportDraft.subject} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, subject: event.target.value })} style={formInputStyle} />
+                  </div>
+                  <textarea placeholder="TULIS PESAN KE ADMIN..." value={bandSupportDraft.body} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, body: event.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                  <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '10px 14px', fontSize: '11px' }}>KIRIM KE ADMIN</button>
+                </form>
               </section>
             )}
             <section style={{ ...glassStyle('message-inbox'), padding: '20px', backgroundColor: '#090909' }}>
