@@ -1768,6 +1768,63 @@ export default function App() {
     alert('Data testing lokal sudah dibersihkan. Reload atau login ulang untuk ambil data cloud dari Supabase.');
   };
 
+  const handleResetLocalTestingBucket = (bucket) => {
+    const bucketLabels = {
+      payments: 'payment request pending/rejected/paid lokal',
+      commerce: 'ledger transaksi dan order merch lokal',
+      library: 'library audience dan download log lokal akun ini',
+      messages: 'message, notif, dan report konten lokal'
+    };
+    const confirmed = window.confirm(`Reset ${bucketLabels[bucket] || 'data testing lokal'}? Ini tidak menghapus data Supabase live.`);
+    if (!confirmed) return;
+
+    if (bucket === 'payments') {
+      window.localStorage.removeItem(PENDING_PAYMENTS_STORAGE_KEY);
+      setPendingPayments([]);
+      setActiveCheckout(null);
+      setSelectedPaymentDetail(null);
+      setSelectedPaymentProofPreview(null);
+      alert('Payment request lokal sudah dibersihkan. Data cloud Supabase tidak ikut terhapus.');
+      return;
+    }
+
+    if (bucket === 'commerce') {
+      window.localStorage.removeItem(PUBLIC_TRANSACTION_LEDGER_STORAGE_KEY);
+      window.localStorage.removeItem(MERCH_ORDERS_STORAGE_KEY);
+      window.localStorage.removeItem(MONTHLY_FINANCE_REPORTS_STORAGE_KEY);
+      setSaleTransactions([]);
+      setMerchOrders([]);
+      setMonthlyFinanceReports([]);
+      setSelectedPaymentDetail(null);
+      alert('Ledger transaksi, order merch, dan report finance lokal sudah dibersihkan.');
+      return;
+    }
+
+    if (bucket === 'library') {
+      getUserStorageKeys(AUDIENCE_LIBRARY_STORAGE_PREFIX, userSession).forEach((key) => window.localStorage.removeItem(key));
+      getUserStorageKeys(AUDIENCE_DOWNLOAD_LOG_STORAGE_PREFIX, userSession).forEach((key) => window.localStorage.removeItem(key));
+      setPurchasedAlbums([]);
+      setDownloadLogs([]);
+      setSelectedLibraryItemId(null);
+      setSelectedLibraryTrackId(null);
+      stopAudioPlayback();
+      alert('Library audience dan download log lokal akun ini sudah dibersihkan.');
+      return;
+    }
+
+    if (bucket === 'messages') {
+      window.localStorage.removeItem(MESSAGE_LEDGER_STORAGE_KEY);
+      window.localStorage.removeItem(CONTENT_REPORTS_STORAGE_KEY);
+      getUserStorageKeys(AUDIENCE_NOTIFICATION_READ_PREFIX, userSession).forEach((key) => window.localStorage.removeItem(key));
+      setMessages(DEFAULT_MESSAGE_LEDGER);
+      setContentReports([]);
+      setReadSubscribedUpdateIds([]);
+      setBandNotifications([]);
+      setShowNotificationPopout(false);
+      alert('Message/notifikasi/report lokal sudah dibersihkan.');
+    }
+  };
+
   // EARLY TRIGGER SCROLL SENSOR (80PX)
   useEffect(() => {
     const handleScroll = () => {
@@ -6452,7 +6509,25 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser dengan prefix WiSpace. Data Supabase live dan file lokal project tidak ikut terhapus.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', marginTop: '12px' }}>
+              {[
+                ['payments', 'RESET PAYMENT', pendingPayments.length, '#ffcc00'],
+                ['commerce', 'RESET LEDGER/ORDER', saleTransactions.length + merchOrders.length, '#00d2ff'],
+                ['library', 'RESET LIBRARY', purchasedAlbums.length + downloadLogs.length, '#39ff14'],
+                ['messages', 'RESET MESSAGE/NOTIF', messages.length + contentReports.length + readSubscribedUpdateIds.length, '#aaa']
+              ].map(([bucketId, label, count, color]) => (
+                <button
+                  key={bucketId}
+                  type="button"
+                  onClick={() => handleResetLocalTestingBucket(bucketId)}
+                  style={{ display: 'grid', gap: '4px', textAlign: 'left', background: 'rgba(255,255,255,0.03)', border: `1px solid ${color}33`, color: '#fff', borderRadius: '10px', padding: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}
+                >
+                  <span style={{ color, fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px' }}>{label}</span>
+                  <strong style={{ color: '#fff', fontSize: '18px', fontWeight: '900' }}>{count}</strong>
+                </button>
+              ))}
+            </div>
+            <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser. Data Supabase live dan file lokal project tidak ikut terhapus, jadi aman buat test ulang UI.</p>
           </section>
           </>
           )}
