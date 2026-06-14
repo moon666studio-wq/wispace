@@ -238,6 +238,7 @@ const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const PAYMENT_PROOF_MAX_SIZE = 2 * 1024 * 1024;
 const SUPPORT_ATTACHMENT_MAX_SIZE = 4 * 1024 * 1024;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
+const WISPACE_PLATFORM_RATE = 0.2;
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const MINIMUM_PAYOUT_AMOUNT = 100000;
 const RELEASE_AGREEMENT_VERSION = 'wispace-release-agreement-v1';
@@ -255,6 +256,12 @@ const isUuidLike = (value = '') => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[8
 const normalizePriceValue = (value) => {
   const parsedValue = Number(String(value || '').replace(/[^\d]/g, ''));
   return Number.isFinite(parsedValue) ? parsedValue : 0;
+};
+const calculateRevenueSplit = (amount = 0) => {
+  const grossAmount = normalizePriceValue(amount);
+  const platformFee = Math.round(grossAmount * WISPACE_PLATFORM_RATE);
+  const bandNet = Math.max(0, grossAmount - platformFee);
+  return { grossAmount, platformFee, bandNet, revenueShare: '80/20' };
 };
 
 const createEmptyAudienceProfile = () => ({
@@ -3311,9 +3318,7 @@ export default function App() {
   };
 
   const recordBandSale = useCallback((sale) => {
-    const grossAmount = normalizePriceValue(sale.amount);
-    const platformFee = Math.round(grossAmount * 0.2);
-    const bandNet = Math.max(0, grossAmount - platformFee);
+    const { grossAmount, platformFee, bandNet, revenueShare } = calculateRevenueSplit(sale.amount);
     const sellerBandName = sale.sellerBandName || bandProfile.name || signatureName || 'Band WiSpace';
     const sellerBandSlug = sale.sellerBandSlug || bandProfile.slug || createSlug(sellerBandName);
     const sellerBandUserId = sale.sellerBandUserId || sale.bandUserId || '';
@@ -3332,7 +3337,7 @@ export default function App() {
       grossAmount,
       platformFee,
       bandNet,
-      revenueShare: '80/20',
+      revenueShare,
       status: sale.status || 'paid_settled',
       paymentStatus: sale.paymentStatus || 'demo_paid',
       paymentMethod: sale.paymentMethod || 'demo_checkout',
@@ -3506,6 +3511,7 @@ export default function App() {
         ? activeCheckout.track
         : activeCheckout.item;
     const albumContext = activeCheckout.album || null;
+    const revenueSplit = calculateRevenueSplit(product?.price);
     return {
       id: createClientId(),
       checkoutRef: activeCheckout.checkoutRef,
@@ -3513,7 +3519,11 @@ export default function App() {
       buyerUserId: userSession?.id || '',
       buyerName,
       buyerEmail,
-      amount: normalizePriceValue(product?.price),
+      amount: revenueSplit.grossAmount,
+      grossAmount: revenueSplit.grossAmount,
+      platformFee: revenueSplit.platformFee,
+      bandNet: revenueSplit.bandNet,
+      revenueShare: revenueSplit.revenueShare,
       productTitle: product?.title || product?.name || 'Checkout WiSpace',
       sellerBandName: activeCheckout.type === 'track' ? albumContext?.bandName : product?.bandName,
       sellerBandSlug: activeCheckout.type === 'track' ? albumContext?.bandSlug : product?.bandSlug,
@@ -5144,6 +5154,9 @@ export default function App() {
   const waitingAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'waiting_admin_confirmation');
   const paidAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'paid');
   const rejectedAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'rejected');
+  const waitingAdminPaymentAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.grossAmount || payment.amount || 0), 0);
+  const waitingAdminPaymentPotentialFee = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.platformFee || calculateRevenueSplit(payment.amount).platformFee), 0);
+  const rejectedAdminPaymentAmount = rejectedAdminPaymentRequests.reduce((total, payment) => total + Number(payment.grossAmount || payment.amount || 0), 0);
   const recentProcessedPaymentRequests = pendingPayments
     .filter((payment) => payment.status && payment.status !== 'waiting_admin_confirmation')
     .sort((first, second) => new Date(second.confirmedAt || second.rejectedAt || second.submittedAt || 0) - new Date(first.confirmedAt || first.rejectedAt || first.submittedAt || 0));
@@ -6360,6 +6373,18 @@ export default function App() {
                 </div>
               ))}
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                ['WAITING GROSS', waitingAdminPaymentAmount, '#ffcc00'],
+                ['POTENSI FEE', waitingAdminPaymentPotentialFee, '#8DDFF7'],
+                ['REJECTED GROSS', rejectedAdminPaymentAmount, '#ff3333']
+              ].map(([label, amount, color]) => (
+                <div key={label} style={{ padding: '9px', backgroundColor: '#000', border: `1px solid ${color}30`, borderRadius: '9px' }}>
+                  <p style={{ color: '#666', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
+                </div>
+              ))}
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '10px' }}>
               <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,204,0,0.18)', borderRadius: '10px' }}>
@@ -6376,6 +6401,7 @@ export default function App() {
                           <p style={{ color: '#8DDFF7', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
                           <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
                           <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#555', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Split admin: fee Rp {Number(payment.platformFee || calculateRevenueSplit(payment.amount).platformFee).toLocaleString('id-ID')} / net band Rp {Number(payment.bandNet || calculateRevenueSplit(payment.amount).bandNet).toLocaleString('id-ID')}</p>
                           <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginTop: '7px', flexWrap: 'wrap' }}>
                             {hasPaymentProof ? (
                               <>
@@ -9408,6 +9434,23 @@ export default function App() {
                   <span>{checkoutIsPaid ? activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.' : checkoutIsAwaitingAdmin ? 'Payment request sudah masuk admin. Belum ada akses/order aktif.' : 'Belum ada akses/order aktif sebelum payment paid.'}</span>
                 </div>
               </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
+              {[
+                ['1', 'ORDER', checkoutIsCancelled ? 'cancelled' : 'ready'],
+                ['2', 'PAYMENT CHECK', checkoutIsPaid ? 'paid' : checkoutIsAwaitingAdmin ? 'waiting' : checkoutIsCancelled ? 'cancelled' : 'upload proof'],
+                ['3', activeCheckout.type === 'merch' ? 'ORDER AKTIF' : 'LIBRARY AKTIF', checkoutIsPaid ? 'active' : 'locked']
+              ].map(([number, label, status]) => {
+                const isGood = ['ready', 'paid', 'active'].includes(status);
+                const isWarn = ['waiting', 'upload proof'].includes(status);
+                return (
+                  <div key={number} style={{ padding: '9px', backgroundColor: '#000', border: `1px solid ${isGood ? 'rgba(142,230,166,0.2)' : isWarn ? 'rgba(255,204,0,0.22)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '9px' }}>
+                    <p style={{ color: isGood ? '#8EE6A6' : isWarn ? '#ffcc00' : '#777', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {number}</p>
+                    <strong style={{ color: '#fff', fontSize: '11px', fontWeight: '900' }}>{label}</strong>
+                    <p style={{ color: '#777', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{String(status).toUpperCase()}</p>
+                  </div>
+                );
+              })}
             </div>
 
             <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(141,223,247,0.18)', borderRadius: '12px', marginBottom: '14px' }}>
