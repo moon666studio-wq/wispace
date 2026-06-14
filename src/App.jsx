@@ -108,14 +108,18 @@ const getGigStatusColor = (status = 'pending') => ({
 }[status] || '#ffcc00');
 const getMerchOrderStatusLabel = (status = 'order_paid_waiting_band') => ({
   order_paid_waiting_band: 'PAID - WAIT BAND',
+  order_paid_waiting_admin: 'PAID - WAIT ADMIN',
   processing: 'DIPROSES BAND',
+  processing_admin: 'DIPROSES WISPACE',
   shipped: 'DIKIRIM',
   completed: 'SELESAI',
   cancelled: 'DIBATALKAN'
 }[status] || status.replaceAll('_', ' ').toUpperCase());
 const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
   order_paid_waiting_band: '#ffcc00',
+  order_paid_waiting_admin: '#ffcc00',
   processing: '#00d2ff',
+  processing_admin: '#00d2ff',
   shipped: '#39ff14',
   completed: '#39ff14',
   cancelled: '#ff3333'
@@ -208,6 +212,14 @@ const WISPACE_MANUAL_PAYMENT_CHANNELS = [
     note: 'Akses baru aktif setelah admin confirm paid.'
   }
 ];
+const WISPACE_ADMIN_SHIPPING_ORIGIN = {
+  address: 'Gudang/Admin WiSpace - alamat final diatur saat serah stok',
+  city: 'Admin WiSpace',
+  province: 'Indonesia',
+  postalCode: '',
+  contactName: 'Admin WiSpace',
+  contactPhone: ''
+};
 const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
@@ -551,6 +563,10 @@ const mapMerchFromRow = (row = {}) => ({
   imagePreview: row.image_preview || '',
   genre: row.genre || 'Indie',
   city: row.city || 'Indonesia',
+  fulfillmentMode: row.fulfillment_mode || 'band_ship',
+  fulfillmentLabel: row.fulfillment_mode === 'admin_consignment' ? 'TITIP JUAL WISPACE' : 'BAND KIRIM SENDIRI',
+  consignmentStatus: row.consignment_status || '',
+  originShipping: row.origin_shipping || null,
   isActive: row.is_active !== false,
   bandUserId: row.band_user_id || '',
   updatedAt: row.updated_at || row.created_at || ''
@@ -736,6 +752,9 @@ const mapMerchOrderFromRow = (row = {}) => ({
   postalCode: row.shipping_postal_code || '',
   courier: row.courier_service || row.courier_code || 'Kurir belum dipilih',
   note: '',
+  originShipping: row.origin_shipping || row.merch_items?.origin_shipping || null,
+  fulfillmentMode: row.fulfillment_mode || row.merch_items?.fulfillment_mode || 'band_ship',
+  consignmentStatus: row.consignment_status || row.merch_items?.consignment_status || '',
   trackingNumber: row.tracking_number || '',
   trackingStatus: row.tracking_status || 'order_paid_waiting_band',
   createdAt: row.created_at
@@ -1036,6 +1055,7 @@ export default function App() {
     name: '',
     price: '',
     stock: '',
+    fulfillmentMode: 'band_ship',
     description: '',
     imageName: '',
     imagePreview: ''
@@ -1381,6 +1401,7 @@ export default function App() {
   const publishPublicMerch = useCallback((item) => {
     const merchId = item.id || createClientId();
     const bandName = bandProfile.name || signatureName || item.bandName || 'Band WiSpace';
+    const usesAdminConsignment = item.fulfillmentMode === 'admin_consignment';
     const publicItem = {
       ...item,
       id: merchId,
@@ -1389,7 +1410,10 @@ export default function App() {
       bandUserId: item.bandUserId || userSession?.id || '',
       genre: bandProfile.genre || item.genre || 'Indie',
       city: bandProfile.city || item.city || 'Indonesia',
-      originShipping: {
+      fulfillmentMode: usesAdminConsignment ? 'admin_consignment' : 'band_ship',
+      fulfillmentLabel: usesAdminConsignment ? 'TITIP JUAL WISPACE' : 'BAND KIRIM SENDIRI',
+      consignmentStatus: usesAdminConsignment ? (item.consignmentStatus || 'waiting_stock_handover') : '',
+      originShipping: usesAdminConsignment ? WISPACE_ADMIN_SHIPPING_ORIGIN : {
         address: bandProfile.shipFromAddress || item.originShipping?.address || '',
         city: bandProfile.shipFromCity || item.originShipping?.city || bandProfile.city || '',
         province: bandProfile.shipFromProvince || item.originShipping?.province || '',
@@ -1429,12 +1453,26 @@ export default function App() {
         image_preview: publicItem.imagePreview || '',
         genre: publicItem.genre || 'Indie',
         city: publicItem.city || 'Indonesia',
+        fulfillment_mode: publicItem.fulfillmentMode || 'band_ship',
+        fulfillment_label: publicItem.fulfillmentLabel || 'BAND KIRIM SENDIRI',
+        consignment_status: publicItem.consignmentStatus || '',
+        origin_shipping: publicItem.originShipping || null,
         is_active: true,
         updated_at: new Date().toISOString()
       };
 
-      void supabase.from('merch_items').upsert(merchRow).then(({ error }) => {
-        if (error && !isMissingColumnError(error)) {
+      void supabase.from('merch_items').upsert(merchRow).then(async ({ error }) => {
+        if (error && isMissingColumnError(error)) {
+          const legacyMerchRow = { ...merchRow };
+          delete legacyMerchRow.fulfillment_mode;
+          delete legacyMerchRow.fulfillment_label;
+          delete legacyMerchRow.consignment_status;
+          delete legacyMerchRow.origin_shipping;
+          const { error: legacyError } = await supabase.from('merch_items').upsert(legacyMerchRow);
+          if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync merch ke Supabase:', legacyError.message);
+          return;
+        }
+        if (error) {
           console.warn('Gagal sync merch ke Supabase:', error.message);
         }
       });
@@ -3691,6 +3729,9 @@ export default function App() {
 
     if (payment.type === 'merch') {
       const item = payment.item;
+      const merchFulfillmentStatus = item.fulfillmentMode === 'admin_consignment'
+        ? 'order_paid_waiting_admin'
+        : 'order_paid_waiting_band';
       const sale = recordBandSale({
         productType: 'merch',
         productTitle: item.name,
@@ -3700,7 +3741,7 @@ export default function App() {
         sellerBandUserId: item.bandUserId || '',
         merchItemId: item.id,
         orderId: payment.checkoutRef,
-        fulfillmentStatus: 'order_paid_waiting_band',
+        fulfillmentStatus: merchFulfillmentStatus,
         buyerName: payment.buyerName,
         buyerEmail: payment.buyerEmail,
         buyerUserId: payment.buyerUserId,
@@ -3725,10 +3766,12 @@ export default function App() {
         city: payment.shipping?.city || '',
         postalCode: payment.shipping?.postalCode || '',
         originShipping: payment.shipping?.origin || item.originShipping || null,
+        fulfillmentMode: item.fulfillmentMode || 'band_ship',
+        consignmentStatus: item.consignmentStatus || '',
         courier: payment.shipping?.courier || 'JNE REG',
         note: payment.shipping?.note || '',
         trackingNumber: '',
-        trackingStatus: 'order_paid_waiting_band',
+        trackingStatus: merchFulfillmentStatus,
         createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
       };
 
@@ -3757,7 +3800,7 @@ export default function App() {
       });
 
       if (isSupabaseConfigured && userSession?.id) {
-        void supabase.from('merch_orders').insert([{
+        const merchOrderRow = {
           id: nextOrder.id,
           transaction_id: sale.id,
           order_id: nextOrder.orderId || null,
@@ -3772,9 +3815,22 @@ export default function App() {
           shipping_postal_code: nextOrder.postalCode,
           courier_code: nextOrder.courier.split(' ')[0],
           courier_service: nextOrder.courier,
+          origin_shipping: nextOrder.originShipping || null,
+          fulfillment_mode: nextOrder.fulfillmentMode || 'band_ship',
+          consignment_status: nextOrder.consignmentStatus || '',
           tracking_status: nextOrder.trackingStatus
-        }]).then(({ error }) => {
-          if (error && !isMissingColumnError(error)) {
+        };
+        void supabase.from('merch_orders').insert([merchOrderRow]).then(async ({ error }) => {
+          if (error && isMissingColumnError(error)) {
+            const legacyMerchOrderRow = { ...merchOrderRow };
+            delete legacyMerchOrderRow.origin_shipping;
+            delete legacyMerchOrderRow.fulfillment_mode;
+            delete legacyMerchOrderRow.consignment_status;
+            const { error: legacyError } = await supabase.from('merch_orders').insert([legacyMerchOrderRow]);
+            if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync order merch ke Supabase:', legacyError.message);
+            return;
+          }
+          if (error) {
             console.warn('Gagal sync order merch ke Supabase:', error.message);
           }
         });
@@ -3790,9 +3846,11 @@ export default function App() {
         ...current,
         status: 'paid',
         paymentStatus: 'paid',
-        fulfillmentStatus: 'order_paid_waiting_band',
+        fulfillmentStatus: merchFulfillmentStatus,
         paidAt: new Date().toISOString(),
-        successMessage: `${item.name} masuk order merch. Band akan proses pengiriman.`
+        successMessage: item.fulfillmentMode === 'admin_consignment'
+          ? `${item.name} masuk order merch. WiSpace akan proses pengiriman dari stok titipan.`
+          : `${item.name} masuk order merch. Band akan proses pengiriman.`
       } : current);
     }
   };
@@ -3898,7 +3956,7 @@ export default function App() {
   const handleMerchDraftSubmit = (event) => {
     event.preventDefault();
     if (!hasBandPayoutAccount) return alert('Lengkapi data rekening payout di Profile Band dulu bro sebelum upload merch.');
-    if (!hasBandShippingOrigin) return alert('Lengkapi alamat asal pengiriman di Profile Band dulu bro. Ini wajib buat hitung ongkir merch nanti.');
+    if (!merchUsesAdminConsignment && !hasBandShippingOrigin) return alert('Lengkapi alamat asal pengiriman di Profile Band dulu bro. Ini wajib buat hitung ongkir merch kalau band kirim sendiri.');
     const nextItem = {
       id: createClientId(),
       ...merchDraft,
@@ -3917,6 +3975,7 @@ export default function App() {
       name: '',
       price: '',
       stock: '',
+      fulfillmentMode: 'band_ship',
       description: '',
       imageName: '',
       imagePreview: ''
@@ -4674,7 +4733,9 @@ export default function App() {
   const checkoutIsCancelled = checkoutPaymentStatus === 'cancelled';
   const checkoutAccessStatus = checkoutIsPaid
     ? activeCheckout?.type === 'merch'
-      ? 'order_paid_waiting_band'
+      ? activeCheckout?.item?.fulfillmentMode === 'admin_consignment'
+        ? 'order_paid_waiting_admin'
+        : 'order_paid_waiting_band'
       : 'library_active'
     : checkoutIsCancelled
       ? 'cancelled'
@@ -4751,6 +4812,7 @@ export default function App() {
     && bandProfile.shipFromProvince?.trim()
     && bandProfile.shipFromPostalCode?.trim()
   );
+  const merchUsesAdminConsignment = merchDraft.fulfillmentMode === 'admin_consignment';
   const displayBandMerchItems = publicMerchList.filter((item) => (
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
   ));
@@ -4780,8 +4842,9 @@ export default function App() {
   ));
   const activeAudiencePaymentRequests = audiencePaymentRequests.filter((payment) => payment.status === 'waiting_admin_confirmation');
   const adminBandPayoutTotal = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
-  const adminWaitingMerchOrders = merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
-  const bandPendingMerchOrders = bandMerchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).length;
+  const activeMerchFulfillmentStatuses = ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin'];
+  const adminWaitingMerchOrders = merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
+  const bandPendingMerchOrders = bandMerchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
   const adminPayoutByBand = paidSaleTransactions
     .filter((transaction) => Number(transaction.bandNet || 0) > 0)
     .reduce((bands, transaction) => {
@@ -5015,7 +5078,7 @@ export default function App() {
       color: '#00d2ff',
       targetSection: 'pamflet'
     })),
-    ...merchOrders.filter((order) => ['order_paid_waiting_band', 'processing'].includes(order.trackingStatus)).slice(0, 6).map((order) => ({
+    ...merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).slice(0, 6).map((order) => ({
       id: `merch-order-${order.id}`,
       title: 'Order merch perlu dipantau',
       body: `${order.itemName || 'Merch'} / ${order.sellerBandName || 'Band'} / ${order.orderId || order.id}`,
@@ -6882,6 +6945,7 @@ export default function App() {
                       <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>MERCH / STOCK {selectedMerch.stock || 0}</p>
                       <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '28px' : '42px', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedMerch.name.toUpperCase()}</h3>
                       <p style={{ color: '#888', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(selectedMerch.bandName || 'Band WiSpace').toUpperCase()} / {(selectedMerch.city || 'Indonesia').toUpperCase()}</p>
+                      <p style={{ color: selectedMerch.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#777', fontSize: '10px', fontWeight: '900', margin: '8px 0 0 0' }}>{selectedMerch.fulfillmentLabel || (selectedMerch.fulfillmentMode === 'admin_consignment' ? 'TITIP JUAL WISPACE' : 'BAND KIRIM SENDIRI')}</p>
                     </div>
                     <button onClick={() => setSelectedMerchId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
                   </div>
@@ -7074,6 +7138,7 @@ export default function App() {
                         <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
                         <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
                         <p style={{ color: '#777', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {item.stock || 0}</p>
+                        <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#666', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'FULFILL BY WISPACE' : 'BAND SHIP'}</p>
                         <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                       </div>
                       <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>{userSession ? 'BUY' : 'JOIN'}</button>
@@ -7136,6 +7201,7 @@ export default function App() {
                   <div style={{ minWidth: 0 }}>
                     <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
                     <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
+                    <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'FULFILL BY WISPACE' : 'BAND SHIP'}</p>
                     <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                   </div>
                   {!isTinyLayout && <span style={{ color: '#555', fontSize: '9px', fontWeight: '900' }}>DETAIL</span>}
@@ -7146,6 +7212,7 @@ export default function App() {
                         <div style={{ color: '#777', fontSize: '11px' }}>STOK<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{item.stock || 0}</strong></div>
                         <div style={{ color: '#777', fontSize: '11px' }}>BAND<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()}</strong></div>
                       </div>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '0 0 10px 0' }}>Pengiriman: {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Titip jual WiSpace' : 'Band kirim sendiri')}</p>
                       <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
                     </div>
                   )}
@@ -8259,11 +8326,15 @@ export default function App() {
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: order.trackingNumber ? '#39ff14' : '#555', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'belum diisi'}</strong></p>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.24)', color: order.trackingStatus === 'processing' ? '#555' : '#00d2ff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
-                          <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.24)', color: '#39ff14', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
-                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} disabled={order.trackingStatus === 'completed'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: order.trackingStatus === 'completed' ? '#555' : '#fff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'completed' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
-                        </div>
+                        {order.fulfillmentMode === 'admin_consignment' ? (
+                          <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
+                        ) : (
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(0,210,255,0.08)', border: '1px solid rgba(0,210,255,0.24)', color: order.trackingStatus === 'processing' ? '#555' : '#00d2ff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
+                            <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.24)', color: '#39ff14', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
+                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} disabled={order.trackingStatus === 'completed'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: order.trackingStatus === 'completed' ? '#555' : '#fff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'completed' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -8581,12 +8652,37 @@ export default function App() {
                       <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
                     </div>
                   )}
-                  {!hasBandShippingOrigin && (
+                  {!merchUsesAdminConsignment && !hasBandShippingOrigin && (
                     <div style={{ backgroundColor: 'rgba(255,204,0,0.06)', border: '1px solid rgba(255,204,0,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>ALAMAT PENGIRIM WAJIB</p>
                       <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir merch.</p>
                     </div>
                   )}
+                  <div style={{ backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                    <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>FULFILLMENT MERCH</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, 1fr)', gap: '8px' }}>
+                      {[
+                        ['band_ship', 'BAND KIRIM SENDIRI', 'Ongkir dari alamat asal band. Band packing dan input resi.'],
+                        ['admin_consignment', 'TITIP JUAL WISPACE', 'Band kirim stok ke admin dulu. Order dikirim dari WiSpace.']
+                      ].map(([mode, title, note]) => {
+                        const isSelected = merchDraft.fulfillmentMode === mode;
+                        return (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => setMerchDraft({ ...merchDraft, fulfillmentMode: mode })}
+                            style={{ textAlign: 'left', padding: '11px', backgroundColor: isSelected ? 'rgba(0,210,255,0.12)' : '#050505', border: `1px solid ${isSelected ? 'rgba(0,210,255,0.45)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', cursor: 'pointer', fontFamily: FONT_STACK }}
+                          >
+                            <strong style={{ color: isSelected ? '#00d2ff' : '#fff', fontSize: '11px', fontWeight: '900', display: 'block', marginBottom: '5px' }}>{title}</strong>
+                            <span style={{ color: '#777', fontSize: '11px', lineHeight: 1.35 }}>{note}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {merchUsesAdminConsignment && (
+                      <p style={{ color: '#ffcc00', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Titip jual berarti stok fisik harus sudah dikirim/diterima admin sebelum order diproses. Status awal item: menunggu serah stok.</p>
+                    )}
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     <input type="text" placeholder="NAMA MERCH (Kaos, CD, Kaset, Sticker)" value={merchDraft.name} onChange={(e) => setMerchDraft({ ...merchDraft, name: e.target.value })} required style={formInputStyle} />
                     <input type="number" min="0" placeholder="HARGA JUAL (Rp)" value={merchDraft.price} onChange={(e) => setMerchDraft({ ...merchDraft, price: e.target.value })} required style={formInputStyle} />
@@ -8606,7 +8702,7 @@ export default function App() {
                         <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid rgba(255,255,255,0.08)', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
                           <span style={{ color: '#00d2ff', fontWeight: '900' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</span>
-                          {!isTinyLayout && <span style={{ color: '#666' }}>Stok {item.stock}</span>}
+                          {!isTinyLayout && <span style={{ color: '#666' }}>Stok {item.stock} / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Titip WiSpace' : 'Band kirim')}</span>}
                           <button type="button" onClick={() => handleDeleteMerch(item)} style={{ background: 'transparent', border: '1px solid rgba(255,51,51,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE</button>
                         </div>
                       ))}

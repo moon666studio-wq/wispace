@@ -53,6 +53,10 @@ create table if not exists public.merch_items (
   image_preview text,
   genre text,
   city text,
+  fulfillment_mode text not null default 'band_ship',
+  fulfillment_label text,
+  consignment_status text,
+  origin_shipping jsonb,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -174,6 +178,9 @@ create table if not exists public.merch_orders (
   courier_code text,
   courier_service text,
   shipping_cost integer not null default 0,
+  origin_shipping jsonb,
+  fulfillment_mode text not null default 'band_ship',
+  consignment_status text,
   tracking_number text,
   tracking_status text not null default 'pending',
   tracking_last_checked_at timestamptz,
@@ -248,7 +255,11 @@ alter table if exists public.release_tracks
 add column if not exists is_active boolean not null default true;
 
 alter table if exists public.merch_items
-add column if not exists is_active boolean not null default true;
+add column if not exists is_active boolean not null default true,
+add column if not exists fulfillment_mode text not null default 'band_ship',
+add column if not exists fulfillment_label text,
+add column if not exists consignment_status text,
+add column if not exists origin_shipping jsonb;
 
 alter table if exists public.sales_transactions
 add column if not exists order_id text,
@@ -268,7 +279,10 @@ add column if not exists rejection_reason text,
 add column if not exists updated_at timestamptz not null default now();
 
 alter table if exists public.merch_orders
-add column if not exists order_id text;
+add column if not exists order_id text,
+add column if not exists origin_shipping jsonb,
+add column if not exists fulfillment_mode text not null default 'band_ship',
+add column if not exists consignment_status text;
 
 alter table if exists public.wispace_messages
 add column if not exists sender_user_id uuid references auth.users(id) on delete set null,
