@@ -275,6 +275,10 @@ const createEmptyBandProfile = () => ({
   bankName: '',
   bankAccountName: '',
   bankAccountNumber: '',
+  shipFromAddress: '',
+  shipFromCity: '',
+  shipFromProvince: '',
+  shipFromPostalCode: '',
   coverName: '',
   coverPreview: '',
   photoName: '',
@@ -1385,6 +1389,14 @@ export default function App() {
       bandUserId: item.bandUserId || userSession?.id || '',
       genre: bandProfile.genre || item.genre || 'Indie',
       city: bandProfile.city || item.city || 'Indonesia',
+      originShipping: {
+        address: bandProfile.shipFromAddress || item.originShipping?.address || '',
+        city: bandProfile.shipFromCity || item.originShipping?.city || bandProfile.city || '',
+        province: bandProfile.shipFromProvince || item.originShipping?.province || '',
+        postalCode: bandProfile.shipFromPostalCode || item.originShipping?.postalCode || '',
+        contactName: bandName,
+        contactPhone: bandProfile.cp || item.originShipping?.contactPhone || ''
+      },
       updatedAt: new Date().toISOString()
     };
     publishBandUpdateNotification(publicItem.bandSlug, {
@@ -1429,7 +1441,7 @@ export default function App() {
     }
 
     return publicItem;
-  }, [bandProfile.city, bandProfile.genre, bandProfile.name, bandProfile.slug, publishBandUpdateNotification, signatureName, userSession]);
+  }, [bandProfile.city, bandProfile.cp, bandProfile.genre, bandProfile.name, bandProfile.shipFromAddress, bandProfile.shipFromCity, bandProfile.shipFromPostalCode, bandProfile.shipFromProvince, bandProfile.slug, publishBandUpdateNotification, signatureName, userSession]);
 
   const publishPublicArticle = useCallback((article) => {
     const articleId = article.id || createClientId();
@@ -3417,7 +3429,8 @@ export default function App() {
             city: checkoutDraft.city.trim(),
             postalCode: checkoutDraft.postalCode.trim(),
             courier: checkoutDraft.courier,
-            note: checkoutDraft.note.trim()
+            note: checkoutDraft.note.trim(),
+            origin: activeCheckout.item?.originShipping || null
           }
         : null,
       status: 'waiting_admin_confirmation',
@@ -3711,6 +3724,7 @@ export default function App() {
         address: payment.shipping?.address || '',
         city: payment.shipping?.city || '',
         postalCode: payment.shipping?.postalCode || '',
+        originShipping: payment.shipping?.origin || item.originShipping || null,
         courier: payment.shipping?.courier || 'JNE REG',
         note: payment.shipping?.note || '',
         trackingNumber: '',
@@ -3884,6 +3898,7 @@ export default function App() {
   const handleMerchDraftSubmit = (event) => {
     event.preventDefault();
     if (!hasBandPayoutAccount) return alert('Lengkapi data rekening payout di Profile Band dulu bro sebelum upload merch.');
+    if (!hasBandShippingOrigin) return alert('Lengkapi alamat asal pengiriman di Profile Band dulu bro. Ini wajib buat hitung ongkir merch nanti.');
     const nextItem = {
       id: createClientId(),
       ...merchDraft,
@@ -4729,6 +4744,12 @@ export default function App() {
     bandProfile.bankName?.trim()
     && bandProfile.bankAccountName?.trim()
     && bandProfile.bankAccountNumber?.trim()
+  );
+  const hasBandShippingOrigin = Boolean(
+    bandProfile.shipFromAddress?.trim()
+    && bandProfile.shipFromCity?.trim()
+    && bandProfile.shipFromProvince?.trim()
+    && bandProfile.shipFromPostalCode?.trim()
   );
   const displayBandMerchItems = publicMerchList.filter((item) => (
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
@@ -8233,6 +8254,9 @@ export default function App() {
                       </div>
                       <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
                       <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{order.address}, {order.city} {order.postalCode}</p>
+                      {order.originShipping && (
+                        <p style={{ color: '#555', fontSize: '9px', lineHeight: 1.35, margin: '0 0 8px 0' }}>Dikirim dari: {order.originShipping.city || '-'}, {order.originShipping.province || '-'} {order.originShipping.postalCode || ''}</p>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: order.trackingNumber ? '#39ff14' : '#555', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'belum diisi'}</strong></p>
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -8389,6 +8413,21 @@ export default function App() {
                       <input type="text" inputMode="numeric" placeholder="NOMOR REKENING" value={bandProfile.bankAccountNumber || ''} onChange={(e) => updateBandProfileField('bankAccountNumber', e.target.value)} style={formInputStyle} />
                     </div>
                   </div>
+                  <div style={{ backgroundColor: '#000', border: `1px solid ${hasBandShippingOrigin ? 'rgba(57,255,20,0.22)' : 'rgba(255,204,0,0.26)'}`, borderRadius: '14px', padding: '14px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                      <div>
+                        <p style={{ color: hasBandShippingOrigin ? '#39ff14' : '#ffcc00', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ALAMAT ASAL PENGIRIMAN</p>
+                        <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch. Nanti dipakai sebagai lokasi pengirim untuk hitung ongkir ekspedisi.</p>
+                      </div>
+                      <strong style={{ color: hasBandShippingOrigin ? '#39ff14' : '#ffcc00', fontSize: '10px' }}>{hasBandShippingOrigin ? 'READY' : 'BELUM LENGKAP'}</strong>
+                    </div>
+                    <textarea placeholder="ALAMAT LENGKAP ASAL PENGIRIMAN" value={bandProfile.shipFromAddress || ''} onChange={(e) => updateBandProfileField('shipFromAddress', e.target.value)} rows={3} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '10px', lineHeight: 1.5 }} />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                      <input type="text" placeholder="KOTA / KABUPATEN PENGIRIM" value={bandProfile.shipFromCity || ''} onChange={(e) => updateBandProfileField('shipFromCity', e.target.value)} style={formInputStyle} />
+                      <input type="text" placeholder="PROVINSI" value={bandProfile.shipFromProvince || ''} onChange={(e) => updateBandProfileField('shipFromProvince', e.target.value)} style={formInputStyle} />
+                      <input type="text" inputMode="numeric" placeholder="KODE POS" value={bandProfile.shipFromPostalCode || ''} onChange={(e) => updateBandProfileField('shipFromPostalCode', e.target.value)} style={formInputStyle} />
+                    </div>
+                  </div>
                   <textarea placeholder="BIO BAND" value={bandProfile.bio || ''} onChange={(e) => updateBandProfileField('bio', e.target.value)} rows={6} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                     <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(0,210,255,0.35)', borderRadius: '14px', backgroundColor: '#000', cursor: 'pointer' }}>
@@ -8540,6 +8579,12 @@ export default function App() {
                     <div style={{ backgroundColor: 'rgba(255,204,0,0.06)', border: '1px solid rgba(255,204,0,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>REKENING PAYOUT WAJIB</p>
                       <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
+                    </div>
+                  )}
+                  {!hasBandShippingOrigin && (
+                    <div style={{ backgroundColor: 'rgba(255,204,0,0.06)', border: '1px solid rgba(255,204,0,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                      <p style={{ color: '#ffcc00', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>ALAMAT PENGIRIM WAJIB</p>
+                      <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir merch.</p>
                     </div>
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
@@ -8789,6 +8834,7 @@ export default function App() {
                   <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.14)', borderRadius: '10px' }}>
                     <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>SHIPPING MERCH</p>
                     <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'}</p>
+                    {selectedPaymentDetail.shipping.origin && <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Origin: {selectedPaymentDetail.shipping.origin.city || '-'}, {selectedPaymentDetail.shipping.origin.province || '-'} {selectedPaymentDetail.shipping.origin.postalCode || ''}</p>}
                     {selectedPaymentDetail.shipping.note && <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Note: {selectedPaymentDetail.shipping.note}</p>}
                   </div>
                 )}
