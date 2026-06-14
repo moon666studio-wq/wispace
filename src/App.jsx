@@ -1106,6 +1106,7 @@ export default function App() {
   const audioRef = useRef(new Audio());
   const timerRef = useRef(null);
   const audioPreviewTimerRef = useRef(null);
+  const restoredUserKeyRef = useRef('');
 
   const getStoredRole = useCallback((user) => {
     const roleById = user?.id ? window.localStorage.getItem(`wispace_role_${user.id}`) : null;
@@ -1525,7 +1526,14 @@ export default function App() {
   }, [fetchAdminPaymentRequests, resolveUserRole, verifyCloudAdminAccount]);
 
   useEffect(() => {
-    if (!userSession) return;
+    if (!userSession) {
+      restoredUserKeyRef.current = '';
+      return;
+    }
+
+    const restoreUserKey = userSession.id || userSession.email || 'guest';
+    if (restoredUserKeyRef.current === restoreUserKey) return;
+    restoredUserKeyRef.current = restoreUserKey;
 
     const restoreTimer = window.setTimeout(() => {
       const storedProfile = loadUserScopedData(BAND_PROFILE_STORAGE_PREFIX, userSession);
