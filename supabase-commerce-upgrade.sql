@@ -56,6 +56,7 @@ create table if not exists public.merch_items (
   fulfillment_mode text not null default 'band_ship',
   fulfillment_label text,
   consignment_status text,
+  admin_stock_on_hand integer not null default 0,
   origin_shipping jsonb,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -259,6 +260,7 @@ add column if not exists is_active boolean not null default true,
 add column if not exists fulfillment_mode text not null default 'band_ship',
 add column if not exists fulfillment_label text,
 add column if not exists consignment_status text,
+add column if not exists admin_stock_on_hand integer not null default 0,
 add column if not exists origin_shipping jsonb;
 
 alter table if exists public.sales_transactions

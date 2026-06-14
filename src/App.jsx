@@ -18,7 +18,7 @@ const fetchCloudData = async (user = null) => {
     ? await supabase.from('audience_library').select('*, releases(*, release_tracks(*)), release_tracks(*)').eq('audience_user_id', user.id).order('purchased_at', { ascending: false })
     : { data: null, error: null };
   const { data: merchOrdersData, error: merchOrdersError } = user?.id
-    ? await supabase.from('merch_orders').select('*, merch_items(name, band_name, band_slug)').order('created_at', { ascending: false })
+    ? await supabase.from('merch_orders').select('*, merch_items(name, band_name, band_slug, fulfillment_mode, consignment_status, admin_stock_on_hand, origin_shipping)').order('created_at', { ascending: false })
     : { data: null, error: null };
   const { data: subscriptionsData, error: subscriptionsError } = user?.id
     ? await supabase.from('band_subscriptions').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
@@ -123,6 +123,18 @@ const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
   shipped: '#39ff14',
   completed: '#39ff14',
   cancelled: '#ff3333'
+}[status] || '#ffcc00');
+const getConsignmentStatusLabel = (status = 'waiting_stock_handover') => ({
+  waiting_stock_handover: 'MENUNGGU STOK KE ADMIN',
+  stock_received: 'STOK SUDAH DI ADMIN',
+  stock_checked: 'STOK CEK ADMIN',
+  stock_returned: 'STOK DIKEMBALIKAN'
+}[status] || String(status || 'waiting_stock_handover').replaceAll('_', ' ').toUpperCase());
+const getConsignmentStatusColor = (status = 'waiting_stock_handover') => ({
+  waiting_stock_handover: '#ffcc00',
+  stock_received: '#39ff14',
+  stock_checked: '#00d2ff',
+  stock_returned: '#ff3333'
 }[status] || '#ffcc00');
 const getReadinessColor = (status = 'todo') => ({
   ready: '#39ff14',
@@ -566,6 +578,7 @@ const mapMerchFromRow = (row = {}) => ({
   fulfillmentMode: row.fulfillment_mode || 'band_ship',
   fulfillmentLabel: row.fulfillment_mode === 'admin_consignment' ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI',
   consignmentStatus: row.consignment_status || '',
+  adminStockOnHand: Number(row.admin_stock_on_hand || 0),
   originShipping: row.origin_shipping || null,
   isActive: row.is_active !== false,
   bandUserId: row.band_user_id || '',
@@ -755,6 +768,7 @@ const mapMerchOrderFromRow = (row = {}) => ({
   originShipping: row.origin_shipping || row.merch_items?.origin_shipping || null,
   fulfillmentMode: row.fulfillment_mode || row.merch_items?.fulfillment_mode || 'band_ship',
   consignmentStatus: row.consignment_status || row.merch_items?.consignment_status || '',
+  adminStockOnHand: Number(row.merch_items?.admin_stock_on_hand || 0),
   trackingNumber: row.tracking_number || '',
   trackingStatus: row.tracking_status || 'order_paid_waiting_band',
   createdAt: row.created_at
@@ -1413,6 +1427,7 @@ export default function App() {
       fulfillmentMode: usesAdminConsignment ? 'admin_consignment' : 'band_ship',
       fulfillmentLabel: usesAdminConsignment ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI',
       consignmentStatus: usesAdminConsignment ? (item.consignmentStatus || 'waiting_stock_handover') : '',
+      adminStockOnHand: usesAdminConsignment ? normalizePriceValue(item.adminStockOnHand || 0) : 0,
       originShipping: usesAdminConsignment ? WISPACE_ADMIN_SHIPPING_ORIGIN : {
         address: bandProfile.shipFromAddress || item.originShipping?.address || '',
         city: bandProfile.shipFromCity || item.originShipping?.city || bandProfile.city || '',
@@ -1456,6 +1471,7 @@ export default function App() {
         fulfillment_mode: publicItem.fulfillmentMode || 'band_ship',
         fulfillment_label: publicItem.fulfillmentLabel || 'BAND KIRIM SENDIRI',
         consignment_status: publicItem.consignmentStatus || '',
+        admin_stock_on_hand: normalizePriceValue(publicItem.adminStockOnHand || 0),
         origin_shipping: publicItem.originShipping || null,
         is_active: true,
         updated_at: new Date().toISOString()
@@ -1467,6 +1483,7 @@ export default function App() {
           delete legacyMerchRow.fulfillment_mode;
           delete legacyMerchRow.fulfillment_label;
           delete legacyMerchRow.consignment_status;
+          delete legacyMerchRow.admin_stock_on_hand;
           delete legacyMerchRow.origin_shipping;
           const { error: legacyError } = await supabase.from('merch_items').upsert(legacyMerchRow);
           if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync merch ke Supabase:', legacyError.message);
@@ -3783,7 +3800,13 @@ export default function App() {
       setMerchItems((current) => {
         const nextItems = current.map((merch) => (
           String(merch.id) === String(item.id)
-            ? { ...merch, stock: Math.max(0, normalizePriceValue(merch.stock) - 1) }
+            ? {
+                ...merch,
+                stock: Math.max(0, normalizePriceValue(merch.stock) - 1),
+                adminStockOnHand: merch.fulfillmentMode === 'admin_consignment'
+                  ? Math.max(0, normalizePriceValue(merch.adminStockOnHand) - 1)
+                  : merch.adminStockOnHand
+              }
             : merch
         ));
         persistBandMerchLocal(nextItems);
@@ -3792,7 +3815,13 @@ export default function App() {
       setPublicMerchItems((current) => {
         const nextItems = current.map((merch) => (
           String(merch.id) === String(item.id)
-            ? { ...merch, stock: Math.max(0, normalizePriceValue(merch.stock) - 1) }
+            ? {
+                ...merch,
+                stock: Math.max(0, normalizePriceValue(merch.stock) - 1),
+                adminStockOnHand: merch.fulfillmentMode === 'admin_consignment'
+                  ? Math.max(0, normalizePriceValue(merch.adminStockOnHand) - 1)
+                  : merch.adminStockOnHand
+              }
             : merch
         ));
         savePublicMerchRegistry(nextItems);
@@ -3833,6 +3862,23 @@ export default function App() {
           if (error) {
             console.warn('Gagal sync order merch ke Supabase:', error.message);
           }
+        });
+        const merchStockUpdateRow = {
+          stock: Math.max(0, normalizePriceValue(item.stock) - 1),
+          admin_stock_on_hand: item.fulfillmentMode === 'admin_consignment'
+            ? Math.max(0, normalizePriceValue(item.adminStockOnHand) - 1)
+            : normalizePriceValue(item.adminStockOnHand || 0),
+          updated_at: new Date().toISOString()
+        };
+        void supabase.from('merch_items').update(merchStockUpdateRow).eq('id', item.id).then(async ({ error }) => {
+          if (error && isMissingColumnError(error)) {
+            const legacyMerchStockUpdateRow = { ...merchStockUpdateRow };
+            delete legacyMerchStockUpdateRow.admin_stock_on_hand;
+            const { error: legacyError } = await supabase.from('merch_items').update(legacyMerchStockUpdateRow).eq('id', item.id);
+            if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync stok merch:', legacyError.message);
+            return;
+          }
+          if (error) console.warn('Gagal sync stok merch:', error.message);
         });
       }
 
@@ -4011,6 +4057,84 @@ export default function App() {
     }
 
     alert('Merch sudah dihapus dari etalase dan Explore.');
+  };
+
+  const handleAdminConsignmentStatusUpdate = (item, nextStatus) => {
+    const nextLabel = nextStatus === 'stock_received' ? 'STOK READY DI ADMIN WISPACE' : 'STOK DI ADMIN WISPACE';
+    let nextAdminStockOnHand = nextStatus === 'stock_received'
+      ? normalizePriceValue(item.adminStockOnHand || item.stock || 0)
+      : 0;
+
+    if (nextStatus === 'stock_received') {
+      const stockInput = window.prompt(`Total stok "${item.name}" yang sudah ada di admin:`, String(nextAdminStockOnHand || item.stock || ''));
+      if (stockInput === null) return;
+      nextAdminStockOnHand = normalizePriceValue(stockInput);
+      if (!nextAdminStockOnHand) {
+        alert('Isi jumlah stok admin lebih dari 0 dulu bro.');
+        return;
+      }
+    }
+
+    const nextPatch = {
+      consignmentStatus: nextStatus,
+      fulfillmentLabel: nextLabel,
+      adminStockOnHand: nextAdminStockOnHand,
+      updatedAt: new Date().toISOString()
+    };
+
+    setPublicMerchItems((current) => {
+      const nextItems = current.map((merch) => (
+        String(merch.id) === String(item.id) ? { ...merch, ...nextPatch } : merch
+      ));
+      savePublicMerchRegistry(nextItems);
+      return nextItems;
+    });
+    setMerchItems((current) => {
+      const nextItems = current.map((merch) => (
+        String(merch.id) === String(item.id) ? { ...merch, ...nextPatch } : merch
+      ));
+      if (item.bandUserId === userSession?.id) persistBandMerchLocal(nextItems);
+      return nextItems;
+    });
+
+    if (isSupabaseConfigured && userSession?.id) {
+      const merchUpdateRow = {
+        consignment_status: nextStatus,
+        fulfillment_label: nextLabel,
+        admin_stock_on_hand: nextAdminStockOnHand,
+        updated_at: new Date().toISOString()
+      };
+      void supabase
+        .from('merch_items')
+        .update(merchUpdateRow)
+        .eq('id', item.id)
+        .then(async ({ error }) => {
+          if (error && isMissingColumnError(error)) {
+            const { error: legacyError } = await supabase
+              .from('merch_items')
+              .update({ updated_at: merchUpdateRow.updated_at })
+              .eq('id', item.id);
+            if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync status stok merch:', legacyError.message);
+            return;
+          }
+          if (error) console.warn('Gagal sync status stok merch:', error.message);
+        });
+    }
+
+    alert(nextStatus === 'stock_received'
+      ? `${item.name} ditandai stok sudah ada di admin: ${nextAdminStockOnHand} unit.`
+      : `${item.name} dikembalikan ke status menunggu stok.`);
+  };
+
+  const openAdminMessageForMerch = (item) => {
+    setAdminMessageDraft({
+      targetBandSlug: item.bandSlug || createSlug(item.bandName || ''),
+      category: 'merch',
+      subject: `Update stok merch ${item.name}`,
+      body: `Halo ${item.bandName || 'Band WiSpace'}, untuk merch "${item.name}" silahkan konfirmasi pengiriman stok ke admin WiSpace.`
+    });
+    setAdminActiveSection('messages');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleArticleSubmit = (event) => {
@@ -4813,6 +4937,11 @@ export default function App() {
     && bandProfile.shipFromPostalCode?.trim()
   );
   const merchUsesAdminConsignment = merchDraft.fulfillmentMode === 'admin_consignment';
+  const adminConsignmentMerchItems = publicMerchList.filter((item) => item.fulfillmentMode === 'admin_consignment');
+  const adminWaitingConsignmentItems = adminConsignmentMerchItems.filter((item) => item.consignmentStatus !== 'stock_received');
+  const adminConsignmentStockTotal = adminConsignmentMerchItems
+    .filter((item) => item.consignmentStatus === 'stock_received')
+    .reduce((total, item) => total + normalizePriceValue(item.adminStockOnHand || 0), 0);
   const displayBandMerchItems = publicMerchList.filter((item) => (
     item.bandSlug === currentBandSlug || item.bandName === displayBandProfile.name
   ));
@@ -6024,6 +6153,7 @@ export default function App() {
               ['legal', `LEGAL ${releaseAgreements.length}`],
               ['notifications', `NOTIF ${adminNotificationQueue.length}`],
               ['messages', `MESSAGES ${adminSupportMessages.length}`],
+              ['merch', `MERCH ${adminWaitingConsignmentItems.length}`],
               ['setup', 'SETUP'],
               ['ledger', 'LEDGER'],
               ['article', 'ARTIKEL'],
@@ -6473,6 +6603,67 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </section>
+          )}
+
+          {adminActiveSection === 'merch' && (
+          <section id="admin-merch-section" style={{ ...glassStyle('admin-merch-consignment'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH STOCK CONTROL</p>
+                <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '900', margin: 0 }}>STOK DI ADMIN WISPACE</h3>
+              </div>
+              <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setelah band hubungi admin dan barang fisik sampai, klik stok diterima supaya item berubah jadi ready fulfillment WiSpace.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+              {[
+                ['MENUNGGU STOK', adminWaitingConsignmentItems.length, '#ffcc00'],
+                ['STOK READY', adminConsignmentMerchItems.filter((item) => item.consignmentStatus === 'stock_received').length, '#39ff14'],
+                ['UNIT DI ADMIN', adminConsignmentStockTotal, '#39ff14'],
+                ['TOTAL TITIP', adminConsignmentMerchItems.length, '#00d2ff']
+              ].map(([label, value, color]) => (
+                <div key={label} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
+                </div>
+              ))}
+            </div>
+            {adminConsignmentMerchItems.length === 0 ? (
+              <div style={{ padding: '18px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', textAlign: 'center' }}>
+                <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch yang memilih stok di admin. Nanti item titipan band muncul di sini.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '8px' }}>
+                {adminConsignmentMerchItems.map((item) => {
+                  const statusColor = getConsignmentStatusColor(item.consignmentStatus || 'waiting_stock_handover');
+                  const isReceived = item.consignmentStatus === 'stock_received';
+                  return (
+                    <div key={item.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '54px minmax(0, 1fr) minmax(150px, 0.8fr) auto', gap: '10px', alignItems: 'center' }}>
+                      <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#050505', border: '1px solid rgba(0,210,255,0.14)', display: 'grid', placeItems: 'center' }}>
+                        {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={18} color="#12323a" />}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{(item.bandName || 'Band WiSpace').toUpperCase()} / STOCK BAND {item.stock || 0}</p>
+                        <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.name || 'Merch').toUpperCase()}</h4>
+                        <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Stok admin: <span style={{ color: item.adminStockOnHand ? '#39ff14' : '#777', fontWeight: '900' }}>{Number(item.adminStockOnHand || 0).toLocaleString('id-ID')} unit</span></p>
+                        <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.35, margin: '3px 0 0 0' }}>{item.originShipping?.address || 'Silahkan hubungi admin untuk alamat kirim stok.'}</p>
+                      </div>
+                      <div>
+                        <p style={{ color: statusColor, fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{getConsignmentStatusLabel(item.consignmentStatus || 'waiting_stock_handover')}</p>
+                        <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{isReceived ? 'Barang fisik sudah ada di admin, order bisa diproses dari WiSpace.' : 'Tunggu barang fisik sampai, lalu tandai stok diterima.'}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', justifyContent: isCompactLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
+                        <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'stock_received')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)' }}>{isReceived ? 'UPDATE STOK' : 'STOK DITERIMA'}</button>
+                        {isReceived && (
+                          <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'waiting_stock_handover')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: '#ffcc00', border: '1px solid rgba(255,204,0,0.32)' }}>BALIK WAIT</button>
+                        )}
+                        <button type="button" onClick={() => openAdminMessageForMerch(item)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>KIRIM PESAN</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
           )}
 
