@@ -213,7 +213,7 @@ const WISPACE_MANUAL_PAYMENT_CHANNELS = [
   }
 ];
 const WISPACE_ADMIN_SHIPPING_ORIGIN = {
-  address: 'Gudang/Admin WiSpace - alamat final diatur saat serah stok',
+  address: 'Gudang/Admin WiSpace - silahkan hubungi admin untuk alamat kirim stok',
   city: 'Admin WiSpace',
   province: 'Indonesia',
   postalCode: '',
@@ -564,7 +564,7 @@ const mapMerchFromRow = (row = {}) => ({
   genre: row.genre || 'Indie',
   city: row.city || 'Indonesia',
   fulfillmentMode: row.fulfillment_mode || 'band_ship',
-  fulfillmentLabel: row.fulfillment_mode === 'admin_consignment' ? 'TITIP JUAL WISPACE' : 'BAND KIRIM SENDIRI',
+  fulfillmentLabel: row.fulfillment_mode === 'admin_consignment' ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI',
   consignmentStatus: row.consignment_status || '',
   originShipping: row.origin_shipping || null,
   isActive: row.is_active !== false,
@@ -1411,7 +1411,7 @@ export default function App() {
       genre: bandProfile.genre || item.genre || 'Indie',
       city: bandProfile.city || item.city || 'Indonesia',
       fulfillmentMode: usesAdminConsignment ? 'admin_consignment' : 'band_ship',
-      fulfillmentLabel: usesAdminConsignment ? 'TITIP JUAL WISPACE' : 'BAND KIRIM SENDIRI',
+      fulfillmentLabel: usesAdminConsignment ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI',
       consignmentStatus: usesAdminConsignment ? (item.consignmentStatus || 'waiting_stock_handover') : '',
       originShipping: usesAdminConsignment ? WISPACE_ADMIN_SHIPPING_ORIGIN : {
         address: bandProfile.shipFromAddress || item.originShipping?.address || '',
@@ -6945,7 +6945,7 @@ export default function App() {
                       <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>MERCH / STOCK {selectedMerch.stock || 0}</p>
                       <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '28px' : '42px', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedMerch.name.toUpperCase()}</h3>
                       <p style={{ color: '#888', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(selectedMerch.bandName || 'Band WiSpace').toUpperCase()} / {(selectedMerch.city || 'Indonesia').toUpperCase()}</p>
-                      <p style={{ color: selectedMerch.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#777', fontSize: '10px', fontWeight: '900', margin: '8px 0 0 0' }}>{selectedMerch.fulfillmentLabel || (selectedMerch.fulfillmentMode === 'admin_consignment' ? 'TITIP JUAL WISPACE' : 'BAND KIRIM SENDIRI')}</p>
+                      <p style={{ color: selectedMerch.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#777', fontSize: '10px', fontWeight: '900', margin: '8px 0 0 0' }}>{selectedMerch.fulfillmentLabel || (selectedMerch.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI')}</p>
                     </div>
                     <button onClick={() => setSelectedMerchId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
                   </div>
@@ -7138,7 +7138,7 @@ export default function App() {
                         <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
                         <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
                         <p style={{ color: '#777', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {item.stock || 0}</p>
-                        <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#666', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'FULFILL BY WISPACE' : 'BAND SHIP'}</p>
+                        <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#666', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
                         <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                       </div>
                       <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>{userSession ? 'BUY' : 'JOIN'}</button>
@@ -7201,7 +7201,7 @@ export default function App() {
                   <div style={{ minWidth: 0 }}>
                     <p style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
                     <h4 style={{ color: '#fff', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
-                    <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'FULFILL BY WISPACE' : 'BAND SHIP'}</p>
+                    <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? '#39ff14' : '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
                     <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                   </div>
                   {!isTinyLayout && <span style={{ color: '#555', fontSize: '9px', fontWeight: '900' }}>DETAIL</span>}
@@ -7212,7 +7212,7 @@ export default function App() {
                         <div style={{ color: '#777', fontSize: '11px' }}>STOK<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{item.stock || 0}</strong></div>
                         <div style={{ color: '#777', fontSize: '11px' }}>BAND<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()}</strong></div>
                       </div>
-                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '0 0 10px 0' }}>Pengiriman: {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Titip jual WiSpace' : 'Band kirim sendiri')}</p>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '0 0 10px 0' }}>Pengiriman: {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin WiSpace' : 'Band kirim sendiri')}</p>
                       <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
                     </div>
                   )}
@@ -8664,7 +8664,7 @@ export default function App() {
                     <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, 1fr)', gap: '8px' }}>
                       {[
                         ['band_ship', 'BAND KIRIM SENDIRI', 'Ongkir dari alamat asal band. Band packing dan input resi.'],
-                        ['admin_consignment', 'TITIP JUAL WISPACE', 'Band kirim stok ke admin dulu. Order dikirim dari WiSpace.']
+                        ['admin_consignment', 'STOK DI ADMIN WISPACE', 'Silahkan hubungi admin untuk kirim stok barang. Order dikirim dari WiSpace.']
                       ].map(([mode, title, note]) => {
                         const isSelected = merchDraft.fulfillmentMode === mode;
                         return (
@@ -8681,7 +8681,10 @@ export default function App() {
                       })}
                     </div>
                     {merchUsesAdminConsignment && (
-                      <p style={{ color: '#ffcc00', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Titip jual berarti stok fisik harus sudah dikirim/diterima admin sebelum order diproses. Status awal item: menunggu serah stok.</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                        <p style={{ color: '#ffcc00', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Kalau mau stok merch ada di admin, silahkan hubungi admin untuk alamat kirim stok dan konfirmasi jumlah barang.</p>
+                        <button type="button" onClick={() => { setActivePage('message_center'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
+                      </div>
                     )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
@@ -8703,7 +8706,7 @@ export default function App() {
                         <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid rgba(255,255,255,0.08)', color: '#ddd', fontSize: '12px', alignItems: 'center' }}>
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
                           <span style={{ color: '#00d2ff', fontWeight: '900' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</span>
-                          {!isTinyLayout && <span style={{ color: '#666' }}>Stok {item.stock} / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Titip WiSpace' : 'Band kirim')}</span>}
+                          {!isTinyLayout && <span style={{ color: '#666' }}>Stok {item.stock} / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin' : 'Band kirim')}</span>}
                           <button type="button" onClick={() => handleDeleteMerch(item)} style={{ background: 'transparent', border: '1px solid rgba(255,51,51,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE</button>
                         </div>
                       ))}
