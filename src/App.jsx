@@ -1118,6 +1118,7 @@ export default function App() {
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
   const [showNotificationPopout, setShowNotificationPopout] = useState(false);
+  const [showBandAdminPopout, setShowBandAdminPopout] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState(null);
   const [selectedReleaseId, setSelectedReleaseId] = useState(null);
   const [selectedMerchId, setSelectedMerchId] = useState(null);
@@ -2118,6 +2119,7 @@ export default function App() {
     }
     setShowAuthModal(false);
     setShowNotificationPopout(false);
+    setShowBandAdminPopout(false);
     setViewedBandSlug(getBandProfileSlug(profile));
     setIsViewingOwnBandProfile(isOwnerView);
     setActivePage('band_public');
@@ -2131,6 +2133,7 @@ export default function App() {
     setSelectedGigDetail(null);
     setSelectedPosterPreview(null);
     setShowNotificationPopout(false);
+    setShowBandAdminPopout(false);
     if (page !== 'articles') setSelectedArticleId(null);
     setActivePage(page);
     if (options.exploreTab) setExploreTab(options.exploreTab);
@@ -5285,6 +5288,12 @@ export default function App() {
   const visibleMessages = isBandAccount ? messages.filter(isMessageForCurrentBand) : messages.filter((message) => message.scope === 'audience');
   const adminSupportMessages = messages.filter((message) => message.scope === 'admin');
   const adminSentBandMessages = messages.filter((message) => message.scope === 'band' && message.source === 'admin');
+  const bandAdminThreadMessages = isBandAccount
+    ? messages.filter((message) => (
+        (message.scope === 'admin' && (message.targetBandSlug === currentBandSlug || message.targetBandName === bandProfile.name || message.targetBandName === signatureName))
+        || (message.scope === 'band' && message.source === 'admin' && isMessageForCurrentBand(message))
+      ))
+    : [];
   const unreadMessages = visibleMessages.filter((message) => !message.read).length;
   const unreadSubscribedUpdates = subscribedBandUpdateNotifications.length;
   const unreadNotificationTotal = unreadMessages + (isBandAccount ? unreadBandNotifications : unreadSubscribedUpdates);
@@ -5929,6 +5938,71 @@ export default function App() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
             <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); markSubscribedUpdatesRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
             <button type="button" onClick={openNotificationCenter} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '9px' }}>INBOX</button>
+          </div>
+        </div>
+      )}
+
+      {isBandAccount && showBandAdminPopout && !isAdminPage && !loading && (
+        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : '74px', left: isTinyLayout ? '10px' : '50%', right: isTinyLayout ? '10px' : 'auto', transform: isTinyLayout ? 'none' : 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'auto' : 'min(760px, calc(100vw - 48px))', maxHeight: isTinyLayout ? 'calc(100vh - 76px)' : 'calc(100vh - 96px)', overflowY: 'auto', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(5,5,5,0.97)', border: '1px solid rgba(0,210,255,0.34)', borderRadius: '16px', boxShadow: '0 26px 72px rgba(0,0,0,0.72)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <div>
+              <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN WISPACE</p>
+              <h3 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUPPORT & OWNER MENU</h3>
+            </div>
+            <button type="button" onClick={() => setShowBandAdminPopout(false)} style={{ background: 'transparent', border: 'none', color: '#777', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, 1fr)' : 'repeat(7, minmax(0, 1fr))', gap: '6px', marginBottom: '12px' }}>
+            {[
+              ['EDIT', () => { setShowBandAdminPopout(false); setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
+              ['ALBUM', () => { setShowBandAdminPopout(false); setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
+              ['MERCH', () => { setShowBandAdminPopout(false); setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
+              ['ARTIKEL', () => { setShowBandAdminPopout(false); setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
+              ['PAMFLET', () => navigateInternalPage('gig_manager')],
+              ['KEUANGAN', () => navigateInternalPage('finance_dashboard')],
+              ['INBOX', () => navigateInternalPage('message_center')]
+            ].map(([label, action]) => (
+              <button key={label} type="button" onClick={action} style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.1)', color: label === 'INBOX' ? '#00d2ff' : '#fff', borderRadius: '9px', padding: '8px 7px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{label}</button>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(220px, 0.82fr)', gap: '12px', alignItems: 'start' }}>
+            <form onSubmit={handleBandSupportSubmit} style={{ display: 'grid', gap: '9px', padding: '12px', backgroundColor: '#000', border: '1px solid rgba(0,210,255,0.16)', borderRadius: '12px' }}>
+              <div>
+                <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>KIRIM PESAN</p>
+                <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>HUBUNGI ADMIN</h4>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '150px 1fr', gap: '8px' }}>
+                <select value={bandSupportDraft.category} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, category: event.target.value })} style={formInputStyle}>
+                  {['payment', 'payout', 'pamflet', 'album', 'merch', 'upload error', 'lainnya'].map((category) => (
+                    <option key={category} value={category}>{category.toUpperCase()}</option>
+                  ))}
+                </select>
+                <input type="text" placeholder="SUBJEK KE ADMIN" value={bandSupportDraft.subject} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, subject: event.target.value })} style={formInputStyle} />
+              </div>
+              <textarea placeholder="TULIS PESAN KE ADMIN..." value={bandSupportDraft.body} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, body: event.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+              <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '9px 12px', fontSize: '10px' }}>KIRIM KE ADMIN</button>
+            </form>
+
+            <section style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '9px' }}>
+                <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>ADMIN THREAD</h4>
+                <button type="button" onClick={() => { markMessagesAsRead(); navigateInternalPage('message_center'); }} style={{ background: 'transparent', border: 'none', color: '#00d2ff', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>OPEN</button>
+              </div>
+              {bandAdminThreadMessages.length === 0 ? (
+                <p style={{ color: '#555', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada thread admin. Pesan yang lu kirim ke admin dan balasan admin akan muncul di sini.</p>
+              ) : (
+                <div style={{ display: 'grid', gap: '7px', maxHeight: isTinyLayout ? '180px' : '250px', overflowY: 'auto' }}>
+                  {bandAdminThreadMessages.slice(0, 5).map((message) => (
+                    <div key={message.id} style={{ padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p style={{ color: message.source === 'admin' ? '#00d2ff' : '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{message.source === 'admin' ? 'ADMIN' : 'BAND'} / {String(message.category || 'support').toUpperCase()}</p>
+                      <h5 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{message.subject}</h5>
+                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{message.replied ? message.lastReply : message.body}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         </div>
       )}
@@ -7572,7 +7646,7 @@ export default function App() {
                     <button onClick={() => navigateInternalPage('gig_manager')} style={ownerActionButtonStyle}>PAMFLET</button>
                     <button onClick={() => navigateInternalPage('gig_manager')} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>JADWAL</button>
                     <button onClick={() => navigateInternalPage('finance_dashboard')} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
-                    <button onClick={() => navigateInternalPage('message_center')} style={{ ...ownerActionButtonStyle, color: '#00d2ff', borderColor: 'rgba(0,210,255,0.3)' }}>ADMIN</button>
+                    <button onClick={() => { setShowNotificationPopout(false); setShowBandAdminPopout(true); }} style={{ ...ownerActionButtonStyle, color: '#00d2ff', borderColor: 'rgba(0,210,255,0.3)' }}>ADMIN</button>
                   </div>
                 </div>
               )}
@@ -8874,7 +8948,7 @@ export default function App() {
                     {merchUsesAdminConsignment && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                         <p style={{ color: '#ffcc00', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Kalau mau stok merch ada di admin, silahkan hubungi admin untuk alamat kirim stok dan konfirmasi jumlah barang.</p>
-                        <button type="button" onClick={() => navigateInternalPage('message_center')} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
+                        <button type="button" onClick={() => { setShowNotificationPopout(false); setShowBandAdminPopout(true); }} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
                       </div>
                     )}
                   </div>
