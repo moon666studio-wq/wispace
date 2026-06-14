@@ -2145,6 +2145,8 @@ export default function App() {
     }
     setSelectedGigDetail(null);
     setSelectedPosterPreview(null);
+    setSelectedMerchDetail(null);
+    setSelectedMerchId(null);
     setShowNotificationPopout(false);
     setShowBandAdminPopout(false);
     if (page !== 'articles') setSelectedArticleId(null);
@@ -2169,7 +2171,9 @@ export default function App() {
   const openMerchDetail = (item) => {
     if (!item?.id) return;
     setSelectedMerchId(item.id);
-    navigateInternalPage('explore', { exploreTab: 'merch' });
+    setSelectedMerchDetail(item);
+    setSelectedGigDetail(null);
+    setSelectedPosterPreview(null);
   };
 
   const copyBandProfileLink = async () => {
@@ -3443,6 +3447,7 @@ export default function App() {
   };
 
   const handlePurchaseMerch = (item) => {
+    setSelectedMerchDetail(null);
     if (!userSession) {
       setAuthType('join');
       setShowAuthModal(true);
@@ -7287,32 +7292,6 @@ export default function App() {
             </section>
           )}
 
-          {exploreTab === 'merch' && selectedMerch && (
-            <section style={{ padding: isTinyLayout ? '12px 0 18px' : '16px 0 22px', borderTop: '1px solid rgba(141,223,247,0.24)', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '22px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 300px) minmax(0, 1fr)', gap: '18px', alignItems: 'start' }}>
-                <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#080808', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(141,223,247,0.16)', display: 'grid', placeItems: 'center' }}>
-                  {selectedMerch.imagePreview ? <img src={selectedMerch.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div>
-                      <p style={{ color: '#8DDFF7', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>MERCH / STOCK {selectedMerch.stock || 0}</p>
-                      <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '28px' : '42px', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedMerch.name.toUpperCase()}</h3>
-                      <p style={{ color: '#888', fontSize: '13px', fontWeight: '800', margin: 0 }}>{(selectedMerch.bandName || 'Band WiSpace').toUpperCase()} / {(selectedMerch.city || 'Indonesia').toUpperCase()}</p>
-                      <p style={{ color: selectedMerch.fulfillmentMode === 'admin_consignment' ? '#8EE6A6' : '#777', fontSize: '10px', fontWeight: '900', margin: '8px 0 0 0' }}>{selectedMerch.fulfillmentLabel || (selectedMerch.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI')}</p>
-                    </div>
-                    <button onClick={() => setSelectedMerchId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
-                  </div>
-                  {selectedMerch.description && <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedMerch.description}</p>}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)', flexWrap: 'wrap' }}>
-                    <strong style={{ color: '#fff', fontSize: '20px', fontWeight: '900' }}>Rp {Number(selectedMerch.price || 0).toLocaleString('id-ID')}</strong>
-                    <button onClick={() => handlePurchaseMerch(selectedMerch)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
           <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
             <div>
               <section style={{ marginBottom: '26px' }}>
@@ -7546,7 +7525,7 @@ export default function App() {
               {publicMerchList.map((item) => (
                 <article
                   key={item.id}
-                  onClick={() => setSelectedMerchDetail(selectedMerchDetail?.id === item.id ? null : item)}
+                  onClick={() => openMerchDetail(item)}
                   style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '66px minmax(0, 1fr)' : '76px minmax(0, 1fr) auto', position: 'relative' }}
                 >
                   <div style={{ ...flatThumbStyle, width: isTinyLayout ? '66px' : '76px', height: isTinyLayout ? '66px' : '76px', borderRadius: '9px' }}>
@@ -7559,17 +7538,6 @@ export default function App() {
                     <p style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                   </div>
                   {!isTinyLayout && <span style={{ color: '#555', fontSize: '9px', fontWeight: '900' }}>DETAIL</span>}
-                  {selectedMerchDetail?.id === item.id && (
-                    <div onClick={(event) => event.stopPropagation()} style={{ gridColumn: '1 / -1', marginTop: '4px', padding: '10px 0 0', borderTop: '1px solid rgba(141,223,247,0.22)', animation: 'slideDown 0.2s ease-out' }}>
-                      <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>{item.description || 'Merchandise resmi band di WiSpace.'}</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                        <div style={{ color: '#777', fontSize: '11px' }}>STOK<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{item.stock || 0}</strong></div>
-                        <div style={{ color: '#777', fontSize: '11px' }}>BAND<br/><strong style={{ color: '#fff', fontSize: '13px' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()}</strong></div>
-                      </div>
-                      <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '0 0 10px 0' }}>Pengiriman: {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin WiSpace' : 'Band kirim sendiri')}</p>
-                      <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
-                    </div>
-                  )}
                 </article>
               ))}
             </div>
@@ -7907,7 +7875,7 @@ export default function App() {
                 ) : (
                   <div style={flatListStyle}>
                     {displayBandMerchItems.slice(0, 4).map((item) => (
-                      <div key={item.id} style={{ ...flatItemStyle, cursor: 'default', gridTemplateColumns: isTinyLayout ? '50px minmax(0, 1fr)' : '50px minmax(0, 1fr) auto' }}>
+                      <div key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, cursor: 'pointer', gridTemplateColumns: isTinyLayout ? '50px minmax(0, 1fr)' : '50px minmax(0, 1fr) auto' }}>
                         <div style={{ ...flatThumbStyle, width: '50px', height: '50px', borderRadius: '8px' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
@@ -7916,7 +7884,7 @@ export default function App() {
                           <p style={{ color: '#8DDFF7', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                         </div>
                         {!showBandOwnerControls && (
-                          <button onClick={() => handlePurchaseMerch(item)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '7px 9px' : '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{userSession ? 'BUY' : 'JOIN'}</button>
+                          <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, padding: isTinyLayout ? '7px 9px' : '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{userSession ? 'BUY' : 'JOIN'}</button>
                         )}
                       </div>
                     ))}
@@ -9201,7 +9169,7 @@ export default function App() {
             ) : (
               <div style={{ ...flatListStyle, maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
                 {publicMerchList.slice(0, 4).map((item) => (
-                  <button key={`home-merch-${item.id}`} onClick={() => { navigateInternalPage('explore', { exploreTab: 'merch' }); setSelectedMerchId(item.id); }} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '46px minmax(0, 1fr)' : '48px minmax(0, 1fr) auto', padding: '7px 0' }}>
+                  <button key={`home-merch-${item.id}`} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '46px minmax(0, 1fr)' : '48px minmax(0, 1fr) auto', padding: '7px 0' }}>
                     <div style={{ ...flatThumbStyle, width: isTinyLayout ? '46px' : '48px', height: isTinyLayout ? '46px' : '48px', borderRadius: '8px' }}>
                       {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
                     </div>
@@ -9217,6 +9185,64 @@ export default function App() {
             )}
           </div>
         </section>
+      )}
+
+      {selectedMerchDetail && !loading && (
+        <div
+          onClick={() => { setSelectedMerchDetail(null); setSelectedMerchId(null); }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1320, backgroundColor: 'rgba(0,0,0,0.78)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: isTinyLayout ? '100%' : 'min(780px, calc(100vw - 48px))', maxHeight: '88vh', overflowY: 'auto', backgroundColor: 'rgba(6,7,8,0.96)', border: '1px solid rgba(141,223,247,0.24)', borderRadius: '14px', padding: isTinyLayout ? '12px' : '14px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(0,0,0,0.52)' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+              <div>
+                <p style={{ color: '#8DDFF7', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH DETAIL / STOCK {selectedMerchDetail.stock || 0}</p>
+                <h3 style={{ color: '#F4F1EA', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1.02, margin: 0 }}>{String(selectedMerchDetail.name || 'Merch WiSpace').toUpperCase()}</h3>
+              </div>
+              <button type="button" onClick={() => { setSelectedMerchDetail(null); setSelectedMerchId(null); }} style={{ background: 'transparent', border: 'none', color: '#777', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(180px, 260px) minmax(0, 1fr)', gap: isTinyLayout ? '12px' : '16px', alignItems: 'start' }}>
+              <div style={{ width: '100%', aspectRatio: isTinyLayout ? '4/5' : '3/4', backgroundColor: '#0b0d0e', border: '1px solid rgba(244,241,234,0.12)', borderRadius: '10px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+                {selectedMerchDetail.imagePreview ? (
+                  <img src={selectedMerchDetail.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>MERCH</span>
+                )}
+              </div>
+
+              <div style={{ minWidth: 0 }}>
+                <p style={{ color: '#8f8c86', fontSize: '12px', fontWeight: '800', lineHeight: 1.45, margin: '0 0 10px 0' }}>
+                  {(selectedMerchDetail.bandName || 'Band WiSpace').toUpperCase()} / {(selectedMerchDetail.city || 'Indonesia').toUpperCase()}
+                </p>
+                <p style={{ color: selectedMerchDetail.fulfillmentMode === 'admin_consignment' ? '#8EE6A6' : '#8f8c86', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 12px 0' }}>
+                  {selectedMerchDetail.fulfillmentLabel || (selectedMerchDetail.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI')}
+                </p>
+                <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedMerchDetail.description || 'Merchandise resmi band di WiSpace.'}</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
+                  {[
+                    ['HARGA', `Rp ${Number(selectedMerchDetail.price || 0).toLocaleString('id-ID')}`],
+                    ['STOCK', selectedMerchDetail.stock || 0],
+                    ['SELLER', selectedMerchDetail.bandName || 'Band WiSpace']
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ borderTop: '1px solid rgba(244,241,234,0.16)', paddingTop: '8px', minWidth: 0 }}>
+                      <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                      <strong style={{ color: '#F4F1EA', fontSize: label === 'SELLER' ? '11px' : '12px', fontWeight: '900', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(value).toUpperCase()}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', borderTop: '1px solid rgba(244,241,234,0.12)', paddingTop: '12px' }}>
+                  <strong style={{ color: '#F4F1EA', fontSize: '18px', fontWeight: '900' }}>Rp {Number(selectedMerchDetail.price || 0).toLocaleString('id-ID')}</strong>
+                  <button type="button" onClick={() => handlePurchaseMerch(selectedMerchDetail)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {selectedPosterPreview && (
