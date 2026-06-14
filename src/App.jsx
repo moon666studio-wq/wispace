@@ -236,6 +236,7 @@ const BAND_PHOTO_MAX_SIZE = 1 * 1024 * 1024;
 const BAND_COVER_MAX_SIZE = 2 * 1024 * 1024;
 const BAND_PREVIEW_MAX_CHARS = 3_250_000;
 const PAYMENT_PROOF_MAX_SIZE = 2 * 1024 * 1024;
+const SUPPORT_ATTACHMENT_MAX_SIZE = 4 * 1024 * 1024;
 const FONT_STACK = "'Elms Sans', 'ElmsSans', 'Inter', 'Segoe UI', Arial, sans-serif";
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const MINIMUM_PAYOUT_AMOUNT = 100000;
@@ -463,6 +464,12 @@ const mapMessageFromRow = (row = {}) => ({
   replied: Boolean(row.replied),
   lastReply: row.last_reply || '',
   parentMessageId: row.parent_message_id || '',
+  attachmentName: row.attachment_name || '',
+  attachmentUrl: row.attachment_url || '',
+  attachmentPath: row.attachment_path || '',
+  attachmentType: row.attachment_type || '',
+  attachmentSize: Number(row.attachment_size || 0),
+  attachmentStatus: row.attachment_status || '',
   createdAt: row.created_at
     ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(row.created_at))
     : 'Baru saja',
@@ -1096,7 +1103,13 @@ export default function App() {
   const [bandSupportDraft, setBandSupportDraft] = useState({
     category: 'payment',
     subject: '',
-    body: ''
+    body: '',
+    attachmentName: '',
+    attachmentUrl: '',
+    attachmentPath: '',
+    attachmentType: '',
+    attachmentSize: 0,
+    attachmentStatus: ''
   });
   const [articleItems, setArticleItems] = useState([]);
   const [articleComments, setArticleComments] = useState(loadArticleComments);
@@ -2905,6 +2918,39 @@ export default function App() {
     }
   };
 
+  const handleBandSupportAttachmentImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const isSupportedFile = file.type.startsWith('image/') || file.type === 'application/pdf';
+    if (!isSupportedFile) {
+      alert('Lampiran support bisa gambar screenshot atau PDF dulu ya bro.');
+      clearFileInput(event);
+      return;
+    }
+    if (file.size > SUPPORT_ATTACHMENT_MAX_SIZE) {
+      alert(`Ukuran lampiran maksimal ${formatFileSize(SUPPORT_ATTACHMENT_MAX_SIZE)} bro.`);
+      clearFileInput(event);
+      return;
+    }
+
+    try {
+      const uploadResult = await uploadPublicAsset(file, 'support/attachments', userSession);
+      setBandSupportDraft((current) => ({
+        ...current,
+        attachmentName: file.name,
+        attachmentUrl: uploadResult.publicUrl,
+        attachmentPath: uploadResult.path || '',
+        attachmentType: file.type || '',
+        attachmentSize: file.size,
+        attachmentStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local'
+      }));
+      if (uploadResult.error) alert(`Lampiran belum masuk Storage, file lokal dipakai dulu: ${uploadResult.error.message}`);
+    } catch (error) {
+      alert(`Gagal upload lampiran support: ${error.message}`);
+      clearFileInput(event);
+    }
+  };
+
   const handleBandProfileSave = (event) => {
     event.preventDefault();
     if (!bandProfile.name.trim()) return alert('Isi nama band dulu bro.');
@@ -4365,14 +4411,32 @@ export default function App() {
       is_read: Boolean(message.read),
       replied: Boolean(message.replied),
       last_reply: message.lastReply || null,
-      parent_message_id: isUuidLike(message.parentMessageId) ? message.parentMessageId : null
+      parent_message_id: isUuidLike(message.parentMessageId) ? message.parentMessageId : null,
+      attachment_name: message.attachmentName || null,
+      attachment_url: message.attachmentUrl || null,
+      attachment_path: message.attachmentPath || null,
+      attachment_type: message.attachmentType || null,
+      attachment_size: normalizePriceValue(message.attachmentSize || 0),
+      attachment_status: message.attachmentStatus || null
     };
 
     void supabase
       .from('wispace_messages')
       .insert([row])
-      .then(({ error }) => {
-        if (error && !isMissingColumnError(error)) {
+      .then(async ({ error }) => {
+        if (error && isMissingColumnError(error)) {
+          const legacyRow = { ...row };
+          delete legacyRow.attachment_name;
+          delete legacyRow.attachment_url;
+          delete legacyRow.attachment_path;
+          delete legacyRow.attachment_type;
+          delete legacyRow.attachment_size;
+          delete legacyRow.attachment_status;
+          const { error: legacyError } = await supabase.from('wispace_messages').insert([legacyRow]);
+          if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync message ke Supabase:', legacyError.message);
+          return;
+        }
+        if (error) {
           console.warn('Gagal sync message ke Supabase:', error.message);
         }
       });
@@ -4470,6 +4534,12 @@ export default function App() {
       subject: bandSupportDraft.subject.trim(),
       body: bandSupportDraft.body.trim(),
       category: bandSupportDraft.category,
+      attachmentName: bandSupportDraft.attachmentName,
+      attachmentUrl: bandSupportDraft.attachmentUrl,
+      attachmentPath: bandSupportDraft.attachmentPath,
+      attachmentType: bandSupportDraft.attachmentType,
+      attachmentSize: bandSupportDraft.attachmentSize,
+      attachmentStatus: bandSupportDraft.attachmentStatus,
       scope: 'admin',
       source: 'band',
       targetBandSlug: getBandProfileSlug(bandProfile) || createSlug(bandName),
@@ -4484,7 +4554,17 @@ export default function App() {
       return nextMessages;
     });
     syncMessageToCloud(nextMessage);
-    setBandSupportDraft({ category: 'payment', subject: '', body: '' });
+    setBandSupportDraft({
+      category: 'payment',
+      subject: '',
+      body: '',
+      attachmentName: '',
+      attachmentUrl: '',
+      attachmentPath: '',
+      attachmentType: '',
+      attachmentSize: 0,
+      attachmentStatus: ''
+    });
     alert('Pesan ke admin WiSpace sudah masuk antrean support.');
   };
 
@@ -5947,23 +6027,9 @@ export default function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
             <div>
               <p style={{ color: '#00d2ff', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN WISPACE</p>
-              <h3 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUPPORT & OWNER MENU</h3>
+              <h3 style={{ color: '#fff', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUPPORT ADMIN</h3>
             </div>
             <button type="button" onClick={() => setShowBandAdminPopout(false)} style={{ background: 'transparent', border: 'none', color: '#777', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, 1fr)' : 'repeat(7, minmax(0, 1fr))', gap: '6px', marginBottom: '12px' }}>
-            {[
-              ['EDIT', () => { setShowBandAdminPopout(false); setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
-              ['ALBUM', () => { setShowBandAdminPopout(false); setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
-              ['MERCH', () => { setShowBandAdminPopout(false); setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
-              ['ARTIKEL', () => { setShowBandAdminPopout(false); setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }],
-              ['PAMFLET', () => navigateInternalPage('gig_manager')],
-              ['KEUANGAN', () => navigateInternalPage('finance_dashboard')],
-              ['INBOX', () => navigateInternalPage('message_center')]
-            ].map(([label, action]) => (
-              <button key={label} type="button" onClick={action} style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.1)', color: label === 'INBOX' ? '#00d2ff' : '#fff', borderRadius: '9px', padding: '8px 7px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{label}</button>
-            ))}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(220px, 0.82fr)', gap: '12px', alignItems: 'start' }}>
@@ -5981,6 +6047,11 @@ export default function App() {
                 <input type="text" placeholder="SUBJEK KE ADMIN" value={bandSupportDraft.subject} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, subject: event.target.value })} style={formInputStyle} />
               </div>
               <textarea placeholder="TULIS PESAN KE ADMIN..." value={bandSupportDraft.body} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, body: event.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+              <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(0,210,255,0.3)', borderRadius: '10px', backgroundColor: '#050505', cursor: 'pointer' }}>
+                <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleBandSupportAttachmentImport} style={{ display: 'none' }} />
+                <span style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
+                <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
+              </label>
               <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '9px 12px', fontSize: '10px' }}>KIRIM KE ADMIN</button>
             </form>
 
@@ -5998,6 +6069,11 @@ export default function App() {
                       <p style={{ color: message.source === 'admin' ? '#00d2ff' : '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{message.source === 'admin' ? 'ADMIN' : 'BAND'} / {String(message.category || 'support').toUpperCase()}</p>
                       <h5 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{message.subject}</h5>
                       <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{message.replied ? message.lastReply : message.body}</p>
+                      {message.attachmentUrl && (
+                        <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', marginTop: '6px', color: '#00d2ff', fontSize: '9px', fontWeight: '900', textDecoration: 'none' }}>
+                          LAMPIRAN: {(message.attachmentName || 'FILE').toUpperCase()}
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -6652,6 +6728,11 @@ export default function App() {
                           <p style={{ color: '#39ff14', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'support').toUpperCase()} / {message.createdAt}</p>
                           <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
                           <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: '0 0 6px 0' }}>{message.body}</p>
+                          {message.attachmentUrl && (
+                            <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', marginBottom: '6px', color: '#00d2ff', fontSize: '9px', fontWeight: '900', textDecoration: 'none' }}>
+                              BUKA LAMPIRAN: {(message.attachmentName || 'FILE').toUpperCase()}
+                            </a>
+                          )}
                           <p style={{ color: '#666', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Dari: <span style={{ color: '#fff' }}>{message.sender}</span> / {message.contact}</p>
                         </div>
                       ))}
@@ -8430,6 +8511,11 @@ export default function App() {
                     <input type="text" placeholder="SUBJEK KE ADMIN" value={bandSupportDraft.subject} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, subject: event.target.value })} style={formInputStyle} />
                   </div>
                   <textarea placeholder="TULIS PESAN KE ADMIN..." value={bandSupportDraft.body} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, body: event.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                  <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(0,210,255,0.3)', borderRadius: '10px', backgroundColor: '#050505', cursor: 'pointer' }}>
+                    <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleBandSupportAttachmentImport} style={{ display: 'none' }} />
+                    <span style={{ color: '#00d2ff', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
+                    <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
+                  </label>
                   <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '10px 14px', fontSize: '11px' }}>KIRIM KE ADMIN</button>
                 </form>
               </section>
@@ -8458,6 +8544,11 @@ export default function App() {
                       </div>
                       <h4 style={{ color: '#00d2ff', fontSize: '13px', fontWeight: '900', margin: '0 0 8px 0' }}>{message.subject}</h4>
                       <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.5, margin: '0 0 10px 0' }}>{message.body}</p>
+                      {message.attachmentUrl && (
+                        <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', margin: '0 0 10px 0', color: '#00d2ff', fontSize: '10px', fontWeight: '900', textDecoration: 'none' }}>
+                          BUKA LAMPIRAN: {(message.attachmentName || 'FILE').toUpperCase()}
+                        </a>
+                      )}
                       <p style={{ color: '#666', fontSize: '12px', margin: '0 0 12px 0' }}>Kontak: <span style={{ color: '#fff' }}>{message.contact}</span></p>
                       {message.replied && (
                         <div style={{ padding: '10px', backgroundColor: 'rgba(0,210,255,0.06)', border: '1px solid rgba(0,210,255,0.18)', borderRadius: '10px', marginBottom: '12px' }}>

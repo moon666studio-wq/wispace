@@ -234,6 +234,12 @@ create table if not exists public.wispace_messages (
   replied boolean not null default false,
   last_reply text,
   parent_message_id uuid references public.wispace_messages(id) on delete set null,
+  attachment_name text,
+  attachment_url text,
+  attachment_path text,
+  attachment_type text,
+  attachment_size integer not null default 0,
+  attachment_status text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -301,6 +307,12 @@ add column if not exists is_read boolean not null default false,
 add column if not exists replied boolean not null default false,
 add column if not exists last_reply text,
 add column if not exists parent_message_id uuid references public.wispace_messages(id) on delete set null,
+add column if not exists attachment_name text,
+add column if not exists attachment_url text,
+add column if not exists attachment_path text,
+add column if not exists attachment_type text,
+add column if not exists attachment_size integer not null default 0,
+add column if not exists attachment_status text,
 add column if not exists created_at timestamptz not null default now(),
 add column if not exists updated_at timestamptz not null default now();
 
