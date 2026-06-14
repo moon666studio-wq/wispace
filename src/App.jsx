@@ -124,6 +124,12 @@ const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
   completed: '#8EE6A6',
   cancelled: '#ff3333'
 }[status] || '#ffcc00');
+const MERCH_ORDER_FLOW_STEPS = [
+  { id: 'paid', label: 'PAID', statuses: ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'shipped', 'completed'] },
+  { id: 'process', label: 'PROSES', statuses: ['processing', 'processing_admin', 'shipped', 'completed'] },
+  { id: 'ship', label: 'KIRIM', statuses: ['shipped', 'completed'] },
+  { id: 'done', label: 'SELESAI', statuses: ['completed'] }
+];
 const getConsignmentStatusLabel = (status = 'waiting_stock_handover') => ({
   waiting_stock_handover: 'MENUNGGU STOK KE ADMIN',
   stock_received: 'STOK SUDAH DI ADMIN',
@@ -3065,6 +3071,13 @@ export default function App() {
     `Ready payout: Rp ${Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')}`,
     `Transaction count: ${report.transactionCount}`,
     '',
+    'Revenue source summary:',
+    ...((report.transactionTypeSummary || []).length
+      ? report.transactionTypeSummary.map((item) => (
+          `- ${item.label}: ${item.count} transaksi / Gross Rp ${Number(item.grossAmount || 0).toLocaleString('id-ID')} / Fee Rp ${Number(item.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(item.bandNet || 0).toLocaleString('id-ID')}`
+        ))
+      : ['- Belum ada summary tipe transaksi']),
+    '',
     'Band payout rows:',
     ...(report.rows || []).map((row, index) => [
       `${index + 1}. ${row.name}`,
@@ -3100,7 +3113,30 @@ export default function App() {
       totalBandNet: adminBandPayoutTotal,
       readyPayoutTotal: adminPayoutReadyTotal,
       transactionCount: paidSaleTransactions.length,
-      missingBankCount: bandsMissingPayoutAccount.length
+      missingBankCount: bandsMissingPayoutAccount.length,
+      transactionTypeSummary: [
+        {
+          label: 'Rilisan digital',
+          count: adminDigitalTransactions.length,
+          grossAmount: adminDigitalTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0),
+          platformFee: adminReleaseFeeRevenue,
+          bandNet: adminDigitalTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0)
+        },
+        {
+          label: 'Merch fisik',
+          count: adminMerchTransactions.length,
+          grossAmount: adminMerchTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0),
+          platformFee: adminMerchFeeRevenue,
+          bandNet: adminMerchTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0)
+        },
+        {
+          label: 'Pamflet exclusive',
+          count: adminExclusivePosterPaidCount,
+          grossAmount: adminExclusivePosterRevenue,
+          platformFee: adminExclusivePosterRevenue,
+          bandNet: 0
+        }
+      ]
     };
     report.reportText = buildMonthlyFinanceReportText(report);
 
@@ -5070,7 +5106,9 @@ export default function App() {
   const activeAudiencePaymentRequests = audiencePaymentRequests.filter((payment) => payment.status === 'waiting_admin_confirmation');
   const adminBandPayoutTotal = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const activeMerchFulfillmentStatuses = ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin'];
-  const adminWaitingMerchOrders = merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
+  const adminActiveMerchOrderList = merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus));
+  const adminWaitingMerchOrders = adminActiveMerchOrderList.length;
+  const adminConsignmentOrderQueue = adminActiveMerchOrderList.filter((order) => order.fulfillmentMode === 'admin_consignment');
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
   const adminPayoutByBand = paidSaleTransactions
     .filter((transaction) => Number(transaction.bandNet || 0) > 0)
@@ -5838,6 +5876,18 @@ export default function App() {
     borderRadius: '9px',
     minHeight: isTinyLayout ? '30px' : '32px'
   };
+  const renderMerchOrderStepper = (status = 'order_paid_waiting_band') => (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${MERCH_ORDER_FLOW_STEPS.length}, minmax(0, 1fr))`, gap: '5px', marginTop: '8px' }}>
+      {MERCH_ORDER_FLOW_STEPS.map((step) => {
+        const isActive = step.statuses.includes(status);
+        return (
+          <div key={step.id} style={{ borderTop: `2px solid ${isActive ? getMerchOrderStatusColor(status) : 'rgba(255,255,255,0.1)'}`, paddingTop: '5px' }}>
+            <p style={{ color: isActive ? '#F4F1EA' : '#555', fontSize: '8px', fontWeight: '900', margin: 0, letterSpacing: '0.4px' }}>{step.label}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
@@ -6597,6 +6647,38 @@ export default function App() {
                   ))}
                 </div>
               </div>
+            </div>
+            <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,204,0,0.16)', borderRadius: '10px', marginTop: '10px' }}>
+              <p style={{ color: '#ffcc00', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ADMIN MERCH FULFILLMENT QUEUE</p>
+              {adminActiveMerchOrderList.length === 0 ? (
+                <p style={{ color: '#555', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada order merch aktif yang perlu diproses.</p>
+              ) : (
+                <div style={{ display: 'grid', gap: '7px', maxHeight: '260px', overflowY: 'auto' }}>
+                  {adminActiveMerchOrderList.slice(0, 8).map((order) => (
+                    <div key={`admin-order-${order.id}`} style={compactRowStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: order.fulfillmentMode === 'admin_consignment' ? '#8DDFF7' : '#777', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.fulfillmentMode === 'admin_consignment' ? 'WISPACE SHIP' : 'BAND SHIP'} / {order.orderId || order.id}</p>
+                          <h4 style={{ color: '#fff', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} / {order.recipientName || '-'} / {order.city || '-'}</p>
+                        </div>
+                        <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
+                      </div>
+                      {renderMerchOrderStepper(order.trackingStatus)}
+                      {order.fulfillmentMode === 'admin_consignment' ? (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing_admin')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES ADMIN</button>
+                          <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(142,230,166,0.08)', border: '1px solid rgba(142,230,166,0.24)', color: '#8EE6A6', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
+                        </div>
+                      ) : (
+                        <p style={{ color: '#555', fontSize: '9px', lineHeight: 1.35, margin: '8px 0 0 0' }}>Order ini dikirim oleh band. Admin cukup pantau status dan bisa follow up via message kalau macet.</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {adminConsignmentOrderQueue.length > 0 && <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{adminConsignmentOrderQueue.length} order titipan stok sedang menunggu action admin WiSpace.</p>}
             </div>
           </section>
           )}
@@ -8422,6 +8504,7 @@ export default function App() {
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
+                      {renderMerchOrderStepper(order.trackingStatus)}
                       <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '8px' }}>
                         <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#fff' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
                         <p style={{ color: order.trackingNumber ? '#8EE6A6' : '#777', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
@@ -8678,6 +8761,7 @@ export default function App() {
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
+                      {renderMerchOrderStepper(order.trackingStatus)}
                       <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
                       <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{order.address}, {order.city} {order.postalCode}</p>
                       {order.originShipping && (
