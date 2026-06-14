@@ -7569,10 +7569,10 @@ export default function App() {
                     <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>UPLOAD ALBUM</button>
                     <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>MERCH</button>
                     <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>ARTIKEL</button>
-                    <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>PAMFLET</button>
-                    <button onClick={() => { setActivePage('gig_manager'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>JADWAL</button>
-                    <button onClick={() => { setActivePage('finance_dashboard'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
-                    <button onClick={() => { setActivePage('message_center'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#00d2ff', borderColor: 'rgba(0,210,255,0.3)' }}>ADMIN</button>
+                    <button onClick={() => navigateInternalPage('gig_manager')} style={ownerActionButtonStyle}>PAMFLET</button>
+                    <button onClick={() => navigateInternalPage('gig_manager')} style={{ ...ownerActionButtonStyle, color: '#fff', borderColor: '#444' }}>JADWAL</button>
+                    <button onClick={() => navigateInternalPage('finance_dashboard')} style={{ ...ownerActionButtonStyle, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>KEUANGAN</button>
+                    <button onClick={() => navigateInternalPage('message_center')} style={{ ...ownerActionButtonStyle, color: '#00d2ff', borderColor: 'rgba(0,210,255,0.3)' }}>ADMIN</button>
                   </div>
                 </div>
               )}
@@ -7980,7 +7980,7 @@ export default function App() {
                   <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>EXPLORE RILISAN</button>
                   <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY LIBRARY</button>
                   <button onClick={() => navigateInternalPage('audience_orders')} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY ORDERS</button>
-                  <button onClick={() => { setActivePage('message_center'); markMessagesAsRead(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MESSAGES</button>
+                  <button onClick={() => { markMessagesAsRead(); navigateInternalPage('message_center'); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MESSAGES</button>
                 </div>
               </section>
 
@@ -8874,7 +8874,7 @@ export default function App() {
                     {merchUsesAdminConsignment && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                         <p style={{ color: '#ffcc00', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Kalau mau stok merch ada di admin, silahkan hubungi admin untuk alamat kirim stok dan konfirmasi jumlah barang.</p>
-                        <button type="button" onClick={() => { setActivePage('message_center'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
+                        <button type="button" onClick={() => navigateInternalPage('message_center')} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
                       </div>
                     )}
                   </div>
