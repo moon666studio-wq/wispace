@@ -5688,29 +5688,32 @@ export default function App() {
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
+  const flatLineColor = 'rgba(244,241,234,0.16)';
+  const softSurfaceBackground = 'linear-gradient(135deg, rgba(244,241,234,0.055), rgba(141,223,247,0.035) 48%, rgba(4,6,7,0.1) 100%)';
+  const softRowBackground = 'linear-gradient(90deg, rgba(244,241,234,0.035), rgba(141,223,247,0.018) 48%, rgba(4,6,7,0) 100%)';
   const flatSurfaceStyle = {
-    background: 'transparent',
+    background: softSurfaceBackground,
     border: 'none',
-    borderTop: '1.5px solid rgba(244,241,234,0.16)',
-    borderRadius: 0,
-    boxShadow: 'none'
+    borderTop: `1.5px solid ${flatLineColor}`,
+    borderLeft: '1px solid rgba(141,223,247,0.1)',
+    borderRadius: '8px',
+    boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.035)'
   };
-  const compactPanelStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '9px 0 10px' : '11px 0 12px', backgroundColor: 'transparent', marginBottom: isTinyLayout ? '10px' : '12px' };
-  const compactMetricCardStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '7px 0' : '9px 0', minWidth: 0 };
+  const compactPanelStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '10px' : '12px', marginBottom: isTinyLayout ? '10px' : '12px' };
+  const compactMetricCardStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '8px 9px' : '10px 11px', minWidth: 0 };
   const compactMetricLabelStyle = { color: '#8f8c86', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 };
   const compactMetricValueStyle = { color: '#F4F1EA', fontSize: isTinyLayout ? '16px' : '19px', fontWeight: '900', lineHeight: 1 };
-  const compactRowStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '7px 0' : '8px 0' };
+  const compactRowStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '8px 9px' : '9px 10px' };
   const flatListStyle = { display: 'grid', gap: isTinyLayout ? '8px' : '10px' };
-  const flatLineColor = 'rgba(244,241,234,0.16)';
   const flatItemStyle = {
     display: 'grid',
     alignItems: 'center',
     gap: isTinyLayout ? '8px' : '10px',
-    padding: isTinyLayout ? '7px 0' : '8px 0',
-    background: 'transparent',
+    padding: isTinyLayout ? '7px 8px' : '8px 9px',
+    background: softRowBackground,
     border: 'none',
     borderTop: `1.5px solid ${flatLineColor}`,
-    borderRadius: 0,
+    borderRadius: '8px',
     cursor: 'pointer',
     textAlign: 'left',
     fontFamily: FONT_STACK,
@@ -5727,12 +5730,13 @@ export default function App() {
     gap: isTinyLayout ? '9px' : '11px'
   };
   const compactVisualCardStyle = {
-    backgroundColor: 'transparent',
-    border: `1.5px solid ${flatLineColor}`,
+    background: softSurfaceBackground,
+    border: '1.5px solid rgba(244,241,234,0.14)',
     borderRadius: '8px',
     padding: isTinyLayout ? '7px' : '8px',
     cursor: 'pointer',
-    minWidth: 0
+    minWidth: 0,
+    boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.035)'
   };
   const flatThumbStyle = {
     overflow: 'hidden',
@@ -5856,13 +5860,14 @@ export default function App() {
       };
   const bulletinCardStyle = {
     padding: isTinyLayout ? '7px' : '8px',
-    background: 'transparent',
+    background: softRowBackground,
     borderTop: `1.5px solid ${flatLineColor}`,
+    borderLeft: '1px solid rgba(141,223,247,0.08)',
     position: 'relative',
     cursor: 'pointer',
     scrollSnapAlign: 'start',
     minWidth: 0,
-    borderRadius: 0
+    borderRadius: '8px'
   };
   const ownerActionsPanelStyle = {
     ...glassStyle('band-owner-actions'),
@@ -5950,10 +5955,10 @@ export default function App() {
     letterSpacing: '1px'
   };
   const compactSurfaceStyle = {
-    backgroundColor: 'transparent',
-    border: `1.5px solid ${flatLineColor}`,
+    background: softSurfaceBackground,
+    border: '1.5px solid rgba(244,241,234,0.14)',
     borderRadius: '8px',
-    boxShadow: 'none'
+    boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.035)'
   };
   const checkoutBlockStyle = {
     ...compactSurfaceStyle,
