@@ -5190,9 +5190,10 @@ export default function App() {
   }, [currentBandSlug]);
 
   useEffect(() => {
-    const syncBandRoute = () => {
+    const syncBandRoute = (event) => {
       const bandRouteMatch = window.location.pathname.match(/^\/band\/([^/]+)/);
       if (!bandRouteMatch) return;
+      if (!event && activePage === 'band_profile') return;
 
       const routeSlug = decodeURIComponent(bandRouteMatch[1]);
       const ownSlug = createSlug(bandProfile.slug || bandProfile.name || signatureName || '');
@@ -5206,7 +5207,7 @@ export default function App() {
     syncBandRoute();
     window.addEventListener('popstate', syncBandRoute);
     return () => window.removeEventListener('popstate', syncBandRoute);
-  }, [bandProfile.name, bandProfile.slug, isBandAccount, signatureName]);
+  }, [activePage, bandProfile.name, bandProfile.slug, isBandAccount, signatureName]);
 
   const accountDisplayName = isBandAccount
     ? (bandProfile.name || signatureName || 'BAND')
