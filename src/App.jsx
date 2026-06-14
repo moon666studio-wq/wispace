@@ -2160,6 +2160,7 @@ export default function App() {
     setSelectedPosterPreview(null);
     setSelectedMerchDetail(null);
     setSelectedMerchId(null);
+    if (!options.keepReleaseDetail) setSelectedReleaseId(null);
     setShowNotificationPopout(false);
     setShowBandAdminPopout(false);
     if (page !== 'articles') setSelectedArticleId(null);
@@ -2178,7 +2179,7 @@ export default function App() {
   const openReleaseDetail = (album) => {
     if (!album?.id) return;
     setSelectedReleaseId(album.id);
-    navigateInternalPage('explore', { exploreTab: 'rilisan' });
+    navigateInternalPage('explore', { exploreTab: 'rilisan', keepReleaseDetail: true });
   };
 
   const openMerchDetail = (item) => {
@@ -7372,16 +7373,17 @@ export default function App() {
           </div>
 
           {exploreTab === 'rilisan' && selectedRelease && (
-            <section style={{ ...glassStyle(`release-detail-${selectedRelease.id}`), padding: isTinyLayout ? '14px' : '18px', backgroundColor: '#090909', marginBottom: '22px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(220px, 320px) minmax(0, 1fr)', gap: '18px', alignItems: 'start' }}>
-                <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(141,223,247,0.16)', display: 'grid', placeItems: 'center' }}>
+            <div onClick={() => setSelectedReleaseId(null)} style={{ position: 'fixed', inset: 0, zIndex: 1360, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(0,0,0,0.36), rgba(0,0,0,0.82))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+              <section onClick={(event) => event.stopPropagation()} style={{ width: isTinyLayout ? '100%' : 'min(900px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '84vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', backgroundColor: 'rgba(6,7,8,0.95)', border: '1.5px solid rgba(141,223,247,0.24)', borderRadius: '14px', boxShadow: '0 18px 46px rgba(0,0,0,0.5)', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(190px, 280px) minmax(0, 1fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'start' }}>
+                <div style={{ width: '100%', maxWidth: isCompactLayout ? '240px' : 'none', justifySelf: isCompactLayout ? 'center' : 'stretch', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(141,223,247,0.16)', display: 'grid', placeItems: 'center' }}>
                   {selectedRelease.coverPreview ? <img src={selectedRelease.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
                       <p style={{ color: '#8DDFF7', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>{selectedRelease.genre?.toUpperCase()} / {selectedRelease.trackCount} TRACK</p>
-                      <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '28px' : '42px', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedRelease.title.toUpperCase()}</h3>
+                      <h3 style={{ color: '#fff', fontSize: isTinyLayout ? '23px' : 'clamp(30px, 4vw, 46px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedRelease.title.toUpperCase()}</h3>
                       <p style={{ color: '#888', fontSize: '13px', fontWeight: '800', margin: 0 }}>{selectedRelease.bandName?.toUpperCase()} / {selectedRelease.city?.toUpperCase()}</p>
                     </div>
                     <button onClick={() => setSelectedReleaseId(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#777', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
@@ -7402,7 +7404,7 @@ export default function App() {
                   </div>
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {(selectedRelease.tracks || []).map((track, index) => (
-                      <div key={`detail-track-${track.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '32px minmax(0, 1fr) auto auto', gap: '9px', alignItems: 'center', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                      <div key={`detail-track-${track.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '32px minmax(0, 1fr) auto auto', gap: '9px', alignItems: 'center', padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0 }}>
                         <span style={{ color: '#555', fontSize: '10px', fontWeight: '900' }}>{String(index + 1).padStart(2, '0')}</span>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</p>
@@ -7415,7 +7417,8 @@ export default function App() {
                   </div>
                 </div>
               </div>
-            </section>
+              </section>
+            </div>
           )}
 
           <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
