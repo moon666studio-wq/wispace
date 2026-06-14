@@ -2844,6 +2844,14 @@ export default function App() {
     alert('Profile band tersimpan dan aman saat refresh di browser ini. Foto/banner akan pakai Supabase Storage kalau bucket band-assets sudah aktif.');
   };
 
+  const updateBandProfileField = (field, value) => {
+    setBandProfile((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === 'name' && !current.slug ? { slug: createSlug(value) } : {})
+    }));
+  };
+
   const buildReleaseAgreementText = (agreement) => [
     `WiSpace Digital Release Agreement (${agreement.agreementVersion})`,
     `Release: ${agreement.releaseTitle}`,
@@ -8336,6 +8344,7 @@ export default function App() {
                 {['profile', 'album', 'merch', 'artikel'].map((tab) => (
                   <button
                     key={tab}
+                    type="button"
                     onClick={() => setBandProfileTab(tab)}
                     style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#00d2ff' : 'transparent', color: bandProfileTab === tab ? '#000' : '#777', border: bandProfileTab === tab ? 'none' : '1px solid #222', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
                   >
@@ -8347,15 +8356,15 @@ export default function App() {
               {bandProfileTab === 'profile' && (
                 <form onSubmit={handleBandProfileSave}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                    <input type="text" placeholder="NAMA BAND" value={bandProfile.name} onChange={(e) => setBandProfile({ ...bandProfile, name: e.target.value, slug: bandProfile.slug || createSlug(e.target.value) })} style={formInputStyle} />
-                    <input type="text" placeholder="URL SLUG (contoh: skena-noise)" value={bandProfile.slug} onChange={(e) => setBandProfile({ ...bandProfile, slug: createSlug(e.target.value) })} style={formInputStyle} />
-                    <input type="text" placeholder="HEADLINE SINGKAT" value={bandProfile.headline} onChange={(e) => setBandProfile({ ...bandProfile, headline: e.target.value })} style={formInputStyle} />
-                    <input type="text" placeholder="KOTA / DOMISILI" value={bandProfile.city} onChange={(e) => setBandProfile({ ...bandProfile, city: e.target.value })} style={formInputStyle} />
-                    <input type="text" placeholder="GENRE / SUB-SKENA" value={bandProfile.genre} onChange={(e) => setBandProfile({ ...bandProfile, genre: e.target.value })} style={formInputStyle} />
-                    <input type="text" placeholder="TAHUN AKTIF / TERBENTUK" value={bandProfile.formedYear} onChange={(e) => setBandProfile({ ...bandProfile, formedYear: e.target.value })} style={formInputStyle} />
-                    <input type="text" placeholder="CP / WHATSAPP" value={bandProfile.cp} onChange={(e) => setBandProfile({ ...bandProfile, cp: e.target.value })} style={formInputStyle} />
-                    <input type="email" placeholder="EMAIL BAND" value={bandProfile.email} onChange={(e) => setBandProfile({ ...bandProfile, email: e.target.value })} style={formInputStyle} />
-                    <input type="text" placeholder="INSTAGRAM / SOSMED" value={bandProfile.instagram} onChange={(e) => setBandProfile({ ...bandProfile, instagram: e.target.value })} style={formInputStyle} />
+                    <input type="text" placeholder="NAMA BAND" value={bandProfile.name || ''} onChange={(e) => updateBandProfileField('name', e.target.value)} style={formInputStyle} />
+                    <input type="text" placeholder="URL SLUG (contoh: skena-noise)" value={bandProfile.slug || ''} onChange={(e) => updateBandProfileField('slug', createSlug(e.target.value))} style={formInputStyle} />
+                    <input type="text" placeholder="HEADLINE SINGKAT" value={bandProfile.headline || ''} onChange={(e) => updateBandProfileField('headline', e.target.value)} style={formInputStyle} />
+                    <input type="text" placeholder="KOTA / DOMISILI" value={bandProfile.city || ''} onChange={(e) => updateBandProfileField('city', e.target.value)} style={formInputStyle} />
+                    <input type="text" placeholder="GENRE / SUB-SKENA" value={bandProfile.genre || ''} onChange={(e) => updateBandProfileField('genre', e.target.value)} style={formInputStyle} />
+                    <input type="text" placeholder="TAHUN AKTIF / TERBENTUK" value={bandProfile.formedYear || ''} onChange={(e) => updateBandProfileField('formedYear', e.target.value)} style={formInputStyle} />
+                    <input type="text" placeholder="CP / WHATSAPP" value={bandProfile.cp || ''} onChange={(e) => updateBandProfileField('cp', e.target.value)} style={formInputStyle} />
+                    <input type="email" placeholder="EMAIL BAND" value={bandProfile.email || ''} onChange={(e) => updateBandProfileField('email', e.target.value)} style={formInputStyle} />
+                    <input type="text" placeholder="INSTAGRAM / SOSMED" value={bandProfile.instagram || ''} onChange={(e) => updateBandProfileField('instagram', e.target.value)} style={formInputStyle} />
                   </div>
                   <div style={{ backgroundColor: '#000', border: `1px solid ${hasBandPayoutAccount ? 'rgba(57,255,20,0.22)' : 'rgba(255,204,0,0.26)'}`, borderRadius: '14px', padding: '14px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
@@ -8366,12 +8375,12 @@ export default function App() {
                       <strong style={{ color: hasBandPayoutAccount ? '#39ff14' : '#ffcc00', fontSize: '10px' }}>{hasBandPayoutAccount ? 'READY' : 'BELUM LENGKAP'}</strong>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-                      <input type="text" placeholder="NAMA BANK (BCA / BNI / MANDIRI)" value={bandProfile.bankName || ''} onChange={(e) => setBandProfile({ ...bandProfile, bankName: e.target.value })} style={formInputStyle} />
-                      <input type="text" placeholder="NAMA PEMEGANG REKENING" value={bandProfile.bankAccountName || ''} onChange={(e) => setBandProfile({ ...bandProfile, bankAccountName: e.target.value })} style={formInputStyle} />
-                      <input type="text" inputMode="numeric" placeholder="NOMOR REKENING" value={bandProfile.bankAccountNumber || ''} onChange={(e) => setBandProfile({ ...bandProfile, bankAccountNumber: e.target.value })} style={formInputStyle} />
+                      <input type="text" placeholder="NAMA BANK (BCA / BNI / MANDIRI)" value={bandProfile.bankName || ''} onChange={(e) => updateBandProfileField('bankName', e.target.value)} style={formInputStyle} />
+                      <input type="text" placeholder="NAMA PEMEGANG REKENING" value={bandProfile.bankAccountName || ''} onChange={(e) => updateBandProfileField('bankAccountName', e.target.value)} style={formInputStyle} />
+                      <input type="text" inputMode="numeric" placeholder="NOMOR REKENING" value={bandProfile.bankAccountNumber || ''} onChange={(e) => updateBandProfileField('bankAccountNumber', e.target.value)} style={formInputStyle} />
                     </div>
                   </div>
-                  <textarea placeholder="BIO BAND" value={bandProfile.bio} onChange={(e) => setBandProfile({ ...bandProfile, bio: e.target.value })} rows={6} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
+                  <textarea placeholder="BIO BAND" value={bandProfile.bio || ''} onChange={(e) => updateBandProfileField('bio', e.target.value)} rows={6} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                     <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(0,210,255,0.35)', borderRadius: '14px', backgroundColor: '#000', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleBandCoverImport} style={{ display: 'none' }} />
