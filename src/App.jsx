@@ -5611,7 +5611,7 @@ export default function App() {
               key={result.id}
               type="button"
               onClick={result.onSelect}
-              style={{ textAlign: 'left', padding: '8px 9px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '3px' }}
+              style={{ textAlign: 'left', padding: '7px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0, cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '3px' }}
             >
               <span style={{ color: '#8DDFF7', fontSize: '8px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
               <span style={{ color: '#fff', fontSize: '12px', fontWeight: '900', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(result.title || '').toUpperCase()}</span>
@@ -5687,11 +5687,18 @@ export default function App() {
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
-  const compactPanelStyle = { padding: isTinyLayout ? '10px' : '12px', backgroundColor: 'rgba(7,8,9,0.48)', marginBottom: isTinyLayout ? '11px' : '14px' };
-  const compactMetricCardStyle = { padding: isTinyLayout ? '7px' : '9px', backgroundColor: 'transparent', border: '1px solid rgba(244,241,234,0.12)', borderRadius: '8px', minWidth: 0 };
+  const flatSurfaceStyle = {
+    background: 'transparent',
+    border: 'none',
+    borderTop: '1.5px solid rgba(244,241,234,0.16)',
+    borderRadius: 0,
+    boxShadow: 'none'
+  };
+  const compactPanelStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '9px 0 10px' : '11px 0 12px', backgroundColor: 'transparent', marginBottom: isTinyLayout ? '10px' : '12px' };
+  const compactMetricCardStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '7px 0' : '9px 0', minWidth: 0 };
   const compactMetricLabelStyle = { color: '#8f8c86', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 };
   const compactMetricValueStyle = { color: '#F4F1EA', fontSize: isTinyLayout ? '16px' : '19px', fontWeight: '900', lineHeight: 1 };
-  const compactRowStyle = { padding: isTinyLayout ? '7px' : '8px', backgroundColor: 'transparent', border: '1px solid rgba(244,241,234,0.12)', borderRadius: '8px' };
+  const compactRowStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '7px 0' : '8px 0' };
   const flatListStyle = { display: 'grid', gap: isTinyLayout ? '8px' : '10px' };
   const flatLineColor = 'rgba(244,241,234,0.16)';
   const flatItemStyle = {
@@ -5715,14 +5722,14 @@ export default function App() {
   };
   const compactVisualGridStyle = {
     display: 'grid',
-    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(154px, 1fr))',
-    gap: isTinyLayout ? '10px' : '13px'
+    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(142px, 1fr))',
+    gap: isTinyLayout ? '9px' : '11px'
   };
   const compactVisualCardStyle = {
-    backgroundColor: 'rgba(5,6,7,0.34)',
+    backgroundColor: 'transparent',
     border: `1.5px solid ${flatLineColor}`,
-    borderRadius: '10px',
-    padding: isTinyLayout ? '8px' : '10px',
+    borderRadius: '8px',
+    padding: isTinyLayout ? '7px' : '8px',
     cursor: 'pointer',
     minWidth: 0
   };
@@ -5843,17 +5850,18 @@ export default function App() {
       }
     : {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-        gap: '14px'
+        gridTemplateColumns: 'repeat(auto-fill, minmax(218px, 1fr))',
+        gap: '12px'
       };
   const bulletinCardStyle = {
-    padding: isTinyLayout ? '8px' : '10px',
-    background: 'rgba(6,7,8,0.58)',
+    padding: isTinyLayout ? '7px' : '8px',
+    background: 'transparent',
+    borderTop: `1.5px solid ${flatLineColor}`,
     position: 'relative',
     cursor: 'pointer',
     scrollSnapAlign: 'start',
     minWidth: 0,
-    borderRadius: '10px'
+    borderRadius: 0
   };
   const ownerActionsPanelStyle = {
     ...glassStyle('band-owner-actions'),
@@ -5919,7 +5927,7 @@ export default function App() {
 
   const pageTitleStyle = {
     color: '#F4F1EA',
-    fontSize: 'clamp(25px, 4.2vw, 40px)',
+    fontSize: 'clamp(23px, 3.8vw, 36px)',
     fontWeight: '900',
     margin: 0,
     lineHeight: 0.95
@@ -5927,18 +5935,28 @@ export default function App() {
 
   const pageLeadStyle = {
     color: '#8a8a8a',
-    fontSize: '13px',
-    margin: '8px 0 0 0',
-    maxWidth: '680px',
-    lineHeight: 1.45
+    fontSize: '12px',
+    margin: '7px 0 0 0',
+    maxWidth: '640px',
+    lineHeight: 1.42
   };
 
   const sectionHeadingStyle = {
     color: '#F4F1EA',
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: '900',
-    margin: '0 0 16px 0',
+    margin: '0 0 12px 0',
     letterSpacing: '1px'
+  };
+  const compactSurfaceStyle = {
+    backgroundColor: 'transparent',
+    border: `1.5px solid ${flatLineColor}`,
+    borderRadius: '8px',
+    boxShadow: 'none'
+  };
+  const checkoutBlockStyle = {
+    ...compactSurfaceStyle,
+    padding: isTinyLayout ? '10px' : '12px'
   };
 
   const exploreCopy = {
@@ -6350,29 +6368,29 @@ export default function App() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '24px' }}>
-            <div style={{ ...glassStyle('admin-stat-pending'), padding: '16px', backgroundColor: '#090909' }}>
+            <div style={{ ...compactMetricCardStyle }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PENDING</p>
               <strong style={{ color: '#8DDFF7', fontSize: '28px', fontWeight: '900' }}>{pendingGigs.length}</strong>
             </div>
-            <div style={{ ...glassStyle('admin-stat-approved'), padding: '16px', backgroundColor: '#090909' }}>
+            <div style={{ ...compactMetricCardStyle }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>FREE APPROVED</p>
               <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{approvedFreeGigs.length}</strong>
             </div>
-            <div style={{ ...glassStyle('admin-stat-waiting-payment'), padding: '16px', backgroundColor: '#090909' }}>
+            <div style={{ ...compactMetricCardStyle }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>WAIT PAYMENT</p>
               <strong style={{ color: '#ffcc00', fontSize: '28px', fontWeight: '900' }}>{exclusiveWaitingPaymentGigs.length}</strong>
             </div>
-            <div style={{ ...glassStyle('admin-stat-paid'), padding: '16px', backgroundColor: '#090909' }}>
+            <div style={{ ...compactMetricCardStyle }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PAID / ACTIVATE</p>
               <strong style={{ color: '#8DDFF7', fontSize: '28px', fontWeight: '900' }}>{exclusivePaidWaitingActivationGigs.length}</strong>
             </div>
-            <div style={{ ...glassStyle('admin-stat-rule'), padding: '16px', backgroundColor: '#090909' }}>
+            <div style={{ ...compactMetricCardStyle }}>
               <p style={{ color: '#666', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>EXCLUSIVE LIVE</p>
               <strong style={{ color: '#fff', fontSize: '28px', fontWeight: '900' }}>{approvedExclusiveGigs.length}</strong>
             </div>
           </div>
 
-          <nav style={{ ...glassStyle('admin-section-nav'), padding: '10px', backgroundColor: '#090909', display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20 }}>
+          <nav style={{ padding: '8px 0', backgroundColor: 'rgba(3,4,5,0.78)', display: 'flex', gap: '7px', flexWrap: 'wrap', marginBottom: '16px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20, borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
             {[
               ['payment', `PAYMENT ${waitingAdminPaymentRequests.length}`],
               ['finance', 'FINANCE'],
@@ -9490,7 +9508,7 @@ export default function App() {
           <form
             onSubmit={handleCheckoutSubmit}
             onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(720px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: '#070707', border: '1px solid rgba(141,223,247,0.24)', borderRadius: '14px', padding: isTinyLayout ? '16px' : '20px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(0,0,0,0.5)' }}
+            style={{ width: 'min(680px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: 'rgba(5,6,7,0.96)', border: '1.5px solid rgba(141,223,247,0.22)', borderRadius: '12px', padding: isTinyLayout ? '13px' : '16px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(0,0,0,0.46)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '16px' }}>
               <div>
@@ -9501,13 +9519,13 @@ export default function App() {
               <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: checkoutIsProcessing ? '#555' : '#fff', borderRadius: '12px', padding: '9px 11px', fontSize: '11px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin ? 'CLOSE' : 'CANCEL'}</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '13px' }}>
+              <div style={checkoutBlockStyle}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
                 <strong style={{ color: '#8DDFF7', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutSubtotal.toLocaleString('id-ID')}</strong>
                 <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Checkout dimulai sebagai pending payment. Data baru masuk Library, Orders, ledger, dan saldo band setelah payment berubah paid.</p>
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+              <div style={checkoutBlockStyle}>
                 <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>RINGKASAN AKSES</p>
                 <div style={{ display: 'grid', gap: '6px', color: '#aaa', fontSize: '12px' }}>
                   <span>Order ID: <strong style={{ color: '#8DDFF7' }}>{checkoutReference}</strong></span>
@@ -9528,7 +9546,7 @@ export default function App() {
                 const isGood = ['ready', 'paid', 'active'].includes(status);
                 const isWarn = ['waiting', 'upload proof'].includes(status);
                 return (
-                  <div key={number} style={{ padding: '9px', backgroundColor: '#000', border: `1px solid ${isGood ? 'rgba(142,230,166,0.2)' : isWarn ? 'rgba(255,204,0,0.22)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '9px' }}>
+                  <div key={number} style={{ padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${isGood ? 'rgba(142,230,166,0.35)' : isWarn ? 'rgba(255,204,0,0.32)' : flatLineColor}`, borderRadius: 0 }}>
                     <p style={{ color: isGood ? '#8EE6A6' : isWarn ? '#ffcc00' : '#777', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {number}</p>
                     <strong style={{ color: '#fff', fontSize: '11px', fontWeight: '900' }}>{label}</strong>
                     <p style={{ color: '#777', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{String(status).toUpperCase()}</p>
@@ -9537,7 +9555,7 @@ export default function App() {
               })}
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(141,223,247,0.18)', borderRadius: '12px', marginBottom: '14px' }}>
+            <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <div>
                   <p style={{ color: '#8DDFF7', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
@@ -9547,7 +9565,7 @@ export default function App() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                 {WISPACE_MANUAL_PAYMENT_CHANNELS.map((channel) => (
-                  <div key={channel.title} style={{ padding: '9px', backgroundColor: '#050505', border: '1px solid #111', borderRadius: '9px' }}>
+                  <div key={channel.title} style={{ padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0 }}>
                     <p style={{ color: '#fff', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{channel.title.toUpperCase()}</p>
                     <p style={{ color: '#aaa', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0' }}>{channel.detail}</p>
                     <p style={{ color: '#666', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{channel.note}</p>
@@ -9556,9 +9574,9 @@ export default function App() {
               </div>
             </div>
 
-            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '96px 1fr auto', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#000', border: checkoutDraft.paymentProofPreview ? '1px solid rgba(142,230,166,0.24)' : '1px dashed rgba(255,204,0,0.36)', borderRadius: '12px', marginBottom: '14px', cursor: checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
+            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '88px 1fr auto', gap: '10px', alignItems: 'center', padding: isTinyLayout ? '10px' : '11px', backgroundColor: 'transparent', border: checkoutDraft.paymentProofPreview ? '1.5px solid rgba(142,230,166,0.24)' : '1.5px dashed rgba(255,204,0,0.34)', borderRadius: '9px', marginBottom: '12px', cursor: checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePaymentProofImport} disabled={checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={{ display: 'none' }} />
-              <div style={{ width: isTinyLayout ? '100%' : '96px', aspectRatio: isTinyLayout ? '16/9' : '4/3', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#050505', border: '1px solid rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center' }}>
+              <div style={{ width: isTinyLayout ? '100%' : '88px', aspectRatio: isTinyLayout ? '16/9' : '4/3', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#050505', border: '1px solid rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center' }}>
                 {checkoutDraft.paymentProofPreview ? (
                   <img src={checkoutDraft.paymentProofPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
@@ -9573,7 +9591,7 @@ export default function App() {
             </label>
 
             {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
-              <div style={{ padding: '12px', backgroundColor: '#000', border: `1px solid ${checkoutIsPaid ? 'rgba(142,230,166,0.28)' : checkoutIsAwaitingAdmin ? 'rgba(141,223,247,0.28)' : 'rgba(255,51,51,0.28)'}`, borderRadius: '12px', marginBottom: '14px' }}>
+              <div style={{ padding: '10px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${checkoutIsPaid ? 'rgba(142,230,166,0.42)' : checkoutIsAwaitingAdmin ? 'rgba(141,223,247,0.42)' : 'rgba(255,51,51,0.42)'}`, borderRadius: 0, marginBottom: '12px' }}>
                 <p style={{ color: checkoutIsPaid ? '#8EE6A6' : checkoutIsAwaitingAdmin ? '#8DDFF7' : '#ff3333', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : checkoutIsAwaitingAdmin ? 'WAITING ADMIN CONFIRM' : 'CHECKOUT CANCELLED'}</p>
                 <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Pembayaran berhasil dan akses/order sudah aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Request pembayaran sudah masuk ke admin. Akses/order aktif setelah admin confirm paid.' : 'Checkout dibatalkan. Tidak ada transaksi, saldo, order, atau library yang dibuat.'}</p>
               </div>
@@ -9585,7 +9603,7 @@ export default function App() {
             </div>
 
             {activeCheckout.type === 'merch' && (
-              <div style={{ padding: '14px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', marginBottom: '14px' }}>
+              <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
                 <p style={{ color: '#8DDFF7', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>DATA PENGIRIMAN MERCH</p>
                 <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
@@ -9607,7 +9625,7 @@ export default function App() {
             )}
 
             {activeCheckout.type !== 'merch' && (
-              <div style={{ padding: '12px', backgroundColor: '#000', border: '1px solid rgba(141,223,247,0.18)', borderRadius: '12px', marginBottom: '14px' }}>
+              <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
                 <p style={{ color: '#aaa', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Setelah bayar, item masuk Library terenkripsi. File bisa diputar dari player WiSpace dan tidak untuk distribusi ulang.</p>
               </div>
             )}
