@@ -152,6 +152,7 @@ const isMissingColumnError = (error) => {
   const message = error?.message?.toLowerCase() || '';
   return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
 };
+const isDuplicateRowError = (error) => error?.code === '23505' || (error?.message || '').toLowerCase().includes('duplicate key');
 const BAND_PROFILE_STORAGE_PREFIX = 'wispace_band_profile';
 const BAND_AGREEMENT_STORAGE_PREFIX = 'wispace_band_agreement';
 const BAND_ARTICLES_STORAGE_PREFIX = 'wispace_band_articles';
@@ -737,6 +738,9 @@ const mapAudienceLibraryFromRows = (rows = []) => rows
           fileName: row.release_tracks.file_name || '',
           size: row.release_tracks.file_size || 0,
           url: row.release_tracks.audio_url || '',
+          audioPath: row.release_tracks.audio_path || '',
+          previewUrl: row.release_tracks.preview_audio_url || '',
+          previewPath: row.release_tracks.preview_audio_path || '',
           price: row.release_tracks.price || '',
           freeFull: Boolean(row.release_tracks.free_full)
         } : null);
@@ -3543,7 +3547,7 @@ export default function App() {
       access_type: 'encrypted_library',
       redistribution_allowed: false
     }]).then(({ error }) => {
-      if (error && !isMissingColumnError(error)) {
+      if (error && !isMissingColumnError(error) && !isDuplicateRowError(error)) {
         console.warn('Gagal sync library audience ke Supabase:', error.message);
       }
     });

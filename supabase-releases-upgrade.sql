@@ -46,6 +46,12 @@ add column if not exists preview_audio_url text;
 alter table public.release_tracks
 add column if not exists preview_audio_path text;
 
+alter table public.releases
+add column if not exists is_active boolean not null default true;
+
+alter table public.release_tracks
+add column if not exists is_active boolean not null default true;
+
 create table if not exists public.audience_library (
   id uuid primary key default gen_random_uuid(),
   audience_user_id uuid not null references auth.users(id) on delete cascade,
@@ -152,6 +158,31 @@ drop policy if exists "Audience can insert own library item" on public.audience_
 create policy "Audience can insert own library item"
 on public.audience_library for insert
 with check (auth.uid() = audience_user_id);
+
+do $$
+begin
+  if to_regclass('public.admin_users') is not null then
+    execute $policy$
+      drop policy if exists "Admins can manage audience library" on public.audience_library
+    $policy$;
+    execute $policy$
+      create policy "Admins can manage audience library"
+      on public.audience_library for all
+      using (
+        exists (
+          select 1 from public.admin_users
+          where admin_users.user_id = auth.uid()
+        )
+      )
+      with check (
+        exists (
+          select 1 from public.admin_users
+          where admin_users.user_id = auth.uid()
+        )
+      )
+    $policy$;
+  end if;
+end $$;
 
 insert into storage.buckets (id, name, public)
 values
