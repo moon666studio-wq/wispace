@@ -139,6 +139,8 @@ const MERCH_ORDER_FLOW_STEPS = [
   { id: 'ship', label: 'KIRIM', statuses: ['ready_to_ship', 'shipped', 'completed'] },
   { id: 'done', label: 'SELESAI', statuses: ['completed'] }
 ];
+const STOCK_RESTORE_ORDER_STATUSES = ['cancelled', 'refunded'];
+const FINALIZED_ORDER_STATUSES = ['completed', 'cancelled', 'refunded'];
 const getConsignmentStatusLabel = (status = 'waiting_stock_handover') => ({
   waiting_stock_handover: 'MENUNGGU STOK KE ADMIN',
   stock_received: 'STOK SUDAH DI ADMIN',
@@ -4244,6 +4246,93 @@ export default function App() {
     });
   };
 
+  const updateMerchTransactionResolutionLocal = (transactionId, nextStatus) => {
+    if (!transactionId) return;
+
+    setSaleTransactions((current) => {
+      const nextTransactions = current.map((transaction) => {
+        if (String(transaction.id) !== String(transactionId)) return transaction;
+        const isRefunded = nextStatus === 'refunded';
+        const isCancelled = nextStatus === 'cancelled';
+        if (!isRefunded && !isCancelled) return { ...transaction, fulfillmentStatus: nextStatus };
+        return {
+          ...transaction,
+          fulfillmentStatus: nextStatus,
+          status: isRefunded ? 'refunded' : 'cancelled',
+          paymentStatus: isRefunded ? 'refunded' : 'cancelled',
+          payoutStatus: isRefunded ? 'refunded' : 'cancelled'
+        };
+      });
+      saveTransactionLedger(nextTransactions);
+      return nextTransactions;
+    });
+  };
+
+  const restoreMerchStockForOrder = (order) => {
+    if (!order?.merchItemId) return false;
+
+    let restoredFromPublic = false;
+    const restoreItemStock = (merch) => {
+      if (String(merch.id) !== String(order.merchItemId)) return merch;
+      restoredFromPublic = true;
+      return {
+        ...merch,
+        stock: normalizePriceValue(merch.stock) + 1,
+        adminStockOnHand: merch.fulfillmentMode === 'admin_consignment'
+          ? normalizePriceValue(merch.adminStockOnHand) + 1
+          : merch.adminStockOnHand
+      };
+    };
+
+    setPublicMerchItems((current) => {
+      const nextItems = current.map(restoreItemStock);
+      savePublicMerchRegistry(nextItems);
+      return nextItems;
+    });
+
+    setMerchItems((current) => {
+      let restoredLocally = false;
+      const nextItems = current.map((merch) => {
+        if (String(merch.id) !== String(order.merchItemId)) return merch;
+        restoredLocally = true;
+        return {
+          ...merch,
+          stock: normalizePriceValue(merch.stock) + 1,
+          adminStockOnHand: merch.fulfillmentMode === 'admin_consignment'
+            ? normalizePriceValue(merch.adminStockOnHand) + 1
+            : merch.adminStockOnHand
+        };
+      });
+      if (restoredLocally) persistBandMerchLocal(nextItems);
+      return nextItems;
+    });
+
+    const publicItem = publicMerchList.find((item) => String(item.id) === String(order.merchItemId));
+    if (isSupabaseConfigured && publicItem?.id) {
+      const restoredStock = normalizePriceValue(publicItem.stock) + 1;
+      const restoredAdminStock = publicItem.fulfillmentMode === 'admin_consignment'
+        ? normalizePriceValue(publicItem.adminStockOnHand) + 1
+        : normalizePriceValue(publicItem.adminStockOnHand || 0);
+      const stockUpdateRow = {
+        stock: restoredStock,
+        admin_stock_on_hand: restoredAdminStock,
+        updated_at: new Date().toISOString()
+      };
+      void supabase.from('merch_items').update(stockUpdateRow).eq('id', publicItem.id).then(async ({ error }) => {
+        if (error && isMissingColumnError(error)) {
+          const legacyStockUpdateRow = { ...stockUpdateRow };
+          delete legacyStockUpdateRow.admin_stock_on_hand;
+          const { error: legacyError } = await supabase.from('merch_items').update(legacyStockUpdateRow).eq('id', publicItem.id);
+          if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal restore stok merch:', legacyError.message);
+          return;
+        }
+        if (error) console.warn('Gagal restore stok merch:', error.message);
+      });
+    }
+
+    return restoredFromPublic;
+  };
+
   const syncMerchOrderUpdate = (order, updatePayload) => {
     if (!isSupabaseConfigured || !userSession?.id) return;
 
@@ -4262,9 +4351,17 @@ export default function App() {
       });
 
     if (order.transactionId) {
+      const nextTrackingStatus = updatePayload.trackingStatus || order.trackingStatus;
+      const transactionUpdateRow = {
+        fulfillment_status: nextTrackingStatus
+      };
+      if (STOCK_RESTORE_ORDER_STATUSES.includes(nextTrackingStatus)) {
+        transactionUpdateRow.status = nextTrackingStatus === 'refunded' ? 'refunded' : 'cancelled';
+        transactionUpdateRow.payout_status = nextTrackingStatus === 'refunded' ? 'refunded' : 'cancelled';
+      }
       void supabase
         .from('sales_transactions')
-        .update({ fulfillment_status: updatePayload.trackingStatus || order.trackingStatus })
+        .update(transactionUpdateRow)
         .eq('id', order.transactionId)
         .then(({ error }) => {
           if (error && !isMissingColumnError(error)) {
@@ -4275,6 +4372,16 @@ export default function App() {
   };
 
   const handleMerchOrderStatusUpdate = (order, nextStatus) => {
+    if (!order) return;
+    if (order.trackingStatus === nextStatus) return;
+    if (['cancelled', 'refunded'].includes(order.trackingStatus)) {
+      alert('Order ini sudah final cancelled/refunded bro. Status tidak diubah lagi biar stok dan ledger nggak dobel.');
+      return;
+    }
+    if (order.trackingStatus === 'completed' && !['refund_requested', 'refunded'].includes(nextStatus)) {
+      alert('Order ini sudah selesai. Kalau ada masalah setelah selesai, pakai review refund dulu bro.');
+      return;
+    }
     if (['cancelled', 'refund_requested', 'refunded'].includes(nextStatus)) {
       const confirmMessage = nextStatus === 'cancelled'
         ? 'Cancel order ini bro? Pastikan admin/band sudah komunikasi dengan buyer.'
@@ -4283,9 +4390,30 @@ export default function App() {
           : 'Tandai order ini sudah refunded bro?';
       if (!window.confirm(confirmMessage)) return;
     }
-    const updatePayload = { trackingStatus: nextStatus };
+    const shouldRestoreStock = STOCK_RESTORE_ORDER_STATUSES.includes(nextStatus);
+    const needsStockRestore = shouldRestoreStock && !order.stockRestored;
+    const stockWasRestored = needsStockRestore ? restoreMerchStockForOrder(order) : Boolean(order.stockRestored);
+    if (needsStockRestore && !stockWasRestored) {
+      alert('Status order tetap diupdate, tapi item merch tidak ketemu untuk restore stok. Cek data merch manual ya bro.');
+    }
+    const resolutionTimestamp = new Date().toISOString();
+    const updatePayload = {
+      trackingStatus: nextStatus,
+      ...(shouldRestoreStock ? {
+        stockRestored: stockWasRestored,
+        stockRestoredAt: order.stockRestoredAt || (stockWasRestored ? resolutionTimestamp : ''),
+        resolvedAt: resolutionTimestamp
+      } : {}),
+      ...(nextStatus === 'cancelled' ? { cancelledAt: resolutionTimestamp } : {}),
+      ...(nextStatus === 'refunded' ? { refundedAt: resolutionTimestamp } : {}),
+      ...(nextStatus === 'refund_requested' ? { refundRequestedAt: resolutionTimestamp } : {})
+    };
     updateMerchOrderLocal(order.id, updatePayload);
-    updateMerchTransactionFulfillmentLocal(order.transactionId, nextStatus);
+    if (shouldRestoreStock) {
+      updateMerchTransactionResolutionLocal(order.transactionId, nextStatus);
+    } else {
+      updateMerchTransactionFulfillmentLocal(order.transactionId, nextStatus);
+    }
     syncMerchOrderUpdate(order, updatePayload);
   };
 
@@ -5310,7 +5438,7 @@ export default function App() {
   const audienceMerchOrders = merchOrders.filter((order) => (
     order.buyerUserId === userSession?.id || (userSession?.email && order.buyerEmail === userSession.email)
   ));
-  const activeAudienceOrders = audienceMerchOrders.filter((order) => !['completed', 'cancelled', 'refunded'].includes(order.trackingStatus));
+  const activeAudienceOrders = audienceMerchOrders.filter((order) => !FINALIZED_ORDER_STATUSES.includes(order.trackingStatus));
   const audiencePaymentRequests = pendingPayments.filter((payment) => (
     payment.buyerUserId === userSession?.id || (userSession?.email && payment.buyerEmail === userSession.email)
   ));
@@ -9764,7 +9892,8 @@ export default function App() {
                     ['BUYER', `${selectedMerchOrderDetail.buyerName || '-'} / ${selectedMerchOrderDetail.buyerEmail || '-'}`],
                     ['SELLER', selectedMerchOrderDetail.sellerBandName || 'Band WiSpace'],
                     ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
-                    ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi']
+                    ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi'],
+                    ['STOCK RESTORE', selectedMerchOrderDetail.stockRestored ? `SUDAH / ${selectedMerchOrderDetail.stockRestoredAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedMerchOrderDetail.stockRestoredAt)) : 'LOCAL'}` : 'BELUM / TIDAK PERLU']
                   ].map(([label, value]) => (
                     <div key={label} style={{ padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
                       <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
@@ -9796,6 +9925,7 @@ export default function App() {
                     {isAdminUnlocked && (
                       <>
                         <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refund_requested')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REVIEW REFUND</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refunded')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK REFUNDED</button>
                         <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'cancelled')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CANCEL ORDER</button>
                       </>
                     )}
