@@ -111,23 +111,32 @@ const getMerchOrderStatusLabel = (status = 'order_paid_waiting_band') => ({
   order_paid_waiting_admin: 'PAID - WAIT ADMIN',
   processing: 'DIPROSES BAND',
   processing_admin: 'DIPROSES WISPACE',
+  packing: 'PACKING',
+  ready_to_ship: 'SIAP KIRIM',
   shipped: 'DIKIRIM',
   completed: 'SELESAI',
-  cancelled: 'DIBATALKAN'
+  cancelled: 'DIBATALKAN',
+  refund_requested: 'REFUND REVIEW',
+  refunded: 'REFUNDED'
 }[status] || status.replaceAll('_', ' ').toUpperCase());
 const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
   order_paid_waiting_band: 'rgba(242,242,242,0.62)',
   order_paid_waiting_admin: 'rgba(242,242,242,0.62)',
   processing: '#5CB8E4',
   processing_admin: '#5CB8E4',
+  packing: '#5CB8E4',
+  ready_to_ship: '#5CB8E4',
   shipped: 'rgba(242,242,242,0.62)',
   completed: 'rgba(242,242,242,0.62)',
-  cancelled: '#8758FF'
+  cancelled: '#8758FF',
+  refund_requested: '#8758FF',
+  refunded: '#8758FF'
 }[status] || 'rgba(242,242,242,0.62)');
 const MERCH_ORDER_FLOW_STEPS = [
-  { id: 'paid', label: 'PAID', statuses: ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'shipped', 'completed'] },
-  { id: 'process', label: 'PROSES', statuses: ['processing', 'processing_admin', 'shipped', 'completed'] },
-  { id: 'ship', label: 'KIRIM', statuses: ['shipped', 'completed'] },
+  { id: 'paid', label: 'PAID', statuses: ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
+  { id: 'process', label: 'PROSES', statuses: ['processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
+  { id: 'pack', label: 'PACKING', statuses: ['packing', 'ready_to_ship', 'shipped', 'completed'] },
+  { id: 'ship', label: 'KIRIM', statuses: ['ready_to_ship', 'shipped', 'completed'] },
   { id: 'done', label: 'SELESAI', statuses: ['completed'] }
 ];
 const getConsignmentStatusLabel = (status = 'waiting_stock_handover') => ({
@@ -1124,6 +1133,7 @@ export default function App() {
   const [adminAuthLoading, setAdminAuthLoading] = useState(false);
   const [adminError, setAdminError] = useState('');
   const [adminFinanceFilter, setAdminFinanceFilter] = useState('all');
+  const [adminFinanceMonth, setAdminFinanceMonth] = useState('all');
   const [adminActiveSection, setAdminActiveSection] = useState('payment');
 
   // STATE USER & ROLE MANAGEMENT
@@ -1154,6 +1164,7 @@ export default function App() {
   const [selectedPaymentDetail, setSelectedPaymentDetail] = useState(null);
   const [selectedPaymentProofPreview, setSelectedPaymentProofPreview] = useState(null);
   const [selectedMerchDetail, setSelectedMerchDetail] = useState(null);
+  const [selectedMerchOrderDetail, setSelectedMerchOrderDetail] = useState(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
   const [newDate, setNewDate] = useState('');
@@ -4216,6 +4227,9 @@ export default function App() {
       saveMerchOrders(nextOrders);
       return nextOrders;
     });
+    setSelectedMerchOrderDetail((current) => (
+      current && String(current.id) === String(orderId) ? { ...current, ...updatePayload } : current
+    ));
   };
 
   const updateMerchTransactionFulfillmentLocal = (transactionId, fulfillmentStatus) => {
@@ -4261,6 +4275,14 @@ export default function App() {
   };
 
   const handleMerchOrderStatusUpdate = (order, nextStatus) => {
+    if (['cancelled', 'refund_requested', 'refunded'].includes(nextStatus)) {
+      const confirmMessage = nextStatus === 'cancelled'
+        ? 'Cancel order ini bro? Pastikan admin/band sudah komunikasi dengan buyer.'
+        : nextStatus === 'refund_requested'
+          ? 'Tandai order ini butuh review refund bro?'
+          : 'Tandai order ini sudah refunded bro?';
+      if (!window.confirm(confirmMessage)) return;
+    }
     const updatePayload = { trackingStatus: nextStatus };
     updateMerchOrderLocal(order.id, updatePayload);
     updateMerchTransactionFulfillmentLocal(order.transactionId, nextStatus);
@@ -5288,13 +5310,13 @@ export default function App() {
   const audienceMerchOrders = merchOrders.filter((order) => (
     order.buyerUserId === userSession?.id || (userSession?.email && order.buyerEmail === userSession.email)
   ));
-  const activeAudienceOrders = audienceMerchOrders.filter((order) => !['completed', 'cancelled'].includes(order.trackingStatus));
+  const activeAudienceOrders = audienceMerchOrders.filter((order) => !['completed', 'cancelled', 'refunded'].includes(order.trackingStatus));
   const audiencePaymentRequests = pendingPayments.filter((payment) => (
     payment.buyerUserId === userSession?.id || (userSession?.email && payment.buyerEmail === userSession.email)
   ));
   const activeAudiencePaymentRequests = audiencePaymentRequests.filter((payment) => payment.status === 'waiting_admin_confirmation');
   const adminBandPayoutTotal = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
-  const activeMerchFulfillmentStatuses = ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin'];
+  const activeMerchFulfillmentStatuses = ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'refund_requested'];
   const adminActiveMerchOrderList = merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus));
   const adminWaitingMerchOrders = adminActiveMerchOrderList.length;
   const adminConsignmentOrderQueue = adminActiveMerchOrderList.filter((order) => order.fulfillmentMode === 'admin_consignment');
@@ -5634,13 +5656,31 @@ export default function App() {
     { id: 'poster', label: 'PAMFLET', count: adminExclusivePosterPaidCount },
     { id: 'payout', label: 'PAYOUT', count: adminPayoutReadyBands.length }
   ];
+  const getFinanceMonthKey = (transaction = {}) => {
+    const rawDate = transaction.paidAt || transaction.createdAt || '';
+    const parsedDate = rawDate ? new Date(rawDate) : null;
+    if (!parsedDate || Number.isNaN(parsedDate.getTime())) return 'unknown';
+    return `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
+  };
+  const adminFinanceMonthOptions = Array.from(new Set(saleTransactions.map(getFinanceMonthKey)))
+    .filter((key) => key !== 'unknown')
+    .sort((first, second) => second.localeCompare(first));
+  const formatFinanceMonthLabel = (monthKey = '') => {
+    if (monthKey === 'all') return 'SEMUA BULAN';
+    const [year, month] = monthKey.split('-').map(Number);
+    if (!year || !month) return 'TANGGAL LAMA';
+    return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1)).toUpperCase();
+  };
   const adminFilteredTransactions = saleTransactions.filter((transaction) => {
     if (adminFinanceFilter === 'digital') return ['album', 'track'].includes(transaction.productType);
     if (adminFinanceFilter === 'merch') return transaction.productType === 'merch';
     if (adminFinanceFilter === 'poster') return transaction.productType === 'exclusive_poster';
     if (adminFinanceFilter === 'payout') return Number(transaction.bandNet || 0) > 0;
     return true;
-  });
+  }).filter((transaction) => adminFinanceMonth === 'all' || getFinanceMonthKey(transaction) === adminFinanceMonth);
+  const adminFilteredGrossTotal = adminFilteredTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
+  const adminFilteredFeeTotal = adminFilteredTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || 0), 0);
+  const adminFilteredBandNetTotal = adminFilteredTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const openContentReports = contentReports.filter((report) => report.status !== 'resolved');
   const recentArticleComments = Object.entries(articleComments)
     .flatMap(([articleId, comments]) => (comments || []).map((comment) => ({
@@ -7030,12 +7070,18 @@ export default function App() {
                       {renderMerchOrderStepper(order.trackingStatus)}
                       {order.fulfillmentMode === 'admin_consignment' ? (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                          <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing_admin')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES ADMIN</button>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PACKING</button>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'ready_to_ship')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>READY</button>
                           <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.24)', color: 'rgba(242,242,242,0.62)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
                         </div>
                       ) : (
-                        <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '8px 0 0 0' }}>Order ini dikirim oleh band. Admin cukup pantau status dan bisa follow up via message kalau macet.</p>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px', alignItems: 'center' }}>
+                          <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                          <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>Band ship. Admin pantau/follow up via message kalau macet.</p>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -7482,6 +7528,24 @@ export default function App() {
                 >
                   {filter.label} / {filter.count}
                 </button>
+              ))}
+              <select value={adminFinanceMonth} onChange={(event) => setAdminFinanceMonth(event.target.value)} style={{ ...formInputStyle, width: 'fit-content', minWidth: '150px', height: '31px', padding: '7px 9px', fontSize: '9px', borderRadius: '9999px' }}>
+                <option value="all">SEMUA BULAN</option>
+                {adminFinanceMonthOptions.map((monthKey) => (
+                  <option key={monthKey} value={monthKey}>{formatFinanceMonthLabel(monthKey)}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '7px', marginBottom: '12px' }}>
+              {[
+                ['FILTERED GROSS', adminFilteredGrossTotal],
+                ['FILTERED FEE', adminFilteredFeeTotal],
+                ['FILTERED BAND', adminFilteredBandNetTotal]
+              ].map(([label, amount]) => (
+                <div key={label} style={{ padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                  <strong style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
+                </div>
               ))}
             </div>
             {adminFilteredTransactions.length === 0 ? (
@@ -8880,7 +8944,10 @@ export default function App() {
                         <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#F2F2F2' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
                         <p style={{ color: order.trackingNumber ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
                       </div>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                        <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -9144,7 +9211,9 @@ export default function App() {
                           <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
                         ) : (
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
                             <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.24)', color: order.trackingStatus === 'processing' ? '#8758FF' : '#5CB8E4', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
+                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} disabled={order.trackingStatus === 'packing'} style={{ background: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.24)', color: order.trackingStatus === 'packing' ? '#8758FF' : '#5CB8E4', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'packing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PACKING</button>
                             <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.24)', color: 'rgba(242,242,242,0.62)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
                             <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} disabled={order.trackingStatus === 'completed'} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: order.trackingStatus === 'completed' ? '#8758FF' : '#F2F2F2', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'completed' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
                           </div>
@@ -9666,6 +9735,78 @@ export default function App() {
             )}
           </div>
         </section>
+      )}
+
+      {selectedMerchOrderDetail && !loading && (
+        <div onClick={() => setSelectedMerchOrderDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: 'rgba(24,24,24,0.88)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}>
+          <div onClick={(event) => event.stopPropagation()} style={{ width: 'min(760px, 96vw)', maxHeight: '90vh', overflowY: 'auto', backgroundColor: 'rgba(24,24,24,0.98)', border: '1.5px solid rgba(92,184,228,0.2)', borderRadius: '12px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', boxShadow: '0 24px 60px rgba(0,0,0,0.42)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px' }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>MERCH ORDER DETAIL</p>
+                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '20px' : '26px', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 1.02, overflowWrap: 'anywhere' }}>{String(selectedMerchOrderDetail.itemName || 'Merch WiSpace').toUpperCase()}</h3>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedMerchOrderDetail.orderId || selectedMerchOrderDetail.transactionId || selectedMerchOrderDetail.id} / {selectedMerchOrderDetail.createdAt || '-'}</p>
+              </div>
+              <button type="button" onClick={() => setSelectedMerchOrderDetail(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.15fr 0.85fr', gap: '12px', alignItems: 'start' }}>
+              <section style={{ display: 'grid', gap: '10px' }}>
+                <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                    <strong style={{ color: getMerchOrderStatusColor(selectedMerchOrderDetail.trackingStatus), fontSize: '11px', fontWeight: '900' }}>{getMerchOrderStatusLabel(selectedMerchOrderDetail.trackingStatus)}</strong>
+                    <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>{selectedMerchOrderDetail.fulfillmentMode === 'admin_consignment' ? 'DIKIRIM WISPACE' : 'DIKIRIM BAND'}</span>
+                  </div>
+                  {renderMerchOrderStepper(selectedMerchOrderDetail.trackingStatus)}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '9px' }}>
+                  {[
+                    ['BUYER', `${selectedMerchOrderDetail.buyerName || '-'} / ${selectedMerchOrderDetail.buyerEmail || '-'}`],
+                    ['SELLER', selectedMerchOrderDetail.sellerBandName || 'Band WiSpace'],
+                    ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
+                    ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi']
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                      <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
+                      <strong style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', lineHeight: 1.35, overflowWrap: 'anywhere' }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                  <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>ALAMAT PENERIMA</p>
+                  <p style={{ color: 'rgba(242,242,242,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{selectedMerchOrderDetail.recipientName || '-'} / {selectedMerchOrderDetail.recipientPhone || '-'}<br />{selectedMerchOrderDetail.address || '-'}, {selectedMerchOrderDetail.city || '-'} {selectedMerchOrderDetail.postalCode || ''}</p>
+                  {selectedMerchOrderDetail.note && <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Catatan: {selectedMerchOrderDetail.note}</p>}
+                </div>
+              </section>
+
+              <aside style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>ORDER ACTIONS</p>
+                {(isAdminUnlocked || String(selectedMerchOrderDetail.sellerBandUserId || '') === String(userSession?.id || '')) ? (
+                  <div style={{ display: 'grid', gap: '7px' }}>
+                    {[
+                      [selectedMerchOrderDetail.fulfillmentMode === 'admin_consignment' ? 'processing_admin' : 'processing', selectedMerchOrderDetail.fulfillmentMode === 'admin_consignment' ? 'PROSES WISPACE' : 'PROSES BAND'],
+                      ['packing', 'PACKING'],
+                      ['ready_to_ship', 'READY TO SHIP']
+                    ].map(([status, label]) => (
+                      <button key={status} type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, status)} disabled={selectedMerchOrderDetail.trackingStatus === status} style={{ ...glassButtonStyle, padding: '9px 10px', fontSize: '10px', borderRadius: '9px', opacity: selectedMerchOrderDetail.trackingStatus === status ? 0.55 : 1 }}>{label}</button>
+                    ))}
+                    <button type="button" onClick={() => handleMerchTrackingNumberUpdate(selectedMerchOrderDetail)} style={{ background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.24)', color: 'rgba(242,242,242,0.72)', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>INPUT / UPDATE RESI</button>
+                    <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'completed')} disabled={selectedMerchOrderDetail.trackingStatus === 'completed'} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: selectedMerchOrderDetail.trackingStatus === 'completed' ? 'default' : 'pointer', opacity: selectedMerchOrderDetail.trackingStatus === 'completed' ? 0.55 : 1, fontFamily: FONT_STACK }}>SELESAI</button>
+                    {isAdminUnlocked && (
+                      <>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refund_requested')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REVIEW REFUND</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'cancelled')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CANCEL ORDER</button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Detail order ini read-only buat buyer. Update status dilakukan oleh band atau admin WiSpace.</p>
+                )}
+              </aside>
+            </div>
+          </div>
+        </div>
       )}
 
       {selectedMerchDetail && !loading && (
