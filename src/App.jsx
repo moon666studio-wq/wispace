@@ -252,6 +252,7 @@ const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 const PUBLIC_ASSET_BUCKET = 'band-assets';
 const PUBLIC_PREVIEW_BUCKET = 'release-previews';
 const PRIVATE_AUDIO_BUCKET = 'release-audio';
+const AUTO_PREVIEW_SECONDS = 30;
 
 const createClientId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -929,6 +930,80 @@ const uploadPublicAsset = async (file, folder, user) => {
 const isSupportedAudioFile = (file) => (
   file?.type === 'audio/mpeg' || /\.mp3$/i.test(file?.name || '')
 );
+
+const createPreviewFileName = (name = 'track.mp3') => {
+  const baseName = name.replace(/\.[^.]+$/i, '').trim() || 'track';
+  return `${createStorageSafeName(baseName)}-wispace-30s-preview.wav`;
+};
+
+const writeWavString = (view, offset, value) => {
+  for (let index = 0; index < value.length; index += 1) {
+    view.setUint8(offset + index, value.charCodeAt(index));
+  }
+};
+
+const createThirtySecondWavBlob = (audioBuffer) => {
+  const sampleRate = audioBuffer.sampleRate;
+  const sampleCount = Math.max(1, Math.min(audioBuffer.length, Math.floor(sampleRate * AUTO_PREVIEW_SECONDS)));
+  const channelCount = audioBuffer.numberOfChannels || 1;
+  const bytesPerSample = 2;
+  const dataSize = sampleCount * bytesPerSample;
+  const wavBuffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(wavBuffer);
+
+  writeWavString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeWavString(view, 8, 'WAVE');
+  writeWavString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * bytesPerSample, true);
+  view.setUint16(32, bytesPerSample, true);
+  view.setUint16(34, 8 * bytesPerSample, true);
+  writeWavString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  let outputOffset = 44;
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    let mixedSample = 0;
+    for (let channelIndex = 0; channelIndex < channelCount; channelIndex += 1) {
+      mixedSample += audioBuffer.getChannelData(channelIndex)[sampleIndex] || 0;
+    }
+    const clampedSample = Math.max(-1, Math.min(1, mixedSample / channelCount));
+    view.setInt16(outputOffset, clampedSample < 0 ? clampedSample * 0x8000 : clampedSample * 0x7fff, true);
+    outputOffset += bytesPerSample;
+  }
+
+  return new Blob([view], { type: 'audio/wav' });
+};
+
+const generateThirtySecondPreviewFile = async (file) => {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    throw new Error('Browser ini belum mendukung auto preview audio.');
+  }
+
+  const audioContext = new AudioContextClass();
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    const previewBlob = createThirtySecondWavBlob(audioBuffer);
+    return new File([previewBlob], createPreviewFileName(file.name), { type: 'audio/wav' });
+  } finally {
+    if (audioContext.close) {
+      await audioContext.close().catch(() => {});
+    }
+  }
+};
+
+const getTrackPreviewStatusLabel = (file = {}) => {
+  if (file.previewStatus === 'auto_failed') return 'AUTO FAILED';
+  if (file.previewUrl && file.previewStatus?.startsWith('auto_')) return 'AUTO PREVIEW';
+  if (file.previewUrl) return 'PREVIEW READY';
+  return 'NO PREVIEW';
+};
 
 const uploadPrivateAudio = async (file, folder, user) => {
   const localUrl = URL.createObjectURL(file);
@@ -2768,6 +2843,31 @@ export default function App() {
     try {
       const uploadedFiles = await Promise.all(files.map(async (file) => {
         const uploadResult = await uploadPrivateAudio(file, 'releases/audio', userSession);
+        let previewResult = {
+          previewName: '',
+          previewUrl: '',
+          previewPath: '',
+          previewStatus: 'auto_failed',
+          previewError: ''
+        };
+
+        try {
+          const previewFile = await generateThirtySecondPreviewFile(file);
+          const previewUploadResult = await uploadPublicPreviewAudio(previewFile, 'releases/previews', userSession);
+          previewResult = {
+            previewName: previewFile.name,
+            previewUrl: previewUploadResult.previewUrl,
+            previewPath: previewUploadResult.previewPath,
+            previewStatus: previewUploadResult.stored ? 'auto_stored' : previewUploadResult.error ? 'auto_fallback' : 'auto_local',
+            previewError: previewUploadResult.error?.message || ''
+          };
+        } catch (previewError) {
+          previewResult = {
+            ...previewResult,
+            previewError: previewError?.message || 'Auto preview gagal dibuat.'
+          };
+        }
+
         return {
           name: file.name,
           size: file.size,
@@ -2775,6 +2875,7 @@ export default function App() {
           audioPath: uploadResult.audioPath,
           storageStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local',
           storageError: uploadResult.error?.message || '',
+          ...previewResult,
           price: ''
         };
       }));
@@ -2782,6 +2883,7 @@ export default function App() {
       setAlbumDraft((current) => {
         current.audioFiles.forEach((file) => {
           if (file.url?.startsWith('blob:')) URL.revokeObjectURL(file.url);
+          if (file.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(file.previewUrl);
         });
         return {
           ...current,
@@ -2792,10 +2894,15 @@ export default function App() {
 
       const failedUploads = uploadedFiles.filter((file) => file.storageStatus === 'fallback');
       if (failedUploads.length) {
-        alert(`${failedUploads.length} audio belum masuk Storage, preview lokal dipakai dulu. Cek policy bucket release-audio di Supabase.`);
+        alert(`${failedUploads.length} master audio belum masuk Storage, file lokal dipakai dulu. Cek policy bucket release-audio di Supabase.`);
+      }
+      const failedPreviews = uploadedFiles.filter((file) => ['auto_fallback', 'auto_failed'].includes(file.previewStatus));
+      if (failedPreviews.length) {
+        alert(`${failedPreviews.length} preview otomatis belum tersimpan permanen. Kalau auto preview gagal, upload preview manual 30 detik masih bisa dipakai sebagai cadangan.`);
       }
     } catch (error) {
       alert(`Gagal import audio: ${error.message}`);
+    } finally {
       clearFileInput(event);
     }
   };
@@ -2830,7 +2937,7 @@ export default function App() {
             previewName: file.name,
             previewUrl: uploadResult.previewUrl,
             previewPath: uploadResult.previewPath,
-            previewStatus: uploadResult.stored ? 'stored' : uploadResult.error ? 'fallback' : 'local',
+            previewStatus: uploadResult.stored ? 'manual_stored' : uploadResult.error ? 'manual_fallback' : 'manual_local',
             previewError: uploadResult.error?.message || ''
           };
         })
@@ -2838,6 +2945,7 @@ export default function App() {
       if (uploadResult.error) alert(`Preview belum masuk Storage, preview lokal dipakai dulu: ${uploadResult.error.message}`);
     } catch (error) {
       alert(`Gagal import preview track: ${error.message}`);
+    } finally {
       clearFileInput(event);
     }
   };
@@ -3208,7 +3316,7 @@ export default function App() {
       String(index) !== String(albumDraft.freeTrackIndex) && !file.previewUrl
     ));
     if (paidTracksWithoutPreview.length) {
-      const shouldContinue = window.confirm(`${paidTracksWithoutPreview.length} track berbayar belum punya file preview 30 detik. Publish tetap lanjut? Preview publik bisa tidak tersedia setelah refresh sampai preview clip diupload.`);
+      const shouldContinue = window.confirm(`${paidTracksWithoutPreview.length} track berbayar belum punya preview otomatis 30 detik. Publish tetap lanjut? Preview publik bisa tidak tersedia setelah refresh sampai preview berhasil dibuat atau diupload manual.`);
       if (!shouldContinue) return;
     }
 
@@ -3275,7 +3383,7 @@ export default function App() {
       accepted: false
     });
     setBandProfileTab('album');
-    alert('Album masuk draft rilisan dan sudah muncul di Explore. Master audio private untuk buyer; preview publik memakai file preview 30 detik kalau tersedia.');
+    alert('Album masuk draft rilisan dan sudah muncul di Explore. Master audio private untuk buyer; preview publik otomatis 30 detik kalau tersedia.');
   };
 
   const handleDeleteAlbum = (album) => {
@@ -9054,7 +9162,7 @@ export default function App() {
                     <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '9px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
                       <input type="file" accept="audio/mpeg,.mp3" multiple onChange={handleAlbumAudioImport} style={{ display: 'none' }} />
                       <span style={{ color: '#78B8C8', fontSize: '12px', fontWeight: '900' }}>IMPORT MP3</span>
-                      <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload` : 'Pilih track MP3 album. Simpan WAV/master di arsip band.'}</p>
+                      <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload + auto preview` : 'Pilih track MP3 album. WiSpace otomatis bikin preview 30 detik.'}</p>
                     </label>
                   </div>
 
@@ -9062,7 +9170,7 @@ export default function App() {
                     <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
                       <p style={{ color: hasFreeFullBandTrack ? '#4A5960' : '#78B8C8', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
-                        {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru bisa punya preview 30 detik terpisah.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain bisa diberi file preview 30 detik terpisah.'}
+                        {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru otomatis dibuatkan preview 30 detik.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain otomatis dibuatkan preview 30 detik.'}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '8px', marginBottom: '12px' }}>
                         {[
@@ -9094,12 +9202,12 @@ export default function App() {
                               <small style={{ color: file.storageStatus === 'stored' ? '#8B969A' : file.storageStatus === 'fallback' ? '#8B969A' : '#8B969A', fontWeight: '900' }}>
                                 {file.storageStatus === 'stored' ? 'PRIVATE MASTER' : file.storageStatus === 'fallback' ? 'MASTER FALLBACK' : 'LOCAL MASTER'}
                               </small>
-                              <small style={{ color: file.previewUrl ? '#8B969A' : '#8B969A', fontWeight: '900' }}>{file.previewUrl ? 'PREVIEW READY' : 'NO PREVIEW'}</small>
+                              <small style={{ color: file.previewStatus === 'auto_failed' ? '#78B8C8' : '#8B969A', fontWeight: '900' }}>{getTrackPreviewStatusLabel(file)}</small>
                             </div>
                           </div>
                           <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', minHeight: '34px', padding: '0 10px', border: `1px solid ${file.previewUrl ? 'rgba(139,150,154,0.25)' : 'rgba(120,184,200,0.25)'}`, borderRadius: '10px', backgroundColor: file.previewUrl ? 'rgba(139,150,154,0.06)' : 'rgba(120,184,200,0.06)', color: file.previewUrl ? '#8B969A' : '#78B8C8', fontSize: '10px', fontWeight: '900', cursor: 'pointer', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
                               <input type="file" accept="audio/mpeg,.mp3" onChange={(event) => handleTrackPreviewImport(index, event)} style={{ display: 'none' }} />
-                              {file.previewUrl ? 'PREVIEW READY' : 'ADD 30S PREVIEW'}
+                              {file.previewUrl ? 'REPLACE PREVIEW' : 'UPLOAD MANUAL 30S'}
                           </label>
                           <input
                             type="number"
