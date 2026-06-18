@@ -778,6 +778,21 @@ const mapPaymentRequestFromRow = (row = {}) => {
   };
 };
 
+const mapPaymentWebhookEventFromRow = (row = {}) => ({
+  id: row.id || createClientId(),
+  provider: row.provider || 'manual',
+  checkoutRef: row.checkout_ref || '',
+  providerInvoiceId: row.provider_invoice_id || '',
+  providerStatus: row.provider_status || '',
+  wispaceStatus: row.wispace_status || '',
+  verified: Boolean(row.verified),
+  payload: row.payload && typeof row.payload === 'object' ? row.payload : {},
+  receivedAt: row.received_at || row.created_at || '',
+  receivedLabel: row.received_at
+    ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(row.received_at))
+    : ''
+});
+
 const mapReleaseAgreementFromRow = (row = {}) => ({
   id: row.id || createClientId(),
   releaseId: row.release_id || '',
@@ -1300,6 +1315,7 @@ export default function App() {
   const [releaseAgreements, setReleaseAgreements] = useState(loadReleaseAgreementLedger);
   const [monthlyFinanceReports, setMonthlyFinanceReports] = useState(loadMonthlyFinanceReports);
   const [pendingPayments, setPendingPayments] = useState(loadPendingPayments);
+  const [paymentWebhookEvents, setPaymentWebhookEvents] = useState([]);
   const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
@@ -1419,6 +1435,17 @@ export default function App() {
     const mappedPayments = (data || []).map(mapPaymentRequestFromRow);
     setPendingPayments(mappedPayments);
     savePendingPayments(mappedPayments);
+
+    const { data: webhookData, error: webhookError } = await supabase
+      .from('payment_webhook_events')
+      .select('*')
+      .order('received_at', { ascending: false })
+      .limit(30);
+    if (webhookError) {
+      if (!isMissingColumnError(webhookError)) console.warn('Payment webhook events belum bisa disync:', webhookError.message);
+      return;
+    }
+    setPaymentWebhookEvents((webhookData || []).map(mapPaymentWebhookEventFromRow));
   }, []);
 
   const publishBandUpdateNotification = useCallback((bandSlug, update) => {
@@ -5740,12 +5767,15 @@ export default function App() {
   const isManualPaymentMode = activePaymentGatewayProvider.id === 'manual';
   const paymentGatewayEndpointReady = Boolean(PAYMENT_GATEWAY_API_ENDPOINT);
   const paymentGatewayClientReady = activePaymentGatewayProvider.id !== 'midtrans' || Boolean(PAYMENT_GATEWAY_CLIENT_KEY);
+  const recentPaymentWebhookEvents = paymentWebhookEvents.slice(0, 6);
+  const verifiedPaymentWebhookCount = paymentWebhookEvents.filter((event) => event.verified).length;
   const paymentGatewayReadinessStatus = !isManualPaymentMode && paymentGatewayEndpointReady && paymentGatewayClientReady ? 'scaffold' : 'demo';
   const paymentGatewayHealthItems = [
     ['PROVIDER', activePaymentGatewayProvider.title, isManualPaymentMode ? 'rgba(242,242,242,0.62)' : '#5CB8E4'],
     ['API ENDPOINT', PAYMENT_GATEWAY_API_ENDPOINT || 'Belum diset', paymentGatewayEndpointReady ? '#5CB8E4' : '#8758FF'],
     ['CLIENT KEY', PAYMENT_GATEWAY_CLIENT_KEY ? 'Set' : activePaymentGatewayProvider.id === 'midtrans' ? 'Belum diset' : 'Tidak wajib', paymentGatewayClientReady ? 'rgba(242,242,242,0.62)' : '#8758FF'],
     ['WEBHOOK TARGET', PAYMENT_GATEWAY_WEBHOOK_PATH, '#5CB8E4'],
+    ['WEBHOOK EVENTS', paymentWebhookEvents.length ? `${paymentWebhookEvents.length} event / ${verifiedPaymentWebhookCount} verified` : 'Belum ada event', paymentWebhookEvents.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'],
     ['MANUAL FALLBACK', 'Aktif', 'rgba(242,242,242,0.62)']
   ];
   const paymentGatewayServerSteps = [
@@ -7933,6 +7963,31 @@ export default function App() {
                     <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
                   </div>
                 ))}
+              </div>
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  <div>
+                    <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>RECENT WEBHOOK EVENTS</p>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Audit callback payment provider. Verified event bisa update payment request.</p>
+                  </div>
+                  <button type="button" onClick={() => void fetchAdminPaymentRequests(userSession)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>REFRESH</button>
+                </div>
+                {recentPaymentWebhookEvents.length === 0 ? (
+                  <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada webhook event. Setelah provider payment aktif, callback akan masuk ke sini.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '7px', maxHeight: '210px', overflowY: 'auto' }}>
+                    {recentPaymentWebhookEvents.map((event) => (
+                      <div key={event.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '8px 0', borderTop: `1.5px solid ${event.verified ? 'rgba(92,184,228,0.26)' : 'rgba(135,88,255,0.24)'}` }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: event.verified ? '#5CB8E4' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(event.provider || 'provider').toUpperCase()} / {event.verified ? 'VERIFIED' : 'DRY RUN'}</p>
+                          <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.checkoutRef || event.providerInvoiceId || 'NO REFERENCE'}</h4>
+                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{String(event.providerStatus || 'unknown').replaceAll('_', ' ').toUpperCase()} / WiSpace: {String(event.wispaceStatus || '-').replaceAll('_', ' ').toUpperCase()}</p>
+                        </div>
+                        <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{event.receivedLabel || '-'}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </section>
