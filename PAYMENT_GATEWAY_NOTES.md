@@ -7,6 +7,9 @@ This note keeps the next payment-gateway work explicit and safe.
 - The app still uses manual transfer + proof upload.
 - Admin confirms paid from the Admin Payment panel.
 - Manual fallback should stay available even after a gateway is added.
+- Checkout frontend now calls `POST /api/create-payment` before saving the pending payment.
+- If the API returns `provider_checkout_url`, the checkout modal shows a "Bayar via Gateway" link.
+- If the API is unavailable or the provider is not ready, the request is still saved as manual fallback.
 
 ## Public Frontend Env
 

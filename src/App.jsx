@@ -251,7 +251,7 @@ const PAYMENT_FLOW_STEPS = [
   }
 ];
 const PAYMENT_GATEWAY_PROVIDER = String(import.meta.env.VITE_PAYMENT_PROVIDER || 'manual').toLowerCase();
-const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT || '';
+const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT || '/api/create-payment';
 const PAYMENT_GATEWAY_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
 const PAYMENT_GATEWAY_WEBHOOK_PATH = '/api/payment-webhook';
 const PAYMENT_GATEWAY_PROVIDER_OPTIONS = [
@@ -3827,6 +3827,43 @@ export default function App() {
     };
   };
 
+  const requestPaymentGatewaySession = async (payment) => {
+    const endpoint = PAYMENT_GATEWAY_API_ENDPOINT || '/api/create-payment';
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: PAYMENT_GATEWAY_PROVIDER,
+          checkoutRef: payment.checkoutRef,
+          paymentType: payment.type,
+          productTitle: payment.productTitle,
+          amount: Number(payment.amount || 0),
+          productAmount: Number(payment.grossAmount || payment.productAmount || payment.amount || 0),
+          shippingCost: Number(payment.shipping?.shippingCost || payment.shippingCost || 0),
+          buyerName: payment.buyerName,
+          buyerEmail: payment.buyerEmail,
+          sellerBandName: payment.sellerBandName,
+          sellerBandSlug: payment.sellerBandSlug
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      return {
+        ok: response.ok && Boolean(data?.ok),
+        status: response.status,
+        data,
+        error: data?.error || data?.message || ''
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        status: 0,
+        data: {},
+        error: error?.message || 'payment_api_unreachable'
+      };
+    }
+  };
+
   const markPendingPayment = (payment) => {
     setPendingPayments((current) => {
       const nextPayments = [
@@ -3857,6 +3894,9 @@ export default function App() {
         proof_url: payment.paymentProofUrl || payment.paymentProofPreview || null,
         proof_storage_path: payment.paymentProofPath || null,
         proof_status: payment.paymentProofStatus || null,
+        provider_invoice_id: payment.providerInvoiceId || null,
+        provider_checkout_url: payment.providerCheckoutUrl || null,
+        provider_status: payment.providerStatus || null,
         payload: payment,
         submitted_at: payment.submittedAt || new Date().toISOString()
       };
@@ -3902,6 +3942,9 @@ export default function App() {
       if (Object.hasOwn(updates, 'paymentProofUrl') || Object.hasOwn(updates, 'paymentProofPreview')) updateRow.proof_url = updates.paymentProofUrl || updates.paymentProofPreview || null;
       if (Object.hasOwn(updates, 'paymentProofPath')) updateRow.proof_storage_path = updates.paymentProofPath || null;
       if (Object.hasOwn(updates, 'paymentProofStatus')) updateRow.proof_status = updates.paymentProofStatus || null;
+      if (Object.hasOwn(updates, 'providerInvoiceId')) updateRow.provider_invoice_id = updates.providerInvoiceId || null;
+      if (Object.hasOwn(updates, 'providerCheckoutUrl')) updateRow.provider_checkout_url = updates.providerCheckoutUrl || null;
+      if (Object.hasOwn(updates, 'providerStatus')) updateRow.provider_status = updates.providerStatus || null;
       if (updatedPaymentSnapshot) updateRow.payload = updatedPaymentSnapshot;
 
       void supabase.from('payment_requests').update(updateRow).eq('id', paymentId).then(({ error }) => {
@@ -3912,7 +3955,7 @@ export default function App() {
     }
   };
 
-  const handleCheckoutSubmit = (event) => {
+  const handleCheckoutSubmit = async (event) => {
     event.preventDefault();
     if (!activeCheckout || !userSession) return;
     if (['processing_payment', 'waiting_admin_confirmation', 'paid', 'cancelled'].includes(activeCheckout.status)) return;
@@ -3939,21 +3982,52 @@ export default function App() {
         return;
       }
     }
-    if (!checkoutDraft.paymentProofPreview && !checkoutDraft.paymentProofUrl) {
+    if (PAYMENT_GATEWAY_PROVIDER === 'manual' && !checkoutDraft.paymentProofPreview && !checkoutDraft.paymentProofUrl) {
       alert('Upload bukti bayar dulu bro sebelum kirim request konfirmasi payment.');
       return;
     }
 
-    const pendingPayment = createCheckoutPendingPayment(buyerName, buyerEmail);
+    const pendingPaymentBase = createCheckoutPendingPayment(buyerName, buyerEmail);
+    setActiveCheckout((current) => current ? {
+      ...current,
+      status: 'processing_payment',
+      paymentStatus: 'processing_payment'
+    } : current);
+
+    const gatewayResult = await requestPaymentGatewaySession(pendingPaymentBase);
+    const gatewayData = gatewayResult.data || {};
+    const providerCheckoutUrl = gatewayData.providerCheckoutUrl || gatewayData.provider_checkout_url || gatewayData.checkoutUrl || gatewayData.invoiceUrl || '';
+    const providerInvoiceId = gatewayData.providerInvoiceId || gatewayData.provider_invoice_id || gatewayData.invoiceId || gatewayData.transactionId || '';
+    const providerStatus = gatewayData.providerStatus || gatewayData.provider_status || (providerCheckoutUrl ? 'gateway_ready' : PAYMENT_GATEWAY_PROVIDER === 'manual' ? 'manual_fallback' : 'manual_fallback');
+    const pendingPayment = {
+      ...pendingPaymentBase,
+      provider: gatewayData.provider || PAYMENT_GATEWAY_PROVIDER || 'manual',
+      providerStatus,
+      providerInvoiceId,
+      providerCheckoutUrl,
+      gatewayStatusCode: gatewayResult.status,
+      gatewayError: gatewayResult.ok ? '' : (gatewayResult.error || gatewayData.message || 'manual_fallback'),
+      manualFallback: gatewayData.manualFallback !== false || !providerCheckoutUrl
+    };
+    const checkoutMessage = providerCheckoutUrl
+      ? `Order ${pendingPayment.checkoutRef} siap dibayar via gateway. Akses/order aktif setelah payment confirmed.`
+      : `Order ${pendingPayment.checkoutRef} masuk antrean admin lewat fallback manual. Akses/order aktif setelah admin confirm paid.`;
+
     markPendingPayment(pendingPayment);
     setActiveCheckout((current) => current ? {
       ...current,
       status: 'waiting_admin_confirmation',
       pendingPaymentId: pendingPayment.id,
       paymentStatus: 'waiting_admin_confirmation',
-      successMessage: `Order ${pendingPayment.checkoutRef} sudah masuk antrean admin. Akses/order aktif setelah admin confirm paid.`
+      provider: pendingPayment.provider,
+      providerStatus: pendingPayment.providerStatus,
+      providerInvoiceId: pendingPayment.providerInvoiceId,
+      providerCheckoutUrl: pendingPayment.providerCheckoutUrl,
+      gatewayError: pendingPayment.gatewayError,
+      manualFallback: pendingPayment.manualFallback,
+      successMessage: checkoutMessage
     } : current);
-    alert(`Payment request ${pendingPayment.checkoutRef} masuk ke admin. Setelah admin confirm paid, akses/order baru aktif.`);
+    alert(providerCheckoutUrl ? `Payment gateway siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar via gateway.` : `Payment request ${pendingPayment.checkoutRef} masuk ke admin. Setelah admin confirm paid, akses/order baru aktif.`);
   };
 
   const handleConfirmPendingPayment = (payment) => {
@@ -5416,6 +5490,11 @@ export default function App() {
   const checkoutTotal = checkoutSubtotal + checkoutShippingCost;
   const checkoutReference = activeCheckout?.checkoutRef || 'WSP-DEMO-ORDER';
   const checkoutPaymentStatus = activeCheckout?.status || 'pending_payment';
+  const checkoutProviderId = activeCheckout?.provider || PAYMENT_GATEWAY_PROVIDER || 'manual';
+  const checkoutProviderLabel = PAYMENT_GATEWAY_PROVIDER_OPTIONS.find((provider) => provider.id === checkoutProviderId)?.title || checkoutProviderId;
+  const checkoutProviderStatus = activeCheckout?.providerStatus || '';
+  const checkoutProviderCheckoutUrl = activeCheckout?.providerCheckoutUrl || '';
+  const checkoutProofRequired = PAYMENT_GATEWAY_PROVIDER === 'manual';
   const checkoutIsProcessing = checkoutPaymentStatus === 'processing_payment';
   const checkoutIsAwaitingAdmin = checkoutPaymentStatus === 'waiting_admin_confirmation';
   const checkoutIsPaid = checkoutPaymentStatus === 'paid';
@@ -10415,6 +10494,7 @@ export default function App() {
                   <span>Item: <strong style={{ color: '#F2F2F2' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
                   {activeCheckout.type === 'merch' && <span>Kurir: <strong style={{ color: '#F2F2F2' }}>{checkoutCourierOption?.label || checkoutDraft.courier} / Rp {checkoutShippingCost.toLocaleString('id-ID')}</strong></span>}
                   <span>Payment: <strong style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsCancelled ? '#8758FF' : checkoutIsAwaitingAdmin ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutPaymentStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
+                  <span>Provider: <strong style={{ color: checkoutProviderCheckoutUrl ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutProviderLabel.toUpperCase()}</strong>{checkoutProviderStatus ? ` / ${checkoutProviderStatus.replaceAll('_', ' ').toUpperCase()}` : ''}</span>
                   <span>Status: <strong style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsCancelled ? '#8758FF' : checkoutIsAwaitingAdmin ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutStatusCopy}</strong></span>
                   <span>Fulfillment: <strong style={{ color: checkoutIsPaid ? activeCheckout.type === 'merch' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)' }}>{checkoutAccessStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
                   <span>{checkoutIsPaid ? activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.' : checkoutIsAwaitingAdmin ? 'Payment request sudah masuk admin. Belum ada akses/order aktif.' : 'Belum ada akses/order aktif sebelum payment paid.'}</span>
@@ -10456,10 +10536,23 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              {checkoutProviderCheckoutUrl && (
+                <a
+                  href={checkoutProviderCheckoutUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: 'block', marginTop: '10px', padding: '12px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textAlign: 'center', textDecoration: 'none', fontFamily: FONT_STACK }}
+                >
+                  BAYAR VIA GATEWAY
+                </a>
+              )}
+              {!checkoutProviderCheckoutUrl && checkoutProviderId !== 'manual' && checkoutIsAwaitingAdmin && (
+                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: '10px 0 0 0', fontWeight: '800' }}>Gateway belum ngasih checkout URL. Request tetap masuk admin lewat fallback manual.</p>
+              )}
             </div>
 
-            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '88px 1fr auto', gap: '10px', alignItems: 'center', padding: isTinyLayout ? '10px' : '11px', backgroundColor: 'transparent', border: checkoutDraft.paymentProofPreview ? '1.5px solid rgba(242,242,242,0.24)' : '1.5px dashed rgba(242,242,242,0.34)', borderRadius: '9px', marginBottom: '12px', cursor: checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePaymentProofImport} disabled={checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={{ display: 'none' }} />
+            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '88px 1fr auto', gap: '10px', alignItems: 'center', padding: isTinyLayout ? '10px' : '11px', backgroundColor: 'transparent', border: checkoutDraft.paymentProofPreview ? '1.5px solid rgba(242,242,242,0.24)' : '1.5px dashed rgba(242,242,242,0.34)', borderRadius: '9px', marginBottom: '12px', cursor: checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePaymentProofImport} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={{ display: 'none' }} />
               <div style={{ width: isTinyLayout ? '100%' : '88px', aspectRatio: isTinyLayout ? '16/9' : '4/3', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', display: 'grid', placeItems: 'center' }}>
                 {checkoutDraft.paymentProofPreview ? (
                   <img src={checkoutDraft.paymentProofPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -10469,9 +10562,9 @@ export default function App() {
               </div>
               <div style={{ minWidth: 0 }}>
                 <p style={{ color: checkoutDraft.paymentProofPreview ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{checkoutDraft.paymentProofPreview ? 'BUKTI BAYAR TERLAMPIR' : 'UPLOAD BUKTI BAYAR'}</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || 'PNG/JPG/WebP maksimal 2MB. Admin cek bukti ini sebelum confirm paid.'}</p>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || (checkoutProofRequired ? 'PNG/JPG/WebP maksimal 2MB. Admin cek bukti ini sebelum confirm paid.' : 'Opsional kalau gateway aktif. Tetap bisa dipakai untuk fallback manual.')}</p>
               </div>
-              <span style={{ color: checkoutDraft.paymentProofStatus === 'stored' ? 'rgba(242,242,242,0.62)' : checkoutDraft.paymentProofPreview ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isTinyLayout ? 'start' : 'end' }}>{checkoutDraft.paymentProofStatus ? checkoutDraft.paymentProofStatus.toUpperCase() : 'REQUIRED'}</span>
+              <span style={{ color: checkoutDraft.paymentProofStatus === 'stored' ? 'rgba(242,242,242,0.62)' : checkoutDraft.paymentProofPreview ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isTinyLayout ? 'start' : 'end' }}>{checkoutDraft.paymentProofStatus ? checkoutDraft.paymentProofStatus.toUpperCase() : checkoutProofRequired ? 'REQUIRED' : 'OPTIONAL'}</span>
             </label>
 
             {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
