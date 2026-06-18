@@ -5249,6 +5249,9 @@ export default function App() {
   const adminActiveMerchOrderList = merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus));
   const adminWaitingMerchOrders = adminActiveMerchOrderList.length;
   const adminConsignmentOrderQueue = adminActiveMerchOrderList.filter((order) => order.fulfillmentMode === 'admin_consignment');
+  const adminBandShipOrderQueue = adminActiveMerchOrderList.filter((order) => order.fulfillmentMode !== 'admin_consignment');
+  const adminOrdersWithTracking = merchOrders.filter((order) => order.trackingNumber && !['completed', 'cancelled'].includes(order.trackingStatus));
+  const adminCompletedMerchOrders = merchOrders.filter((order) => order.trackingStatus === 'completed');
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
   const adminPayoutByBand = paidSaleTransactions
     .filter((transaction) => Number(transaction.bandNet || 0) > 0)
@@ -5421,6 +5424,43 @@ export default function App() {
     };
   });
   const latestMonthlyFinanceReport = monthlyFinanceReports.find((report) => report.periodKey === nextPayoutPeriodKey) || monthlyFinanceReports[0] || null;
+  const adminFinanceQuickActions = [
+    {
+      title: 'CONFIRM PAYMENT',
+      count: waitingAdminPaymentRequests.length,
+      note: 'Cek proof buyer, lalu confirm paid/reject.',
+      action: () => setAdminActiveSection('payment'),
+      color: waitingAdminPaymentRequests.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'
+    },
+    {
+      title: 'ORDER ADMIN SHIP',
+      count: adminConsignmentOrderQueue.length,
+      note: 'Order stok titipan yang harus diproses WiSpace.',
+      action: () => setAdminActiveSection('finance'),
+      color: adminConsignmentOrderQueue.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'
+    },
+    {
+      title: 'ORDER BAND SHIP',
+      count: adminBandShipOrderQueue.length,
+      note: 'Pantau band yang harus proses pengiriman sendiri.',
+      action: () => setAdminActiveSection('finance'),
+      color: adminBandShipOrderQueue.length ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'
+    },
+    {
+      title: 'PAYOUT READY',
+      count: adminPayoutReportRows.filter((band) => band.ready).length,
+      note: `Siap dicek untuk report ${nextPayoutLabel}.`,
+      action: () => setAdminActiveSection('finance'),
+      color: adminPayoutReadyBands.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'
+    },
+    {
+      title: 'REKENING KOSONG',
+      count: bandsMissingPayoutAccount.length,
+      note: 'Follow up band yang belum lengkap rekening.',
+      action: () => setAdminActiveSection('messages'),
+      color: bandsMissingPayoutAccount.length ? '#8758FF' : 'rgba(242,242,242,0.62)'
+    }
+  ];
   const adminActionNotifications = [
     {
       title: 'PAYMENT BUYER PERLU CONFIRM',
@@ -6775,6 +6815,21 @@ export default function App() {
               </div>
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', marginTop: '10px' }}>
+              {adminFinanceQuickActions.map((item) => (
+                <button
+                  key={item.title}
+                  type="button"
+                  onClick={item.action}
+                  style={{ textAlign: 'left', padding: '10px', backgroundColor: '#181818', border: `1px solid ${item.color}33`, borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}
+                >
+                  <p style={{ color: item.color, fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{item.title}</p>
+                  <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>{item.count}</strong>
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{item.note}</p>
+                </button>
+              ))}
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '8px', marginTop: '10px' }}>
               {adminActionNotifications.map((notification) => (
                 <div key={notification.title} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${notification.color}33`, borderRadius: '10px' }}>
@@ -6861,6 +6916,19 @@ export default function App() {
             </div>
             <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.16)', borderRadius: '10px', marginTop: '10px' }}>
               <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ADMIN MERCH FULFILLMENT QUEUE</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: '7px', marginBottom: '9px' }}>
+                {[
+                  ['ADMIN SHIP', adminConsignmentOrderQueue.length, '#5CB8E4'],
+                  ['BAND SHIP', adminBandShipOrderQueue.length, 'rgba(242,242,242,0.62)'],
+                  ['ADA RESI', adminOrdersWithTracking.length, 'rgba(242,242,242,0.62)'],
+                  ['SELESAI', adminCompletedMerchOrders.length, 'rgba(242,242,242,0.62)']
+                ].map(([label, value, color]) => (
+                  <div key={label} style={{ padding: '8px', backgroundColor: '#181818', border: `1px solid ${color}30`, borderRadius: '9px' }}>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                    <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
+                  </div>
+                ))}
+              </div>
               {adminActiveMerchOrderList.length === 0 ? (
                 <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada order merch aktif yang perlu diproses.</p>
               ) : (
