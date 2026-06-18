@@ -5814,10 +5814,10 @@ export default function App() {
     flexWrap: isTinyLayout ? 'wrap' : 'nowrap',
     gap: isTinyLayout ? '8px' : '12px',
     padding: isTinyLayout ? '7px 9px' : '8px 12px',
-    background: 'rgba(8, 10, 11, 0.62)',
-    border: 'none',
+    background: 'linear-gradient(135deg, rgba(244,241,234,0.07), rgba(141,223,247,0.045) 48%, rgba(5,7,8,0.68) 100%)',
+    border: '1px solid rgba(244,241,234,0.1)',
     borderRadius: '9999px',
-    boxShadow: 'none',
+    boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.045)',
     backdropFilter: 'blur(18px)',
     WebkitBackdropFilter: 'blur(18px)',
     width: isTinyLayout ? '100%' : 'auto',
@@ -5963,6 +5963,11 @@ export default function App() {
   const checkoutBlockStyle = {
     ...compactSurfaceStyle,
     padding: isTinyLayout ? '10px' : '12px'
+  };
+  const modalPanelStyle = {
+    background: 'linear-gradient(145deg, rgba(15,18,19,0.98), rgba(5,7,8,0.96) 58%, rgba(12,22,25,0.94) 100%)',
+    border: '1.5px solid rgba(141,223,247,0.24)',
+    boxShadow: '0 18px 46px rgba(0,0,0,0.52), inset 0 1px 0 rgba(244,241,234,0.05)'
   };
 
   const exploreCopy = {
@@ -7379,9 +7384,9 @@ export default function App() {
 
           {exploreTab === 'rilisan' && selectedRelease && (
             <div onClick={() => setSelectedReleaseId(null)} style={{ position: 'fixed', inset: 0, zIndex: 1360, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(0,0,0,0.36), rgba(0,0,0,0.82))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-              <section onClick={(event) => event.stopPropagation()} style={{ width: isTinyLayout ? '100%' : 'min(900px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '84vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', backgroundColor: 'rgba(6,7,8,0.95)', border: '1.5px solid rgba(141,223,247,0.24)', borderRadius: '14px', boxShadow: '0 18px 46px rgba(0,0,0,0.5)', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
+              <section onClick={(event) => event.stopPropagation()} style={{ ...modalPanelStyle, width: isTinyLayout ? '100%' : 'min(900px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '84vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', borderRadius: '14px', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
               <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(190px, 280px) minmax(0, 1fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'start' }}>
-                <div style={{ width: '100%', maxWidth: isCompactLayout ? '240px' : 'none', justifySelf: isCompactLayout ? 'center' : 'stretch', aspectRatio: '1/1', backgroundColor: '#000', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(141,223,247,0.16)', display: 'grid', placeItems: 'center' }}>
+                <div style={{ width: '100%', maxWidth: isCompactLayout ? '240px' : 'none', justifySelf: isCompactLayout ? 'center' : 'stretch', aspectRatio: '1/1', background: softSurfaceBackground, borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(141,223,247,0.16)', display: 'grid', placeItems: 'center' }}>
                   {selectedRelease.coverPreview ? <img src={selectedRelease.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                 </div>
                 <div>
@@ -7400,10 +7405,10 @@ export default function App() {
                       ['PREVIEW READY', `${selectedReleasePreviewTrackCount}/${Math.max(0, (selectedRelease.tracks || []).length - selectedReleaseFreeFullCount)}`, selectedReleasePreviewTrackCount ? '#8DDFF7' : '#777'],
                       ['FREE FULL', selectedReleaseFreeFullCount, selectedReleaseFreeFullCount ? '#8EE6A6' : '#777']
                     ].map(([label, value, color]) => (
-                      <span key={label} style={{ padding: '7px 9px', backgroundColor: '#000', border: `1px solid ${color}33`, borderRadius: '9999px', color, fontSize: '10px', fontWeight: '900' }}>{label}: <strong style={{ color: '#fff' }}>{value}</strong></span>
+                      <span key={label} style={{ padding: '7px 9px', background: softRowBackground, border: `1px solid ${color}33`, borderRadius: '9999px', color, fontSize: '10px', fontWeight: '900' }}>{label}: <strong style={{ color: '#fff' }}>{value}</strong></span>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ ...compactSurfaceStyle, display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', padding: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                     <strong style={{ color: '#fff', fontSize: '18px', fontWeight: '900' }}>Full Album Rp {Number(selectedRelease.price || 0).toLocaleString('id-ID')}</strong>
                     <button onClick={() => handlePurchaseAlbum(selectedRelease)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === selectedRelease.id) ? 'BUKA LIBRARY' : 'BELI FULL ALBUM'}</button>
                   </div>
@@ -9330,7 +9335,7 @@ export default function App() {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{ width: isTinyLayout ? '100%' : 'min(780px, calc(100vw - 48px))', maxHeight: '88vh', overflowY: 'auto', backgroundColor: 'rgba(6,7,8,0.96)', border: '1px solid rgba(141,223,247,0.24)', borderRadius: '14px', padding: isTinyLayout ? '12px' : '14px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(0,0,0,0.52)' }}
+            style={{ ...modalPanelStyle, width: isTinyLayout ? '100%' : 'min(780px, calc(100vw - 48px))', maxHeight: '88vh', overflowY: 'auto', borderRadius: '14px', padding: isTinyLayout ? '12px' : '14px', boxSizing: 'border-box' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
               <div>
@@ -9341,7 +9346,7 @@ export default function App() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(180px, 260px) minmax(0, 1fr)', gap: isTinyLayout ? '12px' : '16px', alignItems: 'start' }}>
-              <div style={{ width: '100%', aspectRatio: isTinyLayout ? '4/5' : '3/4', backgroundColor: '#0b0d0e', border: '1px solid rgba(244,241,234,0.12)', borderRadius: '10px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+              <div style={{ width: '100%', aspectRatio: isTinyLayout ? '4/5' : '3/4', background: softSurfaceBackground, border: '1px solid rgba(244,241,234,0.12)', borderRadius: '10px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
                 {selectedMerchDetail.imagePreview ? (
                   <img src={selectedMerchDetail.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
@@ -9364,7 +9369,7 @@ export default function App() {
                     ['STOCK', selectedMerchDetail.stock || 0],
                     ['SELLER', selectedMerchDetail.bandName || 'Band WiSpace']
                   ].map(([label, value]) => (
-                    <div key={label} style={{ borderTop: '1px solid rgba(244,241,234,0.16)', paddingTop: '8px', minWidth: 0 }}>
+                    <div key={label} style={{ ...compactSurfaceStyle, padding: '8px', minWidth: 0 }}>
                       <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
                       <strong style={{ color: '#F4F1EA', fontSize: label === 'SELLER' ? '11px' : '12px', fontWeight: '900', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(value).toUpperCase()}</strong>
                     </div>
@@ -9388,7 +9393,7 @@ export default function App() {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(1100px, 96vw)', maxHeight: '92vh', backgroundColor: '#050505', border: '1px solid rgba(141,223,247,0.32)', borderRadius: '16px', padding: '16px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
+            style={{ ...modalPanelStyle, width: 'min(1100px, 96vw)', maxHeight: '92vh', borderRadius: '16px', padding: '16px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
               <div>
@@ -9397,7 +9402,7 @@ export default function App() {
               </div>
               <button onClick={() => setSelectedPosterPreview(null)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.16)', color: '#fff', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
-            <div style={{ width: '100%', maxHeight: '74vh', overflow: 'auto', backgroundColor: '#000', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
+            <div style={{ width: '100%', maxHeight: '74vh', overflow: 'auto', background: softSurfaceBackground, border: '1px solid rgba(244,241,234,0.12)', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
               <img src={selectedPosterPreview.image} alt="" style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
             </div>
             <p style={{ color: '#777', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPosterPreview.city} / {getGigDate(selectedPosterPreview)} / {getGigHtm(selectedPosterPreview)} / {getGigCp(selectedPosterPreview)}</p>
@@ -9412,7 +9417,7 @@ export default function App() {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(860px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: '#050505', border: '1px solid rgba(141,223,247,0.28)', borderRadius: '16px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
+            style={{ ...modalPanelStyle, width: 'min(860px, 96vw)', maxHeight: '92vh', overflowY: 'auto', borderRadius: '16px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap' }}>
               <div>
@@ -9424,7 +9429,7 @@ export default function App() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '260px minmax(0, 1fr)', gap: '12px', alignItems: 'start' }}>
-              <div style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'rgba(142,230,166,0.22)' : 'rgba(255,51,51,0.22)'}`, borderRadius: '12px' }}>
+              <div style={{ ...compactSurfaceStyle, padding: '10px', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'rgba(142,230,166,0.22)' : 'rgba(255,51,51,0.22)'}` }}>
                 <p style={{ color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? '#8EE6A6' : '#ff3333', fontSize: '9px', fontWeight: '900', margin: '0 0 8px 0' }}>{selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'PROOF READY' : 'NO PAYMENT PROOF'}</p>
                 <button
                   type="button"
@@ -9449,7 +9454,7 @@ export default function App() {
                     ['SELLER', selectedPaymentDetail.sellerBandName || 'Band WiSpace', '#fff'],
                     ['SUBMITTED', selectedPaymentDetail.submittedAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedPaymentDetail.submittedAt)) : '-', '#aaa']
                   ].map(([label, value, color]) => (
-                    <div key={label} style={{ padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px' }}>
+                    <div key={label} style={{ ...compactSurfaceStyle, padding: '10px' }}>
                       <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
                       <strong style={{ color, fontSize: '11px', fontWeight: '900', lineHeight: 1.35, overflowWrap: 'anywhere' }}>{value}</strong>
                     </div>
@@ -9457,7 +9462,7 @@ export default function App() {
                 </div>
 
                 {selectedPaymentDetail.shipping && (
-                  <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(141,223,247,0.14)', borderRadius: '10px' }}>
+                  <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
                     <p style={{ color: '#8DDFF7', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>SHIPPING MERCH</p>
                     <p style={{ color: '#aaa', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'}</p>
                     {selectedPaymentDetail.shipping.origin && <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Origin: {selectedPaymentDetail.shipping.origin.city || '-'}, {selectedPaymentDetail.shipping.origin.province || '-'} {selectedPaymentDetail.shipping.origin.postalCode || ''}</p>}
@@ -9465,7 +9470,7 @@ export default function App() {
                   </div>
                 )}
 
-                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px' }}>
+                <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
                   <p style={{ color: '#777', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.</p>
                 </div>
               </div>
