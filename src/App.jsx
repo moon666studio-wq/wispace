@@ -250,6 +250,33 @@ const PAYMENT_FLOW_STEPS = [
     note: 'Digital masuk Library, merch masuk antrean proses band.'
   }
 ];
+const PAYMENT_GATEWAY_PROVIDER = String(import.meta.env.VITE_PAYMENT_PROVIDER || 'manual').toLowerCase();
+const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT || '';
+const PAYMENT_GATEWAY_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
+const PAYMENT_GATEWAY_WEBHOOK_PATH = '/api/payment-webhook';
+const PAYMENT_GATEWAY_PROVIDER_OPTIONS = [
+  {
+    id: 'manual',
+    title: 'Manual transfer',
+    publicEnv: 'Tidak wajib',
+    serverEnv: 'Tidak wajib',
+    note: 'Mode aktif sekarang. Buyer upload proof, admin confirm paid.'
+  },
+  {
+    id: 'midtrans',
+    title: 'Midtrans Snap',
+    publicEnv: 'VITE_PAYMENT_PROVIDER=midtrans + VITE_MIDTRANS_CLIENT_KEY',
+    serverEnv: 'MIDTRANS_SERVER_KEY di Vercel/serverless',
+    note: 'Butuh API create transaction dan webhook status settlement/expire/refund.'
+  },
+  {
+    id: 'xendit',
+    title: 'Xendit invoice',
+    publicEnv: 'VITE_PAYMENT_PROVIDER=xendit + VITE_PAYMENT_API_ENDPOINT',
+    serverEnv: 'XENDIT_SECRET_KEY di Vercel/serverless',
+    note: 'Butuh API create invoice dan webhook paid/expired/refunded.'
+  }
+];
 const WISPACE_MANUAL_PAYMENT_CHANNELS = [
   {
     title: 'Transfer Manual Admin',
@@ -5619,6 +5646,40 @@ export default function App() {
   const manualConfirmedPaymentTransactions = saleTransactions.filter((transaction) => (
     transaction.paymentMethod === 'admin_confirmed_manual'
   )).length;
+  const activePaymentGatewayProvider = PAYMENT_GATEWAY_PROVIDER_OPTIONS.find((provider) => provider.id === PAYMENT_GATEWAY_PROVIDER) || PAYMENT_GATEWAY_PROVIDER_OPTIONS[0];
+  const isManualPaymentMode = activePaymentGatewayProvider.id === 'manual';
+  const paymentGatewayEndpointReady = Boolean(PAYMENT_GATEWAY_API_ENDPOINT);
+  const paymentGatewayClientReady = activePaymentGatewayProvider.id !== 'midtrans' || Boolean(PAYMENT_GATEWAY_CLIENT_KEY);
+  const paymentGatewayReadinessStatus = !isManualPaymentMode && paymentGatewayEndpointReady && paymentGatewayClientReady ? 'scaffold' : 'demo';
+  const paymentGatewayHealthItems = [
+    ['PROVIDER', activePaymentGatewayProvider.title, isManualPaymentMode ? 'rgba(242,242,242,0.62)' : '#5CB8E4'],
+    ['API ENDPOINT', PAYMENT_GATEWAY_API_ENDPOINT || 'Belum diset', paymentGatewayEndpointReady ? '#5CB8E4' : '#8758FF'],
+    ['CLIENT KEY', PAYMENT_GATEWAY_CLIENT_KEY ? 'Set' : activePaymentGatewayProvider.id === 'midtrans' ? 'Belum diset' : 'Tidak wajib', paymentGatewayClientReady ? 'rgba(242,242,242,0.62)' : '#8758FF'],
+    ['WEBHOOK TARGET', PAYMENT_GATEWAY_WEBHOOK_PATH, '#5CB8E4'],
+    ['MANUAL FALLBACK', 'Aktif', 'rgba(242,242,242,0.62)']
+  ];
+  const paymentGatewayServerSteps = [
+    {
+      title: 'Create invoice endpoint',
+      status: paymentGatewayEndpointReady ? 'scaffold' : 'todo',
+      note: 'Endpoint serverless menerima checkoutRef, amount, productAmount, shippingCost, buyer, seller, lalu membuat invoice provider.'
+    },
+    {
+      title: 'Secret key server env',
+      status: 'todo',
+      note: 'MIDTRANS_SERVER_KEY/XENDIT_SECRET_KEY wajib disimpan di Vercel env server, jangan di VITE frontend.'
+    },
+    {
+      title: 'Webhook settlement',
+      status: 'todo',
+      note: 'Callback provider update payment_requests jadi paid/rejected/expired, lalu trigger order/library otomatis.'
+    },
+    {
+      title: 'Admin fallback',
+      status: 'ready',
+      note: 'Manual proof + admin confirm tetap dipertahankan buat cadangan saat gateway belum aktif.'
+    }
+  ];
   const restoredMerchOrderCount = merchOrders.filter((order) => order.stockRestored).length;
   const merchRefundOrCancelCount = merchOrders.filter((order) => ['cancelled', 'refunded', 'refund_requested'].includes(order.trackingStatus)).length;
   const completedRealFlowCount = [
@@ -5715,8 +5776,10 @@ export default function App() {
     },
     {
       title: 'Payment gateway',
-      status: waitingAdminPaymentRequests.length || manualConfirmedPaymentTransactions ? 'scaffold' : 'demo',
-      note: `Manual admin-confirm sudah jalan: ${waitingAdminPaymentRequests.length} waiting, ${manualConfirmedPaymentTransactions} paid manual. Gateway Midtrans/Xendit masih tahap berikutnya.`
+      status: paymentGatewayReadinessStatus,
+      note: isManualPaymentMode
+        ? `Manual admin-confirm aktif: ${waitingAdminPaymentRequests.length} waiting, ${manualConfirmedPaymentTransactions} paid manual. Set VITE_PAYMENT_PROVIDER + endpoint serverless untuk gateway.`
+        : `${activePaymentGatewayProvider.title} dipilih. Endpoint ${paymentGatewayEndpointReady ? 'sudah diset' : 'belum diset'}, client key ${paymentGatewayClientReady ? 'ok/tidak wajib' : 'belum diset'}.`
     },
     {
       title: 'Asset storage',
@@ -7733,6 +7796,47 @@ export default function App() {
                   <div key={step.status} style={{ padding: '9px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '9px' }}>
                     <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {index + 1} / {step.status}</p>
                     <strong style={{ color: '#F2F2F2', fontSize: '10px' }}>{step.title.toUpperCase()}</strong>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '10px', flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>PAYMENT GATEWAY READINESS</p>
+                  <h4 style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: 0 }}>{activePaymentGatewayProvider.title.toUpperCase()}</h4>
+                </div>
+                <span style={{ color: getReadinessColor(paymentGatewayReadinessStatus), border: `1px solid ${getReadinessBorder(paymentGatewayReadinessStatus)}`, backgroundColor: getReadinessTint(paymentGatewayReadinessStatus), borderRadius: '9999px', padding: '5px 8px', fontSize: '8px', fontWeight: '900' }}>{paymentGatewayReadinessStatus.toUpperCase()}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '0.85fr 1.15fr', gap: '10px' }}>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  {paymentGatewayHealthItems.map(([label, value, color]) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: `1px solid ${flatLineColor}` }}>
+                      <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>{label}</span>
+                      <strong style={{ color, fontSize: '9px', fontWeight: '900', textAlign: 'right', overflowWrap: 'anywhere' }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  {PAYMENT_GATEWAY_PROVIDER_OPTIONS.map((provider) => (
+                    <div key={provider.id} style={{ padding: '9px', backgroundColor: provider.id === activePaymentGatewayProvider.id ? 'rgba(92,184,228,0.06)' : '#181818', border: `1px solid ${provider.id === activePaymentGatewayProvider.id ? 'rgba(92,184,228,0.28)' : 'rgba(242,242,242,0.10)'}`, borderRadius: '9px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginBottom: '5px' }}>
+                        <strong style={{ color: provider.id === activePaymentGatewayProvider.id ? '#5CB8E4' : '#F2F2F2', fontSize: '10px', fontWeight: '900' }}>{provider.title.toUpperCase()}</strong>
+                        {provider.id === activePaymentGatewayProvider.id && <span style={{ color: '#5CB8E4', fontSize: '8px', fontWeight: '900' }}>ACTIVE</span>}
+                      </div>
+                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Public: {provider.publicEnv}</p>
+                      <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Server: {provider.serverEnv}</p>
+                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{provider.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: '7px', marginTop: '10px' }}>
+                {paymentGatewayServerSteps.map((step, index) => (
+                  <div key={step.title} style={{ padding: '8px', backgroundColor: '#181818', border: `1px solid ${getReadinessBorder(step.status)}`, borderRadius: '9px' }}>
+                    <p style={{ color: getReadinessColor(step.status), fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {index + 1} / {step.status.toUpperCase()}</p>
+                    <strong style={{ color: '#F2F2F2', fontSize: '9px', fontWeight: '900' }}>{step.title.toUpperCase()}</strong>
                     <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
                   </div>
                 ))}
