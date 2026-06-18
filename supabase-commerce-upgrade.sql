@@ -104,6 +104,11 @@ create table if not exists public.payment_requests (
   payment_type text not null,
   product_title text not null,
   amount integer not null default 0,
+  product_amount integer not null default 0,
+  shipping_cost integer not null default 0,
+  provider_invoice_id text,
+  provider_checkout_url text,
+  provider_status text,
   status text not null default 'waiting_admin_confirmation',
   proof_file_name text,
   proof_url text,
@@ -154,7 +159,9 @@ create table if not exists public.monthly_finance_reports (
   payout_bank_name text,
   payout_account_name text,
   payout_account_number text,
+  cash_collected integer not null default 0,
   gross_amount integer not null default 0,
+  shipping_collected integer not null default 0,
   platform_fee integer not null default 0,
   band_net integer not null default 0,
   transaction_count integer not null default 0,
@@ -185,6 +192,13 @@ create table if not exists public.merch_orders (
   tracking_number text,
   tracking_status text not null default 'pending',
   tracking_last_checked_at timestamptz,
+  stock_restored boolean not null default false,
+  stock_restored_at timestamptz,
+  refund_requested_at timestamptz,
+  cancelled_at timestamptz,
+  refunded_at timestamptz,
+  resolved_at timestamptz,
+  resolution_note text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -273,9 +287,16 @@ alter table if exists public.sales_transactions
 add column if not exists order_id text,
 add column if not exists payment_method text,
 add column if not exists fulfillment_status text,
-add column if not exists payout_status text not null default 'available_next_cycle';
+add column if not exists payout_status text not null default 'available_next_cycle',
+add column if not exists payment_reference text,
+add column if not exists paid_at timestamptz;
 
 alter table if exists public.payment_requests
+add column if not exists product_amount integer not null default 0,
+add column if not exists shipping_cost integer not null default 0,
+add column if not exists provider_invoice_id text,
+add column if not exists provider_checkout_url text,
+add column if not exists provider_status text,
 add column if not exists payload jsonb not null default '{}'::jsonb,
 add column if not exists proof_file_name text,
 add column if not exists proof_url text,
@@ -288,9 +309,21 @@ add column if not exists updated_at timestamptz not null default now();
 
 alter table if exists public.merch_orders
 add column if not exists order_id text,
+add column if not exists shipping_cost integer not null default 0,
 add column if not exists origin_shipping jsonb,
 add column if not exists fulfillment_mode text not null default 'band_ship',
-add column if not exists consignment_status text;
+add column if not exists consignment_status text,
+add column if not exists stock_restored boolean not null default false,
+add column if not exists stock_restored_at timestamptz,
+add column if not exists refund_requested_at timestamptz,
+add column if not exists cancelled_at timestamptz,
+add column if not exists refunded_at timestamptz,
+add column if not exists resolved_at timestamptz,
+add column if not exists resolution_note text;
+
+alter table if exists public.monthly_finance_reports
+add column if not exists cash_collected integer not null default 0,
+add column if not exists shipping_collected integer not null default 0;
 
 alter table if exists public.wispace_messages
 add column if not exists sender_user_id uuid references auth.users(id) on delete set null,
@@ -343,6 +376,12 @@ on public.sales_transactions (gig_id, created_at desc);
 create index if not exists sales_transactions_payout_idx
 on public.sales_transactions (payout_status, created_at desc);
 
+create index if not exists sales_transactions_status_idx
+on public.sales_transactions (status, created_at desc);
+
+create index if not exists sales_transactions_fulfillment_idx
+on public.sales_transactions (fulfillment_status, created_at desc);
+
 create index if not exists payment_requests_status_idx
 on public.payment_requests (status, submitted_at desc);
 
@@ -352,6 +391,12 @@ on public.payment_requests (buyer_user_id, submitted_at desc);
 create index if not exists payment_requests_seller_idx
 on public.payment_requests (seller_band_user_id, submitted_at desc);
 
+create index if not exists payment_requests_checkout_ref_idx
+on public.payment_requests (checkout_ref);
+
+create index if not exists payment_requests_provider_invoice_idx
+on public.payment_requests (provider_invoice_id);
+
 create index if not exists release_agreements_band_idx
 on public.release_agreements (band_slug, signed_at desc);
 
@@ -360,6 +405,18 @@ on public.monthly_finance_reports (period_key, generated_at desc);
 
 create index if not exists merch_orders_transaction_idx
 on public.merch_orders (transaction_id);
+
+create index if not exists merch_orders_buyer_idx
+on public.merch_orders (buyer_user_id, created_at desc);
+
+create index if not exists merch_orders_seller_idx
+on public.merch_orders (seller_band_user_id, created_at desc);
+
+create index if not exists merch_orders_status_idx
+on public.merch_orders (tracking_status, created_at desc);
+
+create index if not exists merch_orders_resolution_idx
+on public.merch_orders (stock_restored, resolved_at desc);
 
 create index if not exists band_subscriptions_audience_idx
 on public.band_subscriptions (audience_user_id, created_at desc);

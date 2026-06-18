@@ -3314,7 +3314,9 @@ export default function App() {
         payout_bank_name: row.bankName || null,
         payout_account_name: row.bankAccountName || null,
         payout_account_number: row.bankAccountNumber || null,
+        cash_collected: Number(row.grossAmount || 0) + Number(row.shippingCost || 0),
         gross_amount: Number(row.grossAmount || 0),
+        shipping_collected: Number(row.shippingCost || 0),
         platform_fee: Number(row.platformFee || 0),
         band_net: Number(row.amount || 0),
         transaction_count: Number(row.transactions || 0),
@@ -3324,7 +3326,22 @@ export default function App() {
       void supabase
         .from('monthly_finance_reports')
         .upsert(reportRows, { onConflict: 'period_key,band_slug' })
-        .then(({ error }) => {
+        .then(async ({ error }) => {
+          if (error && isMissingColumnError(error)) {
+            const legacyReportRows = reportRows.map((row) => {
+              const legacyRow = { ...row };
+              delete legacyRow.cash_collected;
+              delete legacyRow.shipping_collected;
+              return legacyRow;
+            });
+            const { error: legacyError } = await supabase
+              .from('monthly_finance_reports')
+              .upsert(legacyReportRows, { onConflict: 'period_key,band_slug' });
+            if (legacyError && !isMissingColumnError(legacyError)) {
+              console.warn('Report bulanan tersimpan lokal. Supabase report butuh policy/service-role:', legacyError.message);
+            }
+            return;
+          }
           if (error && !isMissingColumnError(error)) {
             console.warn('Report bulanan tersimpan lokal. Supabase report butuh policy/service-role:', error.message);
           }
@@ -3782,7 +3799,7 @@ export default function App() {
     });
 
     if (isSupabaseConfigured && userSession?.id) {
-      void supabase.from('payment_requests').upsert([{
+      const paymentRequestRow = {
         id: payment.id,
         checkout_ref: payment.checkoutRef,
         buyer_user_id: payment.buyerUserId || userSession.id,
@@ -3794,6 +3811,8 @@ export default function App() {
         payment_type: payment.type,
         product_title: payment.productTitle,
         amount: Number(payment.amount || 0),
+        product_amount: Number(payment.grossAmount || payment.productAmount || payment.amount || 0),
+        shipping_cost: Number(payment.shipping?.shippingCost || payment.shippingCost || 0),
         status: payment.status || 'waiting_admin_confirmation',
         proof_file_name: payment.paymentProofName || null,
         proof_url: payment.paymentProofUrl || payment.paymentProofPreview || null,
@@ -3801,7 +3820,19 @@ export default function App() {
         proof_status: payment.paymentProofStatus || null,
         payload: payment,
         submitted_at: payment.submittedAt || new Date().toISOString()
-      }], { onConflict: 'checkout_ref' }).then(({ error }) => {
+      };
+      void supabase.from('payment_requests').upsert([paymentRequestRow], { onConflict: 'checkout_ref' }).then(async ({ error }) => {
+        if (error && isMissingColumnError(error)) {
+          const legacyPaymentRequestRow = { ...paymentRequestRow };
+          delete legacyPaymentRequestRow.product_amount;
+          delete legacyPaymentRequestRow.shipping_cost;
+          delete legacyPaymentRequestRow.provider_invoice_id;
+          delete legacyPaymentRequestRow.provider_checkout_url;
+          delete legacyPaymentRequestRow.provider_status;
+          const { error: legacyError } = await supabase.from('payment_requests').upsert([legacyPaymentRequestRow], { onConflict: 'checkout_ref' });
+          if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync payment request ke Supabase:', legacyError.message);
+          return;
+        }
         if (error && !isMissingColumnError(error)) {
           console.warn('Gagal sync payment request ke Supabase:', error.message);
         }
@@ -4336,15 +4367,37 @@ export default function App() {
   const syncMerchOrderUpdate = (order, updatePayload) => {
     if (!isSupabaseConfigured || !userSession?.id) return;
 
+    const merchOrderUpdateRow = {
+      tracking_status: updatePayload.trackingStatus || order.trackingStatus,
+      tracking_number: updatePayload.trackingNumber ?? order.trackingNumber ?? null,
+      stock_restored: updatePayload.stockRestored ?? order.stockRestored ?? false,
+      stock_restored_at: updatePayload.stockRestoredAt || order.stockRestoredAt || null,
+      refund_requested_at: updatePayload.refundRequestedAt || order.refundRequestedAt || null,
+      cancelled_at: updatePayload.cancelledAt || order.cancelledAt || null,
+      refunded_at: updatePayload.refundedAt || order.refundedAt || null,
+      resolved_at: updatePayload.resolvedAt || order.resolvedAt || null,
+      updated_at: new Date().toISOString()
+    };
     void supabase
       .from('merch_orders')
-      .update({
-        tracking_status: updatePayload.trackingStatus || order.trackingStatus,
-        tracking_number: updatePayload.trackingNumber ?? order.trackingNumber ?? null,
-        updated_at: new Date().toISOString()
-      })
+      .update(merchOrderUpdateRow)
       .eq('id', order.id)
-      .then(({ error }) => {
+      .then(async ({ error }) => {
+        if (error && isMissingColumnError(error)) {
+          const legacyMerchOrderUpdateRow = {
+            tracking_status: merchOrderUpdateRow.tracking_status,
+            tracking_number: merchOrderUpdateRow.tracking_number,
+            updated_at: merchOrderUpdateRow.updated_at
+          };
+          const { error: legacyError } = await supabase
+            .from('merch_orders')
+            .update(legacyMerchOrderUpdateRow)
+            .eq('id', order.id);
+          if (legacyError && !isMissingColumnError(legacyError)) {
+            console.warn('Gagal sync status order merch ke Supabase:', legacyError.message);
+          }
+          return;
+        }
         if (error && !isMissingColumnError(error)) {
           console.warn('Gagal sync status order merch ke Supabase:', error.message);
         }
