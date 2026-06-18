@@ -3201,7 +3201,9 @@ export default function App() {
     `WiSpace Monthly Finance Report - ${report.periodLabel}`,
     `Generated at: ${report.generatedAt}`,
     '',
-    `Gross paid: Rp ${Number(report.totalGross || 0).toLocaleString('id-ID')}`,
+    `Cash collected: Rp ${Number(report.totalCashCollected || report.totalGross || 0).toLocaleString('id-ID')}`,
+    `Product gross paid: Rp ${Number(report.totalGross || 0).toLocaleString('id-ID')}`,
+    `Shipping collected: Rp ${Number(report.totalShippingCost || 0).toLocaleString('id-ID')}`,
     `WiSpace fee: Rp ${Number(report.totalPlatformFee || 0).toLocaleString('id-ID')}`,
     `Band payout total: Rp ${Number(report.totalBandNet || 0).toLocaleString('id-ID')}`,
     `Ready payout: Rp ${Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')}`,
@@ -3210,7 +3212,7 @@ export default function App() {
     'Revenue source summary:',
     ...((report.transactionTypeSummary || []).length
       ? report.transactionTypeSummary.map((item) => (
-          `- ${item.label}: ${item.count} transaksi / Gross Rp ${Number(item.grossAmount || 0).toLocaleString('id-ID')} / Fee Rp ${Number(item.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(item.bandNet || 0).toLocaleString('id-ID')}`
+          `- ${item.label}: ${item.count} transaksi / Gross Rp ${Number(item.grossAmount || 0).toLocaleString('id-ID')} / Ongkir Rp ${Number(item.shippingCost || 0).toLocaleString('id-ID')} / Fee Rp ${Number(item.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(item.bandNet || 0).toLocaleString('id-ID')}`
         ))
       : ['- Belum ada summary tipe transaksi']),
     '',
@@ -3219,6 +3221,7 @@ export default function App() {
       `${index + 1}. ${row.name}`,
       `   Status: ${row.ready ? 'READY PAYOUT' : 'HOLD - CEK MINIMUM/REKENING'}`,
       `   Gross: Rp ${Number(row.grossAmount || 0).toLocaleString('id-ID')}`,
+      `   Ongkir: Rp ${Number(row.shippingCost || 0).toLocaleString('id-ID')}`,
       `   WiSpace fee: Rp ${Number(row.platformFee || 0).toLocaleString('id-ID')}`,
       `   Net band: Rp ${Number(row.amount || 0).toLocaleString('id-ID')}`,
       `   Transaksi: ${row.transactions || 0}`,
@@ -3226,7 +3229,7 @@ export default function App() {
       '   Detail transaksi:',
       ...((row.transactionDetails || []).length
         ? row.transactionDetails.map((transaction) => (
-            `   - ${transaction.createdAt || transaction.paidAt || '-'} / ${transaction.orderId || '-'} / ${transaction.productType || 'order'} / ${transaction.productTitle || '-'} / Buyer: ${transaction.buyerName || '-'} / Gross Rp ${Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(transaction.bandNet || 0).toLocaleString('id-ID')}`
+            `   - ${transaction.createdAt || transaction.paidAt || '-'} / ${transaction.orderId || '-'} / ${transaction.productType || 'order'} / ${transaction.productTitle || '-'} / Buyer: ${transaction.buyerName || '-'} / Gross Rp ${Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Ongkir Rp ${Number(transaction.shippingCost || 0).toLocaleString('id-ID')} / Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(transaction.bandNet || 0).toLocaleString('id-ID')}`
           ))
         : ['   - Belum ada detail transaksi'])
     ].join('\n'))
@@ -3244,7 +3247,9 @@ export default function App() {
       periodLabel: nextPayoutLabel,
       generatedAt: new Date().toISOString(),
       rows: adminPayoutReportRows,
+      totalCashCollected: adminCashCollected,
       totalGross: adminGrossSalesRevenue,
+      totalShippingCost: adminMerchShippingCollected,
       totalPlatformFee: adminPlatformRevenue,
       totalBandNet: adminBandPayoutTotal,
       readyPayoutTotal: adminPayoutReadyTotal,
@@ -3255,13 +3260,15 @@ export default function App() {
           label: 'Rilisan digital',
           count: adminDigitalTransactions.length,
           grossAmount: adminDigitalTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0),
+          shippingCost: 0,
           platformFee: adminReleaseFeeRevenue,
           bandNet: adminDigitalTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0)
         },
         {
           label: 'Merch fisik',
           count: adminMerchTransactions.length,
-          grossAmount: adminMerchTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0),
+          grossAmount: adminMerchProductRevenue,
+          shippingCost: adminMerchShippingCollected,
           platformFee: adminMerchFeeRevenue,
           bandNet: adminMerchTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0)
         },
@@ -3269,6 +3276,7 @@ export default function App() {
           label: 'Pamflet exclusive',
           count: adminExclusivePosterPaidCount,
           grossAmount: adminExclusivePosterRevenue,
+          shippingCost: 0,
           platformFee: adminExclusivePosterRevenue,
           bandNet: 0
         }
@@ -5294,15 +5302,27 @@ export default function App() {
   const adminOrdersWithTracking = merchOrders.filter((order) => order.trackingNumber && !['completed', 'cancelled'].includes(order.trackingStatus));
   const adminCompletedMerchOrders = merchOrders.filter((order) => order.trackingStatus === 'completed');
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
+  const merchShippingByOrderId = merchOrders.reduce((lookup, order) => {
+    const shippingCost = Number(order.shippingCost || 0);
+    [order.orderId, order.transactionId, order.id].filter(Boolean).forEach((key) => {
+      lookup[String(key)] = shippingCost;
+    });
+    return lookup;
+  }, {});
+  const adminMerchShippingCollected = merchOrders.reduce((total, order) => total + Number(order.shippingCost || 0), 0);
+  const adminMerchProductRevenue = adminMerchTransactions.reduce((total, transaction) => total + Number(transaction.grossAmount || 0), 0);
+  const adminCashCollected = adminGrossSalesRevenue + adminMerchShippingCollected;
   const adminPayoutByBand = paidSaleTransactions
     .filter((transaction) => Number(transaction.bandNet || 0) > 0)
     .reduce((bands, transaction) => {
       const key = transaction.sellerBandSlug || createSlug(transaction.sellerBandName || 'band-wispace');
+      const transactionShippingCost = Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0);
       const current = bands[key] || {
         slug: key,
         name: transaction.sellerBandName || 'Band WiSpace',
         amount: 0,
         grossAmount: 0,
+        shippingCost: 0,
         platformFee: 0,
         transactions: 0,
         transactionDetails: []
@@ -5313,6 +5333,7 @@ export default function App() {
           ...current,
           amount: current.amount + Number(transaction.bandNet || 0),
           grossAmount: current.grossAmount + Number(transaction.grossAmount || 0),
+          shippingCost: current.shippingCost + transactionShippingCost,
           platformFee: current.platformFee + Number(transaction.platformFee || 0),
           transactions: current.transactions + 1,
           transactionDetails: [
@@ -5325,6 +5346,7 @@ export default function App() {
               grossAmount: Number(transaction.grossAmount || 0),
               platformFee: Number(transaction.platformFee || 0),
               bandNet: Number(transaction.bandNet || 0),
+              shippingCost: transactionShippingCost,
               paidAt: transaction.paidAt || transaction.createdAt || '',
               createdAt: transaction.createdAt || ''
             }
@@ -5376,8 +5398,12 @@ export default function App() {
   const waitingAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'waiting_admin_confirmation');
   const paidAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'paid');
   const rejectedAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'rejected');
-  const waitingAdminPaymentAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.grossAmount || payment.amount || 0), 0);
-  const waitingAdminPaymentPotentialFee = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.platformFee || calculateRevenueSplit(payment.amount).platformFee), 0);
+  const waitingAdminPaymentAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.amount || payment.grossAmount || 0), 0);
+  const waitingAdminPaymentProductAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.grossAmount || payment.productAmount || payment.amount || 0), 0);
+  const waitingAdminPaymentShippingAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.shipping?.shippingCost || payment.shippingCost || 0), 0);
+  const waitingAdminPaymentPotentialFee = waitingAdminPaymentRequests.reduce((total, payment) => (
+    total + Number(payment.platformFee || calculateRevenueSplit(payment.grossAmount || payment.productAmount || payment.amount).platformFee)
+  ), 0);
   const rejectedAdminPaymentAmount = rejectedAdminPaymentRequests.reduce((total, payment) => total + Number(payment.grossAmount || payment.amount || 0), 0);
   const recentProcessedPaymentRequests = pendingPayments
     .filter((payment) => payment.status && payment.status !== 'waiting_admin_confirmation')
@@ -5460,6 +5486,7 @@ export default function App() {
       bankAccountName: profile.bankAccountName || '',
       bankAccountNumber: profile.bankAccountNumber || '',
       grossAmount: band.grossAmount || 0,
+      shippingCost: band.shippingCost || 0,
       platformFee: band.platformFee || 0,
       ready: band.amount >= MINIMUM_PAYOUT_AMOUNT && profile.bankName && profile.bankAccountName && profile.bankAccountNumber
     };
@@ -6717,7 +6744,9 @@ export default function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
-                ['WAITING GROSS', waitingAdminPaymentAmount, 'rgba(242,242,242,0.62)'],
+                ['WAITING CASH', waitingAdminPaymentAmount, 'rgba(242,242,242,0.62)'],
+                ['WAITING PRODUK', waitingAdminPaymentProductAmount, 'rgba(242,242,242,0.62)'],
+                ['WAITING ONGKIR', waitingAdminPaymentShippingAmount, 'rgba(242,242,242,0.62)'],
                 ['POTENSI FEE', waitingAdminPaymentPotentialFee, '#5CB8E4'],
                 ['REJECTED GROSS', rejectedAdminPaymentAmount, '#8758FF']
               ].map(([label, amount, color]) => (
@@ -6737,13 +6766,17 @@ export default function App() {
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
                     {waitingAdminPaymentRequests.map((payment) => {
                       const hasPaymentProof = Boolean(payment.paymentProofPreview || payment.paymentProofUrl);
+                      const paymentProductAmount = Number(payment.grossAmount || payment.productAmount || payment.amount || 0);
+                      const paymentShippingCost = Number(payment.shipping?.shippingCost || payment.shippingCost || 0);
+                      const paymentSplit = calculateRevenueSplit(paymentProductAmount);
                       return (
                       <div key={payment.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
                           <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
-                          <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Split admin: fee Rp {Number(payment.platformFee || calculateRevenueSplit(payment.amount).platformFee).toLocaleString('id-ID')} / net band Rp {Number(payment.bandNet || calculateRevenueSplit(payment.amount).bandNet).toLocaleString('id-ID')}</p>
+                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Total Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Produk Rp {paymentProductAmount.toLocaleString('id-ID')}{paymentShippingCost ? ` / Ongkir Rp ${paymentShippingCost.toLocaleString('id-ID')}` : ''}</p>
+                          <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Split admin: fee Rp {Number(payment.platformFee || paymentSplit.platformFee).toLocaleString('id-ID')} / net band Rp {Number(payment.bandNet || paymentSplit.bandNet).toLocaleString('id-ID')}</p>
                           <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginTop: '7px', flexWrap: 'wrap' }}>
                             {hasPaymentProof ? (
                               <>
@@ -6811,8 +6844,18 @@ export default function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '9px' }}>
               <div style={compactMetricCardStyle}>
-                <p style={compactMetricLabelStyle}>TOTAL OMZET PAID</p>
+                <p style={compactMetricLabelStyle}>CASH COLLECTED</p>
+                <strong style={compactMetricValueStyle}>Rp {adminCashCollected.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Produk + ongkir merch.</p>
+              </div>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>OMZET PRODUK PAID</p>
                 <strong style={compactMetricValueStyle}>Rp {adminGrossSalesRevenue.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={compactMetricCardStyle}>
+                <p style={compactMetricLabelStyle}>ONGKIR TERKUMPUL</p>
+                <strong style={compactMetricValueStyle}>Rp {adminMerchShippingCollected.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Bukan revenue band/WiSpace.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>TOTAL FEE WISPACE</p>
@@ -7452,8 +7495,8 @@ export default function App() {
                       <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
                     </div>
                     <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#F2F2F2' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#F2F2F2' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')}</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
                     <strong style={{ color: transaction.productType === 'merch' ? getMerchOrderStatusColor(transaction.fulfillmentStatus) : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{transaction.productType === 'merch' ? getMerchOrderStatusLabel(transaction.fulfillmentStatus) : String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
                   </div>
                 ))}
