@@ -167,6 +167,18 @@ const getReadinessColor = (status = 'todo') => ({
   demo: 'rgba(242,242,242,0.62)',
   todo: '#8758FF'
 }[status] || 'rgba(242,242,242,0.62)');
+const getReadinessTint = (status = 'todo') => ({
+  ready: 'rgba(242,242,242,0.08)',
+  scaffold: 'rgba(92,184,228,0.10)',
+  demo: 'rgba(242,242,242,0.06)',
+  todo: 'rgba(135,88,255,0.10)'
+}[status] || 'rgba(242,242,242,0.06)');
+const getReadinessBorder = (status = 'todo') => ({
+  ready: 'rgba(242,242,242,0.22)',
+  scaffold: 'rgba(92,184,228,0.32)',
+  demo: 'rgba(242,242,242,0.18)',
+  todo: 'rgba(135,88,255,0.32)'
+}[status] || 'rgba(242,242,242,0.18)');
 const isMissingColumnError = (error) => {
   const message = error?.message?.toLowerCase() || '';
   return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
@@ -5572,13 +5584,6 @@ export default function App() {
     exclusivePosterTransactions.reduce((total, transaction) => total + Number(transaction.platformFee || transaction.grossAmount || 0), 0),
     paidExclusivePosterGigs.length * EXCLUSIVE_POSTER_SLOT_FEE
   );
-  const realFlowChecklist = [
-    'Band daftar/login, approve agreement, isi profile, upload album + 1 track free full.',
-    'Band upload merch dengan stok kecil, lalu buka profile public dan pastikan card merch muncul.',
-    'Audience daftar/login, klik Explore, beli album/track, cek Library dan player.',
-    'Audience beli merch, isi alamat/kurir, lalu band cek order di dashboard keuangan.',
-    'Band proses order, input resi, lalu admin cek ledger fee rilisan, merch, dan pamflet.'
-  ];
   const localAssetCount = [
     ...publicBandProfiles.flatMap((profile) => [profile.photoPreview, profile.coverPreview]),
     ...albumItems.flatMap((album) => [album.coverPreview, ...(album.tracks || []).map((track) => track.url)]),
@@ -5614,6 +5619,79 @@ export default function App() {
   const manualConfirmedPaymentTransactions = saleTransactions.filter((transaction) => (
     transaction.paymentMethod === 'admin_confirmed_manual'
   )).length;
+  const restoredMerchOrderCount = merchOrders.filter((order) => order.stockRestored).length;
+  const merchRefundOrCancelCount = merchOrders.filter((order) => ['cancelled', 'refunded', 'refund_requested'].includes(order.trackingStatus)).length;
+  const completedRealFlowCount = [
+    publicBandProfiles.some((profile) => profile.isPublished),
+    releaseAgreements.length > 0 && albumItems.length > 0,
+    publicMerchList.length > 0,
+    purchasedAlbums.length > 0 || saleTransactions.some((transaction) => ['album', 'track'].includes(transaction.productType)),
+    merchOrders.length > 0,
+    merchOrders.some((order) => order.trackingNumber || ['shipped', 'completed'].includes(order.trackingStatus)),
+    restoredMerchOrderCount > 0 || merchRefundOrCancelCount > 0,
+    monthlyFinanceReports.length > 0
+  ].filter(Boolean).length;
+  const realFlowChecklist = [
+    {
+      title: 'Band profile + agreement',
+      status: publicBandProfiles.some((profile) => profile.isPublished) && releaseAgreements.length > 0 ? 'ready' : publicBandProfiles.length ? 'scaffold' : 'todo',
+      note: 'Band daftar/login, approve agreement, isi profile, dan publish profile public.',
+      actionLabel: 'BAND PROFILE',
+      action: () => navigateInternalPage('band_profile')
+    },
+    {
+      title: 'Upload album + preview',
+      status: albumItems.length && publicPreviewClipCount ? 'ready' : albumItems.length ? 'scaffold' : 'todo',
+      note: 'Band upload MP3, preview 30 detik kebaca, dan 1 track bisa free full kalau dipilih.',
+      actionLabel: 'UPLOAD ALBUM',
+      action: () => {
+        setBandProfileTab('album');
+        navigateInternalPage('band_profile');
+      }
+    },
+    {
+      title: 'Upload merch + stock',
+      status: publicMerchList.length ? 'ready' : 'todo',
+      note: 'Band upload merch, isi stok, pilih band ship/admin stock, lalu cek card merch di Explore.',
+      actionLabel: 'EXPLORE MERCH',
+      action: () => navigateInternalPage('explore', { exploreTab: 'merch' })
+    },
+    {
+      title: 'Audience purchase digital',
+      status: purchasedAlbums.length || saleTransactions.some((transaction) => ['album', 'track'].includes(transaction.productType)) ? 'ready' : waitingAdminPaymentRequests.length ? 'scaffold' : 'todo',
+      note: 'Audience checkout album/track, admin confirm paid, lalu item masuk Library dan player bisa dipakai.',
+      actionLabel: 'LIBRARY',
+      action: () => navigateInternalPage('audience_library')
+    },
+    {
+      title: 'Audience purchase merch',
+      status: merchOrders.length ? 'ready' : waitingAdminPaymentRequests.some((payment) => payment.type === 'merch') ? 'scaffold' : 'todo',
+      note: 'Audience checkout merch, isi alamat/kurir, admin confirm paid, lalu order muncul di audience/band/admin.',
+      actionLabel: 'ORDERS',
+      action: () => navigateInternalPage('audience_orders')
+    },
+    {
+      title: 'Fulfillment + resi',
+      status: merchOrders.some((order) => order.trackingNumber || ['shipped', 'completed'].includes(order.trackingStatus)) ? 'ready' : merchOrders.length ? 'scaffold' : 'todo',
+      note: 'Band/admin update status, packing, input resi, shipped, completed.',
+      actionLabel: 'ADMIN FINANCE',
+      action: () => setAdminActiveSection('finance')
+    },
+    {
+      title: 'Cancel/refund restore stock',
+      status: restoredMerchOrderCount ? 'ready' : merchRefundOrCancelCount ? 'scaffold' : 'todo',
+      note: 'Admin review refund/cancel, stok balik sekali, ledger keluar dari payout paid.',
+      actionLabel: 'ORDER DETAIL',
+      action: () => setAdminActiveSection('finance')
+    },
+    {
+      title: 'Finance report tanggal 1',
+      status: monthlyFinanceReports.length ? 'ready' : paidSaleTransactions.length ? 'scaffold' : 'todo',
+      note: 'Generate report bulanan, cek cash collected, ongkir, fee WiSpace, dan payout band.',
+      actionLabel: 'FINANCE',
+      action: () => setAdminActiveSection('finance')
+    }
+  ];
   const productionReadinessItems = [
     {
       title: 'Supabase env',
@@ -5624,6 +5702,11 @@ export default function App() {
       title: 'SQL schema',
       status: 'scaffold',
       note: 'File SQL sudah ada dan perlu dijalankan berurutan di Supabase SQL Editor.'
+    },
+    {
+      title: 'Commerce refund schema',
+      status: restoredMerchOrderCount || merchRefundOrCancelCount ? 'ready' : 'scaffold',
+      note: 'supabase-commerce-upgrade.sql sudah punya kolom ongkir, stock restore, refund timestamps, dan finance cash/shipping.'
     },
     {
       title: 'Catalog + commerce',
@@ -5659,6 +5742,11 @@ export default function App() {
       title: 'Shipment tracking',
       status: merchOrders.some((order) => order.trackingNumber) ? 'scaffold' : 'demo',
       note: 'Band bisa input resi manual. API ekspedisi real-time belum tersambung.'
+    },
+    {
+      title: 'Monthly finance report',
+      status: monthlyFinanceReports.length ? 'ready' : paidSaleTransactions.length ? 'scaffold' : 'todo',
+      note: monthlyFinanceReports.length ? `${monthlyFinanceReports.length} report lokal tersedia. Supabase report menyimpan cash collected dan shipping collected setelah SQL terbaru dijalankan.` : 'Generate report tanggal 1 setelah ada transaksi paid.'
     }
   ];
   const readinessStatusCounts = productionReadinessItems.reduce((counts, item) => ({
@@ -7541,13 +7629,23 @@ export default function App() {
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REAL TEST FLOW</p>
                 <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>CHECKLIST TESTING</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Urutan ini dipakai setelah SQL Supabase jalan dan data dummy sudah siap dibersihkan.</p>
+              <div style={{ display: 'grid', justifyItems: isTinyLayout ? 'start' : 'end', gap: '5px' }}>
+                <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>{completedRealFlowCount}/{realFlowChecklist.length}</strong>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px', textAlign: isTinyLayout ? 'left' : 'right' }}>Urutan ini dipakai setelah SQL Supabase jalan dan data dummy sudah siap dibersihkan.</p>
+              </div>
             </div>
             <div style={{ display: 'grid', gap: '7px' }}>
               {realFlowChecklist.map((item, index) => (
-                <div key={item} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '24px 1fr', gap: '9px', alignItems: 'start' }}>
-                  <strong style={{ width: '24px', height: '24px', borderRadius: '9999px', backgroundColor: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.22)', color: '#5CB8E4', display: 'grid', placeItems: 'center', fontSize: '10px' }}>{index + 1}</strong>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{item}</p>
+                <div key={item.title} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '28px 1fr' : '28px minmax(0, 1fr) auto', gap: '9px', alignItems: 'center' }}>
+                  <strong style={{ width: '26px', height: '26px', borderRadius: '9999px', backgroundColor: getReadinessTint(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, color: getReadinessColor(item.status), display: 'grid', placeItems: 'center', fontSize: '10px' }}>{index + 1}</strong>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                      <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
+                      <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, backgroundColor: getReadinessTint(item.status), borderRadius: '9999px', padding: '3px 6px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
+                    </div>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{item.note}</p>
+                  </div>
+                  <button type="button" onClick={item.action} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', gridColumn: isTinyLayout ? '2 / 3' : 'auto', width: 'fit-content' }}>{item.actionLabel}</button>
                 </div>
               ))}
             </div>
@@ -7622,7 +7720,7 @@ export default function App() {
                 <div key={item.title} style={compactRowStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '6px' }}>
                     <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
-                    <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessColor(item.status)}44`, backgroundColor: `${getReadinessColor(item.status)}10`, borderRadius: '9999px', padding: '4px 7px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
+                    <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, backgroundColor: getReadinessTint(item.status), borderRadius: '9999px', padding: '4px 7px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
                   </div>
                   <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{item.note}</p>
                 </div>
