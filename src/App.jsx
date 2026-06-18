@@ -5872,7 +5872,7 @@ export default function App() {
   const ownerActionsPanelStyle = {
     ...glassStyle('band-owner-actions'),
     padding: isTinyLayout ? '7px' : '8px',
-    backgroundColor: '#080808',
+    background: softSurfaceBackground,
     marginBottom: isTinyLayout ? '10px' : '12px',
     display: showBandOwnerControls ? 'block' : 'none',
     borderRadius: '10px'
@@ -7800,7 +7800,7 @@ export default function App() {
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(141,223,247,0.18), transparent 34%), linear-gradient(to top, rgba(3,3,3,1), rgba(3,3,3,0.62), rgba(3,3,3,0.16))' }} />
             <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: publicBandHeroColumns, gap: '24px', alignItems: 'end', width: '100%' }}>
-              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '14px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(141,223,247,0.36)', display: 'grid', placeItems: 'center', boxShadow: '0 14px 32px rgba(0,0,0,0.42)' }}>
+              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '14px', overflow: 'hidden', background: softSurfaceBackground, border: '1.5px solid rgba(141,223,247,0.34)', display: 'grid', placeItems: 'center', boxShadow: '0 14px 32px rgba(0,0,0,0.42), inset 0 1px 0 rgba(244,241,234,0.08)' }}>
                 {displayBandProfile.photoPreview ? <img src={displayBandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
               </div>
               <div>
@@ -7809,9 +7809,9 @@ export default function App() {
                 <p style={{ color: '#f5f5f5', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{displayBandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
                 <p style={{ color: '#9a9a9a', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(displayBandProfile.city || 'KOTA').toUpperCase()} / {(displayBandProfile.genre || 'GENRE').toUpperCase()}{displayBandProfile.formedYear ? ` / SINCE ${displayBandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath(displayBandProfile)}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '0 0 14px 0' }}>
-                  <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(0,0,0,0.55)', border: '1px solid rgba(141,223,247,0.28)', color: '#8DDFF7', fontSize: '11px', fontWeight: '900' }}>{bandSubscriberCount.toLocaleString('id-ID')} SUBSCRIBERS</span>
+                  <span style={{ padding: '7px 10px', borderRadius: '9999px', background: softRowBackground, border: '1px solid rgba(141,223,247,0.28)', color: '#8DDFF7', fontSize: '11px', fontWeight: '900' }}>{bandSubscriberCount.toLocaleString('id-ID')} SUBSCRIBERS</span>
                   {showBandOwnerControls && unreadBandNotifications > 0 && (
-                    <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(142,230,166,0.1)', border: '1px solid rgba(142,230,166,0.28)', color: '#8EE6A6', fontSize: '11px', fontWeight: '900' }}>{unreadBandNotifications} NOTIF BARU</span>
+                    <span style={{ padding: '7px 10px', borderRadius: '9999px', background: 'linear-gradient(90deg, rgba(142,230,166,0.14), rgba(244,241,234,0.03))', border: '1px solid rgba(142,230,166,0.28)', color: '#8EE6A6', fontSize: '11px', fontWeight: '900' }}>{unreadBandNotifications} NOTIF BARU</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
@@ -7848,7 +7848,7 @@ export default function App() {
               )}
 
               {showBandOwnerControls && (
-                <section style={{ ...glassStyle('band-subscribe-notifications'), padding: '14px', backgroundColor: '#090909', marginBottom: '18px' }}>
+                <section style={{ ...compactSurfaceStyle, padding: '14px', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
                     <div>
                       <p style={{ color: '#8DDFF7', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>BAND NOTIFICATIONS</p>
@@ -7863,7 +7863,7 @@ export default function App() {
                   ) : (
                     <div style={{ display: 'grid', gap: '8px' }}>
                       {bandNotifications.slice(0, 4).map((notification) => (
-                        <div key={notification.id} style={{ padding: '10px', backgroundColor: '#000', border: `1px solid ${notification.read ? '#141414' : 'rgba(142,230,166,0.28)'}`, borderRadius: '10px' }}>
+                        <div key={notification.id} style={{ ...compactRowStyle, border: `1px solid ${notification.read ? 'rgba(244,241,234,0.1)' : 'rgba(142,230,166,0.28)'}` }}>
                           <p style={{ color: notification.read ? '#777' : '#8EE6A6', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{notification.title} / {notification.createdAt}</p>
                           <p style={{ color: '#ddd', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
                         </div>
@@ -7873,12 +7873,12 @@ export default function App() {
                 </section>
               )}
 
-              <section style={{ padding: isTinyLayout ? '10px 0 18px' : '12px 0 22px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <section style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
                 <p style={{ color: '#bbb', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
-              <section style={{ padding: isTinyLayout ? '10px 0 18px' : '12px 0 22px', marginBottom: '24px' }}>
+              <section style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
                   <div>
                     <h3 style={{ ...sectionHeadingStyle, margin: '0 0 6px 0' }}>PROMO MUSIC PLAYER</h3>
@@ -7894,7 +7894,7 @@ export default function App() {
                     ['PREVIEW READY', bandPublicPreviewReadyCount, bandPublicPreviewReadyCount ? '#8DDFF7' : '#777'],
                     ['FREE FULL', hasFreeFullBandTrack ? 1 : 0, hasFreeFullBandTrack ? '#8EE6A6' : '#777']
                   ].map(([label, value, color]) => (
-                    <div key={label} style={{ padding: '7px 0', borderTop: `1px solid ${color}22` }}>
+                    <div key={label} style={{ padding: '7px 8px', borderTop: `1px solid ${color}22`, background: softRowBackground, borderRadius: '8px' }}>
                       <p style={{ color: '#666', fontSize: '9px', fontWeight: '900', letterSpacing: '0.6px', margin: '0 0 4px 0' }}>{label}</p>
                       <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
                     </div>
@@ -7927,7 +7927,7 @@ export default function App() {
                 )}
               </section>
 
-              <section style={{ padding: isTinyLayout ? '10px 0 18px' : '12px 0 22px', marginBottom: '24px' }}>
+              <section style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {displayBandAlbums.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
@@ -7964,15 +7964,15 @@ export default function App() {
                 )}
               </section>
 
-              <section id="band-gig-schedule" style={{ ...glassStyle('band-gig-schedule'), padding: '20px', backgroundColor: '#090909' }}>
+              <section id="band-gig-schedule" style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px' }}>
                 <h3 style={sectionHeadingStyle}>JADWAL MANGGUNG</h3>
                 {bandScheduleItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Belum ada jadwal manggung. Tambahkan jadwal dari Band Gig Manager, jadwal ini hanya tampil di profile band.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {bandScheduleItems.slice(0, 5).map((schedule) => (
-                      <div key={schedule.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: '12px', padding: '10px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
-                        <div style={{ width: '72px', height: '72px', borderRadius: '10px', backgroundColor: '#050505', border: '1px solid rgba(141,223,247,0.25)', display: 'grid', placeItems: 'center', color: '#8DDFF7', fontSize: '11px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
+                      <div key={schedule.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '64px 1fr', gap: '12px' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', background: softRowBackground, border: '1px solid rgba(141,223,247,0.25)', display: 'grid', placeItems: 'center', color: '#8DDFF7', fontSize: '10px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
                         <div>
                           <h4 style={{ color: '#fff', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{schedule.title.toUpperCase()}</h4>
                           <p style={{ color: '#777', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{schedule.venue} / {schedule.date} / {schedule.htm}</p>
@@ -7986,13 +7986,13 @@ export default function App() {
             </main>
 
             <aside style={{ display: 'grid', gap: '18px' }}>
-              <section style={{ padding: '2px 0 0 0' }}>
+              <section style={{ ...compactSurfaceStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>CONTACT</h3>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#fff' }}>{displayBandProfile.cp || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#fff' }}>{displayBandProfile.email || '-'}</span></p>
                 <p style={{ color: '#777', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#fff' }}>{displayBandProfile.instagram || '-'}</span></p>
                 {showBandContactForm ? (
-                  <form onSubmit={handleMessageSubmit} style={{ display: 'grid', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
+                  <form onSubmit={handleMessageSubmit} style={{ display: 'grid', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${flatLineColor}` }}>
                     <p style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(displayBandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
                     <input type="text" placeholder="NAMA PENGIRIM" value={messageDraft.sender} onChange={(e) => setMessageDraft({ ...messageDraft, sender: e.target.value })} required style={formInputStyle} />
                     <input type="text" placeholder="KONTAK BALASAN" value={messageDraft.contact} onChange={(e) => setMessageDraft({ ...messageDraft, contact: e.target.value })} required style={formInputStyle} />
@@ -8001,13 +8001,13 @@ export default function App() {
                     <button type="submit" style={{ ...glassButtonStyle, width: '100%', padding: '12px', fontSize: '12px' }}>KIRIM MESSAGE</button>
                   </form>
                 ) : (
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #141414' }}>
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${flatLineColor}` }}>
                     <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Ini profile band lu sendiri, jadi form kirim pesan disembunyikan.</p>
                   </div>
                 )}
               </section>
 
-              <section style={{ padding: '2px 0 0 0' }}>
+              <section style={{ ...compactSurfaceStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>MERCHANDISE</h3>
                 {displayBandMerchItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
@@ -8831,8 +8831,8 @@ export default function App() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
-            <aside style={{ ...glassStyle('band-preview'), padding: '18px', backgroundColor: '#090909' }}>
-              <div style={{ position: 'relative', minHeight: '210px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '18px' }}>
+            <aside style={{ ...compactSurfaceStyle, padding: '16px' }}>
+              <div style={{ position: 'relative', minHeight: '210px', borderRadius: '14px', overflow: 'hidden', background: softSurfaceBackground, border: '1px solid rgba(255,255,255,0.08)', marginBottom: '18px' }}>
                 {bandProfile.coverPreview ? (
                   <img src={bandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
@@ -8840,7 +8840,7 @@ export default function App() {
                 )}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.18))' }} />
                 <div style={{ position: 'absolute', left: '16px', right: '16px', bottom: '16px', display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
-                  <div style={{ width: '86px', height: '86px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#000', border: '2px solid rgba(141,223,247,0.7)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '86px', height: '86px', borderRadius: '14px', overflow: 'hidden', background: softSurfaceBackground, border: '2px solid rgba(141,223,247,0.7)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     {bandProfile.photoPreview ? (
                       <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -8856,11 +8856,11 @@ export default function App() {
               <p style={{ color: '#8DDFF7', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PUBLIC BAND PAGE PREVIEW</p>
               <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id{getBandProfilePath()}</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '0 0 12px 0' }}>
-                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(141,223,247,0.18)', borderRadius: '12px' }}>
+                <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
                   <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>SUBSCRIBERS</p>
                   <strong style={{ color: '#8DDFF7', fontSize: '18px' }}>{bandSubscriberCount.toLocaleString('id-ID')}</strong>
                 </div>
-                <div style={{ padding: '10px', backgroundColor: '#000', border: '1px solid rgba(142,230,166,0.16)', borderRadius: '12px' }}>
+                <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
                   <p style={{ color: '#666', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>NOTIF BARU</p>
                   <strong style={{ color: unreadBandNotifications ? '#8EE6A6' : '#555', fontSize: '18px' }}>{unreadBandNotifications}</strong>
                 </div>
@@ -8869,25 +8869,25 @@ export default function App() {
               <p style={{ color: '#777', fontSize: '12px', fontWeight: '700', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''}</p>
               <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band akan tampil di sini. Audience bisa lihat cerita singkat, karakter musik, dan info rilisan band.'}</p>
               <div style={{ display: 'grid', gap: '8px', marginBottom: '18px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: '1px solid #141414', color: '#777', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: '#777', fontSize: '12px' }}>
                   <span>CP</span><strong style={{ color: '#fff', textAlign: 'right' }}>{bandProfile.cp || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: '1px solid #141414', color: '#777', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: '#777', fontSize: '12px' }}>
                   <span>EMAIL</span><strong style={{ color: '#fff', textAlign: 'right' }}>{bandProfile.email || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: '1px solid #141414', color: '#777', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: '#777', fontSize: '12px' }}>
                   <span>INSTAGRAM</span><strong style={{ color: '#fff', textAlign: 'right' }}>{bandProfile.instagram || '-'}</strong>
                 </div>
               </div>
               <button onClick={() => openBandPublicProfile(true)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px', marginBottom: '18px' }}>BUKA PUBLIC PREVIEW</button>
-              <div style={{ borderTop: '1px solid #141414', paddingTop: '14px', marginBottom: '14px' }}>
+              <div style={{ borderTop: `1px solid ${flatLineColor}`, paddingTop: '14px', marginBottom: '14px' }}>
                 <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
                 {bandPublicTracks.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Maksimal 5 lagu promo tampil di public profile. Pilih 1 track free full saat upload album.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {bandPublicTracks.slice(0, 3).map((track) => (
-                      <div key={`studio-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '10px', color: '#ddd', fontSize: '11px' }}>
+                      <div key={`studio-${track.id}`} style={{ ...compactRowStyle, display: 'flex', justifyContent: 'space-between', gap: '10px', color: '#ddd', fontSize: '11px' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
                         <strong style={{ color: track.freeFull ? '#8EE6A6' : '#8DDFF7', flexShrink: 0 }}>{track.freeFull ? 'FULL' : '30S'}</strong>
                       </div>
@@ -8895,14 +8895,14 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <div style={{ borderTop: '1px solid #141414', paddingTop: '14px' }}>
+              <div style={{ borderTop: `1px solid ${flatLineColor}`, paddingTop: '14px' }}>
                 <h4 style={{ color: '#fff', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCHANDISE SHELF</h4>
                 {merchItems.length === 0 ? (
                   <p style={{ color: '#555', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Nanti bagian ini bisa jadi tempat jual kaos, CD, kaset, stiker, bundle album, dan item fisik lain milik band.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {merchItems.slice(0, 3).map((item) => (
-                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center', padding: '8px', backgroundColor: '#000', border: '1px solid #141414', borderRadius: '12px' }}>
+                      <div key={item.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center' }}>
                         <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#111', display: 'grid', placeItems: 'center' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#333', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
@@ -8917,8 +8917,8 @@ export default function App() {
               </div>
             </aside>
 
-            <div style={{ ...glassStyle('band-editor'), padding: '18px', backgroundColor: '#090909' }}>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #141414', paddingBottom: '12px' }}>
+            <div style={{ ...compactSurfaceStyle, padding: '16px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: `1px solid ${flatLineColor}`, paddingBottom: '12px', flexWrap: 'wrap' }}>
                 {['profile', 'album', 'merch', 'artikel'].map((tab) => (
                   <button
                     key={tab}
