@@ -142,6 +142,14 @@ const getConsignmentStatusColor = (status = 'waiting_stock_handover') => ({
   stock_checked: '#5CB8E4',
   stock_returned: '#8758FF'
 }[status] || 'rgba(242,242,242,0.62)');
+const getMerchAvailableStock = (item = {}) => (
+  item.fulfillmentMode === 'admin_consignment'
+    ? item.consignmentStatus === 'stock_received'
+      ? normalizePriceValue(item.adminStockOnHand || 0)
+      : 0
+    : normalizePriceValue(item.stock || 0)
+);
+const isMerchPurchasable = (item = {}) => getMerchAvailableStock(item) > 0;
 const getReadinessColor = (status = 'todo') => ({
   ready: 'rgba(242,242,242,0.62)',
   scaffold: '#5CB8E4',
@@ -3608,8 +3616,15 @@ export default function App() {
       setAuthError('Join atau login dulu buat beli merchandise band.');
       return;
     }
+    if (!isMerchPurchasable(item)) {
+      const message = item.fulfillmentMode === 'admin_consignment' && item.consignmentStatus !== 'stock_received'
+        ? 'Merch titipan ini belum ready di admin WiSpace bro. Tunggu admin terima stok dulu.'
+        : 'Stok merch ini lagi kosong bro.';
+      alert(message);
+      return;
+    }
 
-    setActiveCheckout({ type: 'merch', item, checkoutRef: createCheckoutReference('merch'), status: 'pending_payment', startedAt: new Date().toISOString() });
+    setActiveCheckout({ type: 'merch', item: { ...item, stockAvailableAtCheckout: getMerchAvailableStock(item) }, checkoutRef: createCheckoutReference('merch'), status: 'pending_payment', startedAt: new Date().toISOString() });
     setCheckoutDraft({
       ...createEmptyCheckoutDraft(),
       buyerName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
@@ -3787,6 +3802,12 @@ export default function App() {
     const buyerEmail = checkoutDraft.buyerEmail.trim() || userSession.email || '';
 
     if (activeCheckout.type === 'merch') {
+      const latestMerchItem = publicMerchList.find((item) => String(item.id) === String(activeCheckout.item?.id)) || activeCheckout.item;
+      if (!isMerchPurchasable(latestMerchItem)) {
+        alert('Stok merch ini sudah tidak tersedia bro. Checkout dibatalkan dulu biar tidak oversell.');
+        setActiveCheckout(null);
+        return;
+      }
       const requiredFields = [
         checkoutDraft.recipientName,
         checkoutDraft.recipientPhone,
@@ -3818,8 +3839,10 @@ export default function App() {
 
   const handleConfirmPendingPayment = (payment) => {
     if (!payment) return;
-    if (payment.status && payment.status !== 'waiting_admin_confirmation') {
-      alert(`Payment request ini sudah ${payment.status.replaceAll('_', ' ')} bro.`);
+    const currentPayment = pendingPayments.find((item) => item.id === payment.id || item.checkoutRef === payment.checkoutRef);
+    const effectivePaymentStatus = currentPayment?.status || payment.status;
+    if (effectivePaymentStatus && effectivePaymentStatus !== 'waiting_admin_confirmation') {
+      alert(`Payment request ini sudah ${effectivePaymentStatus.replaceAll('_', ' ')} bro.`);
       return;
     }
     if (!payment.paymentProofPreview && !payment.paymentProofUrl) {
@@ -3958,7 +3981,11 @@ export default function App() {
     }
 
     if (payment.type === 'merch') {
-      const item = payment.item;
+      const item = publicMerchList.find((merch) => String(merch.id) === String(payment.item?.id)) || payment.item;
+      if (!isMerchPurchasable(item)) {
+        alert('Stok merch ini sudah kosong atau belum ready di admin. Jangan confirm paid dulu bro, reject/request refund manual dulu.');
+        return;
+      }
       const merchFulfillmentStatus = item.fulfillmentMode === 'admin_consignment'
         ? 'order_paid_waiting_admin'
         : 'order_paid_waiting_band';
@@ -7756,21 +7783,24 @@ export default function App() {
                 <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok. Merch sekarang dikumpulkan di Explore, bukan menu terpisah.</p>
               ) : (
                 <div style={compactVisualGridStyle}>
-                  {filteredMerchItems.map((item) => (
-                    <article key={item.id} onClick={() => openMerchDetail(item)} style={{ ...compactVisualCardStyle, borderColor: selectedMerch?.id === item.id ? 'rgba(92,184,228,0.46)' : flatLineColor }}>
-                      <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#181818', border: `1.5px solid ${selectedMerch?.id === item.id ? 'rgba(92,184,228,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
-                        {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
-                        <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {item.stock || 0}</p>
-                        <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
-                        <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
-                      </div>
-                      <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>{userSession ? 'BUY' : 'JOIN'}</button>
-                    </article>
-                  ))}
+                  {filteredMerchItems.map((item) => {
+                    const merchCanBePurchased = isMerchPurchasable(item);
+                    return (
+                      <article key={item.id} onClick={() => openMerchDetail(item)} style={{ ...compactVisualCardStyle, borderColor: selectedMerch?.id === item.id ? 'rgba(92,184,228,0.46)' : flatLineColor }}>
+                        <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#181818', border: `1.5px solid ${selectedMerch?.id === item.id ? 'rgba(92,184,228,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
+                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
+                          <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
+                          <p style={{ color: merchCanBePurchased ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {getMerchAvailableStock(item)}</p>
+                          <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
+                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                        </div>
+                        <button disabled={!merchCanBePurchased} onClick={(event) => { event.stopPropagation(); if (merchCanBePurchased) handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px', opacity: merchCanBePurchased ? 1 : 0.48, cursor: merchCanBePurchased ? 'pointer' : 'not-allowed' }}>{!merchCanBePurchased ? 'SOLD OUT' : userSession ? 'BUY' : 'JOIN'}</button>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -8168,20 +8198,23 @@ export default function App() {
                   <p style={{ color: '#8758FF', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
                 ) : (
                   <div style={flatListStyle}>
-                    {displayBandMerchItems.slice(0, 4).map((item) => (
-                      <div key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, cursor: 'pointer', gridTemplateColumns: isTinyLayout ? '50px minmax(0, 1fr)' : '50px minmax(0, 1fr) auto' }}>
-                        <div style={{ ...flatThumbStyle, width: '50px', height: '50px', borderRadius: '7px' }}>
-                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
+                    {displayBandMerchItems.slice(0, 4).map((item) => {
+                      const merchCanBePurchased = isMerchPurchasable(item);
+                      return (
+                        <div key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, cursor: 'pointer', gridTemplateColumns: isTinyLayout ? '50px minmax(0, 1fr)' : '50px minmax(0, 1fr) auto' }}>
+                          <div style={{ ...flatThumbStyle, width: '50px', height: '50px', borderRadius: '7px' }}>
+                            {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                            <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')} / STOCK {getMerchAvailableStock(item)}</p>
+                          </div>
+                          {!showBandOwnerControls && (
+                            <button disabled={!merchCanBePurchased} onClick={(event) => { event.stopPropagation(); if (merchCanBePurchased) handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, padding: isTinyLayout ? '7px 9px' : '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto', opacity: merchCanBePurchased ? 1 : 0.48, cursor: merchCanBePurchased ? 'pointer' : 'not-allowed' }}>{!merchCanBePurchased ? 'SOLD OUT' : userSession ? 'BUY' : 'JOIN'}</button>
+                          )}
                         </div>
-                        <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                          <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
-                        </div>
-                        {!showBandOwnerControls && (
-                          <button onClick={(event) => { event.stopPropagation(); handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, padding: isTinyLayout ? '7px 9px' : '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{userSession ? 'BUY' : 'JOIN'}</button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>
@@ -9494,7 +9527,7 @@ export default function App() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH DETAIL / STOCK {selectedMerchDetail.stock || 0}</p>
+                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH DETAIL / STOCK {getMerchAvailableStock(selectedMerchDetail)}</p>
                 <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1.02, margin: 0 }}>{String(selectedMerchDetail.name || 'Merch WiSpace').toUpperCase()}</h3>
               </div>
               <button type="button" onClick={() => { setSelectedMerchDetail(null); setSelectedMerchId(null); }} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
@@ -9521,7 +9554,7 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
                   {[
                     ['HARGA', `Rp ${Number(selectedMerchDetail.price || 0).toLocaleString('id-ID')}`],
-                    ['STOCK', selectedMerchDetail.stock || 0],
+                    ['STOCK', getMerchAvailableStock(selectedMerchDetail)],
                     ['SELLER', selectedMerchDetail.bandName || 'Band WiSpace']
                   ].map(([label, value]) => (
                     <div key={label} style={{ ...compactSurfaceStyle, padding: '8px', minWidth: 0 }}>
@@ -9533,7 +9566,7 @@ export default function App() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', borderTop: '1px solid rgba(242,242,242,0.12)', paddingTop: '12px' }}>
                   <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>Rp {Number(selectedMerchDetail.price || 0).toLocaleString('id-ID')}</strong>
-                  <button type="button" onClick={() => handlePurchaseMerch(selectedMerchDetail)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
+                  <button type="button" disabled={!isMerchPurchasable(selectedMerchDetail)} onClick={() => handlePurchaseMerch(selectedMerchDetail)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', opacity: isMerchPurchasable(selectedMerchDetail) ? 1 : 0.48, cursor: isMerchPurchasable(selectedMerchDetail) ? 'pointer' : 'not-allowed' }}>{!isMerchPurchasable(selectedMerchDetail) ? 'SOLD OUT' : userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
                 </div>
               </div>
             </div>
