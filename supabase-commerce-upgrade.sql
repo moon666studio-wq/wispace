@@ -125,6 +125,18 @@ create table if not exists public.payment_requests (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.payment_webhook_events (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null,
+  checkout_ref text,
+  provider_invoice_id text,
+  provider_status text,
+  wispace_status text,
+  verified boolean not null default false,
+  payload jsonb not null default '{}'::jsonb,
+  received_at timestamptz not null default now()
+);
+
 create table if not exists public.admin_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text unique,
@@ -307,6 +319,15 @@ add column if not exists rejected_by text,
 add column if not exists rejection_reason text,
 add column if not exists updated_at timestamptz not null default now();
 
+alter table if exists public.payment_webhook_events
+add column if not exists checkout_ref text,
+add column if not exists provider_invoice_id text,
+add column if not exists provider_status text,
+add column if not exists wispace_status text,
+add column if not exists verified boolean not null default false,
+add column if not exists payload jsonb not null default '{}'::jsonb,
+add column if not exists received_at timestamptz not null default now();
+
 alter table if exists public.merch_orders
 add column if not exists order_id text,
 add column if not exists shipping_cost integer not null default 0,
@@ -397,6 +418,15 @@ on public.payment_requests (checkout_ref);
 create index if not exists payment_requests_provider_invoice_idx
 on public.payment_requests (provider_invoice_id);
 
+create index if not exists payment_webhook_events_checkout_ref_idx
+on public.payment_webhook_events (checkout_ref, received_at desc);
+
+create index if not exists payment_webhook_events_provider_invoice_idx
+on public.payment_webhook_events (provider_invoice_id, received_at desc);
+
+create index if not exists payment_webhook_events_status_idx
+on public.payment_webhook_events (provider, provider_status, received_at desc);
+
 create index if not exists release_agreements_band_idx
 on public.release_agreements (band_slug, signed_at desc);
 
@@ -445,6 +475,7 @@ alter table public.content_reports enable row level security;
 alter table public.merch_items enable row level security;
 alter table public.sales_transactions enable row level security;
 alter table public.payment_requests enable row level security;
+alter table public.payment_webhook_events enable row level security;
 alter table public.admin_users enable row level security;
 alter table public.release_agreements enable row level security;
 alter table public.monthly_finance_reports enable row level security;
@@ -558,6 +589,32 @@ using (
 drop policy if exists "Admins can update payment requests" on public.payment_requests;
 create policy "Admins can update payment requests"
 on public.payment_requests for update
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Admins can read payment webhook events" on public.payment_webhook_events;
+create policy "Admins can read payment webhook events"
+on public.payment_webhook_events for select
+using (
+  exists (
+    select 1 from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "Admins can manage payment webhook events" on public.payment_webhook_events;
+create policy "Admins can manage payment webhook events"
+on public.payment_webhook_events for all
 using (
   exists (
     select 1 from public.admin_users

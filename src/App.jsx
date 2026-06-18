@@ -753,6 +753,12 @@ const mapPaymentRequestFromRow = (row = {}) => {
     sellerBandName: row.seller_band_name || payload.sellerBandName || 'Band WiSpace',
     productTitle: row.product_title || payload.productTitle || 'Checkout WiSpace',
     amount: Number(row.amount ?? payload.amount ?? 0),
+    productAmount: Number(row.product_amount ?? payload.productAmount ?? payload.grossAmount ?? row.amount ?? payload.amount ?? 0),
+    shippingCost: Number(row.shipping_cost ?? payload.shippingCost ?? payload.shipping?.shippingCost ?? 0),
+    providerInvoiceId: row.provider_invoice_id || payload.providerInvoiceId || '',
+    providerCheckoutUrl: row.provider_checkout_url || payload.providerCheckoutUrl || '',
+    providerStatus: row.provider_status || payload.providerStatus || '',
+    provider: payload.provider || PAYMENT_GATEWAY_PROVIDER || 'manual',
     paymentProofName: row.proof_file_name || payload.paymentProofName || '',
     paymentProofPreview: row.proof_url || payload.paymentProofPreview || '',
     paymentProofUrl: row.proof_url || payload.paymentProofUrl || payload.paymentProofPreview || '',
@@ -4034,11 +4040,12 @@ export default function App() {
     if (!payment) return;
     const currentPayment = pendingPayments.find((item) => item.id === payment.id || item.checkoutRef === payment.checkoutRef);
     const effectivePaymentStatus = currentPayment?.status || payment.status;
-    if (effectivePaymentStatus && effectivePaymentStatus !== 'waiting_admin_confirmation') {
+    const canActivatePayment = ['waiting_admin_confirmation', 'provider_paid_pending_activation'].includes(effectivePaymentStatus || 'waiting_admin_confirmation');
+    if (effectivePaymentStatus && !canActivatePayment) {
       alert(`Payment request ini sudah ${effectivePaymentStatus.replaceAll('_', ' ')} bro.`);
       return;
     }
-    if (!payment.paymentProofPreview && !payment.paymentProofUrl) {
+    if (!payment.paymentProofPreview && !payment.paymentProofUrl && effectivePaymentStatus !== 'provider_paid_pending_activation') {
       setSelectedPaymentDetail(payment);
       alert('Bukti bayar belum ada bro. Cek detail request dulu, jangan confirm paid sebelum ada proof.');
       return;
@@ -4087,7 +4094,7 @@ export default function App() {
         buyerEmail: payment.buyerEmail,
         buyerUserId: payment.buyerUserId,
         paymentStatus: 'paid',
-        paymentMethod: 'admin_confirmed_manual'
+        paymentMethod: effectivePaymentStatus === 'provider_paid_pending_activation' ? 'provider_paid_admin_activated' : 'admin_confirmed_manual'
       });
       updatePendingPaymentRecord(payment.id, {
         status: 'paid',
@@ -4154,7 +4161,7 @@ export default function App() {
         buyerEmail: payment.buyerEmail,
         buyerUserId: payment.buyerUserId,
         paymentStatus: 'paid',
-        paymentMethod: 'admin_confirmed_manual'
+        paymentMethod: effectivePaymentStatus === 'provider_paid_pending_activation' ? 'provider_paid_admin_activated' : 'admin_confirmed_manual'
       });
       updatePendingPaymentRecord(payment.id, {
         status: 'paid',
@@ -4196,7 +4203,7 @@ export default function App() {
         buyerEmail: payment.buyerEmail,
         buyerUserId: payment.buyerUserId,
         paymentStatus: 'paid',
-        paymentMethod: 'admin_confirmed_manual'
+        paymentMethod: effectivePaymentStatus === 'provider_paid_pending_activation' ? 'provider_paid_admin_activated' : 'admin_confirmed_manual'
       });
       const nextOrder = {
         id: createClientId(),
@@ -5613,7 +5620,7 @@ export default function App() {
   const audiencePaymentRequests = pendingPayments.filter((payment) => (
     payment.buyerUserId === userSession?.id || (userSession?.email && payment.buyerEmail === userSession.email)
   ));
-  const activeAudiencePaymentRequests = audiencePaymentRequests.filter((payment) => payment.status === 'waiting_admin_confirmation');
+  const activeAudiencePaymentRequests = audiencePaymentRequests.filter((payment) => ['waiting_admin_confirmation', 'provider_paid_pending_activation'].includes(payment.status));
   const adminBandPayoutTotal = paidSaleTransactions.reduce((total, transaction) => total + Number(transaction.bandNet || 0), 0);
   const activeMerchFulfillmentStatuses = ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'refund_requested'];
   const adminActiveMerchOrderList = merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus));
@@ -5709,7 +5716,11 @@ export default function App() {
   const previewMissingTrackCount = albumItems
     .flatMap((album) => album.tracks || [])
     .filter((track) => !track.freeFull && !track.previewUrl).length;
-  const waitingAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'waiting_admin_confirmation');
+  const activatablePaymentStatuses = ['waiting_admin_confirmation', 'provider_paid_pending_activation'];
+  const isPaymentReadyForAdminActivation = (payment) => activatablePaymentStatuses.includes(payment.status || 'waiting_admin_confirmation');
+  const isProviderPaidPendingActivation = (payment) => payment.status === 'provider_paid_pending_activation';
+  const canAdminConfirmPayment = (payment) => Boolean(payment.paymentProofPreview || payment.paymentProofUrl || isProviderPaidPendingActivation(payment));
+  const waitingAdminPaymentRequests = pendingPayments.filter(isPaymentReadyForAdminActivation);
   const paidAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'paid');
   const rejectedAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'rejected');
   const waitingAdminPaymentAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.amount || payment.grossAmount || 0), 0);
@@ -5720,7 +5731,7 @@ export default function App() {
   ), 0);
   const rejectedAdminPaymentAmount = rejectedAdminPaymentRequests.reduce((total, payment) => total + Number(payment.grossAmount || payment.amount || 0), 0);
   const recentProcessedPaymentRequests = pendingPayments
-    .filter((payment) => payment.status && payment.status !== 'waiting_admin_confirmation')
+    .filter((payment) => payment.status && !activatablePaymentStatuses.includes(payment.status))
     .sort((first, second) => new Date(second.confirmedAt || second.rejectedAt || second.submittedAt || 0) - new Date(first.confirmedAt || first.rejectedAt || first.submittedAt || 0));
   const manualConfirmedPaymentTransactions = saleTransactions.filter((transaction) => (
     transaction.paymentMethod === 'admin_confirmed_manual'
@@ -5750,8 +5761,8 @@ export default function App() {
     },
     {
       title: 'Webhook settlement',
-      status: 'todo',
-      note: 'Callback provider update payment_requests jadi paid/rejected/expired, lalu trigger order/library otomatis.'
+      status: 'scaffold',
+      note: 'Callback provider verified bisa update payment_requests dan masuk log event. Aktivasi library/order tetap lewat admin confirm sampai fulfillment webhook dikunci.'
     },
     {
       title: 'Admin fallback',
@@ -6003,10 +6014,10 @@ export default function App() {
   const adminNotificationQueue = [
     ...waitingAdminPaymentRequests.slice(0, 10).map((payment) => ({
       id: `pending-payment-${payment.id}`,
-      title: 'Payment buyer perlu confirm paid',
-      body: `${payment.productTitle} / ${payment.buyerName} / Rp ${Number(payment.amount || 0).toLocaleString('id-ID')} / ${payment.checkoutRef}`,
+      title: isProviderPaidPendingActivation(payment) ? 'Provider paid perlu aktivasi' : 'Payment buyer perlu confirm paid',
+      body: `${payment.productTitle} / ${payment.buyerName} / Rp ${Number(payment.amount || 0).toLocaleString('id-ID')} / ${payment.checkoutRef}${payment.providerStatus ? ` / ${String(payment.providerStatus).replaceAll('_', ' ')}` : ''}`,
       badge: 'PAYMENT',
-      color: 'rgba(242,242,242,0.62)',
+      color: isProviderPaidPendingActivation(payment) ? '#5CB8E4' : 'rgba(242,242,242,0.62)',
       targetSection: 'payment',
       actionType: 'confirm_payment',
       payment
@@ -7217,6 +7228,8 @@ export default function App() {
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
                     {waitingAdminPaymentRequests.map((payment) => {
                       const hasPaymentProof = Boolean(payment.paymentProofPreview || payment.paymentProofUrl);
+                      const providerPaid = isProviderPaidPendingActivation(payment);
+                      const canConfirmPayment = canAdminConfirmPayment(payment);
                       const paymentProductAmount = Number(payment.grossAmount || payment.productAmount || payment.amount || 0);
                       const paymentShippingCost = Number(payment.shipping?.shippingCost || payment.shippingCost || 0);
                       const paymentSplit = calculateRevenueSplit(paymentProductAmount);
@@ -7226,6 +7239,7 @@ export default function App() {
                           <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
                           <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Total Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                          {payment.providerStatus && <p style={{ color: providerPaid ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>Provider: {String(payment.provider || PAYMENT_GATEWAY_PROVIDER || 'manual').toUpperCase()} / {String(payment.providerStatus).replaceAll('_', ' ').toUpperCase()}</p>}
                           <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Produk Rp {paymentProductAmount.toLocaleString('id-ID')}{paymentShippingCost ? ` / Ongkir Rp ${paymentShippingCost.toLocaleString('id-ID')}` : ''}</p>
                           <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Split admin: fee Rp {Number(payment.platformFee || paymentSplit.platformFee).toLocaleString('id-ID')} / net band Rp {Number(payment.bandNet || paymentSplit.bandNet).toLocaleString('id-ID')}</p>
                           <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginTop: '7px', flexWrap: 'wrap' }}>
@@ -7237,13 +7251,13 @@ export default function App() {
                                 <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>PROOF READY / {String(payment.paymentProofStatus || 'local').toUpperCase()}</span>
                               </>
                             ) : (
-                              <span style={{ color: '#8758FF', fontSize: '9px', fontWeight: '900' }}>NO PROOF / CONFIRM LOCKED</span>
+                              <span style={{ color: providerPaid ? '#5CB8E4' : '#8758FF', fontSize: '9px', fontWeight: '900' }}>{providerPaid ? 'PROVIDER PAID / READY TO ACTIVATE' : 'NO PROOF / CONFIRM LOCKED'}</span>
                             )}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                           <button type="button" onClick={() => setSelectedPaymentDetail(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
-                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} disabled={!hasPaymentProof} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: hasPaymentProof ? 'rgba(242,242,242,0.62)' : '#8758FF', border: hasPaymentProof ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: hasPaymentProof ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} disabled={!canConfirmPayment} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canConfirmPayment ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canConfirmPayment ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canConfirmPayment ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
                           <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                         </div>
                       </div>
@@ -7612,7 +7626,7 @@ export default function App() {
                     {item.actionType === 'confirm_payment' ? (
                       <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                         <button type="button" onClick={() => setSelectedPaymentDetail(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
-                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} disabled={!item.payment.paymentProofPreview && !item.payment.paymentProofUrl} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: item.payment.paymentProofPreview || item.payment.paymentProofUrl ? 'rgba(242,242,242,0.62)' : '#8758FF', border: item.payment.paymentProofPreview || item.payment.paymentProofUrl ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: item.payment.paymentProofPreview || item.payment.paymentProofUrl ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} disabled={!canAdminConfirmPayment(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canAdminConfirmPayment(item.payment) ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canAdminConfirmPayment(item.payment) ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canAdminConfirmPayment(item.payment) ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
                         <button type="button" onClick={() => handleRejectPendingPayment(item.payment)} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                       </div>
                     ) : (
@@ -10374,8 +10388,8 @@ export default function App() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '260px minmax(0, 1fr)', gap: '12px', alignItems: 'start' }}>
-              <div style={{ ...compactSurfaceStyle, padding: '10px', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'rgba(242,242,242,0.22)' : 'rgba(135,88,255,0.22)'}` }}>
-                <p style={{ color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 8px 0' }}>{selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'PROOF READY' : 'NO PAYMENT PROOF'}</p>
+              <div style={{ ...compactSurfaceStyle, padding: '10px', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl || isProviderPaidPendingActivation(selectedPaymentDetail) ? 'rgba(242,242,242,0.22)' : 'rgba(135,88,255,0.22)'}` }}>
+                <p style={{ color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl || isProviderPaidPendingActivation(selectedPaymentDetail) ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 8px 0' }}>{selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'PROOF READY' : isProviderPaidPendingActivation(selectedPaymentDetail) ? 'PROVIDER PAID' : 'NO PAYMENT PROOF'}</p>
                 <button
                   type="button"
                   disabled={!selectedPaymentDetail.paymentProofPreview && !selectedPaymentDetail.paymentProofUrl}
@@ -10385,7 +10399,7 @@ export default function App() {
                   {selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? (
                     <img src={selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   ) : (
-                    <span style={{ color: '#8758FF', fontSize: '11px', fontWeight: '900' }}>PROOF MISSING</span>
+                    <span style={{ color: isProviderPaidPendingActivation(selectedPaymentDetail) ? '#5CB8E4' : '#8758FF', fontSize: '11px', fontWeight: '900' }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'GATEWAY' : 'PROOF MISSING'}</span>
                   )}
                 </button>
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{selectedPaymentDetail.paymentProofName || 'Belum ada file proof.'}<br />{String(selectedPaymentDetail.paymentProofStatus || 'missing').toUpperCase()}</p>
@@ -10395,6 +10409,7 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                   {[
                     ['STATUS', String(selectedPaymentDetail.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase(), selectedPaymentDetail.status === 'paid' ? 'rgba(242,242,242,0.62)' : selectedPaymentDetail.status === 'rejected' ? '#8758FF' : 'rgba(242,242,242,0.62)'],
+                    ['PROVIDER', `${String(selectedPaymentDetail.provider || PAYMENT_GATEWAY_PROVIDER || 'manual').toUpperCase()} / ${String(selectedPaymentDetail.providerStatus || 'pending').replaceAll('_', ' ').toUpperCase()}`, isProviderPaidPendingActivation(selectedPaymentDetail) ? '#5CB8E4' : 'rgba(242,242,242,0.62)'],
                     ['BUYER', `${selectedPaymentDetail.buyerName || '-'} / ${selectedPaymentDetail.buyerEmail || '-'}`, '#F2F2F2'],
                     ['SELLER', selectedPaymentDetail.sellerBandName || 'Band WiSpace', '#F2F2F2'],
                     ['SUBMITTED', selectedPaymentDetail.submittedAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedPaymentDetail.submittedAt)) : '-', 'rgba(242,242,242,0.62)']
@@ -10416,17 +10431,17 @@ export default function App() {
                 )}
 
                 <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.</p>
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'Provider sudah mengirim status paid verified. Admin tinggal activate supaya Library/Order dan ledger WiSpace dibuat.' : 'Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.'}</p>
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
-              {selectedPaymentDetail.status === 'waiting_admin_confirmation' && (
+              {isPaymentReadyForAdminActivation(selectedPaymentDetail) && (
                 <>
-                  <button type="button" onClick={() => { handleRejectPendingPayment(selectedPaymentDetail); setSelectedPaymentDetail(null); }} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
-                  <button type="button" onClick={() => { handleConfirmPendingPayment(selectedPaymentDetail); if (selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl) setSelectedPaymentDetail(null); }} disabled={!selectedPaymentDetail.paymentProofPreview && !selectedPaymentDetail.paymentProofUrl} style={{ ...glassButtonStyle, padding: '9px 11px', fontSize: '10px', borderRadius: '10px', color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'rgba(242,242,242,0.62)' : '#8758FF', border: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                  {selectedPaymentDetail.status === 'waiting_admin_confirmation' && <button type="button" onClick={() => { handleRejectPendingPayment(selectedPaymentDetail); setSelectedPaymentDetail(null); }} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>}
+                  <button type="button" onClick={() => { handleConfirmPendingPayment(selectedPaymentDetail); if (canAdminConfirmPayment(selectedPaymentDetail)) setSelectedPaymentDetail(null); }} disabled={!canAdminConfirmPayment(selectedPaymentDetail)} style={{ ...glassButtonStyle, padding: '9px 11px', fontSize: '10px', borderRadius: '10px', color: canAdminConfirmPayment(selectedPaymentDetail) ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canAdminConfirmPayment(selectedPaymentDetail) ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canAdminConfirmPayment(selectedPaymentDetail) ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
                 </>
               )}
             </div>

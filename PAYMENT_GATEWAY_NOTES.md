@@ -40,13 +40,14 @@ These routes now exist as safe scaffolds. They do not charge real money yet.
    - Later: create a provider invoice/transaction and store `provider_invoice_id`, `provider_checkout_url`, and `provider_status` in `payment_requests`.
 
 2. `POST /api/payment-webhook`
-   - Verifies provider signature.
+   - Verifies provider signature/callback token before any DB write.
    - Maps provider status to WiSpace status:
      - `settlement` / `paid` -> `paid`
      - `expire` / `expired` -> `rejected` or `expired`
      - `refund` -> `refunded`
-   - Current scaffold is dry-run and does not update DB.
-   - Later: activate library/order only after a trusted paid status.
+   - With `SUPABASE_URL` or `VITE_SUPABASE_URL` plus `SUPABASE_SERVICE_ROLE_KEY`, writes provider status to `payment_requests` and logs the callback in `payment_webhook_events`.
+   - Trusted paid status becomes `provider_paid_pending_activation`; admin still confirms activation so Library/Order/ledger are created safely.
+   - Without signature/token or service role env, webhook stays dry-run.
 
 3. `POST /api/refund-payment`
    - Admin-only.
@@ -56,10 +57,9 @@ These routes now exist as safe scaffolds. They do not charge real money yet.
 
 ## Next Implementation Locks
 
-- Add provider signature verification before any webhook DB write.
 - Add Supabase service role only in Vercel server env.
 - Make `/api/create-payment` write provider invoice data to `payment_requests`.
-- Make `/api/payment-webhook` call the same internal activation logic currently handled by admin confirm.
+- Make `/api/payment-webhook` call the same internal activation logic currently handled by admin confirm, after provider integration is live-tested.
 - Keep manual proof upload as fallback.
 
 ## Ledger Rules

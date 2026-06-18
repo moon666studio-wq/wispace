@@ -70,6 +70,52 @@ export const getProviderServerKeyName = (provider) => ({
   manual: ''
 }[provider] || '');
 
+export const getSupabaseAdminConfig = () => {
+  const url = getEnv('SUPABASE_URL') || getEnv('VITE_SUPABASE_URL');
+  const serviceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
+  return {
+    url: String(url || '').replace(/\/$/, ''),
+    serviceRoleKey,
+    ready: Boolean(url && serviceRoleKey)
+  };
+};
+
+export const supabaseAdminRequest = async (path, options = {}) => {
+  const config = getSupabaseAdminConfig();
+  if (!config.ready) {
+    return {
+      ok: false,
+      status: 0,
+      data: null,
+      error: 'missing_supabase_admin_env'
+    };
+  }
+
+  const response = await fetch(`${config.url}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  const text = await response.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+  return {
+    ok: response.ok,
+    status: response.status,
+    data,
+    error: response.ok ? '' : (data?.message || data?.error || text || 'supabase_request_failed')
+  };
+};
+
 export const mapProviderStatusToWispace = (providerStatus = '') => {
   const normalizedStatus = String(providerStatus || '').toLowerCase();
   if (['settlement', 'capture', 'paid', 'paid_status', 'success'].includes(normalizedStatus)) return 'paid';
@@ -78,4 +124,3 @@ export const mapProviderStatusToWispace = (providerStatus = '') => {
   if (['pending', 'challenge', 'waiting'].includes(normalizedStatus)) return 'waiting_admin_confirmation';
   return 'provider_status_unmapped';
 };
-
