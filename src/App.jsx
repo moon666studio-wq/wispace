@@ -6028,13 +6028,13 @@ export default function App() {
     zIndex: 0,
     pointerEvents: 'none',
     background: `
-      radial-gradient(circle at 16% 12%, rgba(92,184,228,0.2), rgba(92,184,228,0.08) 16%, transparent 34%),
-      radial-gradient(circle at 82% 16%, rgba(135,88,255,0.18), rgba(135,88,255,0.075) 14%, transparent 30%),
-      radial-gradient(circle at 72% 82%, rgba(92,184,228,0.12), transparent 30%),
-      radial-gradient(circle at 24% 78%, rgba(135,88,255,0.12), transparent 28%),
+      radial-gradient(circle at 16% 12%, rgba(92,184,228,0.15), rgba(92,184,228,0.055) 16%, transparent 34%),
+      radial-gradient(circle at 82% 16%, rgba(135,88,255,0.14), rgba(135,88,255,0.052) 14%, transparent 30%),
+      radial-gradient(circle at 72% 82%, rgba(92,184,228,0.085), transparent 30%),
+      radial-gradient(circle at 24% 78%, rgba(135,88,255,0.085), transparent 28%),
       linear-gradient(115deg, transparent 0%, rgba(242,242,242,0.025) 42%, transparent 66%)
     `,
-    opacity: isTinyLayout ? 0.72 : 0.86
+    opacity: isTinyLayout ? 0.62 : 0.74
   };
 
   const ambientLineStyle = {
@@ -6051,7 +6051,7 @@ export default function App() {
     backgroundSize: '100% 100%, 100% 100%, 92px 92px, 92px 92px',
     maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
     WebkitMaskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
-    opacity: isTinyLayout ? 0.3 : 0.42
+    opacity: isTinyLayout ? 0.24 : 0.34
   };
 
   const pageHeaderStyle = {
@@ -6145,7 +6145,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ background: 'linear-gradient(180deg, #181818 0%, #181818 46%, #181818 100%)', color: '#F2F2F2', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
+    <div style={{ background: 'linear-gradient(180deg, #09090B 0%, #0B0B0D 46%, #111114 100%)', color: '#F2F2F2', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
       <style>{`
         @keyframes wispaceRise {
           0% { opacity: 0; transform: translateY(34px) scale(0.985); }
