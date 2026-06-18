@@ -280,6 +280,18 @@ const calculateRevenueSplit = (amount = 0) => {
   return { grossAmount, platformFee, bandNet, revenueShare: '80/20' };
 };
 
+const MERCH_COURIER_OPTIONS = [
+  { label: 'JNE REG', code: 'JNE', service: 'REG', estimate: '2-4 hari', cost: 18000 },
+  { label: 'J&T EZ', code: 'JNT', service: 'EZ', estimate: '2-4 hari', cost: 17000 },
+  { label: 'SiCepat REG', code: 'SICEPAT', service: 'REG', estimate: '2-4 hari', cost: 16000 },
+  { label: 'Anteraja REG', code: 'ANTERAJA', service: 'REG', estimate: '2-5 hari', cost: 15000 },
+  { label: 'POS Kilat', code: 'POS', service: 'KILAT', estimate: '3-5 hari', cost: 14000 }
+];
+
+const getCourierOption = (label = 'JNE REG') => (
+  MERCH_COURIER_OPTIONS.find((option) => option.label === label) || MERCH_COURIER_OPTIONS[0]
+);
+
 const createEmptyAudienceProfile = () => ({
   displayName: '',
   city: '',
@@ -299,6 +311,8 @@ const createEmptyCheckoutDraft = () => ({
   city: '',
   postalCode: '',
   courier: 'JNE REG',
+  shippingCost: getCourierOption('JNE REG').cost,
+  shippingEstimate: getCourierOption('JNE REG').estimate,
   note: '',
   paymentProofName: '',
   paymentProofPreview: '',
@@ -797,6 +811,7 @@ const mapMerchOrderFromRow = (row = {}) => ({
   city: row.shipping_city || '',
   postalCode: row.shipping_postal_code || '',
   courier: row.courier_service || row.courier_code || 'Kurir belum dipilih',
+  shippingCost: Number(row.shipping_cost || 0),
   note: '',
   originShipping: row.origin_shipping || row.merch_items?.origin_shipping || null,
   fulfillmentMode: row.fulfillment_mode || row.merch_items?.fulfillment_mode || 'band_ship',
@@ -3676,6 +3691,13 @@ export default function App() {
         : activeCheckout.item;
     const albumContext = activeCheckout.album || null;
     const revenueSplit = calculateRevenueSplit(product?.price);
+    const selectedCourier = activeCheckout.type === 'merch'
+      ? getCourierOption(checkoutDraft.courier)
+      : null;
+    const shippingCost = activeCheckout.type === 'merch'
+      ? normalizePriceValue(checkoutDraft.shippingCost || selectedCourier?.cost || 0)
+      : 0;
+    const paymentAmount = revenueSplit.grossAmount + shippingCost;
     return {
       id: createClientId(),
       checkoutRef: activeCheckout.checkoutRef,
@@ -3683,7 +3705,9 @@ export default function App() {
       buyerUserId: userSession?.id || '',
       buyerName,
       buyerEmail,
-      amount: revenueSplit.grossAmount,
+      amount: paymentAmount,
+      productAmount: revenueSplit.grossAmount,
+      shippingCost,
       grossAmount: revenueSplit.grossAmount,
       platformFee: revenueSplit.platformFee,
       bandNet: revenueSplit.bandNet,
@@ -3711,7 +3735,11 @@ export default function App() {
             address: checkoutDraft.address.trim(),
             city: checkoutDraft.city.trim(),
             postalCode: checkoutDraft.postalCode.trim(),
-            courier: checkoutDraft.courier,
+            courier: selectedCourier?.label || checkoutDraft.courier,
+            courierCode: selectedCourier?.code || '',
+            courierService: selectedCourier?.service || '',
+            shippingCost,
+            shippingEstimate: checkoutDraft.shippingEstimate || selectedCourier?.estimate || '',
             note: checkoutDraft.note.trim(),
             origin: activeCheckout.item?.originShipping || null
           }
@@ -4026,6 +4054,10 @@ export default function App() {
         fulfillmentMode: item.fulfillmentMode || 'band_ship',
         consignmentStatus: item.consignmentStatus || '',
         courier: payment.shipping?.courier || 'JNE REG',
+        courierCode: payment.shipping?.courierCode || getCourierOption(payment.shipping?.courier).code,
+        courierService: payment.shipping?.courierService || getCourierOption(payment.shipping?.courier).service,
+        shippingCost: normalizePriceValue(payment.shipping?.shippingCost || payment.shippingCost || 0),
+        shippingEstimate: payment.shipping?.shippingEstimate || getCourierOption(payment.shipping?.courier).estimate,
         note: payment.shipping?.note || '',
         trackingNumber: '',
         trackingStatus: merchFulfillmentStatus,
@@ -4082,8 +4114,9 @@ export default function App() {
           shipping_address: nextOrder.address,
           shipping_city: nextOrder.city,
           shipping_postal_code: nextOrder.postalCode,
-          courier_code: nextOrder.courier.split(' ')[0],
+          courier_code: nextOrder.courierCode || nextOrder.courier.split(' ')[0],
           courier_service: nextOrder.courier,
+          shipping_cost: nextOrder.shippingCost || 0,
           origin_shipping: nextOrder.originShipping || null,
           fulfillment_mode: nextOrder.fulfillmentMode || 'band_ship',
           consignment_status: nextOrder.consignmentStatus || '',
@@ -4095,6 +4128,7 @@ export default function App() {
             delete legacyMerchOrderRow.origin_shipping;
             delete legacyMerchOrderRow.fulfillment_mode;
             delete legacyMerchOrderRow.consignment_status;
+            delete legacyMerchOrderRow.shipping_cost;
             const { error: legacyError } = await supabase.from('merch_orders').insert([legacyMerchOrderRow]);
             if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync order merch ke Supabase:', legacyError.message);
             return;
@@ -5123,6 +5157,13 @@ export default function App() {
     ? checkoutAlbumContext?.bandName
     : checkoutProduct?.bandName;
   const checkoutSubtotal = normalizePriceValue(checkoutProduct?.price);
+  const checkoutCourierOption = activeCheckout?.type === 'merch'
+    ? getCourierOption(checkoutDraft.courier)
+    : null;
+  const checkoutShippingCost = activeCheckout?.type === 'merch'
+    ? normalizePriceValue(checkoutDraft.shippingCost || checkoutCourierOption?.cost || 0)
+    : 0;
+  const checkoutTotal = checkoutSubtotal + checkoutShippingCost;
   const checkoutReference = activeCheckout?.checkoutRef || 'WSP-DEMO-ORDER';
   const checkoutPaymentStatus = activeCheckout?.status || 'pending_payment';
   const checkoutIsProcessing = checkoutPaymentStatus === 'processing_payment';
@@ -8787,7 +8828,7 @@ export default function App() {
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
                           <h4 style={{ color: '#F2F2F2', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}</p>
+                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''}</p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -9043,7 +9084,7 @@ export default function App() {
                     <div key={order.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier} / {order.createdAt}</p>
+                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
                           <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
@@ -9720,7 +9761,7 @@ export default function App() {
                 {selectedPaymentDetail.shipping && (
                   <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
                     <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>SHIPPING MERCH</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'}</p>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'} / Rp {Number(selectedPaymentDetail.shipping.shippingCost || selectedPaymentDetail.shippingCost || 0).toLocaleString('id-ID')} {selectedPaymentDetail.shipping.shippingEstimate ? `/ ${selectedPaymentDetail.shipping.shippingEstimate}` : ''}</p>
                     {selectedPaymentDetail.shipping.origin && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Origin: {selectedPaymentDetail.shipping.origin.city || '-'}, {selectedPaymentDetail.shipping.origin.province || '-'} {selectedPaymentDetail.shipping.origin.postalCode || ''}</p>}
                     {selectedPaymentDetail.shipping.note && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Note: {selectedPaymentDetail.shipping.note}</p>}
                   </div>
@@ -9791,7 +9832,11 @@ export default function App() {
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '13px' }}>
               <div style={checkoutBlockStyle}>
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
-                <strong style={{ color: '#5CB8E4', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutSubtotal.toLocaleString('id-ID')}</strong>
+                <strong style={{ color: '#5CB8E4', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
+                <div style={{ display: 'grid', gap: '3px', marginTop: '8px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35 }}>
+                  <span>Item: Rp {checkoutSubtotal.toLocaleString('id-ID')}</span>
+                  {activeCheckout.type === 'merch' && <span>Ongkir: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
+                </div>
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Checkout dimulai sebagai pending payment. Data baru masuk Library, Orders, ledger, dan saldo band setelah payment berubah paid.</p>
               </div>
               <div style={checkoutBlockStyle}>
@@ -9799,6 +9844,7 @@ export default function App() {
                 <div style={{ display: 'grid', gap: '6px', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
                   <span>Order ID: <strong style={{ color: '#5CB8E4' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#F2F2F2' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
+                  {activeCheckout.type === 'merch' && <span>Kurir: <strong style={{ color: '#F2F2F2' }}>{checkoutCourierOption?.label || checkoutDraft.courier} / Rp {checkoutShippingCost.toLocaleString('id-ID')}</strong></span>}
                   <span>Payment: <strong style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsCancelled ? '#8758FF' : checkoutIsAwaitingAdmin ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutPaymentStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
                   <span>Status: <strong style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsCancelled ? '#8758FF' : checkoutIsAwaitingAdmin ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutStatusCopy}</strong></span>
                   <span>Fulfillment: <strong style={{ color: checkoutIsPaid ? activeCheckout.type === 'merch' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)' }}>{checkoutAccessStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
@@ -9879,17 +9925,40 @@ export default function App() {
                   <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, city: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="KODE POS" value={checkoutDraft.postalCode} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, postalCode: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-                  <select value={checkoutDraft.courier} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, courier: event.target.value })} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle}>
-                    <option value="JNE REG">JNE REG</option>
-                    <option value="J&T EZ">J&T EZ</option>
-                    <option value="SiCepat REG">SiCepat REG</option>
-                    <option value="Anteraja REG">Anteraja REG</option>
-                    <option value="POS Kilat">POS Kilat</option>
+                  <select
+                    value={checkoutDraft.courier}
+                    onChange={(event) => {
+                      const nextCourier = getCourierOption(event.target.value);
+                      setCheckoutDraft({
+                        ...checkoutDraft,
+                        courier: nextCourier.label,
+                        shippingCost: nextCourier.cost,
+                        shippingEstimate: nextCourier.estimate
+                      });
+                    }}
+                    disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled}
+                    style={formInputStyle}
+                  >
+                    {MERCH_COURIER_OPTIONS.map((option) => (
+                      <option key={option.label} value={option.label}>{option.label} / Rp {option.cost.toLocaleString('id-ID')} / {option.estimate}</option>
+                    ))}
                   </select>
                   <input type="text" placeholder="CATATAN OPSIONAL" value={checkoutDraft.note} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, note: event.target.value })} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                 </div>
                 <textarea placeholder="ALAMAT LENGKAP" value={checkoutDraft.address} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, address: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5, marginTop: '12px' }} />
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih placeholder. Nanti bisa disambung ke API ekspedisi buat tarif dan tracking real-time.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px', marginTop: '10px' }}>
+                  {[
+                    ['ASAL', checkoutProduct?.originShipping ? `${checkoutProduct.originShipping.city || '-'}, ${checkoutProduct.originShipping.province || '-'}` : 'Alamat band/admin'],
+                    ['ONGKIR', `Rp ${checkoutShippingCost.toLocaleString('id-ID')}`],
+                    ['ESTIMASI', checkoutCourierOption?.estimate || checkoutDraft.shippingEstimate || '-']
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                      <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                      <strong style={{ color: '#F2F2F2', fontSize: '10px', fontWeight: '900', lineHeight: 1.35 }}>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih estimasi manual. Nanti bisa disambung ke API ekspedisi buat tarif, pilihan service, dan tracking real-time.</p>
               </div>
             )}
 
