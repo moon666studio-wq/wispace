@@ -6028,13 +6028,13 @@ export default function App() {
     zIndex: 0,
     pointerEvents: 'none',
     background: `
-      radial-gradient(circle at 16% 12%, rgba(92,184,228,0.15), rgba(92,184,228,0.055) 16%, transparent 34%),
-      radial-gradient(circle at 82% 16%, rgba(135,88,255,0.14), rgba(135,88,255,0.052) 14%, transparent 30%),
-      radial-gradient(circle at 72% 82%, rgba(92,184,228,0.085), transparent 30%),
-      radial-gradient(circle at 24% 78%, rgba(135,88,255,0.085), transparent 28%),
-      linear-gradient(115deg, transparent 0%, rgba(242,242,242,0.025) 42%, transparent 66%)
+      radial-gradient(circle at 16% 12%, rgba(92,184,228,0.11), rgba(92,184,228,0.04) 16%, transparent 34%),
+      radial-gradient(circle at 82% 16%, rgba(135,88,255,0.1), rgba(135,88,255,0.038) 14%, transparent 30%),
+      radial-gradient(circle at 72% 82%, rgba(92,184,228,0.06), transparent 30%),
+      radial-gradient(circle at 24% 78%, rgba(135,88,255,0.06), transparent 28%),
+      linear-gradient(115deg, transparent 0%, rgba(242,242,242,0.016) 42%, transparent 66%)
     `,
-    opacity: isTinyLayout ? 0.62 : 0.74
+    opacity: isTinyLayout ? 0.52 : 0.62
   };
 
   const ambientLineStyle = {
@@ -6043,15 +6043,15 @@ export default function App() {
     zIndex: 0,
     pointerEvents: 'none',
     backgroundImage: `
-      linear-gradient(115deg, transparent 0%, transparent 42%, rgba(92,184,228,0.052) 42.2%, transparent 43.4%, transparent 100%),
-      linear-gradient(65deg, transparent 0%, transparent 58%, rgba(135,88,255,0.04) 58.2%, transparent 59.2%, transparent 100%),
-      linear-gradient(90deg, rgba(242,242,242,0.018) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(242,242,242,0.014) 1px, transparent 1px)
+      linear-gradient(115deg, transparent 0%, transparent 42%, rgba(92,184,228,0.035) 42.2%, transparent 43.4%, transparent 100%),
+      linear-gradient(65deg, transparent 0%, transparent 58%, rgba(135,88,255,0.028) 58.2%, transparent 59.2%, transparent 100%),
+      linear-gradient(90deg, rgba(242,242,242,0.012) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(242,242,242,0.01) 1px, transparent 1px)
     `,
     backgroundSize: '100% 100%, 100% 100%, 92px 92px, 92px 92px',
     maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
     WebkitMaskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
-    opacity: isTinyLayout ? 0.24 : 0.34
+    opacity: isTinyLayout ? 0.18 : 0.26
   };
 
   const pageHeaderStyle = {
@@ -6145,7 +6145,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ background: 'linear-gradient(180deg, #09090B 0%, #0B0B0D 46%, #111114 100%)', color: '#F2F2F2', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
+    <div style={{ background: 'linear-gradient(180deg, #050506 0%, #070708 46%, #0B0B0D 100%)', color: '#F2F2F2', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
       <style>{`
         @keyframes wispaceRise {
           0% { opacity: 0; transform: translateY(34px) scale(0.985); }
