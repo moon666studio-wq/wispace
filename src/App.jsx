@@ -5814,10 +5814,10 @@ export default function App() {
     flexWrap: isTinyLayout ? 'wrap' : 'nowrap',
     gap: isTinyLayout ? '8px' : '12px',
     padding: isTinyLayout ? '7px 9px' : '8px 12px',
-    background: 'linear-gradient(135deg, rgba(8,13,15,0.88), rgba(18,26,29,0.74) 56%, rgba(8,13,15,0.82) 100%)',
-    border: '1px solid rgba(120,184,200,0.12)',
+    background: 'linear-gradient(135deg, rgba(8,13,15,0.9), rgba(18,26,29,0.78) 52%, rgba(120,184,200,0.055) 100%)',
+    border: '1px solid rgba(120,184,200,0.2)',
     borderRadius: '9999px',
-    boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.035)',
+    boxShadow: '0 12px 36px rgba(0,0,0,0.22), 0 0 30px rgba(120,184,200,0.055), inset 0 1px 0 rgba(244,241,234,0.04)',
     backdropFilter: 'blur(18px)',
     WebkitBackdropFilter: 'blur(18px)',
     width: isTinyLayout ? '100%' : 'auto',
@@ -5906,10 +5906,42 @@ export default function App() {
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
     padding: innerPagePadding,
-    background: 'transparent',
+    background: 'linear-gradient(160deg, rgba(120,184,200,0.026) 0%, rgba(8,13,15,0) 34%, rgba(244,241,234,0.012) 100%)',
     border: 'none',
     borderRadius: 0,
-    boxShadow: 'none'
+    boxShadow: 'inset 0 1px 0 rgba(120,184,200,0.035)',
+    position: 'relative',
+    zIndex: 1
+  };
+
+  const ambientLayerStyle = {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 0,
+    pointerEvents: 'none',
+    background: `
+      radial-gradient(circle at 18% 14%, rgba(120,184,200,0.18), rgba(120,184,200,0.075) 16%, transparent 34%),
+      radial-gradient(circle at 86% 18%, rgba(120,184,200,0.105), transparent 28%),
+      radial-gradient(circle at 72% 82%, rgba(120,184,200,0.095), transparent 30%),
+      linear-gradient(115deg, transparent 0%, rgba(244,241,234,0.025) 42%, transparent 66%)
+    `,
+    opacity: isTinyLayout ? 0.72 : 0.86
+  };
+
+  const ambientLineStyle = {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 0,
+    pointerEvents: 'none',
+    backgroundImage: `
+      linear-gradient(115deg, transparent 0%, transparent 42%, rgba(120,184,200,0.045) 42.2%, transparent 43.4%, transparent 100%),
+      linear-gradient(90deg, rgba(244,241,234,0.018) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(244,241,234,0.014) 1px, transparent 1px)
+    `,
+    backgroundSize: '100% 100%, 92px 92px, 92px 92px',
+    maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
+    WebkitMaskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
+    opacity: isTinyLayout ? 0.3 : 0.42
   };
 
   const pageHeaderStyle = {
@@ -5996,7 +6028,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ background: 'linear-gradient(180deg, #0A0F11 0%, #0E1315 48%, #080D0F 100%)', color: '#F4F1EA', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box' }}>
+    <div style={{ background: 'linear-gradient(180deg, #0A0F11 0%, #0E1315 48%, #080D0F 100%)', color: '#F4F1EA', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
       <style>{`
         @keyframes wispaceRise {
           0% { opacity: 0; transform: translateY(34px) scale(0.985); }
@@ -6004,6 +6036,8 @@ export default function App() {
           100% { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
+      <div style={ambientLayerStyle} />
+      <div style={ambientLineStyle} />
       {!isSupabaseConfigured && (
         <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(74,89,96,0.12)', border: '1px solid rgba(74,89,96,0.45)', borderRadius: '14px', color: '#F4F1EA', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(14,19,21,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
@@ -6045,7 +6079,7 @@ export default function App() {
 
       {/* FLOATING MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
-        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '8px' : '12px', padding: isTinyLayout ? '7px 9px' : '8px 12px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', backgroundColor: 'rgba(14, 19, 21, 0.62)', border: 'none', borderRadius: '9999px', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: 'none', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div style={{ position: 'fixed', top: isTinyLayout ? '14px' : '24px', left: '50%', zIndex: 999, display: 'flex', alignItems: 'center', gap: isTinyLayout ? '8px' : '12px', padding: isTinyLayout ? '7px 9px' : '8px 12px', transform: 'translate(-50%, 0)', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', background: 'linear-gradient(135deg, rgba(8,13,15,0.88), rgba(18,26,29,0.78) 56%, rgba(120,184,200,0.055) 100%)', border: '1px solid rgba(120,184,200,0.18)', borderRadius: '9999px', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 14px 36px rgba(0,0,0,0.24), 0 0 34px rgba(120,184,200,0.06), inset 0 1px 0 rgba(244,241,234,0.04)', width: isTinyLayout ? 'calc(100vw - 24px)' : 'auto', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
           <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', color: '#78B8C8', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
@@ -6056,15 +6090,15 @@ export default function App() {
             <button
               key={tab}
               onClick={() => navigateInternalPage('explore', { exploreTab: tab, clearSearch: true })}
-              style={{ background: 'transparent', border: 'none', borderBottom: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(120,184,200,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'explore' && exploreTab === tab ? '#78B8C8' : '#F4F1EA', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 3px 6px' }}
+              style={{ background: activePage === 'explore' && exploreTab === tab ? 'rgba(120,184,200,0.12)' : 'transparent', border: '1px solid transparent', borderBottom: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(120,184,200,0.9)' : '1px solid transparent', borderRadius: '9999px', color: activePage === 'explore' && exploreTab === tab ? '#78B8C8' : '#F4F1EA', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px 6px', boxShadow: activePage === 'explore' && exploreTab === tab ? '0 0 18px rgba(120,184,200,0.1)' : 'none' }}
             >
               {label}
             </button>
           ))}
           {userSession && (
             <>
-              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: 'transparent', border: 'none', borderBottom: activePage === 'audience_library' ? '1px solid rgba(120,184,200,0.85)' : '1px solid transparent', color: activePage === 'audience_library' ? '#78B8C8' : '#F4F1EA', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 3px 6px' }}>LIBRARY</button>
-              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: 'transparent', border: 'none', borderBottom: activePage === 'audience_orders' ? '1px solid rgba(120,184,200,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_orders' ? '#78B8C8' : '#F4F1EA', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 3px 6px' }}>ORDERS</button>
+              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: activePage === 'audience_library' ? 'rgba(120,184,200,0.12)' : 'transparent', border: '1px solid transparent', borderBottom: activePage === 'audience_library' ? '1px solid rgba(120,184,200,0.85)' : '1px solid transparent', borderRadius: '9999px', color: activePage === 'audience_library' ? '#78B8C8' : '#F4F1EA', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px 6px', boxShadow: activePage === 'audience_library' ? '0 0 18px rgba(120,184,200,0.1)' : 'none' }}>LIBRARY</button>
+              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: activePage === 'audience_orders' ? 'rgba(120,184,200,0.12)' : 'transparent', border: '1px solid transparent', borderBottom: activePage === 'audience_orders' ? '1px solid rgba(120,184,200,0.85)' : '1px solid transparent', borderRadius: '9999px', color: activePage === 'audience_orders' ? '#78B8C8' : '#F4F1EA', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '7px 9px 6px', boxShadow: activePage === 'audience_orders' ? '0 0 18px rgba(120,184,200,0.1)' : 'none' }}>ORDERS</button>
               <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#78B8C8' : '#F4F1EA', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                 <Bell size={14} />
                 {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#4A5960', color: '#F4F1EA', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
