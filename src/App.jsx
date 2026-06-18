@@ -5992,6 +5992,13 @@ export default function App() {
     borderRadius: '8px',
     boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.035)'
   };
+  const bandArchivePanelStyle = {
+    ...compactSurfaceStyle,
+    borderRadius: '9px',
+    borderTop: '1.5px solid rgba(120,184,200,0.18)',
+    borderLeft: '1px solid rgba(120,184,200,0.12)',
+    boxShadow: 'inset 0 1px 0 rgba(244,241,234,0.03)'
+  };
   const checkoutBlockStyle = {
     ...compactSurfaceStyle,
     padding: isTinyLayout ? '10px' : '12px'
@@ -7834,7 +7841,7 @@ export default function App() {
             )}
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(120,184,200,0.18), transparent 34%), linear-gradient(to top, rgba(14,19,21,1), rgba(14,19,21,0.62), rgba(14,19,21,0.16))' }} />
             <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: publicBandHeroColumns, gap: '24px', alignItems: 'end', width: '100%' }}>
-              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '14px', overflow: 'hidden', background: softSurfaceBackground, border: '1.5px solid rgba(120,184,200,0.34)', display: 'grid', placeItems: 'center', boxShadow: '0 14px 32px rgba(14,19,21,0.42), inset 0 1px 0 rgba(244,241,234,0.08)' }}>
+              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '1.5px solid rgba(120,184,200,0.34)', display: 'grid', placeItems: 'center', boxShadow: '0 14px 32px rgba(14,19,21,0.42), inset 0 1px 0 rgba(244,241,234,0.08)' }}>
                 {displayBandProfile.photoPreview ? <img src={displayBandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#4A5960', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
               </div>
               <div>
@@ -7882,7 +7889,7 @@ export default function App() {
               )}
 
               {showBandOwnerControls && (
-                <section style={{ ...compactSurfaceStyle, padding: '14px', marginBottom: '18px' }}>
+                <section style={{ ...bandArchivePanelStyle, padding: '14px', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
                     <div>
                       <p style={{ color: '#78B8C8', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>BAND NOTIFICATIONS</p>
@@ -7897,7 +7904,7 @@ export default function App() {
                   ) : (
                     <div style={{ display: 'grid', gap: '8px' }}>
                       {bandNotifications.slice(0, 4).map((notification) => (
-                        <div key={notification.id} style={{ ...compactRowStyle, border: `1px solid ${notification.read ? 'rgba(244,241,234,0.1)' : 'rgba(139,150,154,0.28)'}` }}>
+                          <div key={notification.id} style={{ ...compactRowStyle, borderRadius: '8px', border: `1px solid ${notification.read ? 'rgba(244,241,234,0.1)' : 'rgba(139,150,154,0.28)'}` }}>
                           <p style={{ color: notification.read ? '#8B969A' : '#8B969A', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{notification.title} / {notification.createdAt}</p>
                           <p style={{ color: '#F4F1EA', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
                         </div>
@@ -7907,12 +7914,12 @@ export default function App() {
                 </section>
               )}
 
-              <section style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
+              <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
                 <p style={{ color: '#8B969A', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
-              <section style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
+              <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
                   <div>
                     <h3 style={{ ...sectionHeadingStyle, margin: '0 0 6px 0' }}>PROMO MUSIC PLAYER</h3>
@@ -7928,7 +7935,7 @@ export default function App() {
                     ['PREVIEW READY', bandPublicPreviewReadyCount, bandPublicPreviewReadyCount ? '#78B8C8' : '#8B969A'],
                     ['FREE FULL', hasFreeFullBandTrack ? 1 : 0, hasFreeFullBandTrack ? '#8B969A' : '#8B969A']
                   ].map(([label, value, color]) => (
-                    <div key={label} style={{ padding: '7px 8px', borderTop: `1px solid ${color}22`, background: softRowBackground, borderRadius: '8px' }}>
+                    <div key={label} style={{ padding: '7px 8px', borderTop: `1px solid ${color}22`, background: softRowBackground, borderRadius: '7px' }}>
                       <p style={{ color: '#8B969A', fontSize: '9px', fontWeight: '900', letterSpacing: '0.6px', margin: '0 0 4px 0' }}>{label}</p>
                       <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
                     </div>
@@ -7942,7 +7949,7 @@ export default function App() {
                       const isActive = activeTrack?.id === track.id && isPlaying;
                       return (
                         <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', borderTopColor: track.freeFull ? 'rgba(139,150,154,0.26)' : 'rgba(244,241,234,0.08)', cursor: 'default' }}>
-                          <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '9px', color: '#78B8C8', fontSize: '11px', fontWeight: '900' }}>
+                          <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '7px', color: '#78B8C8', fontSize: '11px', fontWeight: '900' }}>
                             {track.albumCover ? <img src={track.albumCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : String(index + 1).padStart(2, '0')}
                           </div>
                           <div style={{ minWidth: 0 }}>
@@ -7961,7 +7968,7 @@ export default function App() {
                 )}
               </section>
 
-              <section style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
+              <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {displayBandAlbums.length === 0 ? (
                   <p style={{ color: '#4A5960', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
@@ -7969,7 +7976,7 @@ export default function App() {
                   <div style={flatListStyle}>
                     {displayBandAlbums.map((album) => (
                       <article key={album.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '62px minmax(0, 1fr)' : '72px minmax(0, 1fr) auto', cursor: 'default' }}>
-                        <div style={{ ...flatThumbStyle, width: isTinyLayout ? '62px' : '72px', height: isTinyLayout ? '62px' : '72px', borderRadius: '9px' }}>
+                        <div style={{ ...flatThumbStyle, width: isTinyLayout ? '62px' : '72px', height: isTinyLayout ? '62px' : '72px', borderRadius: '7px' }}>
                           {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#4A5960', fontSize: '11px', fontWeight: '900' }}>COVER</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
@@ -7998,7 +8005,7 @@ export default function App() {
                 )}
               </section>
 
-              <section id="band-gig-schedule" style={{ ...compactSurfaceStyle, padding: isTinyLayout ? '12px' : '14px' }}>
+              <section id="band-gig-schedule" style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px' }}>
                 <h3 style={sectionHeadingStyle}>JADWAL MANGGUNG</h3>
                 {bandScheduleItems.length === 0 ? (
                   <p style={{ color: '#4A5960', fontSize: '13px', margin: 0 }}>Belum ada jadwal manggung. Tambahkan jadwal dari Band Gig Manager, jadwal ini hanya tampil di profile band.</p>
@@ -8006,7 +8013,7 @@ export default function App() {
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {bandScheduleItems.slice(0, 5).map((schedule) => (
                       <div key={schedule.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '64px 1fr', gap: '12px' }}>
-                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', background: softRowBackground, border: '1px solid rgba(120,184,200,0.25)', display: 'grid', placeItems: 'center', color: '#78B8C8', fontSize: '10px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '8px', background: softRowBackground, border: '1px solid rgba(120,184,200,0.25)', display: 'grid', placeItems: 'center', color: '#78B8C8', fontSize: '10px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
                         <div>
                           <h4 style={{ color: '#F4F1EA', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{schedule.title.toUpperCase()}</h4>
                           <p style={{ color: '#8B969A', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{schedule.venue} / {schedule.date} / {schedule.htm}</p>
@@ -8020,7 +8027,7 @@ export default function App() {
             </main>
 
             <aside style={{ display: 'grid', gap: '18px' }}>
-              <section style={{ ...compactSurfaceStyle, padding: '14px' }}>
+              <section style={{ ...bandArchivePanelStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>CONTACT</h3>
                 <p style={{ color: '#8B969A', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#F4F1EA' }}>{displayBandProfile.cp || '-'}</span></p>
                 <p style={{ color: '#8B969A', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#F4F1EA' }}>{displayBandProfile.email || '-'}</span></p>
@@ -8041,7 +8048,7 @@ export default function App() {
                 )}
               </section>
 
-              <section style={{ ...compactSurfaceStyle, padding: '14px' }}>
+              <section style={{ ...bandArchivePanelStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>MERCHANDISE</h3>
                 {displayBandMerchItems.length === 0 ? (
                   <p style={{ color: '#4A5960', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
@@ -8049,7 +8056,7 @@ export default function App() {
                   <div style={flatListStyle}>
                     {displayBandMerchItems.slice(0, 4).map((item) => (
                       <div key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, cursor: 'pointer', gridTemplateColumns: isTinyLayout ? '50px minmax(0, 1fr)' : '50px minmax(0, 1fr) auto' }}>
-                        <div style={{ ...flatThumbStyle, width: '50px', height: '50px', borderRadius: '8px' }}>
+                        <div style={{ ...flatThumbStyle, width: '50px', height: '50px', borderRadius: '7px' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#4A5960', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
@@ -8865,8 +8872,8 @@ export default function App() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
-            <aside style={{ ...compactSurfaceStyle, padding: '16px' }}>
-              <div style={{ position: 'relative', minHeight: '210px', borderRadius: '14px', overflow: 'hidden', background: softSurfaceBackground, border: '1px solid rgba(244,241,234,0.08)', marginBottom: '18px' }}>
+            <aside style={{ ...bandArchivePanelStyle, padding: '16px' }}>
+              <div style={{ position: 'relative', minHeight: '210px', borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '1px solid rgba(244,241,234,0.08)', marginBottom: '18px' }}>
                 {bandProfile.coverPreview ? (
                   <img src={bandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
@@ -8874,7 +8881,7 @@ export default function App() {
                 )}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,19,21,0.92), rgba(14,19,21,0.18))' }} />
                 <div style={{ position: 'absolute', left: '16px', right: '16px', bottom: '16px', display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
-                  <div style={{ width: '86px', height: '86px', borderRadius: '14px', overflow: 'hidden', background: softSurfaceBackground, border: '2px solid rgba(120,184,200,0.7)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '86px', height: '86px', borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '2px solid rgba(120,184,200,0.7)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     {bandProfile.photoPreview ? (
                       <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -8890,11 +8897,11 @@ export default function App() {
               <p style={{ color: '#78B8C8', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PUBLIC BAND PAGE PREVIEW</p>
               <p style={{ color: '#8B969A', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id{getBandProfilePath()}</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '0 0 12px 0' }}>
-                <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
+                <div style={{ ...bandArchivePanelStyle, padding: '10px' }}>
                   <p style={{ color: '#8B969A', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>SUBSCRIBERS</p>
                   <strong style={{ color: '#78B8C8', fontSize: '18px' }}>{bandSubscriberCount.toLocaleString('id-ID')}</strong>
                 </div>
-                <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
+                <div style={{ ...bandArchivePanelStyle, padding: '10px' }}>
                   <p style={{ color: '#8B969A', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>NOTIF BARU</p>
                   <strong style={{ color: unreadBandNotifications ? '#8B969A' : '#4A5960', fontSize: '18px' }}>{unreadBandNotifications}</strong>
                 </div>
@@ -8921,7 +8928,7 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {bandPublicTracks.slice(0, 3).map((track) => (
-                      <div key={`studio-${track.id}`} style={{ ...compactRowStyle, display: 'flex', justifyContent: 'space-between', gap: '10px', color: '#F4F1EA', fontSize: '11px' }}>
+                    <div key={`studio-${track.id}`} style={{ ...compactRowStyle, borderRadius: '8px', display: 'flex', justifyContent: 'space-between', gap: '10px', color: '#F4F1EA', fontSize: '11px' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
                         <strong style={{ color: track.freeFull ? '#8B969A' : '#78B8C8', flexShrink: 0 }}>{track.freeFull ? 'FULL' : '30S'}</strong>
                       </div>
@@ -8936,8 +8943,8 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {merchItems.slice(0, 3).map((item) => (
-                      <div key={item.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center' }}>
-                        <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#4A5960', display: 'grid', placeItems: 'center' }}>
+                      <div key={item.id} style={{ ...compactRowStyle, borderRadius: '8px', display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center' }}>
+                        <div style={{ width: '54px', height: '54px', borderRadius: '7px', overflow: 'hidden', backgroundColor: '#4A5960', display: 'grid', placeItems: 'center' }}>
                           {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#4A5960', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
                         <div>
@@ -8951,14 +8958,14 @@ export default function App() {
               </div>
             </aside>
 
-            <div style={{ ...compactSurfaceStyle, padding: '16px' }}>
+            <div style={{ ...bandArchivePanelStyle, padding: '16px' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: `1px solid ${flatLineColor}`, paddingBottom: '12px', flexWrap: 'wrap' }}>
                 {['profile', 'album', 'merch', 'artikel'].map((tab) => (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setBandProfileTab(tab)}
-                    style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#78B8C8' : 'transparent', color: bandProfileTab === tab ? '#0E1315' : '#8B969A', border: bandProfileTab === tab ? 'none' : '1px solid #4A5960', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
+                    style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#78B8C8' : 'transparent', color: bandProfileTab === tab ? '#0E1315' : '#8B969A', border: bandProfileTab === tab ? 'none' : '1px solid #4A5960', borderRadius: '8px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
                   >
                     {tab === 'profile' ? 'PROFILE BAND' : tab === 'album' ? 'UPLOAD ALBUM' : tab === 'merch' ? 'MERCHANDISE' : 'ARTIKEL'}
                   </button>
@@ -8978,7 +8985,7 @@ export default function App() {
                     <input type="email" placeholder="EMAIL BAND" value={bandProfile.email || ''} onChange={(e) => updateBandProfileField('email', e.target.value)} style={formInputStyle} />
                     <input type="text" placeholder="INSTAGRAM / SOSMED" value={bandProfile.instagram || ''} onChange={(e) => updateBandProfileField('instagram', e.target.value)} style={formInputStyle} />
                   </div>
-                  <div style={{ backgroundColor: '#080D0F', border: `1px solid ${hasBandPayoutAccount ? 'rgba(139,150,154,0.22)' : 'rgba(139,150,154,0.26)'}`, borderRadius: '14px', padding: '14px', marginBottom: '12px' }}>
+                  <div style={{ backgroundColor: '#080D0F', border: `1px solid ${hasBandPayoutAccount ? 'rgba(139,150,154,0.22)' : 'rgba(139,150,154,0.26)'}`, borderRadius: '9px', padding: '14px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <div>
                         <p style={{ color: hasBandPayoutAccount ? '#8B969A' : '#8B969A', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
@@ -8992,7 +8999,7 @@ export default function App() {
                       <input type="text" inputMode="numeric" placeholder="NOMOR REKENING" value={bandProfile.bankAccountNumber || ''} onChange={(e) => updateBandProfileField('bankAccountNumber', e.target.value)} style={formInputStyle} />
                     </div>
                   </div>
-                  <div style={{ backgroundColor: '#080D0F', border: `1px solid ${hasBandShippingOrigin ? 'rgba(139,150,154,0.22)' : 'rgba(139,150,154,0.26)'}`, borderRadius: '14px', padding: '14px', marginBottom: '12px' }}>
+                  <div style={{ backgroundColor: '#080D0F', border: `1px solid ${hasBandShippingOrigin ? 'rgba(139,150,154,0.22)' : 'rgba(139,150,154,0.26)'}`, borderRadius: '9px', padding: '14px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <div>
                         <p style={{ color: hasBandShippingOrigin ? '#8B969A' : '#8B969A', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ALAMAT ASAL PENGIRIMAN</p>
@@ -9009,25 +9016,25 @@ export default function App() {
                   </div>
                   <textarea placeholder="BIO BAND" value={bandProfile.bio || ''} onChange={(e) => updateBandProfileField('bio', e.target.value)} rows={6} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '14px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '9px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleBandCoverImport} style={{ display: 'none' }} />
                       <span style={{ color: '#78B8C8', fontSize: '12px', fontWeight: '900' }}>IMPORT COVER / BANNER</span>
                       <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.coverName || 'Gambar lebar untuk header profile band.'}</p>
                     </label>
-                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '14px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '9px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleBandPhotoImport} style={{ display: 'none' }} />
                       <span style={{ color: '#78B8C8', fontSize: '12px', fontWeight: '900' }}>IMPORT FOTO BAND</span>
                       <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.photoName || 'Foto utama/avatar band.'}</p>
                     </label>
                   </div>
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE BAND</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE BAND</button>
                 </form>
               )}
 
               {bandProfileTab === 'album' && (
                 <form onSubmit={handleAlbumDraftSubmit}>
                   {!hasBandPayoutAccount && (
-                    <div style={{ backgroundColor: 'rgba(139,150,154,0.06)', border: '1px solid rgba(139,150,154,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                    <div style={{ backgroundColor: 'rgba(139,150,154,0.06)', border: '1px solid rgba(139,150,154,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>LENGKAPI REKENING DULU</p>
                       <p style={{ color: '#8B969A', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Upload album butuh nama bank, nama pemegang rekening, dan nomor rekening di tab Profile Band supaya agreement dan report payout valid.</p>
                     </div>
@@ -9039,12 +9046,12 @@ export default function App() {
                   <textarea placeholder="DESKRIPSI ALBUM / CATATAN RILISAN" value={albumDraft.description} onChange={(e) => setAlbumDraft({ ...albumDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
-                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '14px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '9px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleAlbumCoverImport} style={{ display: 'none' }} />
                       <span style={{ color: '#78B8C8', fontSize: '12px', fontWeight: '900' }}>IMPORT COVER ALBUM</span>
                       <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.coverName || 'Artwork/cover album.'}</p>
                     </label>
-                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '14px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '9px', backgroundColor: '#080D0F', cursor: 'pointer' }}>
                       <input type="file" accept="audio/mpeg,.mp3" multiple onChange={handleAlbumAudioImport} style={{ display: 'none' }} />
                       <span style={{ color: '#78B8C8', fontSize: '12px', fontWeight: '900' }}>IMPORT MP3</span>
                       <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload` : 'Pilih track MP3 album. Simpan WAV/master di arsip band.'}</p>
@@ -9052,7 +9059,7 @@ export default function App() {
                   </div>
 
                   {albumDraft.audioFiles.length > 0 && (
-                    <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
+                    <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
                       <p style={{ color: hasFreeFullBandTrack ? '#4A5960' : '#78B8C8', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
                         {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru bisa punya preview 30 detik terpisah.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain bisa diberi file preview 30 detik terpisah.'}
@@ -9113,7 +9120,7 @@ export default function App() {
                     </div>
                   )}
 
-                  <div style={{ backgroundColor: '#080D0F', border: '1px solid rgba(120,184,200,0.2)', borderRadius: '14px', padding: '14px', marginBottom: '14px' }}>
+                  <div style={{ backgroundColor: '#080D0F', border: '1px solid rgba(120,184,200,0.2)', borderRadius: '9px', padding: '14px', marginBottom: '14px' }}>
                     <p style={{ color: '#F4F1EA', fontSize: '12px', fontWeight: '900', margin: '0 0 8px 0' }}>AGREEMENT UPLOAD ALBUM</p>
                     <p style={{ color: '#8B969A', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Band menyatakan punya hak atas karya ini. Penjualan dibagi 80% untuk band dan 20% untuk WiSpace dari penjualan bersih. Pencairan minimal Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')} setiap tanggal 1.</p>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F4F1EA', fontSize: '12px', fontWeight: '800', marginBottom: '12px', cursor: 'pointer' }}>
@@ -9124,7 +9131,7 @@ export default function App() {
                   </div>
 
                   {displayBandAlbums.length > 0 && (
-                    <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
+                    <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>RILISAN YANG SUDAH DIUPLOAD</p>
                       {displayBandAlbums.map((album) => (
                         <div key={album.id} style={{ padding: '10px 0', borderTop: '1px solid #4A5960', color: '#F4F1EA', fontSize: '12px' }}>
@@ -9148,25 +9155,25 @@ export default function App() {
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
                 </form>
               )}
 
               {bandProfileTab === 'merch' && (
                 <form onSubmit={handleMerchDraftSubmit}>
                   {!hasBandPayoutAccount && (
-                    <div style={{ backgroundColor: 'rgba(139,150,154,0.06)', border: '1px solid rgba(139,150,154,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                    <div style={{ backgroundColor: 'rgba(139,150,154,0.06)', border: '1px solid rgba(139,150,154,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>REKENING PAYOUT WAJIB</p>
                       <p style={{ color: '#8B969A', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
                     </div>
                   )}
                   {!merchUsesAdminConsignment && !hasBandShippingOrigin && (
-                    <div style={{ backgroundColor: 'rgba(139,150,154,0.06)', border: '1px solid rgba(139,150,154,0.28)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                    <div style={{ backgroundColor: 'rgba(139,150,154,0.06)', border: '1px solid rgba(139,150,154,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>ALAMAT PENGIRIM WAJIB</p>
                       <p style={{ color: '#8B969A', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir merch.</p>
                     </div>
                   )}
-                  <div style={{ backgroundColor: '#080D0F', border: '1px solid rgba(120,184,200,0.18)', borderRadius: '14px', padding: '12px', marginBottom: '12px' }}>
+                  <div style={{ backgroundColor: '#080D0F', border: '1px solid rgba(120,184,200,0.18)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
                     <p style={{ color: '#78B8C8', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>FULFILLMENT MERCH</p>
                     <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, 1fr)', gap: '8px' }}>
                       {[
@@ -9200,7 +9207,7 @@ export default function App() {
                     <input type="number" min="0" placeholder="STOK" value={merchDraft.stock} onChange={(e) => setMerchDraft({ ...merchDraft, stock: e.target.value })} required style={formInputStyle} />
                   </div>
                   <textarea placeholder="DESKRIPSI MERCH / SIZE / WARNA / DETAIL PENGIRIMAN" value={merchDraft.description} onChange={(e) => setMerchDraft({ ...merchDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
-                  <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '14px', backgroundColor: '#080D0F', cursor: 'pointer', marginBottom: '14px' }}>
+                  <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(120,184,200,0.35)', borderRadius: '9px', backgroundColor: '#080D0F', cursor: 'pointer', marginBottom: '14px' }}>
                     <input type="file" accept="image/*" onChange={handleMerchImageImport} style={{ display: 'none' }} />
                     <span style={{ color: '#78B8C8', fontSize: '12px', fontWeight: '900' }}>IMPORT FOTO MERCH</span>
                     <p style={{ color: '#4A5960', fontSize: '12px', margin: '6px 0 0 0' }}>{merchDraft.imageName || 'Foto produk untuk etalase band.'}</p>
@@ -9220,7 +9227,7 @@ export default function App() {
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TAMBAH KE ETALASE MERCH</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TAMBAH KE ETALASE MERCH</button>
                 </form>
               )}
 
@@ -9234,7 +9241,7 @@ export default function App() {
                   <textarea placeholder="ISI ARTIKEL LENGKAP / CERITA BAND / CATATAN RILISAN" value={articleDraft.body} onChange={(e) => setArticleDraft({ ...articleDraft, body: e.target.value })} rows={8} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '14px', lineHeight: 1.5 }} />
 
                   {articleItems.length > 0 && (
-                    <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '14px', padding: '12px', marginBottom: '14px' }}>
+                    <div style={{ backgroundColor: '#080D0F', border: '1px solid #4A5960', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: '#8B969A', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>DRAFT ARTIKEL BAND</p>
                       {articleItems.slice(0, 5).map((article) => (
                         <div key={article.id} style={{ padding: '10px 0', borderTop: '1px solid #4A5960' }}>
@@ -9245,7 +9252,7 @@ export default function App() {
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PUBLISH ARTIKEL DRAFT</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#78B8C8', color: '#0E1315', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PUBLISH ARTIKEL DRAFT</button>
                 </form>
               )}
             </div>
