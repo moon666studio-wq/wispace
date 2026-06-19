@@ -98,14 +98,14 @@ const getGigStatusLabel = (status = 'pending') => ({
   removed: 'REMOVED'
 }[status] || status.replaceAll('_', ' ').toUpperCase());
 const getGigStatusColor = (status = 'pending') => ({
-  approved: 'rgba(242,242,242,0.62)',
-  approved_free: 'rgba(242,242,242,0.62)',
-  approved_waiting_payment: 'rgba(242,242,242,0.62)',
-  paid_waiting_activation: '#5CB8E4',
-  approved_exclusive: '#5CB8E4',
-  rejected: '#8758FF',
-  removed: 'rgba(242,242,242,0.62)'
-}[status] || 'rgba(242,242,242,0.62)');
+  approved: 'rgba(241,212,229,0.62)',
+  approved_free: 'rgba(241,212,229,0.62)',
+  approved_waiting_payment: 'rgba(241,212,229,0.62)',
+  paid_waiting_activation: '#73BBC9',
+  approved_exclusive: '#73BBC9',
+  rejected: '#F1D4E5',
+  removed: 'rgba(241,212,229,0.62)'
+}[status] || 'rgba(241,212,229,0.62)');
 const getMerchOrderStatusLabel = (status = 'order_paid_waiting_band') => ({
   order_paid_waiting_band: 'PAID - WAIT BAND',
   order_paid_waiting_admin: 'PAID - WAIT ADMIN',
@@ -120,18 +120,18 @@ const getMerchOrderStatusLabel = (status = 'order_paid_waiting_band') => ({
   refunded: 'REFUNDED'
 }[status] || status.replaceAll('_', ' ').toUpperCase());
 const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
-  order_paid_waiting_band: 'rgba(242,242,242,0.62)',
-  order_paid_waiting_admin: 'rgba(242,242,242,0.62)',
-  processing: '#5CB8E4',
-  processing_admin: '#5CB8E4',
-  packing: '#5CB8E4',
-  ready_to_ship: '#5CB8E4',
-  shipped: 'rgba(242,242,242,0.62)',
-  completed: 'rgba(242,242,242,0.62)',
-  cancelled: '#8758FF',
-  refund_requested: '#8758FF',
-  refunded: '#8758FF'
-}[status] || 'rgba(242,242,242,0.62)');
+  order_paid_waiting_band: 'rgba(241,212,229,0.62)',
+  order_paid_waiting_admin: 'rgba(241,212,229,0.62)',
+  processing: '#73BBC9',
+  processing_admin: '#73BBC9',
+  packing: '#73BBC9',
+  ready_to_ship: '#73BBC9',
+  shipped: 'rgba(241,212,229,0.62)',
+  completed: 'rgba(241,212,229,0.62)',
+  cancelled: '#F1D4E5',
+  refund_requested: '#F1D4E5',
+  refunded: '#F1D4E5'
+}[status] || 'rgba(241,212,229,0.62)');
 const MERCH_ORDER_FLOW_STEPS = [
   { id: 'paid', label: 'PAID', statuses: ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
   { id: 'process', label: 'PROSES', statuses: ['processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
@@ -148,11 +148,11 @@ const getConsignmentStatusLabel = (status = 'waiting_stock_handover') => ({
   stock_returned: 'STOK DIKEMBALIKAN'
 }[status] || String(status || 'waiting_stock_handover').replaceAll('_', ' ').toUpperCase());
 const getConsignmentStatusColor = (status = 'waiting_stock_handover') => ({
-  waiting_stock_handover: 'rgba(242,242,242,0.62)',
-  stock_received: 'rgba(242,242,242,0.62)',
-  stock_checked: '#5CB8E4',
-  stock_returned: '#8758FF'
-}[status] || 'rgba(242,242,242,0.62)');
+  waiting_stock_handover: 'rgba(241,212,229,0.62)',
+  stock_received: 'rgba(241,212,229,0.62)',
+  stock_checked: '#73BBC9',
+  stock_returned: '#F1D4E5'
+}[status] || 'rgba(241,212,229,0.62)');
 const getMerchAvailableStock = (item = {}) => (
   item.fulfillmentMode === 'admin_consignment'
     ? item.consignmentStatus === 'stock_received'
@@ -162,23 +162,23 @@ const getMerchAvailableStock = (item = {}) => (
 );
 const isMerchPurchasable = (item = {}) => getMerchAvailableStock(item) > 0;
 const getReadinessColor = (status = 'todo') => ({
-  ready: 'rgba(242,242,242,0.62)',
-  scaffold: '#5CB8E4',
-  demo: 'rgba(242,242,242,0.62)',
-  todo: '#8758FF'
-}[status] || 'rgba(242,242,242,0.62)');
+  ready: 'rgba(241,212,229,0.62)',
+  scaffold: '#73BBC9',
+  demo: 'rgba(241,212,229,0.62)',
+  todo: '#F1D4E5'
+}[status] || 'rgba(241,212,229,0.62)');
 const getReadinessTint = (status = 'todo') => ({
-  ready: 'rgba(242,242,242,0.08)',
-  scaffold: 'rgba(92,184,228,0.10)',
-  demo: 'rgba(242,242,242,0.06)',
-  todo: 'rgba(135,88,255,0.10)'
-}[status] || 'rgba(242,242,242,0.06)');
+  ready: 'rgba(241,212,229,0.08)',
+  scaffold: 'rgba(115,187,201,0.10)',
+  demo: 'rgba(241,212,229,0.06)',
+  todo: 'rgba(241,212,229,0.10)'
+}[status] || 'rgba(241,212,229,0.06)');
 const getReadinessBorder = (status = 'todo') => ({
-  ready: 'rgba(242,242,242,0.22)',
-  scaffold: 'rgba(92,184,228,0.32)',
-  demo: 'rgba(242,242,242,0.18)',
-  todo: 'rgba(135,88,255,0.32)'
-}[status] || 'rgba(242,242,242,0.18)');
+  ready: 'rgba(241,212,229,0.22)',
+  scaffold: 'rgba(115,187,201,0.32)',
+  demo: 'rgba(241,212,229,0.18)',
+  todo: 'rgba(241,212,229,0.32)'
+}[status] || 'rgba(241,212,229,0.18)');
 const isMissingColumnError = (error) => {
   const message = error?.message?.toLowerCase() || '';
   return message.includes('could not find') || message.includes('schema cache') || message.includes('does not exist');
@@ -5579,14 +5579,14 @@ export default function App() {
   const checkoutIsPaid = checkoutPaymentStatus === 'paid';
   const checkoutIsCancelled = checkoutPaymentStatus === 'cancelled';
   const checkoutAccentColor = checkoutIsPaid
-    ? 'rgba(242,242,242,0.62)'
+    ? 'rgba(241,212,229,0.62)'
     : checkoutIsCancelled
-      ? '#8758FF'
+      ? '#F1D4E5'
       : checkoutProviderCheckoutUrl
-        ? '#5CB8E4'
+        ? '#73BBC9'
         : checkoutIsAwaitingAdmin
-          ? '#5CB8E4'
-          : 'rgba(242,242,242,0.62)';
+          ? '#73BBC9'
+          : 'rgba(241,212,229,0.62)';
   const checkoutReviewLabel = checkoutIsPaid
     ? 'PAID'
     : checkoutIsCancelled
@@ -5837,12 +5837,12 @@ export default function App() {
   const verifiedPaymentWebhookCount = paymentWebhookEvents.filter((event) => event.verified).length;
   const paymentGatewayReadinessStatus = !isManualPaymentMode && paymentGatewayEndpointReady && paymentGatewayClientReady ? 'scaffold' : 'demo';
   const paymentGatewayHealthItems = [
-    ['PROVIDER', activePaymentGatewayProvider.title, isManualPaymentMode ? 'rgba(242,242,242,0.62)' : '#5CB8E4'],
-    ['API ENDPOINT', PAYMENT_GATEWAY_API_ENDPOINT || 'Belum diset', paymentGatewayEndpointReady ? '#5CB8E4' : '#8758FF'],
-    ['CLIENT KEY', PAYMENT_GATEWAY_CLIENT_KEY ? 'Set' : activePaymentGatewayProvider.id === 'midtrans' ? 'Belum diset' : 'Tidak wajib', paymentGatewayClientReady ? 'rgba(242,242,242,0.62)' : '#8758FF'],
-    ['WEBHOOK TARGET', PAYMENT_GATEWAY_WEBHOOK_PATH, '#5CB8E4'],
-    ['WEBHOOK EVENTS', paymentWebhookEvents.length ? `${paymentWebhookEvents.length} event / ${verifiedPaymentWebhookCount} verified` : 'Belum ada event', paymentWebhookEvents.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'],
-    ['MANUAL FALLBACK', 'Aktif', 'rgba(242,242,242,0.62)']
+    ['PROVIDER', activePaymentGatewayProvider.title, isManualPaymentMode ? 'rgba(241,212,229,0.62)' : '#73BBC9'],
+    ['API ENDPOINT', PAYMENT_GATEWAY_API_ENDPOINT || 'Belum diset', paymentGatewayEndpointReady ? '#73BBC9' : '#F1D4E5'],
+    ['CLIENT KEY', PAYMENT_GATEWAY_CLIENT_KEY ? 'Set' : activePaymentGatewayProvider.id === 'midtrans' ? 'Belum diset' : 'Tidak wajib', paymentGatewayClientReady ? 'rgba(241,212,229,0.62)' : '#F1D4E5'],
+    ['WEBHOOK TARGET', PAYMENT_GATEWAY_WEBHOOK_PATH, '#73BBC9'],
+    ['WEBHOOK EVENTS', paymentWebhookEvents.length ? `${paymentWebhookEvents.length} event / ${verifiedPaymentWebhookCount} verified` : 'Belum ada event', paymentWebhookEvents.length ? '#73BBC9' : 'rgba(241,212,229,0.62)'],
+    ['MANUAL FALLBACK', 'Aktif', 'rgba(241,212,229,0.62)']
   ];
   const paymentGatewayServerSteps = [
     {
@@ -6004,10 +6004,10 @@ export default function App() {
   }), {});
   const productionBlockers = productionReadinessItems.filter((item) => ['todo', 'demo'].includes(item.status));
   const storageHealthItems = [
-    ['LOCAL/FALLBACK ASSET', localAssetCount, localAssetCount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'],
-    ['PRIVATE MASTER', `${privateAudioPathCount}/${totalReleaseTrackCount}`, privateAudioPathCount && privateAudioPathCount === totalReleaseTrackCount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'],
-    ['PUBLIC PREVIEW', `${publicPreviewClipCount}/${paidReleaseTrackCount}`, previewMissingTrackCount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'],
-    ['MISSING PREVIEW', previewMissingTrackCount, previewMissingTrackCount ? '#8758FF' : 'rgba(242,242,242,0.62)']
+    ['LOCAL/FALLBACK ASSET', localAssetCount, localAssetCount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'],
+    ['PRIVATE MASTER', `${privateAudioPathCount}/${totalReleaseTrackCount}`, privateAudioPathCount && privateAudioPathCount === totalReleaseTrackCount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'],
+    ['PUBLIC PREVIEW', `${publicPreviewClipCount}/${paidReleaseTrackCount}`, previewMissingTrackCount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'],
+    ['MISSING PREVIEW', previewMissingTrackCount, previewMissingTrackCount ? '#F1D4E5' : 'rgba(241,212,229,0.62)']
   ];
   const adminExclusivePosterPaidCount = Math.max(exclusivePosterTransactions.length, paidExclusivePosterGigs.length);
   const adminPlatformRevenue = adminMerchFeeRevenue + adminReleaseFeeRevenue + adminExclusivePosterRevenue;
@@ -6038,72 +6038,72 @@ export default function App() {
       count: waitingAdminPaymentRequests.length,
       note: 'Cek proof buyer, lalu confirm paid/reject.',
       action: () => setAdminActiveSection('payment'),
-      color: waitingAdminPaymentRequests.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'
+      color: waitingAdminPaymentRequests.length ? '#73BBC9' : 'rgba(241,212,229,0.62)'
     },
     {
       title: 'ORDER ADMIN SHIP',
       count: adminConsignmentOrderQueue.length,
       note: 'Order stok titipan yang harus diproses WiSpace.',
       action: () => setAdminActiveSection('finance'),
-      color: adminConsignmentOrderQueue.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'
+      color: adminConsignmentOrderQueue.length ? '#73BBC9' : 'rgba(241,212,229,0.62)'
     },
     {
       title: 'ORDER BAND SHIP',
       count: adminBandShipOrderQueue.length,
       note: 'Pantau band yang harus proses pengiriman sendiri.',
       action: () => setAdminActiveSection('finance'),
-      color: adminBandShipOrderQueue.length ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'
+      color: adminBandShipOrderQueue.length ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'
     },
     {
       title: 'PAYOUT READY',
       count: adminPayoutReportRows.filter((band) => band.ready).length,
       note: `Siap dicek untuk report ${nextPayoutLabel}.`,
       action: () => setAdminActiveSection('finance'),
-      color: adminPayoutReadyBands.length ? '#5CB8E4' : 'rgba(242,242,242,0.62)'
+      color: adminPayoutReadyBands.length ? '#73BBC9' : 'rgba(241,212,229,0.62)'
     },
     {
       title: 'REKENING KOSONG',
       count: bandsMissingPayoutAccount.length,
       note: 'Follow up band yang belum lengkap rekening.',
       action: () => setAdminActiveSection('messages'),
-      color: bandsMissingPayoutAccount.length ? '#8758FF' : 'rgba(242,242,242,0.62)'
+      color: bandsMissingPayoutAccount.length ? '#F1D4E5' : 'rgba(241,212,229,0.62)'
     }
   ];
   const adminActionNotifications = [
     {
       title: 'PAYMENT BUYER PERLU CONFIRM',
       count: waitingAdminPaymentRequests.length,
-      color: waitingAdminPaymentRequests.length ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)',
+      color: waitingAdminPaymentRequests.length ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)',
       note: 'Confirm paid dulu sebelum library/order aktif.'
     },
     {
       title: 'PAYOUT SIAP TANGGAL 1',
       count: adminPayoutReportRows.filter((band) => band.ready).length,
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       note: `Report berikutnya: ${nextPayoutLabel}.`
     },
     {
       title: 'REKENING BAND BELUM LENGKAP',
       count: bandsMissingPayoutAccount.length,
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       note: 'Band harus lengkapi rekening sebelum upload album/merch.'
     },
     {
       title: 'AGREEMENT RILISAN TEREKAM',
       count: releaseAgreements.length,
-      color: '#5CB8E4',
+      color: '#73BBC9',
       note: 'Arsip legal per upload album/track.'
     },
     {
       title: 'PAMFLET PAID PERLU ACTIVATE',
       count: exclusivePaidWaitingActivationGigs.length,
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       note: 'Setelah pembayaran terkonfirmasi, admin activate 10 hari.'
     },
     {
       title: 'REPORT BULANAN TERAKHIR',
       count: monthlyFinanceReports.length,
-      color: latestMonthlyFinanceReport ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)',
+      color: latestMonthlyFinanceReport ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)',
       note: latestMonthlyFinanceReport ? `${latestMonthlyFinanceReport.periodLabel} / ${latestMonthlyFinanceReport.rows.length} band.` : 'Belum pernah generate report.'
     }
   ];
@@ -6113,7 +6113,7 @@ export default function App() {
       title: isProviderPaidPendingActivation(payment) ? 'Provider paid perlu aktivasi' : 'Payment buyer perlu confirm paid',
       body: `${payment.productTitle} / ${payment.buyerName} / Rp ${Number(payment.amount || 0).toLocaleString('id-ID')} / ${payment.checkoutRef}${payment.providerStatus ? ` / ${String(payment.providerStatus).replaceAll('_', ' ')}` : ''}`,
       badge: 'PAYMENT',
-      color: isProviderPaidPendingActivation(payment) ? '#5CB8E4' : 'rgba(242,242,242,0.62)',
+      color: isProviderPaidPendingActivation(payment) ? '#73BBC9' : 'rgba(241,212,229,0.62)',
       targetSection: 'payment',
       actionType: 'confirm_payment',
       payment
@@ -6123,7 +6123,7 @@ export default function App() {
       title: 'Pamflet baru perlu kurasi',
       body: `${gig.title} / ${gig.city || 'WiSpace'} / ${getGigDate(gig)}`,
       badge: 'PAMFLET',
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       targetSection: 'pamflet'
     })),
     ...exclusivePaidWaitingActivationGigs.slice(0, 6).map((gig) => ({
@@ -6131,7 +6131,7 @@ export default function App() {
       title: 'Pembayaran exclusive perlu activate',
       body: `${gig.title} sudah paid, aktifkan 10 hari setelah dicek.`,
       badge: 'PAYMENT',
-      color: '#5CB8E4',
+      color: '#73BBC9',
       targetSection: 'pamflet'
     })),
     ...merchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).slice(0, 6).map((order) => ({
@@ -6139,7 +6139,7 @@ export default function App() {
       title: 'Order merch perlu dipantau',
       body: `${order.itemName || 'Merch'} / ${order.sellerBandName || 'Band'} / ${order.orderId || order.id}`,
       badge: 'MERCH',
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       targetSection: 'ledger'
     })),
     ...bandsMissingPayoutAccount.slice(0, 6).map((profile) => ({
@@ -6147,7 +6147,7 @@ export default function App() {
       title: 'Rekening band belum lengkap',
       body: `${profile.name || 'Band WiSpace'} harus isi rekening sebelum upload dan payout.`,
       badge: 'BANK',
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       targetSection: 'legal'
     })),
     ...releaseAgreements.slice(0, 4).map((agreement) => ({
@@ -6155,7 +6155,7 @@ export default function App() {
       title: 'Agreement rilisan terekam',
       body: `${agreement.releaseTitle} / ${agreement.bandName} / ${agreement.createdAt || 'baru'}`,
       badge: 'LEGAL',
-      color: '#5CB8E4',
+      color: '#73BBC9',
       targetSection: 'legal'
     })),
     ...(latestMonthlyFinanceReport ? [{
@@ -6163,7 +6163,7 @@ export default function App() {
       title: 'Report bulanan siap diunduh',
       body: `${latestMonthlyFinanceReport.periodLabel} / ${latestMonthlyFinanceReport.rows.length} band / Rp ${Number(latestMonthlyFinanceReport.readyPayoutTotal || 0).toLocaleString('id-ID')} ready.`,
       badge: 'REPORT',
-      color: 'rgba(242,242,242,0.62)',
+      color: 'rgba(241,212,229,0.62)',
       targetSection: 'finance'
     }] : [])
   ];
@@ -6385,11 +6385,11 @@ export default function App() {
   const playerSeekValue = Math.min(playerCurrentTime || 0, playerSeekMax || 0);
   const renderProfileChip = (avatarSize = 20, maxLabelWidth = '120px') => (
     <>
-      <span style={{ width: `${avatarSize}px`, height: `${avatarSize}px`, borderRadius: '9999px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.65)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+      <span style={{ width: `${avatarSize}px`, height: `${avatarSize}px`, borderRadius: '9999px', overflow: 'hidden', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.65)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
         {accountPhoto ? (
           <img src={accountPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <User size={Math.max(12, avatarSize - 8)} color="#5CB8E4" />
+          <User size={Math.max(12, avatarSize - 8)} color="#73BBC9" />
         )}
       </span>
       <span style={{ maxWidth: maxLabelWidth, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -6401,7 +6401,7 @@ export default function App() {
     gig?.image ? (
       <img src={gig.image} alt="" style={style} />
     ) : (
-      <div style={{ ...style, display: 'grid', placeItems: 'center', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', textAlign: 'center' }}>
+      <div style={{ ...style, display: 'grid', placeItems: 'center', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', textAlign: 'center' }}>
         {label}
       </div>
     )
@@ -6409,13 +6409,13 @@ export default function App() {
   const renderCompactSearchResults = (placement = 'inline') => {
     const isFixedPlacement = placement === 'fixed';
     return (
-    <div style={isFixedPlacement ? { position: 'fixed', top: isTinyLayout ? '64px' : '74px', left: '50%', transform: 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(360px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(24,24,24,0.98)', border: '1px solid rgba(92,184,228,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(24,24,24,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' } : { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(24,24,24,0.96)', border: '1px solid rgba(92,184,228,0.22)', borderRadius: '12px', boxShadow: 'none', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+    <div style={isFixedPlacement ? { position: 'fixed', top: isTinyLayout ? '64px' : '74px', left: '50%', transform: 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(360px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(8,2,2,0.98)', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(8,2,2,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' } : { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(8,2,2,0.96)', border: '1px solid rgba(115,187,201,0.22)', borderRadius: '12px', boxShadow: 'none', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
-        <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS</p>
-        <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
+        <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS</p>
+        <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
       </div>
       {quickSearchResults.length === 0 ? (
-        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Belum ketemu. Coba nama band, genre, judul lagu, artikel, atau merch.</p>
+        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Belum ketemu. Coba nama band, genre, judul lagu, artikel, atau merch.</p>
       ) : (
         <div style={{ display: 'grid', gap: '6px', maxHeight: isTinyLayout ? '220px' : '260px', overflowY: 'auto' }}>
           {quickSearchResults.slice(0, 6).map((result) => (
@@ -6425,9 +6425,9 @@ export default function App() {
               onClick={result.onSelect}
               style={{ textAlign: 'left', padding: '7px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0, cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '3px' }}
             >
-              <span style={{ color: '#5CB8E4', fontSize: '8px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
-              <span style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(result.title || '').toUpperCase()}</span>
-              <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '700', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.meta}</span>
+              <span style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
+              <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(result.title || '').toUpperCase()}</span>
+              <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '700', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.meta}</span>
             </button>
           ))}
         </div>
@@ -6455,19 +6455,19 @@ export default function App() {
 
   // STYLING INTERFACE ASYMMETRIC ROUNDED `16PX`
   const glassStyle = (id) => ({
-    background: hoveredCard === id ? 'rgba(24, 24, 24, 0.86)' : 'rgba(24, 24, 24, 0.74)',
+    background: hoveredCard === id ? 'rgba(8, 2, 2, 0.86)' : 'rgba(8, 2, 2, 0.74)',
     backdropFilter: 'blur(14px)',
     WebkitBackdropFilter: 'blur(14px)',
     borderRadius: '10px',
-    border: hoveredCard === id ? '1px solid rgba(92, 184, 228, 0.3)' : '1px solid rgba(92, 184, 228, 0.11)',
+    border: hoveredCard === id ? '1px solid rgba(115, 187, 201, 0.3)' : '1px solid rgba(115, 187, 201, 0.11)',
     boxShadow: hoveredCard === id ? '0 14px 34px rgba(0, 0, 0, 0.34)' : 'none',
     transition: 'background 0.22s ease, border-color 0.22s ease, transform 0.22s ease'
   });
 
   const glassButtonStyle = {
-    background: 'rgba(242, 242, 242, 0.025)',
-    border: '1px solid rgba(92, 184, 228, 0.28)',
-    color: '#5CB8E4',
+    background: 'rgba(241, 212, 229, 0.025)',
+    border: '1px solid rgba(115, 187, 201, 0.28)',
+    color: '#73BBC9',
     cursor: 'pointer',
     borderRadius: '9px',
     fontWeight: '900',
@@ -6479,12 +6479,12 @@ export default function App() {
 
   const formInputStyle = {
     width: '100%',
-    backgroundColor: 'rgba(24,24,24,0.94)',
-    border: '1px solid rgba(92,184,228,0.16)',
+    backgroundColor: 'rgba(8,2,2,0.94)',
+    border: '1px solid rgba(115,187,201,0.16)',
     borderRadius: '9px',
     padding: '10px',
     fontSize: '12px',
-    color: '#F2F2F2',
+    color: '#F1D4E5',
     fontFamily: FONT_STACK,
     boxSizing: 'border-box',
     outline: 'none'
@@ -6499,21 +6499,21 @@ export default function App() {
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
-  const flatLineColor = 'rgba(92,184,228,0.18)';
-  const softSurfaceBackground = 'linear-gradient(135deg, rgba(242,242,242,0.03), rgba(92,184,228,0.07) 36%, rgba(135,88,255,0.055) 68%, rgba(24,24,24,0.78) 100%)';
-  const softRowBackground = 'linear-gradient(90deg, rgba(92,184,228,0.07), rgba(135,88,255,0.045) 48%, rgba(24,24,24,0.24) 100%)';
+  const flatLineColor = 'rgba(115,187,201,0.18)';
+  const softSurfaceBackground = 'linear-gradient(135deg, rgba(241,212,229,0.03), rgba(115,187,201,0.07) 36%, rgba(241,212,229,0.055) 68%, rgba(8,2,2,0.78) 100%)';
+  const softRowBackground = 'linear-gradient(90deg, rgba(115,187,201,0.07), rgba(241,212,229,0.045) 48%, rgba(8,2,2,0.24) 100%)';
   const flatSurfaceStyle = {
     background: softSurfaceBackground,
     border: 'none',
     borderTop: `1.5px solid ${flatLineColor}`,
-    borderLeft: '1px solid rgba(92,184,228,0.12)',
+    borderLeft: '1px solid rgba(115,187,201,0.12)',
     borderRadius: '8px',
-    boxShadow: 'inset 0 1px 0 rgba(242,242,242,0.03)'
+    boxShadow: 'inset 0 1px 0 rgba(241,212,229,0.03)'
   };
   const compactPanelStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '10px' : '12px', marginBottom: isTinyLayout ? '10px' : '12px' };
   const compactMetricCardStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '8px 9px' : '10px 11px', minWidth: 0 };
-  const compactMetricLabelStyle = { color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 };
-  const compactMetricValueStyle = { color: '#F2F2F2', fontSize: isTinyLayout ? '16px' : '19px', fontWeight: '900', lineHeight: 1 };
+  const compactMetricLabelStyle = { color: 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 };
+  const compactMetricValueStyle = { color: '#F1D4E5', fontSize: isTinyLayout ? '16px' : '19px', fontWeight: '900', lineHeight: 1 };
   const compactRowStyle = { ...flatSurfaceStyle, padding: isTinyLayout ? '8px 9px' : '9px 10px' };
   const flatListStyle = { display: 'grid', gap: isTinyLayout ? '8px' : '10px' };
   const flatItemStyle = {
@@ -6542,16 +6542,16 @@ export default function App() {
   };
   const compactVisualCardStyle = {
     background: softSurfaceBackground,
-    border: '1.5px solid rgba(242,242,242,0.14)',
+    border: '1.5px solid rgba(241,212,229,0.14)',
     borderRadius: '8px',
     padding: isTinyLayout ? '7px' : '8px',
     cursor: 'pointer',
     minWidth: 0,
-    boxShadow: 'inset 0 1px 0 rgba(242,242,242,0.035)'
+    boxShadow: 'inset 0 1px 0 rgba(241,212,229,0.035)'
   };
   const flatThumbStyle = {
     overflow: 'hidden',
-    backgroundColor: '#181818',
+    backgroundColor: '#080202',
     border: `1.5px solid ${flatLineColor}`,
     display: 'grid',
     placeItems: 'center',
@@ -6625,10 +6625,10 @@ export default function App() {
     flexWrap: isTinyLayout ? 'wrap' : 'nowrap',
     gap: isTinyLayout ? '8px' : '12px',
     padding: isTinyLayout ? '7px 9px' : '8px 12px',
-    background: 'linear-gradient(135deg, rgba(24,24,24,0.9), rgba(24,24,24,0.78) 52%, rgba(92,184,228,0.055) 100%)',
-    border: '1px solid rgba(92,184,228,0.2)',
+    background: 'linear-gradient(135deg, rgba(8,2,2,0.9), rgba(8,2,2,0.78) 52%, rgba(115,187,201,0.055) 100%)',
+    border: '1px solid rgba(115,187,201,0.2)',
     borderRadius: '9999px',
-    boxShadow: '0 12px 36px rgba(0,0,0,0.22), 0 0 30px rgba(92,184,228,0.055), inset 0 1px 0 rgba(242,242,242,0.04)',
+    boxShadow: '0 12px 36px rgba(0,0,0,0.22), 0 0 30px rgba(115,187,201,0.055), inset 0 1px 0 rgba(241,212,229,0.04)',
     backdropFilter: 'blur(18px)',
     WebkitBackdropFilter: 'blur(18px)',
     width: isTinyLayout ? '100%' : 'auto',
@@ -6646,7 +6646,7 @@ export default function App() {
     right: 0,
     top: 0,
     zIndex: 10,
-    background: 'linear-gradient(90deg, rgba(24,24,24,0.84) 0%, rgba(24,24,24,0.38) 56%, rgba(24,24,24,0.12) 100%), linear-gradient(to top, rgba(24,24,24,0.98) 0%, rgba(24,24,24,0.42) 58%, rgba(24,24,24,0.06) 100%)',
+    background: 'linear-gradient(90deg, rgba(8,2,2,0.84) 0%, rgba(8,2,2,0.38) 56%, rgba(8,2,2,0.12) 100%), linear-gradient(to top, rgba(8,2,2,0.98) 0%, rgba(8,2,2,0.42) 58%, rgba(8,2,2,0.06) 100%)',
     padding: isTinyLayout ? '24px 18px' : '46px',
     display: 'flex',
     flexDirection: 'column',
@@ -6673,7 +6673,7 @@ export default function App() {
     padding: isTinyLayout ? '7px' : '8px',
     background: softRowBackground,
     borderTop: `1.5px solid ${flatLineColor}`,
-    borderLeft: '1px solid rgba(92,184,228,0.08)',
+    borderLeft: '1px solid rgba(115,187,201,0.08)',
     position: 'relative',
     cursor: 'pointer',
     scrollSnapAlign: 'start',
@@ -6706,8 +6706,8 @@ export default function App() {
       {MERCH_ORDER_FLOW_STEPS.map((step) => {
         const isActive = step.statuses.includes(status);
         return (
-          <div key={step.id} style={{ borderTop: `2px solid ${isActive ? getMerchOrderStatusColor(status) : 'rgba(242,242,242,0.1)'}`, paddingTop: '5px' }}>
-            <p style={{ color: isActive ? '#F2F2F2' : '#8758FF', fontSize: '8px', fontWeight: '900', margin: 0, letterSpacing: '0.4px' }}>{step.label}</p>
+          <div key={step.id} style={{ borderTop: `2px solid ${isActive ? getMerchOrderStatusColor(status) : 'rgba(241,212,229,0.1)'}`, paddingTop: '5px' }}>
+            <p style={{ color: isActive ? '#F1D4E5' : 'rgba(241,212,229,0.38)', fontSize: '8px', fontWeight: '900', margin: 0, letterSpacing: '0.4px' }}>{step.label}</p>
           </div>
         );
       })}
@@ -6717,10 +6717,10 @@ export default function App() {
   const pageShellStyle = {
     minHeight: 'calc(100vh - 40px)',
     padding: innerPagePadding,
-    background: 'linear-gradient(160deg, rgba(92,184,228,0.04) 0%, rgba(24,24,24,0) 32%, rgba(135,88,255,0.032) 100%)',
+    background: 'linear-gradient(160deg, rgba(115,187,201,0.04) 0%, rgba(8,2,2,0) 32%, rgba(241,212,229,0.032) 100%)',
     border: 'none',
     borderRadius: 0,
-    boxShadow: 'inset 0 1px 0 rgba(92,184,228,0.035)',
+    boxShadow: 'inset 0 1px 0 rgba(115,187,201,0.035)',
     position: 'relative',
     zIndex: 1
   };
@@ -6731,11 +6731,11 @@ export default function App() {
     zIndex: 0,
     pointerEvents: 'none',
     background: `
-      radial-gradient(circle at 16% 12%, rgba(92,184,228,0.11), rgba(92,184,228,0.04) 16%, transparent 34%),
-      radial-gradient(circle at 82% 16%, rgba(135,88,255,0.1), rgba(135,88,255,0.038) 14%, transparent 30%),
-      radial-gradient(circle at 72% 82%, rgba(92,184,228,0.06), transparent 30%),
-      radial-gradient(circle at 24% 78%, rgba(135,88,255,0.06), transparent 28%),
-      linear-gradient(115deg, transparent 0%, rgba(242,242,242,0.016) 42%, transparent 66%)
+      radial-gradient(circle at 16% 12%, rgba(115,187,201,0.11), rgba(115,187,201,0.04) 16%, transparent 34%),
+      radial-gradient(circle at 82% 16%, rgba(241,212,229,0.1), rgba(241,212,229,0.038) 14%, transparent 30%),
+      radial-gradient(circle at 72% 82%, rgba(115,187,201,0.06), transparent 30%),
+      radial-gradient(circle at 24% 78%, rgba(241,212,229,0.06), transparent 28%),
+      linear-gradient(115deg, transparent 0%, rgba(241,212,229,0.016) 42%, transparent 66%)
     `,
     opacity: isTinyLayout ? 0.52 : 0.62
   };
@@ -6746,10 +6746,10 @@ export default function App() {
     zIndex: 0,
     pointerEvents: 'none',
     backgroundImage: `
-      linear-gradient(115deg, transparent 0%, transparent 42%, rgba(92,184,228,0.035) 42.2%, transparent 43.4%, transparent 100%),
-      linear-gradient(65deg, transparent 0%, transparent 58%, rgba(135,88,255,0.028) 58.2%, transparent 59.2%, transparent 100%),
-      linear-gradient(90deg, rgba(242,242,242,0.012) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(242,242,242,0.01) 1px, transparent 1px)
+      linear-gradient(115deg, transparent 0%, transparent 42%, rgba(115,187,201,0.035) 42.2%, transparent 43.4%, transparent 100%),
+      linear-gradient(65deg, transparent 0%, transparent 58%, rgba(241,212,229,0.028) 58.2%, transparent 59.2%, transparent 100%),
+      linear-gradient(90deg, rgba(241,212,229,0.012) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(241,212,229,0.01) 1px, transparent 1px)
     `,
     backgroundSize: '100% 100%, 100% 100%, 92px 92px, 92px 92px',
     maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.48), rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.26) 100%)',
@@ -6769,7 +6769,7 @@ export default function App() {
   };
 
   const eyebrowStyle = {
-    color: '#5CB8E4',
+    color: '#73BBC9',
     fontSize: '10px',
     fontWeight: '900',
     letterSpacing: '1.2px',
@@ -6777,7 +6777,7 @@ export default function App() {
   };
 
   const pageTitleStyle = {
-    color: '#F2F2F2',
+    color: '#F1D4E5',
     fontSize: 'clamp(23px, 3.8vw, 36px)',
     fontWeight: '900',
     margin: 0,
@@ -6785,7 +6785,7 @@ export default function App() {
   };
 
   const pageLeadStyle = {
-    color: 'rgba(242,242,242,0.62)',
+    color: 'rgba(241,212,229,0.62)',
     fontSize: '12px',
     margin: '7px 0 0 0',
     maxWidth: '640px',
@@ -6793,7 +6793,7 @@ export default function App() {
   };
 
   const sectionHeadingStyle = {
-    color: '#F2F2F2',
+    color: '#F1D4E5',
     fontSize: '14px',
     fontWeight: '900',
     margin: '0 0 12px 0',
@@ -6801,25 +6801,25 @@ export default function App() {
   };
   const compactSurfaceStyle = {
     background: softSurfaceBackground,
-    border: '1.5px solid rgba(242,242,242,0.14)',
+    border: '1.5px solid rgba(241,212,229,0.14)',
     borderRadius: '8px',
-    boxShadow: 'inset 0 1px 0 rgba(242,242,242,0.035)'
+    boxShadow: 'inset 0 1px 0 rgba(241,212,229,0.035)'
   };
   const bandArchivePanelStyle = {
     ...compactSurfaceStyle,
     borderRadius: '9px',
-    borderTop: '1.5px solid rgba(92,184,228,0.18)',
-    borderLeft: '1px solid rgba(92,184,228,0.12)',
-    boxShadow: 'inset 0 1px 0 rgba(242,242,242,0.03)'
+    borderTop: '1.5px solid rgba(115,187,201,0.18)',
+    borderLeft: '1px solid rgba(115,187,201,0.12)',
+    boxShadow: 'inset 0 1px 0 rgba(241,212,229,0.03)'
   };
   const checkoutBlockStyle = {
     ...compactSurfaceStyle,
     padding: isTinyLayout ? '10px' : '12px'
   };
   const modalPanelStyle = {
-    background: 'linear-gradient(145deg, rgba(24,24,24,0.98), rgba(24,24,24,0.97) 58%, rgba(135,88,255,0.08) 100%)',
-    border: '1.5px solid rgba(92,184,228,0.22)',
-    boxShadow: '0 18px 46px rgba(0,0,0,0.48), inset 0 1px 0 rgba(242,242,242,0.045)'
+    background: 'linear-gradient(145deg, rgba(8,2,2,0.98), rgba(8,2,2,0.97) 58%, rgba(115,187,201,0.08) 100%)',
+    border: '1.5px solid rgba(115,187,201,0.22)',
+    boxShadow: '0 18px 46px rgba(0,0,0,0.48), inset 0 1px 0 rgba(241,212,229,0.045)'
   };
 
   const exploreCopy = {
@@ -6848,7 +6848,7 @@ export default function App() {
   const activeExploreCopy = exploreCopy[exploreTab] || exploreCopy.rilisan;
 
   return (
-    <div style={{ background: 'linear-gradient(180deg, #050506 0%, #070708 46%, #0B0B0D 100%)', color: '#F2F2F2', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
+    <div style={{ background: 'radial-gradient(circle at 16% 0%, rgba(115,187,201,0.18), transparent 34%), radial-gradient(circle at 88% 18%, rgba(241,212,229,0.10), transparent 30%), linear-gradient(180deg, #080202 0%, #080202 54%, rgba(8,2,2,0.96) 100%)', color: '#F1D4E5', minHeight: '100vh', padding: homeShellPadding, fontFamily: FONT_STACK, boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>
       <style>{`
         @keyframes wispaceRise {
           0% { opacity: 0; transform: translateY(34px) scale(0.985); }
@@ -6859,7 +6859,7 @@ export default function App() {
       <div style={ambientLayerStyle} />
       <div style={ambientLineStyle} />
       {!isSupabaseConfigured && (
-        <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(135,88,255,0.12)', border: '1px solid rgba(135,88,255,0.45)', borderRadius: '14px', color: '#F2F2F2', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(24,24,24,0.45)' }}>
+        <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(241,212,229,0.12)', border: '1px solid rgba(241,212,229,0.45)', borderRadius: '14px', color: '#F1D4E5', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(8,2,2,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
         </div>
       )}
@@ -6870,37 +6870,37 @@ export default function App() {
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
         <div style={homeFloatingWrapStyle}>
           <div style={homeFloatingBadgeStyle}>
-            <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900', cursor: 'pointer', whiteSpace: 'nowrap' }}>WI.ID UP</span>
-            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', borderBottom: '1px solid transparent', color: '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, padding: '6px 2px', whiteSpace: 'nowrap' }}>EXPLORE</button>
+            <span onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900', cursor: 'pointer', whiteSpace: 'nowrap' }}>WI.ID UP</span>
+            <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', borderBottom: '1px solid transparent', color: '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, padding: '6px 2px', whiteSpace: 'nowrap' }}>EXPLORE</button>
             
             {!userSession ? (
               <>
-                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', borderBottom: '1px solid transparent', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, padding: '6px 2px', whiteSpace: 'nowrap' }}>LOGIN</button>
-                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(92,184,228,0.8)', color: '#5CB8E4', padding: '6px 2px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>JOIN</button>
+                <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', borderBottom: '1px solid transparent', color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, padding: '6px 2px', whiteSpace: 'nowrap' }}>LOGIN</button>
+                <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(115,187,201,0.8)', color: '#73BBC9', padding: '6px 2px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>JOIN</button>
               </>
             ) : (
               <>
-                <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#5CB8E4' : '#F2F2F2', borderRadius: '9999px', width: '28px', height: '28px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
+                <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#73BBC9' : '#F1D4E5', borderRadius: '9999px', width: '28px', height: '28px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                   <Bell size={14} />
-                  {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#8758FF', color: '#F2F2F2', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
+                  {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#F1D4E5', color: '#080202', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
                 </button>
-                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(28, '110px')}</button>
-                <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
+                <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(28, '110px')}</button>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
               </>
             )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: isTinyLayout ? '100%' : 'auto', justifyContent: isTinyLayout ? 'flex-end' : 'flex-start' }}>
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(24, 24, 24, 0.95)', border: '1px solid rgba(242,242,242,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#F2F2F2', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
-            <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ padding: '6px 10px', backgroundColor: 'rgba(92,184,228,0.12)', color: '#F2F2F2', border: '1px solid rgba(92,184,228,0.24)', borderRadius: '9999px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: 'none' }}><Search size={12}/> FIND</div>
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(8, 2, 2, 0.95)', border: '1px solid rgba(241,212,229,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#F1D4E5', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
+            <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ padding: '6px 10px', backgroundColor: 'rgba(115,187,201,0.12)', color: '#F1D4E5', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '9999px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: 'none' }}><Search size={12}/> FIND</div>
           </div>
         </div>
       )}
 
       {/* STICKY TOP MENU UNTUK PAGE DALAM */}
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: isTinyLayout ? 'flex-start' : 'center', gap: isTinyLayout ? '8px' : '14px', padding: isTinyLayout ? '10px 12px' : '12px 28px', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', background: 'linear-gradient(90deg, rgba(24,24,24,0.94), rgba(24,24,24,0.88) 48%, rgba(24,24,24,0.94) 100%)', border: 'none', borderBottom: '1px solid rgba(92,184,228,0.18)', borderRadius: 0, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 12px 34px rgba(0,0,0,0.24), 0 1px 0 rgba(242,242,242,0.035), inset 0 -1px 0 rgba(92,184,228,0.05)', width: '100vw', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', color: '#5CB8E4', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: isTinyLayout ? 'flex-start' : 'center', gap: isTinyLayout ? '8px' : '14px', padding: isTinyLayout ? '10px 12px' : '12px 28px', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', background: 'linear-gradient(90deg, rgba(8,2,2,0.94), rgba(8,2,2,0.88) 48%, rgba(8,2,2,0.94) 100%)', border: 'none', borderBottom: '1px solid rgba(115,187,201,0.18)', borderRadius: 0, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 12px 34px rgba(0,0,0,0.24), 0 1px 0 rgba(241,212,229,0.035), inset 0 -1px 0 rgba(115,187,201,0.05)', width: '100vw', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
+          <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>WISPACE</button>
           {[
             ['rilisan', 'RILISAN'],
             ['band', 'BAND'],
@@ -6910,34 +6910,34 @@ export default function App() {
             <button
               key={tab}
               onClick={() => navigateInternalPage('explore', { exploreTab: tab, clearSearch: true })}
-              style={{ background: activePage === 'explore' && exploreTab === tab ? 'linear-gradient(180deg, rgba(92,184,228,0.12), rgba(92,184,228,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(92,184,228,0.95)' : '1px solid transparent', borderRadius: 0, color: activePage === 'explore' && exploreTab === tab ? '#5CB8E4' : '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'explore' && exploreTab === tab ? '0 8px 22px rgba(92,184,228,0.08)' : 'none' }}
+              style={{ background: activePage === 'explore' && exploreTab === tab ? 'linear-gradient(180deg, rgba(115,187,201,0.12), rgba(115,187,201,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(115,187,201,0.95)' : '1px solid transparent', borderRadius: 0, color: activePage === 'explore' && exploreTab === tab ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'explore' && exploreTab === tab ? '0 8px 22px rgba(115,187,201,0.08)' : 'none' }}
             >
               {label}
             </button>
           ))}
           {userSession && (
             <>
-              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: activePage === 'audience_library' ? 'linear-gradient(180deg, rgba(92,184,228,0.12), rgba(92,184,228,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'audience_library' ? '1px solid rgba(92,184,228,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_library' ? '#5CB8E4' : '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'audience_library' ? '0 8px 22px rgba(92,184,228,0.08)' : 'none' }}>LIBRARY</button>
-              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: activePage === 'audience_orders' ? 'linear-gradient(180deg, rgba(92,184,228,0.12), rgba(92,184,228,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'audience_orders' ? '1px solid rgba(92,184,228,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_orders' ? '#5CB8E4' : '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'audience_orders' ? '0 8px 22px rgba(92,184,228,0.08)' : 'none' }}>ORDERS</button>
-              <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#5CB8E4' : '#F2F2F2', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
+              <button onClick={() => navigateInternalPage('audience_library')} style={{ background: activePage === 'audience_library' ? 'linear-gradient(180deg, rgba(115,187,201,0.12), rgba(115,187,201,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'audience_library' ? '1px solid rgba(115,187,201,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_library' ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'audience_library' ? '0 8px 22px rgba(115,187,201,0.08)' : 'none' }}>LIBRARY</button>
+              <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: activePage === 'audience_orders' ? 'linear-gradient(180deg, rgba(115,187,201,0.12), rgba(115,187,201,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'audience_orders' ? '1px solid rgba(115,187,201,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_orders' ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'audience_orders' ? '0 8px 22px rgba(115,187,201,0.08)' : 'none' }}>ORDERS</button>
+              <button title="Notifications" onClick={toggleNotificationPopout} style={{ position: 'relative', background: 'transparent', border: 'none', color: unreadNotificationTotal || showNotificationPopout ? '#73BBC9' : '#F1D4E5', borderRadius: '9999px', width: '30px', height: '30px', display: 'grid', placeItems: 'center', cursor: 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>
                 <Bell size={14} />
-                {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#8758FF', color: '#F2F2F2', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
+                {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#F1D4E5', color: '#080202', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
               </button>
             </>
           )}
           <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
-            <Search size={12} color="rgba(242,242,242,0.62)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#F2F2F2', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+            <Search size={12} color="rgba(241,212,229,0.62)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#F1D4E5', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
           </div>
           {!userSession ? (
             <>
-              <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LOGIN</button>
-              <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(92,184,228,0.12)', border: '1px solid rgba(92,184,228,0.35)', color: '#5CB8E4', borderRadius: '12px', padding: '7px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>JOIN</button>
+              <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LOGIN</button>
+              <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ background: 'rgba(115,187,201,0.12)', border: '1px solid rgba(115,187,201,0.35)', color: '#73BBC9', borderRadius: '12px', padding: '7px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>JOIN</button>
             </>
           ) : (
             <>
-              <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(30, '110px')}</button>
-              <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
+              <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(30, '110px')}</button>
+              <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
             </>
           )}
         </div>
@@ -6946,56 +6946,56 @@ export default function App() {
       {normalizedSearchTerm && !isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && renderCompactSearchResults('fixed')}
 
       {userSession && showNotificationPopout && !isAdminPage && !loading && (
-        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : activePage === 'home' ? '78px' : '70px', left: isTinyLayout ? '12px' : activePage === 'home' ? 'auto' : '50%', right: isTinyLayout ? '12px' : activePage === 'home' ? '30px' : 'auto', transform: isTinyLayout || activePage === 'home' ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(300px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(24,24,24,0.96)', border: '1px solid rgba(92,184,228,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(24,24,24,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
+        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : activePage === 'home' ? '78px' : '70px', left: isTinyLayout ? '12px' : activePage === 'home' ? 'auto' : '50%', right: isTinyLayout ? '12px' : activePage === 'home' ? '30px' : 'auto', transform: isTinyLayout || activePage === 'home' ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(300px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(8,2,2,0.96)', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(8,2,2,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '24px', height: '24px', borderRadius: '9999px', backgroundColor: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.28)', display: 'grid', placeItems: 'center', color: '#5CB8E4' }}>
+              <div style={{ width: '24px', height: '24px', borderRadius: '9999px', backgroundColor: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.28)', display: 'grid', placeItems: 'center', color: '#73BBC9' }}>
                 <Bell size={13} />
               </div>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 3px 0' }}>NOTIFICATIONS</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>{unreadNotificationTotal} unread update</h3>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 3px 0' }}>NOTIFICATIONS</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0 }}>{unreadNotificationTotal} unread update</h3>
               </div>
             </div>
-            <button type="button" onClick={() => setShowNotificationPopout(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', padding: '3px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            <button type="button" onClick={() => setShowNotificationPopout(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', padding: '3px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
           </div>
 
           {notificationPreviewItems.length === 0 ? (
-            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Belum ada notif baru bro.</p>
+            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Belum ada notif baru bro.</p>
           ) : (
             <div style={{ display: 'grid', gap: '6px', marginBottom: '10px' }}>
               {notificationPreviewItems.map((item) => (
-                <button type="button" key={item.id} onClick={() => openNotificationPreview(item)} style={{ textAlign: 'left', padding: '8px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
-                  <p style={{ color: item.label === 'MESSAGE' ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.label}</p>
-                  <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title).toUpperCase()}</h4>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.body}</p>
+                <button type="button" key={item.id} onClick={() => openNotificationPreview(item)} style={{ textAlign: 'left', padding: '8px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                  <p style={{ color: item.label === 'MESSAGE' ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.label}</p>
+                  <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title).toUpperCase()}</h4>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.body}</p>
                 </button>
               ))}
             </div>
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); markSubscribedUpdatesRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+            <button type="button" onClick={() => { markMessagesAsRead(); if (isBandAccount) markBandNotificationsRead(); markSubscribedUpdatesRead(); setShowNotificationPopout(false); }} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
             <button type="button" onClick={openNotificationCenter} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '9px' }}>INBOX</button>
           </div>
         </div>
       )}
 
       {isBandAccount && showBandAdminPopout && !isAdminPage && !loading && (
-        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : '74px', left: isTinyLayout ? '10px' : '50%', right: isTinyLayout ? '10px' : 'auto', transform: isTinyLayout ? 'none' : 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'auto' : 'min(760px, calc(100vw - 48px))', maxHeight: isTinyLayout ? 'calc(100vh - 76px)' : 'calc(100vh - 96px)', overflowY: 'auto', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(24,24,24,0.97)', border: '1px solid rgba(92,184,228,0.24)', borderRadius: '14px', boxShadow: '0 16px 42px rgba(24,24,24,0.46)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxSizing: 'border-box' }}>
+        <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : '74px', left: isTinyLayout ? '10px' : '50%', right: isTinyLayout ? '10px' : 'auto', transform: isTinyLayout ? 'none' : 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'auto' : 'min(760px, calc(100vw - 48px))', maxHeight: isTinyLayout ? 'calc(100vh - 76px)' : 'calc(100vh - 96px)', overflowY: 'auto', padding: isTinyLayout ? '12px' : '14px', backgroundColor: 'rgba(8,2,2,0.97)', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '14px', boxShadow: '0 16px 42px rgba(8,2,2,0.46)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
             <div>
-              <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN WISPACE</p>
-              <h3 style={{ color: '#F2F2F2', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUPPORT ADMIN</h3>
+              <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN WISPACE</p>
+              <h3 style={{ color: '#F1D4E5', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUPPORT ADMIN</h3>
             </div>
-            <button type="button" onClick={() => setShowBandAdminPopout(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            <button type="button" onClick={() => setShowBandAdminPopout(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(220px, 0.82fr)', gap: '12px', alignItems: 'start' }}>
-            <form onSubmit={handleBandSupportSubmit} style={{ display: 'grid', gap: '9px', padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.16)', borderRadius: '12px' }}>
+            <form onSubmit={handleBandSupportSubmit} style={{ display: 'grid', gap: '9px', padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.16)', borderRadius: '12px' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>KIRIM PESAN</p>
-                <h4 style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: 0 }}>HUBUNGI ADMIN</h4>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>KIRIM PESAN</p>
+                <h4 style={{ color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: 0 }}>HUBUNGI ADMIN</h4>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '150px 1fr', gap: '8px' }}>
                 <select value={bandSupportDraft.category} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, category: event.target.value })} style={formInputStyle}>
@@ -7006,30 +7006,30 @@ export default function App() {
                 <input type="text" placeholder="SUBJEK KE ADMIN" value={bandSupportDraft.subject} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, subject: event.target.value })} style={formInputStyle} />
               </div>
               <textarea placeholder="TULIS PESAN KE ADMIN..." value={bandSupportDraft.body} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, body: event.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
-              <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(92,184,228,0.3)', borderRadius: '10px', backgroundColor: '#181818', cursor: 'pointer' }}>
+              <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(115,187,201,0.3)', borderRadius: '10px', backgroundColor: '#080202', cursor: 'pointer' }}>
                 <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleBandSupportAttachmentImport} style={{ display: 'none' }} />
-                <span style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
+                <span style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
               </label>
               <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '9px 12px', fontSize: '10px' }}>KIRIM KE ADMIN</button>
             </form>
 
-            <section style={{ padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', borderRadius: '12px' }}>
+            <section style={{ padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', borderRadius: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '9px' }}>
-                <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>ADMIN THREAD</h4>
-                <button type="button" onClick={() => { markMessagesAsRead(); navigateInternalPage('message_center'); }} style={{ background: 'transparent', border: 'none', color: '#5CB8E4', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>OPEN</button>
+                <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0 }}>ADMIN THREAD</h4>
+                <button type="button" onClick={() => { markMessagesAsRead(); navigateInternalPage('message_center'); }} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>OPEN</button>
               </div>
               {bandAdminThreadMessages.length === 0 ? (
-                <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada thread admin. Pesan yang lu kirim ke admin dan balasan admin akan muncul di sini.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada thread admin. Pesan yang lu kirim ke admin dan balasan admin akan muncul di sini.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px', maxHeight: isTinyLayout ? '180px' : '250px', overflowY: 'auto' }}>
                   {bandAdminThreadMessages.slice(0, 5).map((message) => (
-                    <div key={message.id} style={{ padding: '8px 0', borderTop: '1px solid rgba(242,242,242,0.08)' }}>
-                      <p style={{ color: message.source === 'admin' ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{message.source === 'admin' ? 'ADMIN' : 'BAND'} / {String(message.category || 'support').toUpperCase()}</p>
-                      <h5 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{message.subject}</h5>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{message.replied ? message.lastReply : message.body}</p>
+                    <div key={message.id} style={{ padding: '8px 0', borderTop: '1px solid rgba(241,212,229,0.08)' }}>
+                      <p style={{ color: message.source === 'admin' ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{message.source === 'admin' ? 'ADMIN' : 'BAND'} / {String(message.category || 'support').toUpperCase()}</p>
+                      <h5 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{message.subject}</h5>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{message.replied ? message.lastReply : message.body}</p>
                       {message.attachmentUrl && (
-                        <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', marginTop: '6px', color: '#5CB8E4', fontSize: '9px', fontWeight: '900', textDecoration: 'none' }}>
+                        <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', marginTop: '6px', color: '#73BBC9', fontSize: '9px', fontWeight: '900', textDecoration: 'none' }}>
                           LAMPIRAN: {(message.attachmentName || 'FILE').toUpperCase()}
                         </a>
                       )}
@@ -7043,12 +7043,12 @@ export default function App() {
       )}
 
       {activeTrack && !loading && (
-        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '8px' : '12px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 34px)' : 'min(340px, calc(100vw - 56px))', boxSizing: 'border-box', padding: isTinyLayout ? '6px 8px' : '6px 9px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '7px', alignItems: 'center', backgroundColor: 'rgba(24,24,24,0.84)', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '9px', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '8px' : '12px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 34px)' : 'min(340px, calc(100vw - 56px))', boxSizing: 'border-box', padding: isTinyLayout ? '6px 8px' : '6px 9px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '7px', alignItems: 'center', backgroundColor: 'rgba(8,2,2,0.84)', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9px', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ color: isPlaying ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '7px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 2px 0' }}>{isPlaying ? 'PLAYING' : 'PAUSED'}</p>
-            <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '10px' : '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.05 }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
+            <p style={{ color: isPlaying ? 'rgba(241,212,229,0.62)' : '#73BBC9', fontSize: '7px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 2px 0' }}>{isPlaying ? 'PLAYING' : 'PAUSED'}</p>
+            <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '10px' : '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.05 }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '32px minmax(0, 1fr) 32px', gap: '6px', alignItems: 'center', marginTop: '5px' }}>
-              <span style={{ color: 'rgba(242,242,242,0.5)', fontSize: '8px', fontWeight: '900', fontVariantNumeric: 'tabular-nums' }}>{formatPlayerTime(playerSeekValue)}</span>
+              <span style={{ color: 'rgba(241,212,229,0.5)', fontSize: '8px', fontWeight: '900', fontVariantNumeric: 'tabular-nums' }}>{formatPlayerTime(playerSeekValue)}</span>
               <input
                 type="range"
                 min="0"
@@ -7057,33 +7057,33 @@ export default function App() {
                 value={playerSeekValue}
                 onChange={handlePlayerSeek}
                 aria-label="Seek music player"
-                style={{ width: '100%', accentColor: '#5CB8E4', cursor: 'pointer' }}
+                style={{ width: '100%', accentColor: '#73BBC9', cursor: 'pointer' }}
               />
-              <span style={{ color: 'rgba(242,242,242,0.5)', fontSize: '8px', fontWeight: '900', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{formatPlayerTime(playerSeekMax)}</span>
+              <span style={{ color: 'rgba(241,212,229,0.5)', fontSize: '8px', fontWeight: '900', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{formatPlayerTime(playerSeekMax)}</span>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(242,242,242,0.09)', backgroundColor: '#181818', color: playerQueue.length <= 1 ? 'rgba(242,242,242,0.28)' : '#F2F2F2', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipBack size={10} /></button>
-            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '25px', height: '25px', borderRadius: '9999px', border: '1px solid rgba(92,184,228,0.3)', backgroundColor: 'rgba(92,184,228,0.16)', color: '#F2F2F2', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none', padding: 0 }}>{isPlaying ? <Pause size={12} /> : <Play size={12} />}</button>
-            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(242,242,242,0.09)', backgroundColor: '#181818', color: playerQueue.length <= 1 ? 'rgba(242,242,242,0.28)' : '#F2F2F2', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipForward size={10} /></button>
+            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(241,212,229,0.09)', backgroundColor: '#080202', color: playerQueue.length <= 1 ? 'rgba(241,212,229,0.28)' : '#F1D4E5', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipBack size={10} /></button>
+            <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '25px', height: '25px', borderRadius: '9999px', border: '1px solid rgba(115,187,201,0.3)', backgroundColor: 'rgba(115,187,201,0.16)', color: '#F1D4E5', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none', padding: 0 }}>{isPlaying ? <Pause size={12} /> : <Play size={12} />}</button>
+            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(241,212,229,0.09)', backgroundColor: '#080202', color: playerQueue.length <= 1 ? 'rgba(241,212,229,0.28)' : '#F1D4E5', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipForward size={10} /></button>
           </div>
         </div>
       )}
 
       {/* HEADER UTAMA BINGKAI ATAS */}
       {!isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && !loading && (
-        <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '30px' : '46px', borderRadius: isTinyLayout ? '12px' : '14px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', boxShadow: '0 18px 52px rgba(24,24,24,0.52)' }}>
+        <div style={{ position: 'relative', width: '100%', height: homeHeroHeight, marginBottom: isTinyLayout ? '30px' : '46px', borderRadius: isTinyLayout ? '12px' : '14px', overflow: 'hidden', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', boxShadow: '0 18px 52px rgba(8,2,2,0.52)' }}>
           <header style={homeHeaderStyle}>
             <div style={homeBrandWrapStyle}>
               <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', padding: 0, margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '118px' : '142px', maxWidth: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 0 18px rgba(92,184,228,0.28))' }} />
+                <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '118px' : '142px', maxWidth: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 0 18px rgba(115,187,201,0.28))' }} />
               </button>
             </div>
 
             {/* CYBER SEARCH BAR INTEGRATION */}
             <div style={homeSearchWrapStyle}>
-              <Search size={14} color="rgba(242,242,242,0.62)" style={{ position: 'absolute', left: '16px' }} />
-              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: isTinyLayout ? 'auto' : '100%', flex: isTinyLayout ? '1 1 0' : undefined, minWidth: 0, backgroundColor: 'rgba(24, 24, 24, 0.4)', border: '1px solid rgba(242,242,242,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#F2F2F2', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
+              <Search size={14} color="rgba(241,212,229,0.62)" style={{ position: 'absolute', left: '16px' }} />
+              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: isTinyLayout ? 'auto' : '100%', flex: isTinyLayout ? '1 1 0' : undefined, minWidth: 0, backgroundColor: 'rgba(8, 2, 2, 0.4)', border: '1px solid rgba(241,212,229,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#F1D4E5', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
               {userSession && isTinyLayout && (
                 <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '44%', flex: '0 0 auto' }}>{renderProfileChip(22, '94px')}</button>
               )}
@@ -7091,10 +7091,10 @@ export default function App() {
             </div>
 
             <div style={homeNavStyle}>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#F2F2F2', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>EXPLORE</button>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan', clearSearch: true })} style={{ background: 'none', border: 'none', color: '#F1D4E5', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>EXPLORE</button>
               {!userSession ? (
                 <>
-                  <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#F2F2F2', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGIN</button>
+                  <button onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ background: 'none', border: 'none', color: '#F1D4E5', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGIN</button>
                   <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ ...glassButtonStyle, padding: isTinyLayout ? '8px 14px' : '8px 20px', fontSize: '11px', flexShrink: 0 }}>JOIN</button>
                 </>
               ) : (
@@ -7102,7 +7102,7 @@ export default function App() {
                   {!isTinyLayout && (
                     <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>{renderProfileChip(22, '130px')}</button>
                   )}
-                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGOUT</button>
+                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(241,212,229,0.62)', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGOUT</button>
                 </>
               )}
             </div>
@@ -7115,11 +7115,11 @@ export default function App() {
                 <img key={currentExclusiveBannerIndex} src={currentExclusiveBanner.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'saturate(0.92) contrast(1.08) brightness(0.86)' }} />
               )}
               <div style={homeHeroContentStyle}>
-                <span style={{ backgroundColor: 'rgba(24,24,24,0.55)', border: '1px solid rgba(242,242,242,0.18)', color: '#F2F2F2', fontSize: '10px', fontWeight: '900', padding: '6px 10px', borderRadius: '9999px', width: 'fit-content', marginBottom: '16px', letterSpacing: '1px' }}>{currentExclusiveBanner.type}</span>
-                <h2 style={{ fontSize: isTinyLayout ? '28px' : 'clamp(34px, 4.8vw, 58px)', fontWeight: '900', margin: '0 0 12px 0', color: '#F2F2F2', maxWidth: '860px', lineHeight: isTinyLayout ? 1.02 : 0.96 }}>{currentExclusiveBanner.title}</h2>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '720px', margin: '0 0 30px 0', lineHeight: '1.55', fontWeight: '700' }}>{currentExclusiveBanner.desc}</p>
+                <span style={{ backgroundColor: 'rgba(8,2,2,0.55)', border: '1px solid rgba(241,212,229,0.18)', color: '#F1D4E5', fontSize: '10px', fontWeight: '900', padding: '6px 10px', borderRadius: '9999px', width: 'fit-content', marginBottom: '16px', letterSpacing: '1px' }}>{currentExclusiveBanner.type}</span>
+                <h2 style={{ fontSize: isTinyLayout ? '28px' : 'clamp(34px, 4.8vw, 58px)', fontWeight: '900', margin: '0 0 12px 0', color: '#F1D4E5', maxWidth: '860px', lineHeight: isTinyLayout ? 1.02 : 0.96 }}>{currentExclusiveBanner.title}</h2>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '720px', margin: '0 0 30px 0', lineHeight: '1.55', fontWeight: '700' }}>{currentExclusiveBanner.desc}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
-                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromEventOverlay: true })} style={{ ...glassButtonStyle, background: 'rgba(242,242,242,0.9)', border: '1px solid rgba(242,242,242,0.7)', color: '#181818', padding: isTinyLayout ? '10px 16px' : '11px 28px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px', boxShadow: 'none' }}>LIHAT DETAIL EVENT</button>
+                  <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromEventOverlay: true })} style={{ ...glassButtonStyle, background: 'rgba(241,212,229,0.9)', border: '1px solid rgba(241,212,229,0.7)', color: '#080202', padding: isTinyLayout ? '10px 16px' : '11px 28px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px', boxShadow: 'none' }}>LIHAT DETAIL EVENT</button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: isTinyLayout ? '10px' : '18px', maxWidth: '100%', overflowX: 'auto' }}>
                     {exclusiveEventBanners.map((banner, index) => {
                       const isActiveSlide = currentExclusiveBannerIndex === index;
@@ -7134,10 +7134,10 @@ export default function App() {
                             minWidth: '28px',
                             height: '32px',
                             border: 'none',
-                            borderBottom: isActiveSlide ? '2px solid #5CB8E4' : '2px solid transparent',
+                            borderBottom: isActiveSlide ? '2px solid #73BBC9' : '2px solid transparent',
                             background: 'transparent',
-                            color: isActiveSlide ? '#F2F2F2' : 'rgba(242,242,242,0.48)',
-                            textShadow: isActiveSlide ? '0 0 10px rgba(92, 184, 228, 0.45)' : 'none',
+                            color: isActiveSlide ? '#F1D4E5' : 'rgba(241,212,229,0.48)',
+                            textShadow: isActiveSlide ? '0 0 10px rgba(115, 187, 201, 0.45)' : 'none',
                             boxShadow: 'none',
                             cursor: 'pointer',
                             fontFamily: FONT_STACK,
@@ -7156,12 +7156,12 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#181818', display: 'flex', alignItems: 'flex-end' }}>
-              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(242,242,242,0.08)', background: 'radial-gradient(circle at 18% 72%, rgba(92,184,228,0.18), transparent 30%), linear-gradient(135deg, #181818 0%, rgba(92,184,228,0.18) 46%, #181818 100%)' }} />
+            <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#080202', display: 'flex', alignItems: 'flex-end' }}>
+              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(241,212,229,0.08)', background: 'radial-gradient(circle at 18% 72%, rgba(115,187,201,0.18), transparent 30%), linear-gradient(135deg, #080202 0%, rgba(115,187,201,0.18) 46%, #080202 100%)' }} />
               <div style={{ position: 'relative', zIndex: 10, padding: isTinyLayout ? '24px 18px' : '40px' }}>
-                <span style={{ color: '#F2F2F2', fontSize: '10px', fontWeight: '900', letterSpacing: '1.5px' }}>WISPACE EXCLUSIVE BOARD</span>
-                <h2 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '28px' : 'clamp(34px, 4.6vw, 56px)', fontWeight: '900', lineHeight: isTinyLayout ? 1.04 : 0.98, margin: '12px 0 10px 0', maxWidth: '780px' }}>BELUM ADA PAMFLET APPROVED</h2>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
+                <span style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900', letterSpacing: '1.5px' }}>WISPACE EXCLUSIVE BOARD</span>
+                <h2 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '28px' : 'clamp(34px, 4.6vw, 56px)', fontWeight: '900', lineHeight: isTinyLayout ? 1.04 : 0.98, margin: '12px 0 10px 0', maxWidth: '780px' }}>BELUM ADA PAMFLET APPROVED</h2>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
               </div>
             </div>
           )}
@@ -7169,36 +7169,36 @@ export default function App() {
       )}
 
       {!loading && activePage === 'home' && !isAdminPage && selectedGigDetail?.fromEventOverlay && (
-        <div onClick={() => setSelectedGigDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1350, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(24,24,24,0.34), rgba(24,24,24,0.78))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div onClick={(event) => event.stopPropagation()} style={{ width: isTinyLayout ? '100%' : 'min(960px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '82vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', backgroundColor: 'rgba(24,24,24,0.94)', border: '1.5px solid rgba(92,184,228,0.24)', borderRadius: '14px', boxShadow: '0 18px 46px rgba(24,24,24,0.5)', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
+        <div onClick={() => setSelectedGigDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1350, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(8,2,2,0.34), rgba(8,2,2,0.78))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+          <div onClick={(event) => event.stopPropagation()} style={{ width: isTinyLayout ? '100%' : 'min(960px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '82vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', backgroundColor: 'rgba(8,2,2,0.94)', border: '1.5px solid rgba(115,187,201,0.24)', borderRadius: '14px', boxShadow: '0 18px 46px rgba(8,2,2,0.5)', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(280px, 0.72fr) minmax(0, 1fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch' }}>
-              <div style={{ width: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', borderRadius: '13px', overflow: 'hidden', backgroundColor: '#181818', border: '1.5px solid rgba(242,242,242,0.12)', display: 'grid', placeItems: 'center' }}>
-                {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
+              <div style={{ width: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', borderRadius: '13px', overflow: 'hidden', backgroundColor: '#080202', border: '1.5px solid rgba(241,212,229,0.12)', display: 'grid', placeItems: 'center' }}>
+                {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
               </div>
               <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '18px' }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1.4px', margin: 0 }}>DETAIL EVENT</p>
-                    <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', padding: 0, fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1.4px', margin: 0 }}>DETAIL EVENT</p>
+                    <button onClick={() => setSelectedGigDetail(null)} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', padding: 0, fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
                   </div>
-                  <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '26px' : 'clamp(32px, 4vw, 54px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{selectedGigDetail.title?.toUpperCase()}</h3>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.5, margin: '0 0 18px 0' }}>Pamflet event yang sedang tayang di WiSpace. Detail ini tidak menggeser layout homepage dan slide premium berhenti sementara saat panel dibuka.</p>
-                  <div style={{ display: 'grid', gap: '8px', color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.35 }}>
+                  <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '26px' : 'clamp(32px, 4vw, 54px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{selectedGigDetail.title?.toUpperCase()}</h3>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.5, margin: '0 0 18px 0' }}>Pamflet event yang sedang tayang di WiSpace. Detail ini tidak menggeser layout homepage dan slide premium berhenti sementara saat panel dibuka.</p>
+                  <div style={{ display: 'grid', gap: '8px', color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.35 }}>
                     {[
-                      ['DATE', getGigDate(selectedGigDetail), '#F2F2F2'],
-                      ['VENUE', selectedGigDetail.city?.toUpperCase(), '#F2F2F2'],
-                      ['HTM', getGigHtm(selectedGigDetail).toUpperCase(), getGigHtm(selectedGigDetail).toLowerCase() === 'free' ? 'rgba(242,242,242,0.62)' : '#5CB8E4'],
-                      ['CP', getGigCp(selectedGigDetail), '#F2F2F2']
+                      ['DATE', getGigDate(selectedGigDetail), '#F1D4E5'],
+                      ['VENUE', selectedGigDetail.city?.toUpperCase(), '#F1D4E5'],
+                      ['HTM', getGigHtm(selectedGigDetail).toUpperCase(), getGigHtm(selectedGigDetail).toLowerCase() === 'free' ? 'rgba(241,212,229,0.62)' : '#73BBC9'],
+                      ['CP', getGigCp(selectedGigDetail), '#F1D4E5']
                     ].map(([label, value, color]) => (
                       <div key={label} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr)', gap: '12px', padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                        <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>{label}</span>
+                        <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>{label}</span>
                         <strong style={{ color, fontSize: '12px', fontWeight: '900', overflowWrap: 'anywhere' }}>{value || '-'}</strong>
                       </div>
                     ))}
                     {isApprovedHomepageGig(selectedGigDetail) && (
                       <div style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr)', gap: '12px', padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                        <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>TAYANG</span>
-                        <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', fontWeight: '900' }}>SAMPAI {getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong>
+                        <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>TAYANG</span>
+                        <strong style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', fontWeight: '900' }}>SAMPAI {getGigApprovedUntil(selectedGigDetail) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</strong>
                       </div>
                     )}
                   </div>
@@ -7215,22 +7215,22 @@ export default function App() {
         <section style={pageShellStyle}>
           {!isAdminUnlocked ? (
             <div style={{ minHeight: 'calc(100vh - 96px)', display: 'grid', placeItems: 'center' }}>
-              <form onSubmit={handleAdminUnlock} style={{ ...glassStyle('admin-password-gate'), width: '100%', maxWidth: '420px', padding: '28px', backgroundColor: '#181818' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE ADMIN GATE</p>
-                <h2 style={{ color: '#F2F2F2', fontSize: '28px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>ADMIN PASSWORD</h2>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 12px 0' }}>Login pakai akun admin Supabase untuk mode cloud. Password lokal tetap bisa dipakai buat testing cepat.</p>
-                <div style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${userSession ? 'rgba(92,184,228,0.22)' : 'rgba(242,242,242,0.22)'}`, borderRadius: '12px', marginBottom: '12px' }}>
-                  <p style={{ color: userSession ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{userSession ? 'AKUN LOGIN TERDETEKSI' : 'BELUM LOGIN ADMIN'}</p>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{userSession ? `${userSession.email || 'Admin WiSpace'} - klik unlock untuk cek admin_users.` : 'Masuk dulu kalau mau pesan admin, payment, dan data admin tersimpan ke cloud.'}</p>
+              <form onSubmit={handleAdminUnlock} style={{ ...glassStyle('admin-password-gate'), width: '100%', maxWidth: '420px', padding: '28px', backgroundColor: '#080202' }}>
+                <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE ADMIN GATE</p>
+                <h2 style={{ color: '#F1D4E5', fontSize: '28px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>ADMIN PASSWORD</h2>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 12px 0' }}>Login pakai akun admin Supabase untuk mode cloud. Password lokal tetap bisa dipakai buat testing cepat.</p>
+                <div style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${userSession ? 'rgba(115,187,201,0.22)' : 'rgba(241,212,229,0.22)'}`, borderRadius: '12px', marginBottom: '12px' }}>
+                  <p style={{ color: userSession ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{userSession ? 'AKUN LOGIN TERDETEKSI' : 'BELUM LOGIN ADMIN'}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{userSession ? `${userSession.email || 'Admin WiSpace'} - klik unlock untuk cek admin_users.` : 'Masuk dulu kalau mau pesan admin, payment, dan data admin tersimpan ke cloud.'}</p>
                 </div>
                 <input type="password" placeholder="PASSWORD LOKAL OPSIONAL" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} style={{ ...formInputStyle, marginBottom: '12px' }} />
-                {adminError && <p style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900', margin: '0 0 12px 0' }}>{adminError}</p>}
+                {adminError && <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 12px 0' }}>{adminError}</p>}
                 <div style={{ display: 'grid', gridTemplateColumns: userSession ? '1fr 1fr' : '1fr 1fr 1fr', gap: '10px' }}>
                   <button type="submit" disabled={adminAuthLoading} style={{ ...glassButtonStyle, padding: '12px', fontSize: '12px', cursor: adminAuthLoading ? 'wait' : 'pointer', opacity: adminAuthLoading ? 0.65 : 1 }}>{adminAuthLoading ? 'CEK CLOUD...' : userSession ? 'UNLOCK ADMIN' : 'UNLOCK LOCAL'}</button>
                   {!userSession && (
                     <button type="button" onClick={() => { setAuthType('login'); setShowAuthModal(true); }} style={{ ...glassButtonStyle, padding: '12px', fontSize: '12px' }}>LOGIN ADMIN</button>
                   )}
-                  <button type="button" onClick={closeAdminGate} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '12px', padding: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BACK HOME</button>
+                  <button type="button" onClick={closeAdminGate} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '12px', padding: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BACK HOME</button>
                 </div>
               </form>
             </div>
@@ -7241,35 +7241,35 @@ export default function App() {
               <p style={eyebrowStyle}>WISPACE ADMIN GATE</p>
               <h2 style={pageTitleStyle}>ADMIN CONTROL CENTER</h2>
               <p style={pageLeadStyle}>Kelola confirm payment, kurasi pamflet, finance payout, legal agreement, artikel, dan laporan konten dari satu panel.</p>
-              <p style={{ color: isCloudAdmin ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '10px 0 0 0' }}>{isCloudAdmin ? `CLOUD ADMIN: ${cloudAdminAccount.email || userSession?.email || 'admin'}` : 'LOCAL PASSWORD MODE: sync admin cloud terbatas sampai akun masuk admin_users'}</p>
+              <p style={{ color: isCloudAdmin ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '10px 0 0 0' }}>{isCloudAdmin ? `CLOUD ADMIN: ${cloudAdminAccount.email || userSession?.email || 'admin'}` : 'LOCAL PASSWORD MODE: sync admin cloud terbatas sampai akun masuk admin_users'}</p>
             </div>
             <button onClick={closeAdminGate} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BACK HOME</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '24px' }}>
             <div style={{ ...compactMetricCardStyle }}>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PENDING</p>
-              <strong style={{ color: '#5CB8E4', fontSize: '28px', fontWeight: '900' }}>{pendingGigs.length}</strong>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PENDING</p>
+              <strong style={{ color: '#73BBC9', fontSize: '28px', fontWeight: '900' }}>{pendingGigs.length}</strong>
             </div>
             <div style={{ ...compactMetricCardStyle }}>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>FREE APPROVED</p>
-              <strong style={{ color: '#F2F2F2', fontSize: '28px', fontWeight: '900' }}>{approvedFreeGigs.length}</strong>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>FREE APPROVED</p>
+              <strong style={{ color: '#F1D4E5', fontSize: '28px', fontWeight: '900' }}>{approvedFreeGigs.length}</strong>
             </div>
             <div style={{ ...compactMetricCardStyle }}>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>WAIT PAYMENT</p>
-              <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '28px', fontWeight: '900' }}>{exclusiveWaitingPaymentGigs.length}</strong>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>WAIT PAYMENT</p>
+              <strong style={{ color: 'rgba(241,212,229,0.62)', fontSize: '28px', fontWeight: '900' }}>{exclusiveWaitingPaymentGigs.length}</strong>
             </div>
             <div style={{ ...compactMetricCardStyle }}>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PAID / ACTIVATE</p>
-              <strong style={{ color: '#5CB8E4', fontSize: '28px', fontWeight: '900' }}>{exclusivePaidWaitingActivationGigs.length}</strong>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>PAID / ACTIVATE</p>
+              <strong style={{ color: '#73BBC9', fontSize: '28px', fontWeight: '900' }}>{exclusivePaidWaitingActivationGigs.length}</strong>
             </div>
             <div style={{ ...compactMetricCardStyle }}>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>EXCLUSIVE LIVE</p>
-              <strong style={{ color: '#F2F2F2', fontSize: '28px', fontWeight: '900' }}>{approvedExclusiveGigs.length}</strong>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>EXCLUSIVE LIVE</p>
+              <strong style={{ color: '#F1D4E5', fontSize: '28px', fontWeight: '900' }}>{approvedExclusiveGigs.length}</strong>
             </div>
           </div>
 
-          <nav style={{ padding: '8px 0', backgroundColor: 'rgba(24,24,24,0.78)', display: 'flex', gap: '7px', flexWrap: 'wrap', marginBottom: '16px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20, borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+          <nav style={{ padding: '8px 0', backgroundColor: 'rgba(8,2,2,0.78)', display: 'flex', gap: '7px', flexWrap: 'wrap', marginBottom: '16px', position: 'sticky', top: isTinyLayout ? '76px' : '84px', zIndex: 20, borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
             {[
               ['payment', `PAYMENT ${waitingAdminPaymentRequests.length}`],
               ['finance', 'FINANCE'],
@@ -7287,7 +7287,7 @@ export default function App() {
                 key={sectionId}
                 type="button"
                 onClick={() => setAdminActiveSection(sectionId)}
-                style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '10px', background: adminActiveSection === sectionId ? 'rgba(92,184,228,0.14)' : glassButtonStyle.background, color: adminActiveSection === sectionId ? '#F2F2F2' : '#5CB8E4', border: adminActiveSection === sectionId ? '1px solid rgba(92,184,228,0.48)' : glassButtonStyle.border }}
+                style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '10px', background: adminActiveSection === sectionId ? 'rgba(115,187,201,0.14)' : glassButtonStyle.background, color: adminActiveSection === sectionId ? '#F1D4E5' : '#73BBC9', border: adminActiveSection === sectionId ? '1px solid rgba(115,187,201,0.48)' : glassButtonStyle.border }}
               >
                 {label}
               </button>
@@ -7298,49 +7298,49 @@ export default function App() {
           <section id="admin-payment-section" style={{ ...glassStyle('admin-payment-requests'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN PAYMENT CONTROL</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>CONFIRM PAID BUYER</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN PAYMENT CONTROL</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>CONFIRM PAID BUYER</h3>
               </div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => void fetchAdminPaymentRequests(userSession)} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>REFRESH SYNC</button>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pembelian album, track, dan merch masuk waiting dulu. Library/order baru aktif setelah admin klik confirm paid.</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Pembelian album, track, dan merch masuk waiting dulu. Library/order baru aktif setelah admin klik confirm paid.</p>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(104px, 1fr))', gap: '8px', marginBottom: '10px' }}>
               {[
-                ['WAITING', waitingAdminPaymentRequests.length, 'rgba(242,242,242,0.62)'],
-                ['PROVIDER PAID', providerPaidAdminPaymentRequests.length, '#5CB8E4'],
-                ['PAID', paidAdminPaymentRequests.length, 'rgba(242,242,242,0.62)'],
-                ['REJECTED', rejectedAdminPaymentRequests.length, '#8758FF'],
-                ['ALL REQUEST', pendingPayments.length, '#5CB8E4']
+                ['WAITING', waitingAdminPaymentRequests.length, 'rgba(241,212,229,0.62)'],
+                ['PROVIDER PAID', providerPaidAdminPaymentRequests.length, '#73BBC9'],
+                ['PAID', paidAdminPaymentRequests.length, 'rgba(241,212,229,0.62)'],
+                ['REJECTED', rejectedAdminPaymentRequests.length, '#F1D4E5'],
+                ['ALL REQUEST', pendingPayments.length, '#73BBC9']
               ].map(([label, value, color]) => (
                 <div key={label} style={{ padding: '7px 0', backgroundColor: 'transparent', borderTop: `1.5px solid ${color}55`, borderRadius: 0 }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
                   <strong style={{ color, fontSize: '15px', fontWeight: '900' }}>{value}</strong>
                 </div>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(116px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
-                ['WAITING CASH', waitingAdminPaymentAmount, 'rgba(242,242,242,0.62)'],
-                ['WAITING PRODUK', waitingAdminPaymentProductAmount, 'rgba(242,242,242,0.62)'],
-                ['WAITING ONGKIR', waitingAdminPaymentShippingAmount, 'rgba(242,242,242,0.62)'],
-                ['POTENSI FEE', waitingAdminPaymentPotentialFee, '#5CB8E4'],
-                ['REJECTED GROSS', rejectedAdminPaymentAmount, '#8758FF']
+                ['WAITING CASH', waitingAdminPaymentAmount, 'rgba(241,212,229,0.62)'],
+                ['WAITING PRODUK', waitingAdminPaymentProductAmount, 'rgba(241,212,229,0.62)'],
+                ['WAITING ONGKIR', waitingAdminPaymentShippingAmount, 'rgba(241,212,229,0.62)'],
+                ['POTENSI FEE', waitingAdminPaymentPotentialFee, '#73BBC9'],
+                ['REJECTED GROSS', rejectedAdminPaymentAmount, '#F1D4E5']
               ].map(([label, amount, color]) => (
                 <div key={label} style={{ padding: '7px 0', backgroundColor: 'transparent', borderTop: `1.5px solid ${color}33`, borderRadius: 0 }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
                   <strong style={{ color, fontSize: '12px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
                 </div>
               ))}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '10px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.18)', borderRadius: '10px' }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYMENT QUEUE</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.18)', borderRadius: '10px' }}>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYMENT QUEUE</p>
                 {waitingAdminPaymentRequests.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada payment buyer yang menunggu confirm.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada payment buyer yang menunggu confirm.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
                     {waitingAdminPaymentRequests.map((payment) => {
@@ -7353,29 +7353,29 @@ export default function App() {
                       return (
                       <div key={payment.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Total Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
-                          {payment.providerStatus && <p style={{ color: providerPaid ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>Provider: {String(payment.provider || PAYMENT_GATEWAY_PROVIDER || 'manual').toUpperCase()} / {String(payment.providerStatus).replaceAll('_', ' ').toUpperCase()}</p>}
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Produk Rp {paymentProductAmount.toLocaleString('id-ID')}{paymentShippingCost ? ` / Ongkir Rp ${paymentShippingCost.toLocaleString('id-ID')}` : ''}</p>
-                          <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Split admin: fee Rp {Number(payment.platformFee || paymentSplit.platformFee).toLocaleString('id-ID')} / net band Rp {Number(payment.bandNet || paymentSplit.bandNet).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: {payment.buyerName || '-'} / Seller: {payment.sellerBandName || 'WiSpace'} / Total Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                          {payment.providerStatus && <p style={{ color: providerPaid ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>Provider: {String(payment.provider || PAYMENT_GATEWAY_PROVIDER || 'manual').toUpperCase()} / {String(payment.providerStatus).replaceAll('_', ' ').toUpperCase()}</p>}
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Produk Rp {paymentProductAmount.toLocaleString('id-ID')}{paymentShippingCost ? ` / Ongkir Rp ${paymentShippingCost.toLocaleString('id-ID')}` : ''}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>Split admin: fee Rp {Number(payment.platformFee || paymentSplit.platformFee).toLocaleString('id-ID')} / net band Rp {Number(payment.bandNet || paymentSplit.bandNet).toLocaleString('id-ID')}</p>
                           <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginTop: '7px', flexWrap: 'wrap' }}>
                             {hasPaymentProof ? (
                               <>
-                                <button type="button" onClick={() => setSelectedPaymentProofPreview(payment)} style={{ width: '54px', height: '34px', borderRadius: '7px', overflow: 'hidden', border: '1px solid rgba(242,242,242,0.28)', background: '#181818', padding: 0, cursor: 'pointer' }}>
+                                <button type="button" onClick={() => setSelectedPaymentProofPreview(payment)} style={{ width: '54px', height: '34px', borderRadius: '7px', overflow: 'hidden', border: '1px solid rgba(241,212,229,0.28)', background: '#080202', padding: 0, cursor: 'pointer' }}>
                                   <img src={payment.paymentProofPreview || payment.paymentProofUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                 </button>
-                                <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>PROOF READY / {String(payment.paymentProofStatus || 'local').toUpperCase()}</span>
+                                <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900' }}>PROOF READY / {String(payment.paymentProofStatus || 'local').toUpperCase()}</span>
                               </>
                             ) : (
-                              <span style={{ color: providerPaid ? '#5CB8E4' : '#8758FF', fontSize: '9px', fontWeight: '900' }}>{providerPaid ? 'PROVIDER PAID / READY TO ACTIVATE' : 'NO PROOF / CONFIRM LOCKED'}</span>
+                              <span style={{ color: providerPaid ? '#73BBC9' : '#F1D4E5', fontSize: '9px', fontWeight: '900' }}>{providerPaid ? 'PROVIDER PAID / READY TO ACTIVATE' : 'NO PROOF / CONFIRM LOCKED'}</span>
                             )}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                           <button type="button" onClick={() => setSelectedPaymentDetail(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
-                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} disabled={!canConfirmPayment} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canConfirmPayment ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canConfirmPayment ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canConfirmPayment ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
-                          {!providerPaid && <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>}
+                          <button type="button" onClick={() => handleConfirmPendingPayment(payment)} disabled={!canConfirmPayment} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canConfirmPayment ? 'rgba(241,212,229,0.62)' : '#F1D4E5', border: canConfirmPayment ? '1px solid rgba(241,212,229,0.35)' : '1px solid rgba(241,212,229,0.08)', cursor: canConfirmPayment ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                          {!providerPaid && <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F1D4E5', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>}
                         </div>
                       </div>
                       );
@@ -7384,10 +7384,10 @@ export default function App() {
                 )}
               </div>
 
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '10px' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>RECENT PAYMENT HISTORY</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>RECENT PAYMENT HISTORY</p>
                 {recentProcessedPaymentRequests.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Histori paid/rejected akan muncul setelah admin proses request.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Histori paid/rejected akan muncul setelah admin proses request.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '310px', overflowY: 'auto' }}>
                     {recentProcessedPaymentRequests.slice(0, 12).map((payment) => {
@@ -7397,10 +7397,10 @@ export default function App() {
                         ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(paymentProcessedAt))
                         : '-';
                       return (
-                        <div key={payment.id} style={{ padding: '8px', backgroundColor: '#181818', border: `1px solid ${isPaidPayment ? 'rgba(242,242,242,0.16)' : 'rgba(135,88,255,0.16)'}`, borderRadius: '9px' }}>
-                          <p style={{ color: isPaidPayment ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()} / {payment.checkoutRef}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Payment').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.buyerName || '-'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / {paymentProcessedLabel}</p>
+                        <div key={payment.id} style={{ padding: '8px', backgroundColor: '#080202', border: `1px solid ${isPaidPayment ? 'rgba(241,212,229,0.16)' : 'rgba(241,212,229,0.16)'}`, borderRadius: '9px' }}>
+                          <p style={{ color: isPaidPayment ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()} / {payment.checkoutRef}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Payment').toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.buyerName || '-'} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / {paymentProcessedLabel}</p>
                         </div>
                       );
                     })}
@@ -7415,20 +7415,20 @@ export default function App() {
           <section id="admin-finance-section" style={{ ...glassStyle('admin-income-report'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>WISPACE FINANCE REPORT</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>PEMASUKAN PLATFORM</h3>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>WISPACE FINANCE REPORT</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>PEMASUKAN PLATFORM</h3>
               </div>
               <div style={{ display: 'flex', gap: '7px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={handleGenerateMonthlyFinanceReport} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '9px' }}>GENERATE REPORT TGL 1</button>
-                <button type="button" onClick={() => handleDownloadMonthlyFinanceReport()} disabled={!latestMonthlyFinanceReport} style={{ background: latestMonthlyFinanceReport ? 'rgba(242,242,242,0.04)' : '#181818', border: '1px solid rgba(242,242,242,0.12)', color: latestMonthlyFinanceReport ? '#F2F2F2' : '#8758FF', borderRadius: '9px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: latestMonthlyFinanceReport ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>DOWNLOAD TXT</button>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Report admin berisi fee platform, payout band, rekening, dan status pencairan tanggal 1.</p>
+                <button type="button" onClick={() => handleDownloadMonthlyFinanceReport()} disabled={!latestMonthlyFinanceReport} style={{ background: latestMonthlyFinanceReport ? 'rgba(241,212,229,0.04)' : '#080202', border: '1px solid rgba(241,212,229,0.12)', color: latestMonthlyFinanceReport ? '#F1D4E5' : '#F1D4E5', borderRadius: '9px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: latestMonthlyFinanceReport ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>DOWNLOAD TXT</button>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Report admin berisi fee platform, payout band, rekening, dan status pencairan tanggal 1.</p>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '9px' }}>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>CASH COLLECTED</p>
                 <strong style={compactMetricValueStyle}>Rp {adminCashCollected.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Produk + ongkir merch.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Produk + ongkir merch.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>OMZET PRODUK PAID</p>
@@ -7437,15 +7437,15 @@ export default function App() {
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ONGKIR TERKUMPUL</p>
                 <strong style={compactMetricValueStyle}>Rp {adminMerchShippingCollected.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Bukan revenue band/WiSpace.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Bukan revenue band/WiSpace.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>TOTAL FEE WISPACE</p>
-                <strong style={{ ...compactMetricValueStyle, color: '#5CB8E4' }}>Rp {adminPlatformRevenue.toLocaleString('id-ID')}</strong>
+                <strong style={{ ...compactMetricValueStyle, color: '#73BBC9' }}>Rp {adminPlatformRevenue.toLocaleString('id-ID')}</strong>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>FEE PEMBELIAN MERCH</p>
-                <strong style={{ ...compactMetricValueStyle, color: '#5CB8E4' }}>Rp {adminMerchFeeRevenue.toLocaleString('id-ID')}</strong>
+                <strong style={{ ...compactMetricValueStyle, color: '#73BBC9' }}>Rp {adminMerchFeeRevenue.toLocaleString('id-ID')}</strong>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>FEE RILISAN DIGITAL</p>
@@ -7454,12 +7454,12 @@ export default function App() {
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>BIAYA PAMFLET EXCLUSIVE</p>
                 <strong style={compactMetricValueStyle}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
                 <strong style={compactMetricValueStyle}>{paidSaleTransactions.length}</strong>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ESTIMASI PAYOUT BAND</p>
@@ -7467,17 +7467,17 @@ export default function App() {
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>SIAP CAIR MIN 100K</p>
-                <strong style={{ ...compactMetricValueStyle, color: adminPayoutReadyTotal ? 'rgba(242,242,242,0.62)' : '#8758FF' }}>Rp {adminPayoutReadyTotal.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminPayoutReadyBands.length} band tembus minimum.</p>
+                <strong style={{ ...compactMetricValueStyle, color: adminPayoutReadyTotal ? 'rgba(241,212,229,0.62)' : '#F1D4E5' }}>Rp {adminPayoutReadyTotal.toLocaleString('id-ID')}</strong>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminPayoutReadyBands.length} band tembus minimum.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>BELUM MINIMUM</p>
                 <strong style={compactMetricValueStyle}>Rp {adminPayoutBelowMinimumTotal.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{Math.max(0, adminPayoutBands.length - adminPayoutReadyBands.length)} band belum 100rb.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{Math.max(0, adminPayoutBands.length - adminPayoutReadyBands.length)} band belum 100rb.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ORDER PERLU PROSES</p>
-                <strong style={{ ...compactMetricValueStyle, color: adminWaitingMerchOrders ? 'rgba(242,242,242,0.62)' : '#8758FF' }}>{adminWaitingMerchOrders}</strong>
+                <strong style={{ ...compactMetricValueStyle, color: adminWaitingMerchOrders ? 'rgba(241,212,229,0.62)' : '#F1D4E5' }}>{adminWaitingMerchOrders}</strong>
               </div>
             </div>
 
@@ -7487,57 +7487,57 @@ export default function App() {
                   key={item.title}
                   type="button"
                   onClick={item.action}
-                  style={{ textAlign: 'left', padding: '10px', backgroundColor: '#181818', border: `1px solid ${item.color}33`, borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}
+                  style={{ textAlign: 'left', padding: '10px', backgroundColor: '#080202', border: `1px solid ${item.color}33`, borderRadius: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}
                 >
                   <p style={{ color: item.color, fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{item.title}</p>
-                  <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>{item.count}</strong>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{item.note}</p>
+                  <strong style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900' }}>{item.count}</strong>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{item.note}</p>
                 </button>
               ))}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '8px', marginTop: '10px' }}>
               {adminActionNotifications.map((notification) => (
-                <div key={notification.title} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${notification.color}33`, borderRadius: '10px' }}>
+                <div key={notification.title} style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${notification.color}33`, borderRadius: '10px' }}>
                   <p style={{ color: notification.color, fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{notification.title}</p>
-                  <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>{notification.count}</strong>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{notification.note}</p>
+                  <strong style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900' }}>{notification.count}</strong>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{notification.note}</p>
                 </div>
               ))}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '8px', marginTop: '10px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.18)', borderRadius: '10px' }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>REPORT PENCAIRAN TANGGAL 1 / {nextPayoutLabel.toUpperCase()}</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.18)', borderRadius: '10px' }}>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>REPORT PENCAIRAN TANGGAL 1 / {nextPayoutLabel.toUpperCase()}</p>
                 {adminPayoutReportRows.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada transaksi paid untuk report payout.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada transaksi paid untuk report payout.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '6px', maxHeight: '190px', overflowY: 'auto' }}>
                     {adminPayoutReportRows.slice(0, 10).map((band) => (
-                      <div key={band.slug} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', padding: '8px', backgroundColor: '#181818', border: `1px solid ${band.ready ? 'rgba(242,242,242,0.18)' : 'rgba(242,242,242,0.18)'}`, borderRadius: '9px' }}>
+                      <div key={band.slug} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', padding: '8px', backgroundColor: '#080202', border: `1px solid ${band.ready ? 'rgba(241,212,229,0.18)' : 'rgba(241,212,229,0.18)'}`, borderRadius: '9px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: band.ready ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{band.ready ? 'READY PAYOUT' : 'CEK REKENING / MINIMUM'}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{band.name.toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{band.bankName ? `${band.bankName} / ${band.bankAccountName} / ${band.bankAccountNumber}` : 'Rekening belum lengkap'}</p>
+                          <p style={{ color: band.ready ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{band.ready ? 'READY PAYOUT' : 'CEK REKENING / MINIMUM'}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{band.name.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{band.bankName ? `${band.bankName} / ${band.bankAccountName} / ${band.bankAccountNumber}` : 'Rekening belum lengkap'}</p>
                         </div>
-                        <strong style={{ color: '#F2F2F2', fontSize: '11px', whiteSpace: 'nowrap' }}>Rp {band.amount.toLocaleString('id-ID')}</strong>
+                        <strong style={{ color: '#F1D4E5', fontSize: '11px', whiteSpace: 'nowrap' }}>Rp {band.amount.toLocaleString('id-ID')}</strong>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.16)', borderRadius: '10px' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ARSIP AGREEMENT RILISAN</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.16)', borderRadius: '10px' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ARSIP AGREEMENT RILISAN</p>
                 {releaseAgreements.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada agreement upload album yang terekam.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada agreement upload album yang terekam.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '6px', maxHeight: '190px', overflowY: 'auto' }}>
                     {releaseAgreements.slice(0, 8).map((agreement) => (
-                      <div key={agreement.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '9px' }}>
+                      <div key={agreement.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '8px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '9px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{agreement.createdAt || new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(agreement.signedAt))}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agreement.releaseTitle.toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{agreement.bandName} / TTD: {agreement.signerName}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{agreement.createdAt || new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(agreement.signedAt))}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agreement.releaseTitle.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{agreement.bandName} / TTD: {agreement.signerName}</p>
                         </div>
                         <button type="button" onClick={() => handleDownloadAgreementText(agreement)} style={{ ...glassButtonStyle, padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>TXT</button>
                       </div>
@@ -7548,64 +7548,64 @@ export default function App() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '8px', marginTop: '10px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.18)', borderRadius: '10px' }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYOUT READY QUEUE</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.18)', borderRadius: '10px' }}>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYOUT READY QUEUE</p>
                 {adminPayoutReadyBands.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada band yang tembus minimum pencairan Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada band yang tembus minimum pencairan Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '6px' }}>
                     {adminPayoutReadyBands.slice(0, 4).map((band) => (
-                      <div key={band.slug} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>
+                      <div key={band.slug} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{band.name.toUpperCase()}</span>
-                        <strong style={{ color: '#F2F2F2', whiteSpace: 'nowrap' }}>Rp {band.amount.toLocaleString('id-ID')}</strong>
+                        <strong style={{ color: '#F1D4E5', whiteSpace: 'nowrap' }}>Rp {band.amount.toLocaleString('id-ID')}</strong>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '10px' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>FINANCE MIX</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>FINANCE MIX</p>
                 <div style={{ display: 'grid', gap: '6px' }}>
                   {[
                     ['RILISAN DIGITAL', adminDigitalTransactions.length, adminReleaseFeeRevenue],
                     ['MERCH', adminMerchTransactions.length, adminMerchFeeRevenue],
                     ['PAMFLET EXCLUSIVE', adminExclusivePosterPaidCount, adminExclusivePosterRevenue]
                   ].map(([label, count, amount]) => (
-                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>
+                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>
                       <span>{label}</span>
-                      <strong style={{ color: 'rgba(242,242,242,0.62)' }}>{count}x</strong>
-                      <strong style={{ color: '#F2F2F2' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
+                      <strong style={{ color: 'rgba(241,212,229,0.62)' }}>{count}x</strong>
+                      <strong style={{ color: '#F1D4E5' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.16)', borderRadius: '10px', marginTop: '10px' }}>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ADMIN MERCH FULFILLMENT QUEUE</p>
+            <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.16)', borderRadius: '10px', marginTop: '10px' }}>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>ADMIN MERCH FULFILLMENT QUEUE</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: '7px', marginBottom: '9px' }}>
                 {[
-                  ['ADMIN SHIP', adminConsignmentOrderQueue.length, '#5CB8E4'],
-                  ['BAND SHIP', adminBandShipOrderQueue.length, 'rgba(242,242,242,0.62)'],
-                  ['ADA RESI', adminOrdersWithTracking.length, 'rgba(242,242,242,0.62)'],
-                  ['SELESAI', adminCompletedMerchOrders.length, 'rgba(242,242,242,0.62)']
+                  ['ADMIN SHIP', adminConsignmentOrderQueue.length, '#73BBC9'],
+                  ['BAND SHIP', adminBandShipOrderQueue.length, 'rgba(241,212,229,0.62)'],
+                  ['ADA RESI', adminOrdersWithTracking.length, 'rgba(241,212,229,0.62)'],
+                  ['SELESAI', adminCompletedMerchOrders.length, 'rgba(241,212,229,0.62)']
                 ].map(([label, value, color]) => (
-                  <div key={label} style={{ padding: '8px', backgroundColor: '#181818', border: `1px solid ${color}30`, borderRadius: '9px' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                  <div key={label} style={{ padding: '8px', backgroundColor: '#080202', border: `1px solid ${color}30`, borderRadius: '9px' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
                     <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
                   </div>
                 ))}
               </div>
               {adminActiveMerchOrderList.length === 0 ? (
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada order merch aktif yang perlu diproses.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada order merch aktif yang perlu diproses.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px', maxHeight: '260px', overflowY: 'auto' }}>
                   {adminActiveMerchOrderList.slice(0, 8).map((order) => (
                     <div key={`admin-order-${order.id}`} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: order.fulfillmentMode === 'admin_consignment' ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.fulfillmentMode === 'admin_consignment' ? 'WISPACE SHIP' : 'BAND SHIP'} / {order.orderId || order.id}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} / {order.recipientName || '-'} / {order.city || '-'}</p>
+                          <p style={{ color: order.fulfillmentMode === 'admin_consignment' ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.fulfillmentMode === 'admin_consignment' ? 'WISPACE SHIP' : 'BAND SHIP'} / {order.orderId || order.id}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} / {order.recipientName || '-'} / {order.city || '-'}</p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -7616,20 +7616,20 @@ export default function App() {
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing_admin')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES ADMIN</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PACKING</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'ready_to_ship')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>READY</button>
-                          <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.24)', color: 'rgba(242,242,242,0.62)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
-                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
+                          <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.24)', color: 'rgba(241,212,229,0.62)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
+                          <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
                         </div>
                       ) : (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px', alignItems: 'center' }}>
                           <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
-                          <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>Band ship. Admin pantau/follow up via message kalau macet.</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>Band ship. Admin pantau/follow up via message kalau macet.</p>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
               )}
-              {adminConsignmentOrderQueue.length > 0 && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{adminConsignmentOrderQueue.length} order titipan stok sedang menunggu action admin WiSpace.</p>}
+              {adminConsignmentOrderQueue.length > 0 && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{adminConsignmentOrderQueue.length} order titipan stok sedang menunggu action admin WiSpace.</p>}
             </div>
           </section>
           )}
@@ -7638,39 +7638,39 @@ export default function App() {
           <section id="admin-legal-section" style={{ ...glassStyle('admin-legal-archive'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LEGAL & PAYOUT RECORD</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>ARSIP AGREEMENT BAND</h3>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LEGAL & PAYOUT RECORD</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>ARSIP AGREEMENT BAND</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setiap upload album merekam penanda tangan, email, rekening payout, versi agreement, dan waktu tanda tangan.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setiap upload album merekam penanda tangan, email, rekening payout, versi agreement, dan waktu tanda tangan.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
-                ['AGREEMENT', releaseAgreements.length, '#5CB8E4'],
-                ['REKENING KURANG', bandsMissingPayoutAccount.length, 'rgba(242,242,242,0.62)'],
-                ['REPORT BULANAN', monthlyFinanceReports.length, 'rgba(242,242,242,0.62)']
+                ['AGREEMENT', releaseAgreements.length, '#73BBC9'],
+                ['REKENING KURANG', bandsMissingPayoutAccount.length, 'rgba(241,212,229,0.62)'],
+                ['REPORT BULANAN', monthlyFinanceReports.length, 'rgba(241,212,229,0.62)']
               ].map(([label, value, color]) => (
-                <div key={label} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${color}33`, borderRadius: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                <div key={label} style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
                   <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
                 </div>
               ))}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '10px' }}>
-              <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.16)', borderRadius: '10px' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>RELEASE AGREEMENT LEDGER</p>
+              <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.16)', borderRadius: '10px' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>RELEASE AGREEMENT LEDGER</p>
                 {releaseAgreements.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada agreement upload album yang terekam.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada agreement upload album yang terekam.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '340px', overflowY: 'auto' }}>
                     {releaseAgreements.map((agreement) => (
                       <div key={agreement.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{agreement.agreementVersion || RELEASE_AGREEMENT_VERSION} / {agreement.createdAt || new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(agreement.signedAt))}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agreement.releaseTitle.toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{agreement.bandName} / TTD: {agreement.signerName} / {agreement.signerEmail || '-'}</p>
-                          <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{agreement.payoutBankName ? `${agreement.payoutBankName} / ${agreement.payoutAccountName} / ${agreement.payoutAccountNumber}` : 'Rekening belum ada di agreement ini'}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{agreement.agreementVersion || RELEASE_AGREEMENT_VERSION} / {agreement.createdAt || new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(agreement.signedAt))}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agreement.releaseTitle.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{agreement.bandName} / TTD: {agreement.signerName} / {agreement.signerEmail || '-'}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{agreement.payoutBankName ? `${agreement.payoutBankName} / ${agreement.payoutAccountName} / ${agreement.payoutAccountNumber}` : 'Rekening belum ada di agreement ini'}</p>
                         </div>
                         <button type="button" onClick={() => handleDownloadAgreementText(agreement)} style={{ ...glassButtonStyle, padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>TXT</button>
                       </div>
@@ -7680,32 +7680,32 @@ export default function App() {
               </div>
 
               <div style={{ display: 'grid', gap: '10px' }}>
-                <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.16)', borderRadius: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>BAND REKENING BELUM LENGKAP</p>
+                <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.16)', borderRadius: '10px' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>BAND REKENING BELUM LENGKAP</p>
                   {bandsMissingPayoutAccount.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Semua band published sudah punya data rekening.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Semua band published sudah punya data rekening.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '7px', maxHeight: '155px', overflowY: 'auto' }}>
                       {bandsMissingPayoutAccount.map((profile) => (
-                        <div key={profile.slug || profile.name} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>
+                        <div key={profile.slug || profile.name} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(profile.name || 'Band WiSpace').toUpperCase()}</span>
-                          <strong style={{ color: 'rgba(242,242,242,0.62)', whiteSpace: 'nowrap' }}>HOLD</strong>
+                          <strong style={{ color: 'rgba(241,212,229,0.62)', whiteSpace: 'nowrap' }}>HOLD</strong>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-                <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.16)', borderRadius: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>FINANCE REPORT ARCHIVE</p>
+                <div style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.16)', borderRadius: '10px' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>FINANCE REPORT ARCHIVE</p>
                   {monthlyFinanceReports.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada report bulanan yang digenerate.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada report bulanan yang digenerate.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '7px', maxHeight: '155px', overflowY: 'auto' }}>
                       {monthlyFinanceReports.slice(0, 8).map((report) => (
                         <div key={report.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center' }}>
                           <div style={{ minWidth: 0 }}>
-                            <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.periodLabel}</h4>
-                            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', margin: 0 }}>Rp {Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')} ready / {report.rows?.length || 0} band</p>
+                            <h4 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.periodLabel}</h4>
+                            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', margin: 0 }}>Rp {Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')} ready / {report.rows?.length || 0} band</p>
                           </div>
                           <button type="button" onClick={() => handleDownloadMonthlyFinanceReport(report)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>TXT</button>
                         </div>
@@ -7722,29 +7722,29 @@ export default function App() {
           <section style={{ ...glassStyle('admin-notification-center'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN NOTIFICATION CENTER</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>ANTRIAN AKSI ADMIN</h3>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN NOTIFICATION CENTER</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>ANTRIAN AKSI ADMIN</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan hal yang perlu dicek: kurasi, pembayaran, order, rekening, legal, dan report.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan hal yang perlu dicek: kurasi, pembayaran, order, rekening, legal, dan report.</p>
             </div>
             {adminNotificationQueue.length === 0 ? (
-              <div style={{ padding: '18px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '10px', textAlign: 'center' }}>
-                <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notifikasi admin. Kalau ada upload pamflet, order merch, atau report baru, masuk sini.</p>
+              <div style={{ padding: '18px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px', textAlign: 'center' }}>
+                <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notifikasi admin. Kalau ada upload pamflet, order merch, atau report baru, masuk sini.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '7px' }}>
                 {adminNotificationQueue.map((item) => (
-                  <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'auto minmax(0,1fr) auto', gap: '9px', alignItems: 'center', padding: '9px', backgroundColor: '#181818', border: `1px solid ${item.color}30`, borderRadius: '10px' }}>
+                  <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'auto minmax(0,1fr) auto', gap: '9px', alignItems: 'center', padding: '9px', backgroundColor: '#080202', border: `1px solid ${item.color}30`, borderRadius: '10px' }}>
                     <span style={{ color: item.color, border: `1px solid ${item.color}45`, borderRadius: '9999px', padding: '5px 7px', fontSize: '8px', fontWeight: '900', width: 'fit-content' }}>{item.badge}</span>
                     <div style={{ minWidth: 0 }}>
-                      <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title.toUpperCase()}</h4>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{item.body}</p>
+                      <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title.toUpperCase()}</h4>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{item.body}</p>
                     </div>
                     {item.actionType === 'confirm_payment' ? (
                       <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                         <button type="button" onClick={() => setSelectedPaymentDetail(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
-                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} disabled={!canAdminConfirmPayment(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canAdminConfirmPayment(item.payment) ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canAdminConfirmPayment(item.payment) ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canAdminConfirmPayment(item.payment) ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
-                        <button type="button" onClick={() => handleRejectPendingPayment(item.payment)} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
+                        <button type="button" onClick={() => handleConfirmPendingPayment(item.payment)} disabled={!canAdminConfirmPayment(item.payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canAdminConfirmPayment(item.payment) ? 'rgba(241,212,229,0.62)' : '#F1D4E5', border: canAdminConfirmPayment(item.payment) ? '1px solid rgba(241,212,229,0.35)' : '1px solid rgba(241,212,229,0.08)', cursor: canAdminConfirmPayment(item.payment) ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                        <button type="button" onClick={() => handleRejectPendingPayment(item.payment)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F1D4E5', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                       </div>
                     ) : (
                       <button type="button" onClick={() => setAdminActiveSection(item.targetSection)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>BUKA</button>
@@ -7760,14 +7760,14 @@ export default function App() {
           <section id="admin-message-section" style={{ ...glassStyle('admin-band-messages'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN MESSAGE CENTER</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE BAND</h3>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN MESSAGE CENTER</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE BAND</h3>
               </div>
-              <p style={{ color: isCloudAdmin ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>{isCloudAdmin ? 'Pakai ini buat info payment gagal, revisi pamflet, payout, masalah upload, atau pengumuman penting ke semua band.' : 'Mode lokal: pesan tampil di browser ini dulu. Login akun admin yang ada di admin_users supaya pesan tersimpan cloud.'}</p>
+              <p style={{ color: isCloudAdmin ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>{isCloudAdmin ? 'Pakai ini buat info payment gagal, revisi pamflet, payout, masalah upload, atau pengumuman penting ke semua band.' : 'Mode lokal: pesan tampil di browser ini dulu. Login akun admin yang ada di admin_users supaya pesan tersimpan cloud.'}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 0.95fr) minmax(0, 1.05fr)', gap: '12px', alignItems: 'start' }}>
-              <form onSubmit={handleAdminMessageSubmit} style={{ display: 'grid', gap: '10px', padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.16)', borderRadius: '12px' }}>
+              <form onSubmit={handleAdminMessageSubmit} style={{ display: 'grid', gap: '10px', padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.16)', borderRadius: '12px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px' }}>
                   <select value={adminMessageDraft.targetBandSlug} onChange={(event) => setAdminMessageDraft({ ...adminMessageDraft, targetBandSlug: event.target.value })} style={formInputStyle}>
                     <option value="all">SEMUA BAND</option>
@@ -7789,40 +7789,40 @@ export default function App() {
               </form>
 
               <div style={{ display: 'grid', gap: '10px' }}>
-                <div style={{ padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.16)', borderRadius: '12px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>SUPPORT MASUK DARI BAND</p>
+                <div style={{ padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.16)', borderRadius: '12px' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>SUPPORT MASUK DARI BAND</p>
                   {adminSupportMessages.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada pesan support dari band.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada pesan support dari band.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
                       {adminSupportMessages.map((message) => (
-                        <div key={message.id} style={{ ...compactRowStyle, border: message.read ? '1px solid #8758FF' : '1px solid rgba(242,242,242,0.3)' }}>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'support').toUpperCase()} / {message.createdAt}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '0 0 6px 0' }}>{message.body}</p>
+                        <div key={message.id} style={{ ...compactRowStyle, border: message.read ? '1px solid #F1D4E5' : '1px solid rgba(241,212,229,0.3)' }}>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'support').toUpperCase()} / {message.createdAt}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '0 0 6px 0' }}>{message.body}</p>
                           {message.attachmentUrl && (
-                            <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', marginBottom: '6px', color: '#5CB8E4', fontSize: '9px', fontWeight: '900', textDecoration: 'none' }}>
+                            <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', marginBottom: '6px', color: '#73BBC9', fontSize: '9px', fontWeight: '900', textDecoration: 'none' }}>
                               BUKA LAMPIRAN: {(message.attachmentName || 'FILE').toUpperCase()}
                             </a>
                           )}
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Dari: <span style={{ color: '#F2F2F2' }}>{message.sender}</span> / {message.contact}</p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Dari: <span style={{ color: '#F1D4E5' }}>{message.sender}</span> / {message.contact}</p>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-                <div style={{ padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '12px' }}>
-                  <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PESAN ADMIN TERKIRIM</p>
+                <div style={{ padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', borderRadius: '12px' }}>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PESAN ADMIN TERKIRIM</p>
                   {adminSentBandMessages.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada pesan admin yang dikirim ke band.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada pesan admin yang dikirim ke band.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
                       {adminSentBandMessages.slice(0, 8).map((message) => (
                         <div key={message.id} style={compactRowStyle}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'info').toUpperCase()} / KE {String(message.targetBandName || 'Semua Band').toUpperCase()}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{message.replied ? `Reply terakhir: ${message.lastReply}` : message.body}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(message.category || 'info').toUpperCase()} / KE {String(message.targetBandName || 'Semua Band').toUpperCase()}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{message.subject}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{message.replied ? `Reply terakhir: ${message.lastReply}` : message.body}</p>
                         </div>
                       ))}
                     </div>
@@ -7837,27 +7837,27 @@ export default function App() {
           <section id="admin-merch-section" style={{ ...glassStyle('admin-merch-consignment'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH STOCK CONTROL</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>STOK DI ADMIN WISPACE</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH STOCK CONTROL</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>STOK DI ADMIN WISPACE</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setelah band hubungi admin dan barang fisik sampai, klik stok diterima supaya item berubah jadi ready fulfillment WiSpace.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setelah band hubungi admin dan barang fisik sampai, klik stok diterima supaya item berubah jadi ready fulfillment WiSpace.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
-                ['MENUNGGU STOK', adminWaitingConsignmentItems.length, 'rgba(242,242,242,0.62)'],
-                ['STOK READY', adminConsignmentMerchItems.filter((item) => item.consignmentStatus === 'stock_received').length, 'rgba(242,242,242,0.62)'],
-                ['UNIT DI ADMIN', adminConsignmentStockTotal, 'rgba(242,242,242,0.62)'],
-                ['TOTAL TITIP', adminConsignmentMerchItems.length, '#5CB8E4']
+                ['MENUNGGU STOK', adminWaitingConsignmentItems.length, 'rgba(241,212,229,0.62)'],
+                ['STOK READY', adminConsignmentMerchItems.filter((item) => item.consignmentStatus === 'stock_received').length, 'rgba(241,212,229,0.62)'],
+                ['UNIT DI ADMIN', adminConsignmentStockTotal, 'rgba(241,212,229,0.62)'],
+                ['TOTAL TITIP', adminConsignmentMerchItems.length, '#73BBC9']
               ].map(([label, value, color]) => (
-                <div key={label} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${color}33`, borderRadius: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                <div key={label} style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
                   <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
                 </div>
               ))}
             </div>
             {adminConsignmentMerchItems.length === 0 ? (
-              <div style={{ padding: '18px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '10px', textAlign: 'center' }}>
-                <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch yang memilih stok di admin. Nanti item titipan band muncul di sini.</p>
+              <div style={{ padding: '18px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px', textAlign: 'center' }}>
+                <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch yang memilih stok di admin. Nanti item titipan band muncul di sini.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '8px' }}>
@@ -7866,23 +7866,23 @@ export default function App() {
                   const isReceived = item.consignmentStatus === 'stock_received';
                   return (
                     <div key={item.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '54px minmax(0, 1fr) minmax(150px, 0.8fr) auto', gap: '10px', alignItems: 'center' }}>
-                      <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', display: 'grid', placeItems: 'center' }}>
+                      <div style={{ width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', display: 'grid', placeItems: 'center' }}>
                         {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={18} color="#12323a" />}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{(item.bandName || 'Band WiSpace').toUpperCase()} / STOCK BAND {item.stock || 0}</p>
-                        <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.name || 'Merch').toUpperCase()}</h4>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Stok admin: <span style={{ color: item.adminStockOnHand ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontWeight: '900' }}>{Number(item.adminStockOnHand || 0).toLocaleString('id-ID')} unit</span></p>
-                        <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '3px 0 0 0' }}>{item.originShipping?.address || 'Silahkan hubungi admin untuk alamat kirim stok.'}</p>
+                        <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{(item.bandName || 'Band WiSpace').toUpperCase()} / STOCK BAND {item.stock || 0}</p>
+                        <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.name || 'Merch').toUpperCase()}</h4>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Stok admin: <span style={{ color: item.adminStockOnHand ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontWeight: '900' }}>{Number(item.adminStockOnHand || 0).toLocaleString('id-ID')} unit</span></p>
+                        <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '3px 0 0 0' }}>{item.originShipping?.address || 'Silahkan hubungi admin untuk alamat kirim stok.'}</p>
                       </div>
                       <div>
                         <p style={{ color: statusColor, fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{getConsignmentStatusLabel(item.consignmentStatus || 'waiting_stock_handover')}</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{isReceived ? 'Barang fisik sudah ada di admin, order bisa diproses dari WiSpace.' : 'Tunggu barang fisik sampai, lalu tandai stok diterima.'}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{isReceived ? 'Barang fisik sudah ada di admin, order bisa diproses dari WiSpace.' : 'Tunggu barang fisik sampai, lalu tandai stok diterima.'}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', justifyContent: isCompactLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
-                        <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'stock_received')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: 'rgba(242,242,242,0.62)', border: '1px solid rgba(242,242,242,0.35)' }}>{isReceived ? 'UPDATE STOK' : 'STOK DITERIMA'}</button>
+                        <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'stock_received')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: 'rgba(241,212,229,0.62)', border: '1px solid rgba(241,212,229,0.35)' }}>{isReceived ? 'UPDATE STOK' : 'STOK DITERIMA'}</button>
                         {isReceived && (
-                          <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'waiting_stock_handover')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: 'rgba(242,242,242,0.62)', border: '1px solid rgba(242,242,242,0.32)' }}>BALIK WAIT</button>
+                          <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'waiting_stock_handover')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: 'rgba(241,212,229,0.62)', border: '1px solid rgba(241,212,229,0.32)' }}>BALIK WAIT</button>
                         )}
                         <button type="button" onClick={() => openAdminMessageForMerch(item)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>KIRIM PESAN</button>
                       </div>
@@ -7899,12 +7899,12 @@ export default function App() {
           <section style={{ ...glassStyle('admin-real-flow-checklist'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REAL TEST FLOW</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>CHECKLIST TESTING</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REAL TEST FLOW</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>CHECKLIST TESTING</h3>
               </div>
               <div style={{ display: 'grid', justifyItems: isTinyLayout ? 'start' : 'end', gap: '5px' }}>
-                <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>{completedRealFlowCount}/{realFlowChecklist.length}</strong>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px', textAlign: isTinyLayout ? 'left' : 'right' }}>Urutan ini dipakai setelah SQL Supabase jalan dan data dummy sudah siap dibersihkan.</p>
+                <strong style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900' }}>{completedRealFlowCount}/{realFlowChecklist.length}</strong>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px', textAlign: isTinyLayout ? 'left' : 'right' }}>Urutan ini dipakai setelah SQL Supabase jalan dan data dummy sudah siap dibersihkan.</p>
               </div>
             </div>
             <div style={{ display: 'grid', gap: '7px' }}>
@@ -7913,10 +7913,10 @@ export default function App() {
                   <strong style={{ width: '26px', height: '26px', borderRadius: '9999px', backgroundColor: getReadinessTint(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, color: getReadinessColor(item.status), display: 'grid', placeItems: 'center', fontSize: '10px' }}>{index + 1}</strong>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                      <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
+                      <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
                       <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, backgroundColor: getReadinessTint(item.status), borderRadius: '9999px', padding: '3px 6px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
                     </div>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{item.note}</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{item.note}</p>
                   </div>
                   <button type="button" onClick={item.action} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', gridColumn: isTinyLayout ? '2 / 3' : 'auto', width: 'fit-content' }}>{item.actionLabel}</button>
                 </div>
@@ -7927,17 +7927,17 @@ export default function App() {
           <section style={{ ...glassStyle('admin-supabase-setup'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>SUPABASE SETUP ORDER</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>SQL CHECKLIST</h3>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>SUPABASE SETUP ORDER</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>SQL CHECKLIST</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Run file ini berurutan di Supabase SQL Editor. Kalau sudah pernah, aman di-run ulang karena mayoritas pakai if not exists/drop policy.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Run file ini berurutan di Supabase SQL Editor. Kalau sudah pernah, aman di-run ulang karena mayoritas pakai if not exists/drop policy.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
               {SQL_SETUP_PLAN.map((step, index) => (
                 <div key={step.file} style={compactRowStyle}>
-                  <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>STEP {index + 1} / {step.file}</p>
-                  <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{step.title.toUpperCase()}</h4>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{step.note}</p>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>STEP {index + 1} / {step.file}</p>
+                  <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{step.title.toUpperCase()}</h4>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{step.note}</p>
                 </div>
               ))}
             </div>
@@ -7946,42 +7946,42 @@ export default function App() {
           <section style={{ ...glassStyle('admin-production-readiness'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PRODUCTION READINESS</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>FITUR SIAP VS DEMO</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PRODUCTION READINESS</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>FITUR SIAP VS DEMO</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Panel internal buat tahu mana yang aman dites sekarang dan mana yang masih perlu wiring sebelum pembayaran asli.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Panel internal buat tahu mana yang aman dites sekarang dan mana yang masih perlu wiring sebelum pembayaran asli.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
-                ['READY', readinessStatusCounts.ready || 0, 'rgba(242,242,242,0.62)'],
-                ['SCAFFOLD', readinessStatusCounts.scaffold || 0, '#5CB8E4'],
-                ['DEMO', readinessStatusCounts.demo || 0, 'rgba(242,242,242,0.62)'],
-                ['TODO', readinessStatusCounts.todo || 0, '#8758FF']
+                ['READY', readinessStatusCounts.ready || 0, 'rgba(241,212,229,0.62)'],
+                ['SCAFFOLD', readinessStatusCounts.scaffold || 0, '#73BBC9'],
+                ['DEMO', readinessStatusCounts.demo || 0, 'rgba(241,212,229,0.62)'],
+                ['TODO', readinessStatusCounts.todo || 0, '#F1D4E5']
               ].map(([label, value, color]) => (
-                <div key={label} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${color}33`, borderRadius: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                <div key={label} style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${color}33`, borderRadius: '10px' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
                   <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
                 </div>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-              <div style={{ padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '10px' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>STORAGE HEALTH</p>
+              <div style={{ padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>STORAGE HEALTH</p>
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {storageHealthItems.map(([label, value, color]) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>
                       <span>{label}</span>
                       <strong style={{ color }}>{value}</strong>
                     </div>
                   ))}
                 </div>
               </div>
-              <div style={{ padding: '12px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.14)', borderRadius: '10px' }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>NEXT BLOCKERS</p>
+              <div style={{ padding: '12px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px' }}>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>NEXT BLOCKERS</p>
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {productionBlockers.slice(0, 4).map((item) => (
                     <div key={`blocker-${item.title}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
-                      <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>{item.title.toUpperCase()}</span>
+                      <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>{item.title.toUpperCase()}</span>
                       <strong style={{ color: getReadinessColor(item.status), fontSize: '9px' }}>{item.status.toUpperCase()}</strong>
                     </div>
                   ))}
@@ -7992,30 +7992,30 @@ export default function App() {
               {productionReadinessItems.map((item) => (
                 <div key={item.title} style={compactRowStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '6px' }}>
-                    <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
+                    <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
                     <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, backgroundColor: getReadinessTint(item.status), borderRadius: '9999px', padding: '4px 7px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
                   </div>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{item.note}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>{item.note}</p>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '10px' }}>
-              <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>PAYMENT FLOW SCAFFOLD</p>
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', borderRadius: '10px' }}>
+              <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>PAYMENT FLOW SCAFFOLD</p>
               <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
                 {PAYMENT_FLOW_STEPS.map((step, index) => (
-                  <div key={step.status} style={{ padding: '9px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '9px' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {index + 1} / {step.status}</p>
-                    <strong style={{ color: '#F2F2F2', fontSize: '10px' }}>{step.title.toUpperCase()}</strong>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
+                  <div key={step.status} style={{ padding: '9px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '9px' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {index + 1} / {step.status}</p>
+                    <strong style={{ color: '#F1D4E5', fontSize: '10px' }}>{step.title.toUpperCase()}</strong>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
                   </div>
                 ))}
               </div>
             </div>
-            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.14)', borderRadius: '10px' }}>
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.14)', borderRadius: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <div>
-                  <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>PAYMENT GATEWAY READINESS</p>
-                  <h4 style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: 0 }}>{activePaymentGatewayProvider.title.toUpperCase()}</h4>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>PAYMENT GATEWAY READINESS</p>
+                  <h4 style={{ color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: 0 }}>{activePaymentGatewayProvider.title.toUpperCase()}</h4>
                 </div>
                 <span style={{ color: getReadinessColor(paymentGatewayReadinessStatus), border: `1px solid ${getReadinessBorder(paymentGatewayReadinessStatus)}`, backgroundColor: getReadinessTint(paymentGatewayReadinessStatus), borderRadius: '9999px', padding: '5px 8px', fontSize: '8px', fontWeight: '900' }}>{paymentGatewayReadinessStatus.toUpperCase()}</span>
               </div>
@@ -8023,54 +8023,54 @@ export default function App() {
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {paymentGatewayHealthItems.map(([label, value, color]) => (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: `1px solid ${flatLineColor}` }}>
-                      <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>{label}</span>
+                      <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900' }}>{label}</span>
                       <strong style={{ color, fontSize: '9px', fontWeight: '900', textAlign: 'right', overflowWrap: 'anywhere' }}>{value}</strong>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {PAYMENT_GATEWAY_PROVIDER_OPTIONS.map((provider) => (
-                    <div key={provider.id} style={{ padding: '9px', backgroundColor: provider.id === activePaymentGatewayProvider.id ? 'rgba(92,184,228,0.06)' : '#181818', border: `1px solid ${provider.id === activePaymentGatewayProvider.id ? 'rgba(92,184,228,0.28)' : 'rgba(242,242,242,0.10)'}`, borderRadius: '9px' }}>
+                    <div key={provider.id} style={{ padding: '9px', backgroundColor: provider.id === activePaymentGatewayProvider.id ? 'rgba(115,187,201,0.06)' : '#080202', border: `1px solid ${provider.id === activePaymentGatewayProvider.id ? 'rgba(115,187,201,0.28)' : 'rgba(241,212,229,0.10)'}`, borderRadius: '9px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', marginBottom: '5px' }}>
-                        <strong style={{ color: provider.id === activePaymentGatewayProvider.id ? '#5CB8E4' : '#F2F2F2', fontSize: '10px', fontWeight: '900' }}>{provider.title.toUpperCase()}</strong>
-                        {provider.id === activePaymentGatewayProvider.id && <span style={{ color: '#5CB8E4', fontSize: '8px', fontWeight: '900' }}>ACTIVE</span>}
+                        <strong style={{ color: provider.id === activePaymentGatewayProvider.id ? '#73BBC9' : '#F1D4E5', fontSize: '10px', fontWeight: '900' }}>{provider.title.toUpperCase()}</strong>
+                        {provider.id === activePaymentGatewayProvider.id && <span style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900' }}>ACTIVE</span>}
                       </div>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Public: {provider.publicEnv}</p>
-                      <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Server: {provider.serverEnv}</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{provider.note}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Public: {provider.publicEnv}</p>
+                      <p style={{ color: '#F1D4E5', fontSize: '9px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Server: {provider.serverEnv}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{provider.note}</p>
                     </div>
                   ))}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: '7px', marginTop: '10px' }}>
                 {paymentGatewayServerSteps.map((step, index) => (
-                  <div key={step.title} style={{ padding: '8px', backgroundColor: '#181818', border: `1px solid ${getReadinessBorder(step.status)}`, borderRadius: '9px' }}>
+                  <div key={step.title} style={{ padding: '8px', backgroundColor: '#080202', border: `1px solid ${getReadinessBorder(step.status)}`, borderRadius: '9px' }}>
                     <p style={{ color: getReadinessColor(step.status), fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {index + 1} / {step.status.toUpperCase()}</p>
-                    <strong style={{ color: '#F2F2F2', fontSize: '9px', fontWeight: '900' }}>{step.title.toUpperCase()}</strong>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
+                    <strong style={{ color: '#F1D4E5', fontSize: '9px', fontWeight: '900' }}>{step.title.toUpperCase()}</strong>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{step.note}</p>
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '10px' }}>
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
                   <div>
-                    <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>RECENT WEBHOOK EVENTS</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Audit callback payment provider. Verified event bisa update payment request.</p>
+                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>RECENT WEBHOOK EVENTS</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Audit callback payment provider. Verified event bisa update payment request.</p>
                   </div>
                   <button type="button" onClick={() => void fetchAdminPaymentRequests(userSession)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>REFRESH</button>
                 </div>
                 {recentPaymentWebhookEvents.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada webhook event. Setelah provider payment aktif, callback akan masuk ke sini.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada webhook event. Setelah provider payment aktif, callback akan masuk ke sini.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px', maxHeight: '210px', overflowY: 'auto' }}>
                     {recentPaymentWebhookEvents.map((event) => (
-                      <div key={event.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '8px 0', borderTop: `1.5px solid ${event.verified ? 'rgba(92,184,228,0.26)' : 'rgba(135,88,255,0.24)'}` }}>
+                      <div key={event.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '8px 0', borderTop: `1.5px solid ${event.verified ? 'rgba(115,187,201,0.26)' : 'rgba(241,212,229,0.24)'}` }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: event.verified ? '#5CB8E4' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(event.provider || 'provider').toUpperCase()} / {event.verified ? 'VERIFIED' : 'DRY RUN'}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.checkoutRef || event.providerInvoiceId || 'NO REFERENCE'}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{String(event.providerStatus || 'unknown').replaceAll('_', ' ').toUpperCase()} / WiSpace: {String(event.wispaceStatus || '-').replaceAll('_', ' ').toUpperCase()}</p>
+                          <p style={{ color: event.verified ? '#73BBC9' : '#F1D4E5', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(event.provider || 'provider').toUpperCase()} / {event.verified ? 'VERIFIED' : 'DRY RUN'}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.checkoutRef || event.providerInvoiceId || 'NO REFERENCE'}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{String(event.providerStatus || 'unknown').replaceAll('_', ' ').toUpperCase()} / WiSpace: {String(event.wispaceStatus || '-').replaceAll('_', ' ').toUpperCase()}</p>
                         </div>
-                        <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{event.receivedLabel || '-'}</strong>
+                        <strong style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{event.receivedLabel || '-'}</strong>
                       </div>
                     ))}
                   </div>
@@ -8082,10 +8082,10 @@ export default function App() {
           <section style={{ ...glassStyle('admin-testing-tools'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LOCAL TESTING TOOLS</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>RESET & DATA HEALTH</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LOCAL TESTING TOOLS</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>RESET & DATA HEALTH</h3>
               </div>
-              <button type="button" onClick={handleResetLocalTestingData} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.35)', color: '#8758FF', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESET LOCAL DATA</button>
+              <button type="button" onClick={handleResetLocalTestingData} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.35)', color: '#F1D4E5', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESET LOCAL DATA</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
               {[
@@ -8106,23 +8106,23 @@ export default function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', marginTop: '12px' }}>
               {[
-                ['payments', 'RESET PAYMENT', pendingPayments.length, 'rgba(242,242,242,0.62)'],
-                ['commerce', 'RESET LEDGER/ORDER', saleTransactions.length + merchOrders.length, '#5CB8E4'],
-                ['library', 'RESET LIBRARY', purchasedAlbums.length + downloadLogs.length, 'rgba(242,242,242,0.62)'],
-                ['messages', 'RESET MESSAGE/NOTIF', messages.length + contentReports.length + readSubscribedUpdateIds.length, 'rgba(242,242,242,0.62)']
+                ['payments', 'RESET PAYMENT', pendingPayments.length, 'rgba(241,212,229,0.62)'],
+                ['commerce', 'RESET LEDGER/ORDER', saleTransactions.length + merchOrders.length, '#73BBC9'],
+                ['library', 'RESET LIBRARY', purchasedAlbums.length + downloadLogs.length, 'rgba(241,212,229,0.62)'],
+                ['messages', 'RESET MESSAGE/NOTIF', messages.length + contentReports.length + readSubscribedUpdateIds.length, 'rgba(241,212,229,0.62)']
               ].map(([bucketId, label, count, color]) => (
                 <button
                   key={bucketId}
                   type="button"
                   onClick={() => handleResetLocalTestingBucket(bucketId)}
-                  style={{ display: 'grid', gap: '4px', textAlign: 'left', background: 'rgba(242,242,242,0.03)', border: `1px solid ${color}33`, color: '#F2F2F2', borderRadius: '10px', padding: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}
+                  style={{ display: 'grid', gap: '4px', textAlign: 'left', background: 'rgba(241,212,229,0.03)', border: `1px solid ${color}33`, color: '#F1D4E5', borderRadius: '10px', padding: '10px', cursor: 'pointer', fontFamily: FONT_STACK }}
                 >
                   <span style={{ color, fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px' }}>{label}</span>
-                  <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>{count}</strong>
+                  <strong style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900' }}>{count}</strong>
                 </button>
               ))}
             </div>
-            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser. Data Supabase live dan file lokal project tidak ikut terhapus, jadi aman buat test ulang UI.</p>
+            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser. Data Supabase live dan file lokal project tidak ikut terhapus, jadi aman buat test ulang UI.</p>
           </section>
           </>
           )}
@@ -8131,10 +8131,10 @@ export default function App() {
           <section id="admin-ledger-section" style={{ ...glassStyle('admin-transaction-ledger'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PAYMENT LEDGER</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PAYMENT LEDGER</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '12px' }}>
               {adminFinanceFilters.map((filter) => (
@@ -8142,7 +8142,7 @@ export default function App() {
                   key={filter.id}
                   type="button"
                   onClick={() => setAdminFinanceFilter(filter.id)}
-                  style={{ padding: '7px 9px', borderRadius: '9999px', border: adminFinanceFilter === filter.id ? '1px solid rgba(92,184,228,0.55)' : '1px solid rgba(242,242,242,0.1)', backgroundColor: adminFinanceFilter === filter.id ? 'rgba(92,184,228,0.12)' : '#181818', color: adminFinanceFilter === filter.id ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
+                  style={{ padding: '7px 9px', borderRadius: '9999px', border: adminFinanceFilter === filter.id ? '1px solid rgba(115,187,201,0.55)' : '1px solid rgba(241,212,229,0.1)', backgroundColor: adminFinanceFilter === filter.id ? 'rgba(115,187,201,0.12)' : '#080202', color: adminFinanceFilter === filter.id ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
                 >
                   {filter.label} / {filter.count}
                 </button>
@@ -8161,25 +8161,25 @@ export default function App() {
                 ['FILTERED BAND', adminFilteredBandNetTotal]
               ].map(([label, amount]) => (
                 <div key={label} style={{ padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
-                  <strong style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                  <strong style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
                 </div>
               ))}
             </div>
             {adminFilteredTransactions.length === 0 ? (
-              <p style={{ color: '#8758FF', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi di filter ini. Pembelian rilisan, track, merch, dan slot exclusive akan masuk ke ledger admin.</p>
+              <p style={{ color: '#F1D4E5', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi di filter ini. Pembelian rilisan, track, merch, dan slot exclusive akan masuk ke ledger admin.</p>
             ) : (
               <div style={{ display: 'grid', gap: '7px' }}>
                 {adminFilteredTransactions.slice(0, 12).map((transaction) => (
                   <div key={transaction.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(180px, 1.35fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr) minmax(130px, 0.9fr) auto', gap: isTinyLayout ? '6px' : '9px', alignItems: 'center' }}>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 }}>{(transaction.orderId || transaction.id).toUpperCase()} / {(transaction.productType || 'order').toUpperCase()}</p>
-                      <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.15 }}>{(transaction.orderId || transaction.id).toUpperCase()} / {(transaction.productType || 'order').toUpperCase()}</p>
+                      <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
                     </div>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#F2F2F2' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#F2F2F2' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
-                    <strong style={{ color: transaction.productType === 'merch' ? getMerchOrderStatusColor(transaction.fulfillmentStatus) : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{transaction.productType === 'merch' ? getMerchOrderStatusLabel(transaction.fulfillmentStatus) : String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#F1D4E5' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#F1D4E5' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
+                    <strong style={{ color: transaction.productType === 'merch' ? getMerchOrderStatusColor(transaction.fulfillmentStatus) : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{transaction.productType === 'merch' ? getMerchOrderStatusLabel(transaction.fulfillmentStatus) : String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
                   </div>
                 ))}
               </div>
@@ -8188,10 +8188,10 @@ export default function App() {
           )}
 
           {adminActiveSection === 'article' && (
-          <section id="admin-article-section" style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#181818', marginBottom: '24px', scrollMarginTop: '110px' }}>
+          <section id="admin-article-section" style={{ ...glassStyle('admin-article-publisher'), padding: '18px', backgroundColor: '#080202', marginBottom: '24px', scrollMarginTop: '110px' }}>
             <div style={{ marginBottom: '14px' }}>
-              <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE EDITORIAL</p>
-              <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: 0 }}>PUBLISH ARTIKEL ADMIN</h3>
+              <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE EDITORIAL</p>
+              <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: 0 }}>PUBLISH ARTIKEL ADMIN</h3>
             </div>
             <form onSubmit={handleAdminArticleSubmit} style={{ display: 'grid', gap: '12px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
@@ -8206,60 +8206,60 @@ export default function App() {
           )}
 
           {adminActiveSection === 'moderation' && (
-          <section id="admin-moderation-section" style={{ ...glassStyle('admin-content-moderation'), padding: '18px', backgroundColor: '#181818', marginBottom: '24px', scrollMarginTop: '110px' }}>
+          <section id="admin-moderation-section" style={{ ...glassStyle('admin-content-moderation'), padding: '18px', backgroundColor: '#080202', marginBottom: '24px', scrollMarginTop: '110px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>CONTENT MODERATION</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: 0 }}>LAPORAN, KOMENTAR, ARTIKEL</h3>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>CONTENT MODERATION</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: 0 }}>LAPORAN, KOMENTAR, ARTIKEL</h3>
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Tempat admin ngecek laporan plagiat/SARA/spam, remove komentar, dan takedown artikel kalau perlu.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Tempat admin ngecek laporan plagiat/SARA/spam, remove komentar, dan takedown artikel kalau perlu.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '14px' }}>
-              <div style={{ padding: '14px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px' }}>
-                <h4 style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>LAPORAN TERBUKA ({openContentReports.length})</h4>
+              <div style={{ padding: '14px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px' }}>
+                <h4 style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>LAPORAN TERBUKA ({openContentReports.length})</h4>
                 {openContentReports.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada laporan konten.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada laporan konten.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {openContentReports.slice(0, 6).map((report) => (
-                      <div key={report.id} style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.12)', borderRadius: '10px' }}>
-                        <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{report.type.toUpperCase()} / {report.reason.toUpperCase()}</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{report.title}</p>
-                        <p style={{ color: '#8758FF', fontSize: '10px', margin: '0 0 8px 0' }}>By {report.reporterName} / {report.createdAt}</p>
+                      <div key={report.id} style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.12)', borderRadius: '10px' }}>
+                        <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{report.type.toUpperCase()} / {report.reason.toUpperCase()}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{report.title}</p>
+                        <p style={{ color: '#F1D4E5', fontSize: '10px', margin: '0 0 8px 0' }}>By {report.reporterName} / {report.createdAt}</p>
                         <button onClick={() => handleResolveContentReport(report.id)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '10px' }}>RESOLVE</button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px' }}>
-                <h4 style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>KOMENTAR TERBARU</h4>
+              <div style={{ padding: '14px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px' }}>
+                <h4 style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>KOMENTAR TERBARU</h4>
                 {recentArticleComments.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada komentar artikel.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada komentar artikel.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {recentArticleComments.slice(0, 6).map((comment) => (
-                      <div key={`${comment.articleId}-${comment.id}`} style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.12)', borderRadius: '10px' }}>
-                        <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()}</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.35, margin: '0 0 6px 0' }}>{comment.body}</p>
-                        <p style={{ color: '#8758FF', fontSize: '10px', margin: '0 0 8px 0' }}>{comment.articleTitle}</p>
-                        <button onClick={() => handleRemoveArticleComment(comment.articleId, comment.id)} style={{ background: 'rgba(135,88,255,0.1)', border: '1px solid rgba(135,88,255,0.35)', color: '#8758FF', borderRadius: '9px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                      <div key={`${comment.articleId}-${comment.id}`} style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.12)', borderRadius: '10px' }}>
+                        <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.35, margin: '0 0 6px 0' }}>{comment.body}</p>
+                        <p style={{ color: '#F1D4E5', fontSize: '10px', margin: '0 0 8px 0' }}>{comment.articleTitle}</p>
+                        <button onClick={() => handleRemoveArticleComment(comment.articleId, comment.id)} style={{ background: 'rgba(241,212,229,0.1)', border: '1px solid rgba(241,212,229,0.35)', color: '#F1D4E5', borderRadius: '9px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div style={{ padding: '14px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px' }}>
-                <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>ARTIKEL LIVE</h4>
+              <div style={{ padding: '14px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px' }}>
+                <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>ARTIKEL LIVE</h4>
                 {publicArticleList.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel live.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel live.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {publicArticleList.slice(0, 6).map((article) => (
-                      <div key={`moderate-${article.id}`} style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.12)', borderRadius: '10px' }}>
-                        <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', lineHeight: 1.25, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
-                        <p style={{ color: '#8758FF', fontSize: '10px', margin: '0 0 8px 0' }}>{article.category} / {article.bandName}</p>
-                        <button onClick={() => handleRemoveArticle(article)} style={{ background: 'rgba(135,88,255,0.1)', border: '1px solid rgba(135,88,255,0.35)', color: '#8758FF', borderRadius: '9px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                      <div key={`moderate-${article.id}`} style={{ padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.12)', borderRadius: '10px' }}>
+                        <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', lineHeight: 1.25, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
+                        <p style={{ color: '#F1D4E5', fontSize: '10px', margin: '0 0 8px 0' }}>{article.category} / {article.bandName}</p>
+                        <button onClick={() => handleRemoveArticle(article)} style={{ background: 'rgba(241,212,229,0.1)', border: '1px solid rgba(241,212,229,0.35)', color: '#F1D4E5', borderRadius: '9px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
                       </div>
                     ))}
                   </div>
@@ -8272,9 +8272,9 @@ export default function App() {
           {adminActiveSection === 'pamflet' && (
           <div id="admin-pamflet-section" style={{ scrollMarginTop: '110px' }}>
           {pendingGigs.length === 0 ? (
-            <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#181818', textAlign: 'center' }}>
-              <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>ANTREAN BERSIH</h3>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0 }}>Belum ada pamflet baru yang perlu dicek.</p>
+            <div style={{ ...glassStyle('empty-admin'), padding: '32px', backgroundColor: '#080202', textAlign: 'center' }}>
+              <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>ANTREAN BERSIH</h3>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: 0 }}>Belum ada pamflet baru yang perlu dicek.</p>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
@@ -8282,7 +8282,7 @@ export default function App() {
                 const requestType = getGigRequestType(gig);
                 const isExclusiveRequest = requestType === 'exclusive';
                 return (
-                <div key={gig.id} style={{ ...glassStyle(`admin-${gig.id}`), padding: '14px', backgroundColor: '#181818' }}>
+                <div key={gig.id} style={{ ...glassStyle(`admin-${gig.id}`), padding: '14px', backgroundColor: '#080202' }}>
                   <button
                     type="button"
                     onClick={() => gig.image && setSelectedPosterPreview(gig)}
@@ -8291,25 +8291,25 @@ export default function App() {
                     style={{ width: '100%', padding: 0, margin: '0 0 14px 0', border: 'none', background: 'transparent', cursor: gig.image ? 'zoom-in' : 'default', fontFamily: FONT_STACK }}
                   >
                     {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: '12px' })}
-                    {gig.image && <span style={{ display: 'block', color: '#5CB8E4', fontSize: '10px', fontWeight: '900', marginTop: '8px', textAlign: 'left' }}>KLIK GAMBAR UNTUK PREVIEW UTUH</span>}
+                    {gig.image && <span style={{ display: 'block', color: '#73BBC9', fontSize: '10px', fontWeight: '900', marginTop: '8px', textAlign: 'left' }}>KLIK GAMBAR UNTUK PREVIEW UTUH</span>}
                   </button>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>STATUS: PENDING REVIEW</p>
-                  <p style={{ color: isExclusiveRequest ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>REQUEST: {isExclusiveRequest ? 'EXCLUSIVE SLIDE' : 'FREE BULLETIN'}</p>
-                  <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0', color: '#F2F2F2' }}>{gig.title?.toUpperCase()}</h3>
-                  <div style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.5, marginBottom: '14px' }}>
-                    <div>Kota/Venue: <span style={{ color: '#F2F2F2' }}>{gig.city}</span></div>
-                    <div>Genre: <span style={{ color: '#F2F2F2' }}>{getGigGenre(gig)}</span></div>
-                    <div>Tanggal: <span style={{ color: '#F2F2F2' }}>{getGigDate(gig)}</span></div>
-                    <div>HTM: <span style={{ color: '#F2F2F2' }}>{getGigHtm(gig)}</span></div>
-                    <div>CP: <span style={{ color: '#F2F2F2' }}>{getGigCp(gig)}</span></div>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>STATUS: PENDING REVIEW</p>
+                  <p style={{ color: isExclusiveRequest ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>REQUEST: {isExclusiveRequest ? 'EXCLUSIVE SLIDE' : 'FREE BULLETIN'}</p>
+                  <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0', color: '#F1D4E5' }}>{gig.title?.toUpperCase()}</h3>
+                  <div style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.5, marginBottom: '14px' }}>
+                    <div>Kota/Venue: <span style={{ color: '#F1D4E5' }}>{gig.city}</span></div>
+                    <div>Genre: <span style={{ color: '#F1D4E5' }}>{getGigGenre(gig)}</span></div>
+                    <div>Tanggal: <span style={{ color: '#F1D4E5' }}>{getGigDate(gig)}</span></div>
+                    <div>HTM: <span style={{ color: '#F1D4E5' }}>{getGigHtm(gig)}</span></div>
+                    <div>CP: <span style={{ color: '#F1D4E5' }}>{getGigCp(gig)}</span></div>
                     {isApprovedHomepageGig(gig) && (
-                      <div>Tayang sampai: <span style={{ color: '#5CB8E4' }}>{getGigApprovedUntil(gig) || 'Belum ada, approve ulang setelah SQL upgrade'}</span></div>
+                      <div>Tayang sampai: <span style={{ color: '#73BBC9' }}>{getGigApprovedUntil(gig) || 'Belum ada, approve ulang setelah SQL upgrade'}</span></div>
                     )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                    <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE</button>
-                    <button onClick={() => handleGigModeration(gig.id, 'approved_waiting_payment')} style={{ padding: '10px', backgroundColor: 'rgba(242,242,242,0.06)', color: '#F2F2F2', border: '1px solid rgba(92,184,228,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>APPROVE PAY</button>
-                    <button onClick={() => handleGigModeration(gig.id, 'rejected')} style={{ padding: '10px', backgroundColor: 'rgba(135,88,255,0.1)', color: '#8758FF', border: '1px solid rgba(135,88,255,0.35)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'approved_waiting_payment')} style={{ padding: '10px', backgroundColor: 'rgba(241,212,229,0.06)', color: '#F1D4E5', border: '1px solid rgba(115,187,201,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>APPROVE PAY</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'rejected')} style={{ padding: '10px', backgroundColor: 'rgba(241,212,229,0.1)', color: '#F1D4E5', border: '1px solid rgba(241,212,229,0.35)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                   </div>
                 </div>
                 );
@@ -8322,27 +8322,27 @@ export default function App() {
           {adminActiveSection === 'pamflet' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
             {[
-              { title: 'EXCLUSIVE WAITING PAYMENT', items: exclusiveWaitingPaymentGigs, color: 'rgba(242,242,242,0.62)', mode: 'waiting' },
-              { title: 'EXCLUSIVE PAID / NEED ACTIVATE', items: exclusivePaidWaitingActivationGigs, color: '#5CB8E4', mode: 'activate' }
+              { title: 'EXCLUSIVE WAITING PAYMENT', items: exclusiveWaitingPaymentGigs, color: 'rgba(241,212,229,0.62)', mode: 'waiting' },
+              { title: 'EXCLUSIVE PAID / NEED ACTIVATE', items: exclusivePaidWaitingActivationGigs, color: '#73BBC9', mode: 'activate' }
             ].map((group) => (
-              <section key={group.title} style={{ ...glassStyle(group.title), padding: '18px', backgroundColor: '#181818' }}>
+              <section key={group.title} style={{ ...glassStyle(group.title), padding: '18px', backgroundColor: '#080202' }}>
                 <h3 style={{ color: group.color, fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>{group.title}</h3>
                 {group.items.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada pamflet di status ini.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada pamflet di status ini.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {group.items.map((gig) => (
-                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', alignItems: 'center' }}>
+                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', alignItems: 'center' }}>
                         {renderGigPosterImage(gig, { width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' })}
                         <div>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
                           <p style={{ color: group.color, fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '4px 0 0 0' }}>{group.mode === 'waiting' ? `Menunggu user bayar Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}` : 'Payment received, siap diaktifkan'}</p>
                         </div>
                         {group.mode === 'activate' ? (
-                          <button onClick={() => handleGigActivateExclusive(gig.id)} style={{ padding: '9px 11px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>ACTIVATE</button>
+                          <button onClick={() => handleGigActivateExclusive(gig.id)} style={{ padding: '9px 11px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>ACTIVATE</button>
                         ) : (
-                          <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap' }}>WAIT PAY</span>
+                          <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap' }}>WAIT PAY</span>
                         )}
                       </div>
                     ))}
@@ -8356,24 +8356,24 @@ export default function App() {
           {adminActiveSection === 'pamflet' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
             {[
-              { title: 'FREE BULLETIN LIVE', items: approvedFreeGigs, color: 'rgba(242,242,242,0.62)' },
-              { title: 'EXCLUSIVE SLIDE LIVE', items: approvedExclusiveGigs, color: '#5CB8E4' }
+              { title: 'FREE BULLETIN LIVE', items: approvedFreeGigs, color: 'rgba(241,212,229,0.62)' },
+              { title: 'EXCLUSIVE SLIDE LIVE', items: approvedExclusiveGigs, color: '#73BBC9' }
             ].map((group) => (
-              <section key={group.title} style={{ ...glassStyle(group.title), padding: '18px', backgroundColor: '#181818' }}>
+              <section key={group.title} style={{ ...glassStyle(group.title), padding: '18px', backgroundColor: '#080202' }}>
                 <h3 style={{ color: group.color, fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>{group.title}</h3>
                 {group.items.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada pamflet di list ini.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada pamflet di list ini.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {group.items.map((gig) => (
-                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', alignItems: 'center' }}>
+                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr auto', gap: '12px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', alignItems: 'center' }}>
                         {renderGigPosterImage(gig, { width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' })}
                         <div>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>APPROVE: <span style={{ color: '#F2F2F2' }}>{getGigApprovedAt(gig) || '-'}</span></p>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>HABIS: <span style={{ color: 'rgba(242,242,242,0.62)' }}>{getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</span></p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>APPROVE: <span style={{ color: '#F1D4E5' }}>{getGigApprovedAt(gig) || '-'}</span></p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>HABIS: <span style={{ color: 'rgba(241,212,229,0.62)' }}>{getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</span></p>
                         </div>
-                        <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '9px 11px', backgroundColor: 'rgba(135,88,255,0.1)', color: '#8758FF', border: '1px solid rgba(135,88,255,0.35)', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                        <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '9px 11px', backgroundColor: 'rgba(241,212,229,0.1)', color: '#F1D4E5', border: '1px solid rgba(241,212,229,0.35)', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
                       </div>
                     ))}
                   </div>
@@ -8399,45 +8399,45 @@ export default function App() {
           </div>
 
           {exploreTab === 'rilisan' && selectedRelease && (
-            <div onClick={() => setSelectedReleaseId(null)} style={{ position: 'fixed', inset: 0, zIndex: 1360, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(24,24,24,0.36), rgba(24,24,24,0.82))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+            <div onClick={() => setSelectedReleaseId(null)} style={{ position: 'fixed', inset: 0, zIndex: 1360, display: 'grid', placeItems: isTinyLayout ? 'end center' : 'center', padding: isTinyLayout ? '12px' : '24px', boxSizing: 'border-box', background: 'linear-gradient(180deg, rgba(8,2,2,0.36), rgba(8,2,2,0.82))', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
               <section onClick={(event) => event.stopPropagation()} style={{ ...modalPanelStyle, width: isTinyLayout ? '100%' : 'min(900px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '84vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', borderRadius: '14px', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
               <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(190px, 280px) minmax(0, 1fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'start' }}>
-                <div style={{ width: '100%', maxWidth: isCompactLayout ? '240px' : 'none', justifySelf: isCompactLayout ? 'center' : 'stretch', aspectRatio: '1/1', background: softSurfaceBackground, borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(92,184,228,0.16)', display: 'grid', placeItems: 'center' }}>
-                  {selectedRelease.coverPreview ? <img src={selectedRelease.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
+                <div style={{ width: '100%', maxWidth: isCompactLayout ? '240px' : 'none', justifySelf: isCompactLayout ? 'center' : 'stretch', aspectRatio: '1/1', background: softSurfaceBackground, borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(115,187,201,0.16)', display: 'grid', placeItems: 'center' }}>
+                  {selectedRelease.coverPreview ? <img src={selectedRelease.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
-                      <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>{selectedRelease.genre?.toUpperCase()} / {selectedRelease.trackCount} TRACK</p>
-                      <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '23px' : 'clamp(30px, 4vw, 46px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedRelease.title.toUpperCase()}</h3>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', fontWeight: '800', margin: 0 }}>{selectedRelease.bandName?.toUpperCase()} / {selectedRelease.city?.toUpperCase()}</p>
+                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>{selectedRelease.genre?.toUpperCase()} / {selectedRelease.trackCount} TRACK</p>
+                      <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '23px' : 'clamp(30px, 4vw, 46px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 10px 0' }}>{selectedRelease.title.toUpperCase()}</h3>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', fontWeight: '800', margin: 0 }}>{selectedRelease.bandName?.toUpperCase()} / {selectedRelease.city?.toUpperCase()}</p>
                     </div>
-                    <button onClick={() => setSelectedReleaseId(null)} style={{ background: 'transparent', border: '1px solid rgba(242,242,242,0.12)', color: 'rgba(242,242,242,0.62)', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+                    <button onClick={() => setSelectedReleaseId(null)} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.12)', color: 'rgba(241,212,229,0.62)', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
                   </div>
-                  {selectedRelease.description && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedRelease.description}</p>}
+                  {selectedRelease.description && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedRelease.description}</p>}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                     {[
-                      ['PRIVATE MASTER', `${selectedReleasePrivateTrackCount}/${selectedRelease.trackCount || (selectedRelease.tracks || []).length}`, selectedReleasePrivateTrackCount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'],
-                      ['PREVIEW READY', `${selectedReleasePreviewTrackCount}/${Math.max(0, (selectedRelease.tracks || []).length - selectedReleaseFreeFullCount)}`, selectedReleasePreviewTrackCount ? '#5CB8E4' : 'rgba(242,242,242,0.62)'],
-                      ['FREE FULL', selectedReleaseFreeFullCount, selectedReleaseFreeFullCount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)']
+                      ['PRIVATE MASTER', `${selectedReleasePrivateTrackCount}/${selectedRelease.trackCount || (selectedRelease.tracks || []).length}`, selectedReleasePrivateTrackCount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'],
+                      ['PREVIEW READY', `${selectedReleasePreviewTrackCount}/${Math.max(0, (selectedRelease.tracks || []).length - selectedReleaseFreeFullCount)}`, selectedReleasePreviewTrackCount ? '#73BBC9' : 'rgba(241,212,229,0.62)'],
+                      ['FREE FULL', selectedReleaseFreeFullCount, selectedReleaseFreeFullCount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)']
                     ].map(([label, value, color]) => (
-                      <span key={label} style={{ padding: '7px 9px', background: softRowBackground, border: `1px solid ${color}33`, borderRadius: '9999px', color, fontSize: '10px', fontWeight: '900' }}>{label}: <strong style={{ color: '#F2F2F2' }}>{value}</strong></span>
+                      <span key={label} style={{ padding: '7px 9px', background: softRowBackground, border: `1px solid ${color}33`, borderRadius: '9999px', color, fontSize: '10px', fontWeight: '900' }}>{label}: <strong style={{ color: '#F1D4E5' }}>{value}</strong></span>
                     ))}
                   </div>
                   <div style={{ ...compactSurfaceStyle, display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', padding: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                    <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>Full Album Rp {Number(selectedRelease.price || 0).toLocaleString('id-ID')}</strong>
+                    <strong style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900' }}>Full Album Rp {Number(selectedRelease.price || 0).toLocaleString('id-ID')}</strong>
                     <button onClick={() => handlePurchaseAlbum(selectedRelease)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === selectedRelease.id) ? 'BUKA LIBRARY' : 'BELI FULL ALBUM'}</button>
                   </div>
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {(selectedRelease.tracks || []).map((track, index) => (
                       <div key={`detail-track-${track.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '32px minmax(0, 1fr) auto auto', gap: '9px', alignItems: 'center', padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0 }}>
-                        <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>{String(index + 1).padStart(2, '0')}</span>
+                        <span style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900' }}>{String(index + 1).padStart(2, '0')}</span>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</p>
-                          <p style={{ color: track.freeFull ? 'rgba(242,242,242,0.62)' : track.previewUrl || track.url ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '800', margin: 0 }}>{track.freeFull ? 'FREE FULL TRACK' : track.previewUrl || track.url ? '30 SECOND PREVIEW' : 'PREVIEW PENDING'}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</p>
+                          <p style={{ color: track.freeFull ? 'rgba(241,212,229,0.62)' : track.previewUrl || track.url ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '800', margin: 0 }}>{track.freeFull ? 'FREE FULL TRACK' : track.previewUrl || track.url ? '30 SECOND PREVIEW' : 'PREVIEW PENDING'}</p>
                         </div>
                         <button onClick={() => handlePlayTrack({ ...track, albumTitle: selectedRelease.title, bandName: selectedRelease.bandName, albumCover: selectedRelease.coverPreview }, (selectedRelease.tracks || []).map((item) => ({ ...item, albumTitle: selectedRelease.title, bandName: selectedRelease.bandName, albumCover: selectedRelease.coverPreview })))} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
-                        <button onClick={() => handlePurchaseTrack(selectedRelease, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(242,242,242,0.08)' : 'rgba(92,184,228,0.08)', border: `1px solid ${track.freeFull ? 'rgba(242,242,242,0.25)' : 'rgba(92,184,228,0.25)'}`, color: track.freeFull ? 'rgba(242,242,242,0.62)' : '#5CB8E4', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
+                        <button onClick={() => handlePurchaseTrack(selectedRelease, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(241,212,229,0.08)' : 'rgba(115,187,201,0.08)', border: `1px solid ${track.freeFull ? 'rgba(241,212,229,0.25)' : 'rgba(115,187,201,0.25)'}`, color: track.freeFull ? 'rgba(241,212,229,0.62)' : '#73BBC9', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</button>
                       </div>
                     ))}
                   </div>
@@ -8452,34 +8452,34 @@ export default function App() {
               <section style={{ marginBottom: '26px' }}>
                 <h3 style={sectionHeadingStyle}>LATEST DIGITAL RELEASES</h3>
                 {filteredAlbums.length === 0 ? (
-                  <div style={{ ...glassStyle('explore-empty-albums'), padding: '24px', backgroundColor: '#181818' }}>
-                    <h4 style={{ color: '#F2F2F2', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ALBUM DRAFT</h4>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 16px 0', lineHeight: 1.5 }}>Masuk ke Backstage Musisi, buka Upload Album Digital, lalu submit draft. Rilisannya akan muncul di sini.</p>
+                  <div style={{ ...glassStyle('explore-empty-albums'), padding: '24px', backgroundColor: '#080202' }}>
+                    <h4 style={{ color: '#F1D4E5', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ALBUM DRAFT</h4>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: '0 0 16px 0', lineHeight: 1.5 }}>Masuk ke Backstage Musisi, buka Upload Album Digital, lalu submit draft. Rilisannya akan muncul di sini.</p>
                     <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); }} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>BUKA BAND STUDIO</button>
                   </div>
                 ) : (
                   <div style={compactVisualGridStyle}>
                     {filteredAlbums.map((album) => (
-                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...compactVisualCardStyle, borderColor: selectedRelease?.id === album.id ? 'rgba(92,184,228,0.46)' : flatLineColor }}>
-                        <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#181818', border: `1.5px solid ${selectedRelease?.id === album.id ? 'rgba(92,184,228,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
-                          {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
+                      <article key={album.id} onClick={() => openReleaseDetail(album)} style={{ ...compactVisualCardStyle, borderColor: selectedRelease?.id === album.id ? 'rgba(115,187,201,0.46)' : flatLineColor }}>
+                        <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${selectedRelease?.id === album.id ? 'rgba(115,187,201,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
+                          {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>COVER</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', margin: '0 0 7px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()}</p>
-                          <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.genre.toUpperCase()} / {album.trackCount} TRACK</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 4px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', margin: '0 0 7px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.bandName.toUpperCase()}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
                         </div>
                         <button onClick={(event) => { event.stopPropagation(); handlePurchaseAlbum(album); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px' }}>{!userSession ? 'JOIN' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
                         {(album.tracks || []).length > 0 && (
                           <div style={{ display: 'grid', gap: '5px', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '7px', marginTop: '8px' }}>
                             {(album.tracks || []).slice(0, 2).map((track) => (
                               <div key={`explore-${track.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
-                                <span style={{ color: track.freeFull ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
-                                <button onClick={(event) => { event.stopPropagation(); handlePurchaseTrack(album, track); }} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '9px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
+                                <span style={{ color: track.freeFull ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '800', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
+                                <button onClick={(event) => { event.stopPropagation(); handlePurchaseTrack(album, track); }} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? 'rgba(241,212,229,0.62)' : '#73BBC9', fontSize: '9px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
                               </div>
                             ))}
-                            {(album.tracks || []).length > 2 && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 2} TRACK</p>}
+                            {(album.tracks || []).length > 2 && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 2} TRACK</p>}
                           </div>
                         )}
                       </article>
@@ -8492,13 +8492,13 @@ export default function App() {
                 <h3 style={sectionHeadingStyle}>30 SECOND PREVIEW TRACKS</h3>
                 <div style={flatListStyle}>
                   {filteredTracks.length === 0 ? (
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
                   ) : (
                     filteredTracks.map(track => (
                       <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
                         <div>
-                          <h4 style={{ fontSize: '14px', color: '#F2F2F2', margin: '0 0 3px 0' }}>{track.title.toUpperCase()}</h4>
-                          <p style={{ fontSize: '12px', color: 'rgba(242,242,242,0.62)', margin: 0 }}>{track.band.toUpperCase()}</p>
+                          <h4 style={{ fontSize: '14px', color: '#F1D4E5', margin: '0 0 3px 0' }}>{track.title.toUpperCase()}</h4>
+                          <p style={{ fontSize: '12px', color: 'rgba(241,212,229,0.62)', margin: 0 }}>{track.band.toUpperCase()}</p>
                         </div>
                         <button onClick={() => handlePlayTrack(track, filteredTracks)} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PREVIEW'}</button>
                       </div>
@@ -8512,23 +8512,23 @@ export default function App() {
               <section style={{ padding: '2px 0 0 0' }}>
                 <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
                 {filteredBandProfiles.length === 0 ? (
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredBandProfiles.slice(0, 4).map((profile) => (
                       <div key={`side-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: '54px minmax(0, 1fr)', cursor: 'default' }}>
                         <div style={{ ...flatThumbStyle, width: '54px', height: '54px', borderRadius: '10px' }}>
-                          {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                          {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <button
                             onClick={() => openBandPublicProfile(false, profile)}
-                            style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(92,184,228,0.65)', textUnderlineOffset: '4px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            style={{ background: 'transparent', border: 'none', color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: '0 0 5px 0', padding: 0, cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(115,187,201,0.65)', textUnderlineOffset: '4px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                           >
                             {profile.name.toUpperCase()}
                           </button>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 4px 0' }}>{(profile.city || 'INDONESIA').toUpperCase()} / {(profile.genre || 'INDIE').toUpperCase()}</p>
-                          <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>/{profile.slug || createSlug(profile.name)}</p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 4px 0' }}>{(profile.city || 'INDONESIA').toUpperCase()} / {(profile.genre || 'INDIE').toUpperCase()}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>/{profile.slug || createSlug(profile.name)}</p>
                         </div>
                       </div>
                     ))}
@@ -8539,20 +8539,20 @@ export default function App() {
               <section style={{ padding: '2px 0 0 0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                   <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>MERCH HIGHLIGHT</h3>
-                  <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
+                  <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#F1D4E5', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
                 </div>
                 {filteredMerchItems.length === 0 ? (
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredMerchItems.slice(0, 4).map(item => (
                       <button key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, gridTemplateColumns: '48px minmax(0, 1fr)' }}>
                         <div style={{ ...flatThumbStyle, width: '48px', height: '48px', borderRadius: '8px' }}>
-                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
+                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                          <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                         </div>
                       </button>
                     ))}
@@ -8570,21 +8570,21 @@ export default function App() {
                   {filteredBandProfiles.map((profile) => (
                     <div key={`band-tab-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '58px minmax(0, 1fr)' : '66px minmax(0, 1fr)', gap: isTinyLayout ? '10px' : '12px', cursor: 'default' }}>
                       <div style={{ ...flatThumbStyle, width: isTinyLayout ? '58px' : '66px', height: isTinyLayout ? '58px' : '66px', borderRadius: '10px' }}>
-                        {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                        {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap', marginBottom: '5px' }}>
-                          <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isTinyLayout ? '100%' : 'min(420px, 62vw)' }}>{profile.name.toUpperCase()}</h4>
+                          <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isTinyLayout ? '100%' : 'min(420px, 62vw)' }}>{profile.name.toUpperCase()}</h4>
                           <button onClick={() => openBandPublicProfile(false, profile)} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '8px' }}>LIHAT PROFILE</button>
                         </div>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 5px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 5px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
               )}
             </section>
           )}
@@ -8593,15 +8593,15 @@ export default function App() {
             <section style={{ padding: isTinyLayout ? '14px 0' : '18px 0' }}>
               <h3 style={sectionHeadingStyle}>ARTIKEL SKENA</h3>
               {filteredArticles.length === 0 ? (
-                <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok. Band bisa tulis artikel dari Band Studio.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok. Band bisa tulis artikel dari Band Studio.</p>
               ) : (
                 <div style={flatListStyle}>
                   {filteredArticles.map((article) => (
                     <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...flatItemStyle, display: 'block' }}>
-                      <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                      <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '15px' : '17px', fontWeight: '900', lineHeight: 1.08, margin: '0 0 8px 0' }}>{article.title.toUpperCase()}</h4>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
-                      <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: '10px 0 0 0' }}>BACA ARTIKEL</p>
+                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
+                      <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '15px' : '17px', fontWeight: '900', lineHeight: 1.08, margin: '0 0 8px 0' }}>{article.title.toUpperCase()}</h4>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
+                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '10px 0 0 0' }}>BACA ARTIKEL</p>
                     </article>
                   ))}
                 </div>
@@ -8616,22 +8616,22 @@ export default function App() {
                 {isBandAccount && <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>UPLOAD MERCH</button>}
               </div>
               {filteredMerchItems.length === 0 ? (
-                <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok. Merch sekarang dikumpulkan di Explore, bukan menu terpisah.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok. Merch sekarang dikumpulkan di Explore, bukan menu terpisah.</p>
               ) : (
                 <div style={compactVisualGridStyle}>
                   {filteredMerchItems.map((item) => {
                     const merchCanBePurchased = isMerchPurchasable(item);
                     return (
-                      <article key={item.id} onClick={() => openMerchDetail(item)} style={{ ...compactVisualCardStyle, borderColor: selectedMerch?.id === item.id ? 'rgba(92,184,228,0.46)' : flatLineColor }}>
-                        <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#181818', border: `1.5px solid ${selectedMerch?.id === item.id ? 'rgba(92,184,228,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
-                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
+                      <article key={item.id} onClick={() => openMerchDetail(item)} style={{ ...compactVisualCardStyle, borderColor: selectedMerch?.id === item.id ? 'rgba(115,187,201,0.46)' : flatLineColor }}>
+                        <div style={{ width: '100%', aspectRatio: '3/4', backgroundColor: '#080202', border: `1.5px solid ${selectedMerch?.id === item.id ? 'rgba(115,187,201,0.35)' : flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
+                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
-                          <p style={{ color: merchCanBePurchased ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {getMerchAvailableStock(item)}</p>
-                          <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || bandProfile.name || signatureName || 'BAND WISPACE').toUpperCase()}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
+                          <p style={{ color: merchCanBePurchased ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>STOCK {getMerchAvailableStock(item)}</p>
+                          <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '8px', fontWeight: '900', margin: '0 0 7px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                         </div>
                         <button disabled={!merchCanBePurchased} onClick={(event) => { event.stopPropagation(); if (merchCanBePurchased) handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, width: '100%', marginTop: '9px', padding: '7px 8px', fontSize: '9px', borderRadius: '8px', opacity: merchCanBePurchased ? 1 : 0.48, cursor: merchCanBePurchased ? 'pointer' : 'not-allowed' }}>{!merchCanBePurchased ? 'SOLD OUT' : userSession ? 'BUY' : 'JOIN'}</button>
                       </article>
@@ -8661,18 +8661,18 @@ export default function App() {
           {publicMerchList.length === 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '18px' }}>
               {[1, 2, 3, 4].map((slot) => (
-                <div key={slot} style={{ ...glassStyle(`merch-placeholder-${slot}`), padding: '14px', backgroundColor: '#181818', borderStyle: 'dashed' }}>
-                  <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '12px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.12)', display: 'grid', placeItems: 'center', marginBottom: '14px' }}>
+                <div key={slot} style={{ ...glassStyle(`merch-placeholder-${slot}`), padding: '14px', backgroundColor: '#080202', borderStyle: 'dashed' }}>
+                  <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: '12px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.12)', display: 'grid', placeItems: 'center', marginBottom: '14px' }}>
                     <ShoppingBag size={32} color="#12323a" />
                   </div>
-                  <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH SLOT {String(slot).padStart(2, '0')}</p>
-                  <h4 style={{ color: '#F2F2F2', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ITEM</h4>
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Nanti kaos, CD, kaset, stiker, dan bundle band akan tampil sebagai kartu merch di sini.</p>
+                  <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH SLOT {String(slot).padStart(2, '0')}</p>
+                  <h4 style={{ color: '#F1D4E5', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ITEM</h4>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Nanti kaos, CD, kaset, stiker, dan bundle band akan tampil sebagai kartu merch di sini.</p>
                 </div>
               ))}
-              <div style={{ ...glassStyle('merch-market-empty-action'), padding: '22px', backgroundColor: '#181818', display: 'grid', alignContent: 'center' }}>
-                <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCH MARKET MASIH KOSONG</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada dummy/input merch. Begitu band upload merch dari Band Studio, item-nya langsung masuk ke grid ini.</p>
+              <div style={{ ...glassStyle('merch-market-empty-action'), padding: '22px', backgroundColor: '#080202', display: 'grid', alignContent: 'center' }}>
+                <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCH MARKET MASIH KOSONG</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada dummy/input merch. Begitu band upload merch dari Band Studio, item-nya langsung masuk ke grid ini.</p>
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TAMBAH MERCH PERTAMA</button>
                 ) : (
@@ -8689,15 +8689,15 @@ export default function App() {
                   style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '66px minmax(0, 1fr)' : '76px minmax(0, 1fr) auto', position: 'relative' }}
                 >
                   <div style={{ ...flatThumbStyle, width: isTinyLayout ? '66px' : '76px', height: isTinyLayout ? '66px' : '76px', borderRadius: '9px' }}>
-                    {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
+                    {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>MERCH</span>}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
-                    <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
-                    <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
-                    <p style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{(item.bandName || 'BAND WISPACE').toUpperCase()} / STOCK {item.stock || 0}</p>
+                    <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</h4>
+                    <p style={{ color: item.fulfillmentMode === 'admin_consignment' ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{item.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN' : 'BAND SHIP'}</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                   </div>
-                  {!isTinyLayout && <span style={{ color: '#8758FF', fontSize: '9px', fontWeight: '900' }}>DETAIL</span>}
+                  {!isTinyLayout && <span style={{ color: '#F1D4E5', fontSize: '9px', fontWeight: '900' }}>DETAIL</span>}
                 </article>
               ))}
             </div>
@@ -8722,18 +8722,18 @@ export default function App() {
           {publicArticleList.length === 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '18px' }}>
               {[1, 2, 3, 4].map((slot) => (
-                <article key={slot} style={{ ...glassStyle(`article-placeholder-${slot}`), padding: '18px', backgroundColor: '#181818', borderStyle: 'dashed', minHeight: '220px', display: 'grid', alignContent: 'space-between' }}>
+                <article key={slot} style={{ ...glassStyle(`article-placeholder-${slot}`), padding: '18px', backgroundColor: '#080202', borderStyle: 'dashed', minHeight: '220px', display: 'grid', alignContent: 'space-between' }}>
                   <div>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: '0 0 14px 0' }}>ARTICLE SLOT {String(slot).padStart(2, '0')}</p>
-                    <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 12px 0' }}>BELUM ADA ARTIKEL</h3>
-                    <p style={{ color: '#8758FF', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Nanti artikel band, interview, catatan rilisan, dan report skena akan tampil di card ini.</p>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 14px 0' }}>ARTICLE SLOT {String(slot).padStart(2, '0')}</p>
+                    <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 12px 0' }}>BELUM ADA ARTIKEL</h3>
+                    <p style={{ color: '#F1D4E5', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Nanti artikel band, interview, catatan rilisan, dan report skena akan tampil di card ini.</p>
                   </div>
                   <FileText size={26} color="#12323a" />
                 </article>
               ))}
-              <div style={{ ...glassStyle('articles-empty-action'), padding: '22px', backgroundColor: '#181818', display: 'grid', alignContent: 'center' }}>
-                <h3 style={{ color: '#F2F2F2', fontSize: '19px', fontWeight: '900', margin: '0 0 10px 0' }}>ARSIP ARTIKEL MASIH KOSONG</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Band bisa mulai nulis cerita rilis album, proses kreatif, atau press release sederhana dari Band Studio.</p>
+              <div style={{ ...glassStyle('articles-empty-action'), padding: '22px', backgroundColor: '#080202', display: 'grid', alignContent: 'center' }}>
+                <h3 style={{ color: '#F1D4E5', fontSize: '19px', fontWeight: '900', margin: '0 0 10px 0' }}>ARSIP ARTIKEL MASIH KOSONG</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Band bisa mulai nulis cerita rilis album, proses kreatif, atau press release sederhana dari Band Studio.</p>
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL PERTAMA</button>
                 ) : (
@@ -8745,25 +8745,25 @@ export default function App() {
             <div style={{ display: 'grid', gridTemplateColumns: articleGridColumns, gap: '22px', alignItems: 'start' }}>
               <main>
                 <article style={{ padding: isTinyLayout ? '10px 0 18px' : '14px 0 22px' }}>
-                  <button onClick={() => setSelectedArticleId(null)} style={{ background: 'transparent', border: '1px solid rgba(242,242,242,0.12)', color: 'rgba(242,242,242,0.62)', borderRadius: '9999px', padding: '7px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, marginBottom: '18px' }}>KEMBALI KE ETALASE</button>
-                  <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{selectedArticle.category.toUpperCase()} / {selectedArticle.createdAt}</p>
-                  <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '30px' : 'clamp(38px, 5vw, 64px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 16px 0' }}>{selectedArticle.title.toUpperCase()}</h3>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '15px' : '17px', lineHeight: 1.55, margin: '0 0 18px 0', maxWidth: '840px' }}>{selectedArticle.excerpt}</p>
+                  <button onClick={() => setSelectedArticleId(null)} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.12)', color: 'rgba(241,212,229,0.62)', borderRadius: '9999px', padding: '7px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, marginBottom: '18px' }}>KEMBALI KE ETALASE</button>
+                  <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{selectedArticle.category.toUpperCase()} / {selectedArticle.createdAt}</p>
+                  <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '30px' : 'clamp(38px, 5vw, 64px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 16px 0' }}>{selectedArticle.title.toUpperCase()}</h3>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: isTinyLayout ? '15px' : '17px', lineHeight: 1.55, margin: '0 0 18px 0', maxWidth: '840px' }}>{selectedArticle.excerpt}</p>
                   {selectedArticle.body && <p style={{ color: '#d0d0d0', fontSize: '14px', lineHeight: 1.75, margin: '0 0 20px 0', whiteSpace: 'pre-line' }}>{selectedArticle.body}</p>}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid #8758FF' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(selectedArticle.bandName || 'BAND WISPACE').toUpperCase()}</p>
-                    <button onClick={() => createContentReport({ type: 'article', targetId: selectedArticle.id, title: selectedArticle.title })} style={{ background: 'transparent', border: '1px solid rgba(242,242,242,0.12)', color: 'rgba(242,242,242,0.62)', borderRadius: '9px', padding: '6px 8px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN ARTIKEL</button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid rgba(115,187,201,0.18)' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(selectedArticle.bandName || 'BAND WISPACE').toUpperCase()}</p>
+                    <button onClick={() => createContentReport({ type: 'article', targetId: selectedArticle.id, title: selectedArticle.title })} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.12)', color: 'rgba(241,212,229,0.62)', borderRadius: '9px', padding: '6px 8px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN ARTIKEL</button>
                   </div>
 
-                  <div style={{ marginTop: '18px', paddingTop: '18px', borderTop: '1px solid #8758FF' }}>
-                    <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>KOMENTAR ({selectedArticleComments.length})</p>
+                  <div style={{ marginTop: '18px', paddingTop: '18px', borderTop: '1px solid rgba(115,187,201,0.18)' }}>
+                    <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: '0 0 12px 0' }}>KOMENTAR ({selectedArticleComments.length})</p>
                     {selectedArticleComments.length > 0 && (
                       <div style={{ display: 'grid', gap: '8px', marginBottom: '12px' }}>
                         {selectedArticleComments.slice(0, 5).map((comment) => (
-                          <div key={comment.id} style={{ padding: '9px 0', borderTop: '1px solid rgba(242,242,242,0.08)' }}>
-                            <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
-                            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
-                            <button onClick={() => createContentReport({ type: 'comment', targetId: comment.id, title: `${selectedArticle.title} / ${comment.author}` })} style={{ marginTop: '8px', background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN KOMENTAR</button>
+                          <div key={comment.id} style={{ padding: '9px 0', borderTop: '1px solid rgba(241,212,229,0.08)' }}>
+                            <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{comment.author.toUpperCase()} / {comment.createdAt}</p>
+                            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{comment.body}</p>
+                            <button onClick={() => createContentReport({ type: 'comment', targetId: comment.id, title: `${selectedArticle.title} / ${comment.author}` })} style={{ marginTop: '8px', background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN KOMENTAR</button>
                           </div>
                         ))}
                       </div>
@@ -8776,14 +8776,14 @@ export default function App() {
                 </article>
               </main>
               <aside style={{ ...railPanelStyle, position: isCompactLayout ? 'relative' : 'sticky', top: isCompactLayout ? 'auto' : '98px' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '13px', fontWeight: '900', margin: '0 0 12px 0' }}>ARTIKEL LAINNYA</h3>
+                <h3 style={{ color: '#73BBC9', fontSize: '13px', fontWeight: '900', margin: '0 0 12px 0' }}>ARTIKEL LAINNYA</h3>
                 <div style={flatListStyle}>
                   {publicArticleList.slice(0, 10).map((article) => {
                     const isActiveArticle = String(article.id) === String(selectedArticle.id);
                     return (
-                      <button key={`side-${article.id}`} onClick={() => setSelectedArticleId(article.id)} style={{ ...flatItemStyle, display: 'block', borderTopColor: isActiveArticle ? 'rgba(92,184,228,0.4)' : 'rgba(242,242,242,0.08)' }}>
-                        <p style={{ color: isActiveArticle ? '#5CB8E4' : '#F2F2F2', fontSize: '11px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', margin: 0 }}>{article.category} / {article.createdAt}</p>
+                      <button key={`side-${article.id}`} onClick={() => setSelectedArticleId(article.id)} style={{ ...flatItemStyle, display: 'block', borderTopColor: isActiveArticle ? 'rgba(115,187,201,0.4)' : 'rgba(241,212,229,0.08)' }}>
+                        <p style={{ color: isActiveArticle ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', margin: 0 }}>{article.category} / {article.createdAt}</p>
                       </button>
                     );
                   })}
@@ -8795,13 +8795,13 @@ export default function App() {
               {publicArticleList.map((article, index) => (
                 <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...flatItemStyle, display: 'block' }}>
                   <div>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                    <h3 style={{ color: '#F2F2F2', fontSize: index === 0 && !isCompactLayout ? '26px' : '18px', fontWeight: '900', lineHeight: 1.04, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h3>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '820px' }}>{article.excerpt}</p>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
+                    <h3 style={{ color: '#F1D4E5', fontSize: index === 0 && !isCompactLayout ? '26px' : '18px', fontWeight: '900', lineHeight: 1.04, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '820px' }}>{article.excerpt}</p>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginTop: '12px' }}>
-                    <p style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900', margin: 0 }}>{(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
-                    <span style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900' }}>BACA</span>
+                    <p style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900', margin: 0 }}>{(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
+                    <span style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900' }}>BACA</span>
                   </div>
                 </article>
               ))}
@@ -8817,34 +8817,34 @@ export default function App() {
             {displayBandProfile.coverPreview ? (
               <img src={displayBandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #181818 0%, #8758FF 45%, #181818 100%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 20% 24%, rgba(115,187,201,0.24), transparent 34%), radial-gradient(circle at 78% 12%, rgba(241,212,229,0.12), transparent 28%), linear-gradient(135deg, #080202 0%, rgba(115,187,201,0.12) 48%, #080202 100%)' }} />
             )}
-            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(92,184,228,0.18), transparent 34%), linear-gradient(to top, rgba(24,24,24,1), rgba(24,24,24,0.62), rgba(24,24,24,0.16))' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 18% 78%, rgba(115,187,201,0.18), transparent 34%), linear-gradient(to top, rgba(8,2,2,1), rgba(8,2,2,0.62), rgba(8,2,2,0.16))' }} />
             <div style={{ position: 'relative', zIndex: 2, display: 'grid', gridTemplateColumns: publicBandHeroColumns, gap: '24px', alignItems: 'end', width: '100%' }}>
-              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '1.5px solid rgba(92,184,228,0.34)', display: 'grid', placeItems: 'center', boxShadow: '0 14px 32px rgba(24,24,24,0.42), inset 0 1px 0 rgba(242,242,242,0.08)' }}>
-                {displayBandProfile.photoPreview ? <img src={displayBandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
+              <div style={{ width: `${publicBandAvatarSize}px`, height: `${publicBandAvatarSize}px`, borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '1.5px solid rgba(115,187,201,0.34)', display: 'grid', placeItems: 'center', boxShadow: '0 14px 32px rgba(8,2,2,0.42), inset 0 1px 0 rgba(241,212,229,0.08)' }}>
+                {displayBandProfile.photoPreview ? <img src={displayBandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>FOTO BAND</span>}
               </div>
               <div>
                 <p style={eyebrowStyle}>PUBLIC BAND PROFILE</p>
-                <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(42px, 7vw, 72px)', maxWidth: '980px' }}>{(displayBandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
-                <p style={{ color: '#F2F2F2', fontSize: '17px', fontWeight: '900', margin: '14px 0 12px 0', maxWidth: '760px', lineHeight: 1.25 }}>{displayBandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(displayBandProfile.city || 'KOTA').toUpperCase()} / {(displayBandProfile.genre || 'GENRE').toUpperCase()}{displayBandProfile.formedYear ? ` / SINCE ${displayBandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath(displayBandProfile)}</p>
+                <h2 style={{ ...pageTitleStyle, fontSize: 'clamp(34px, 5.6vw, 56px)', maxWidth: '980px' }}>{(displayBandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h2>
+                <p style={{ color: '#F1D4E5', fontSize: '14px', fontWeight: '900', margin: '12px 0 10px 0', maxWidth: '760px', lineHeight: 1.25 }}>{displayBandProfile.headline || 'Headline band akan tampil di sini setelah profile diisi.'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', fontWeight: '800', margin: '0 0 14px 0' }}>{(displayBandProfile.city || 'KOTA').toUpperCase()} / {(displayBandProfile.genre || 'GENRE').toUpperCase()}{displayBandProfile.formedYear ? ` / SINCE ${displayBandProfile.formedYear}` : ''} / wispace.my.id{getBandProfilePath(displayBandProfile)}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '0 0 14px 0' }}>
-                  <span style={{ padding: '7px 10px', borderRadius: '9999px', background: softRowBackground, border: '1px solid rgba(92,184,228,0.28)', color: '#5CB8E4', fontSize: '11px', fontWeight: '900' }}>{bandSubscriberCount.toLocaleString('id-ID')} SUBSCRIBERS</span>
+                  <span style={{ padding: '7px 10px', borderRadius: '9999px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.28)', color: '#73BBC9', fontSize: '11px', fontWeight: '900' }}>{bandSubscriberCount.toLocaleString('id-ID')} SUBSCRIBERS</span>
                   {showBandOwnerControls && unreadBandNotifications > 0 && (
-                    <span style={{ padding: '7px 10px', borderRadius: '9999px', background: 'linear-gradient(90deg, rgba(242,242,242,0.14), rgba(242,242,242,0.03))', border: '1px solid rgba(242,242,242,0.28)', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900' }}>{unreadBandNotifications} NOTIF BARU</span>
+                    <span style={{ padding: '7px 10px', borderRadius: '9999px', background: 'linear-gradient(90deg, rgba(241,212,229,0.14), rgba(241,212,229,0.03))', border: '1px solid rgba(241,212,229,0.28)', color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900' }}>{unreadBandNotifications} NOTIF BARU</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
                   {!showBandOwnerControls && (
-                    <button onClick={handleBandSubscribeToggle} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content', background: isSubscribedToCurrentBand ? 'rgba(242,242,242,0.1)' : glassButtonStyle.background, border: isSubscribedToCurrentBand ? '1px solid rgba(242,242,242,0.35)' : glassButtonStyle.border, color: isSubscribedToCurrentBand ? 'rgba(242,242,242,0.62)' : '#5CB8E4' }}>
+                    <button onClick={handleBandSubscribeToggle} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content', background: isSubscribedToCurrentBand ? 'rgba(241,212,229,0.1)' : glassButtonStyle.background, border: isSubscribedToCurrentBand ? '1px solid rgba(241,212,229,0.35)' : glassButtonStyle.border, color: isSubscribedToCurrentBand ? 'rgba(241,212,229,0.62)' : '#73BBC9' }}>
                       {isSubscribedToCurrentBand ? 'SUBSCRIBED' : 'SUBSCRIBE BAND'}
                     </button>
                   )}
                   <button onClick={copyBandProfileLink} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', width: 'fit-content' }}>COPY PROFILE LINK</button>
                 </div>
                 {!showBandOwnerControls && isSubscribedToCurrentBand && (
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '10px 0 0 0' }}>Notif update band aktif di draft subscription.</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '10px 0 0 0' }}>Notif update band aktif di draft subscription.</p>
                 )}
               </div>
             </div>
@@ -8854,16 +8854,16 @@ export default function App() {
             <main>
               {showBandOwnerControls && (
                 <div style={ownerActionsPanelStyle}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>OWNER ACTIONS</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>OWNER ACTIONS</p>
                   <div style={ownerActionsGridStyle}>
                     <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>EDIT PROFILE</button>
-                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F2F2F2', borderColor: '#8758FF' }}>UPLOAD ALBUM</button>
-                    <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F2F2F2', borderColor: '#8758FF' }}>MERCH</button>
-                    <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F2F2F2', borderColor: '#8758FF' }}>ARTIKEL</button>
+                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F1D4E5', borderColor: 'rgba(115,187,201,0.3)' }}>UPLOAD ALBUM</button>
+                    <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F1D4E5', borderColor: 'rgba(115,187,201,0.3)' }}>MERCH</button>
+                    <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F1D4E5', borderColor: 'rgba(115,187,201,0.3)' }}>ARTIKEL</button>
                     <button onClick={() => navigateInternalPage('gig_manager')} style={ownerActionButtonStyle}>PAMFLET</button>
-                    <button onClick={() => navigateInternalPage('gig_manager')} style={{ ...ownerActionButtonStyle, color: '#F2F2F2', borderColor: '#8758FF' }}>JADWAL</button>
-                    <button onClick={() => navigateInternalPage('finance_dashboard')} style={{ ...ownerActionButtonStyle, background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.25)', color: 'rgba(242,242,242,0.62)' }}>KEUANGAN</button>
-                    <button onClick={() => { setShowNotificationPopout(false); setShowBandAdminPopout(true); }} style={{ ...ownerActionButtonStyle, color: '#5CB8E4', borderColor: 'rgba(92,184,228,0.3)' }}>ADMIN</button>
+                    <button onClick={() => navigateInternalPage('gig_manager')} style={{ ...ownerActionButtonStyle, color: '#F1D4E5', borderColor: 'rgba(115,187,201,0.3)' }}>JADWAL</button>
+                    <button onClick={() => navigateInternalPage('finance_dashboard')} style={{ ...ownerActionButtonStyle, background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.25)', color: 'rgba(241,212,229,0.62)' }}>KEUANGAN</button>
+                    <button onClick={() => { setShowNotificationPopout(false); setShowBandAdminPopout(true); }} style={{ ...ownerActionButtonStyle, color: '#73BBC9', borderColor: 'rgba(115,187,201,0.3)' }}>ADMIN</button>
                   </div>
                 </div>
               )}
@@ -8872,21 +8872,21 @@ export default function App() {
                 <section style={{ ...bandArchivePanelStyle, padding: '14px', marginBottom: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
                     <div>
-                      <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>BAND NOTIFICATIONS</p>
-                      <h3 style={{ color: '#F2F2F2', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUBSCRIBER ACTIVITY</h3>
+                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>BAND NOTIFICATIONS</p>
+                      <h3 style={{ color: '#F1D4E5', fontSize: '15px', fontWeight: '900', margin: 0 }}>SUBSCRIBER ACTIVITY</h3>
                     </div>
                     {unreadBandNotifications > 0 && (
-                      <button onClick={markBandNotificationsRead} style={{ background: 'transparent', border: '1px solid rgba(242,242,242,0.28)', color: 'rgba(242,242,242,0.62)', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
+                      <button onClick={markBandNotificationsRead} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.28)', color: 'rgba(241,212,229,0.62)', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK READ</button>
                     )}
                   </div>
                   {bandNotifications.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notif subscribe. Nanti setiap audience subscribe band ini, activity-nya masuk di sini.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notif subscribe. Nanti setiap audience subscribe band ini, activity-nya masuk di sini.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '8px' }}>
                       {bandNotifications.slice(0, 4).map((notification) => (
-                          <div key={notification.id} style={{ ...compactRowStyle, borderRadius: '8px', border: `1px solid ${notification.read ? 'rgba(242,242,242,0.1)' : 'rgba(242,242,242,0.28)'}` }}>
-                          <p style={{ color: notification.read ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{notification.title} / {notification.createdAt}</p>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
+                          <div key={notification.id} style={{ ...compactRowStyle, borderRadius: '8px', border: `1px solid ${notification.read ? 'rgba(241,212,229,0.1)' : 'rgba(241,212,229,0.28)'}` }}>
+                          <p style={{ color: notification.read ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{notification.title} / {notification.createdAt}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
                         </div>
                       ))}
                     </div>
@@ -8896,48 +8896,48 @@ export default function App() {
 
               <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
               </section>
 
               <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
                   <div>
                     <h3 style={{ ...sectionHeadingStyle, margin: '0 0 6px 0' }}>PROMO MUSIC PLAYER</h3>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Preview maksimal 30 detik. Satu lagu bisa dibuka full gratis oleh band.</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Preview maksimal 30 detik. Satu lagu bisa dibuka full gratis oleh band.</p>
                   </div>
                   {hasFreeFullBandTrack && (
-                    <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(242,242,242,0.1)', border: '1px solid rgba(242,242,242,0.25)', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>1 FREE FULL TRACK</span>
+                    <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(241,212,229,0.1)', border: '1px solid rgba(241,212,229,0.25)', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>1 FREE FULL TRACK</span>
                   )}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: '8px', marginBottom: '14px' }}>
                   {[
-                    ['PROMO TRACKS', bandPublicTracks.length, '#F2F2F2'],
-                    ['PREVIEW READY', bandPublicPreviewReadyCount, bandPublicPreviewReadyCount ? '#5CB8E4' : 'rgba(242,242,242,0.62)'],
-                    ['FREE FULL', hasFreeFullBandTrack ? 1 : 0, hasFreeFullBandTrack ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)']
+                    ['PROMO TRACKS', bandPublicTracks.length, '#F1D4E5'],
+                    ['PREVIEW READY', bandPublicPreviewReadyCount, bandPublicPreviewReadyCount ? '#73BBC9' : 'rgba(241,212,229,0.62)'],
+                    ['FREE FULL', hasFreeFullBandTrack ? 1 : 0, hasFreeFullBandTrack ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)']
                   ].map(([label, value, color]) => (
-                    <div key={label} style={{ padding: '7px 8px', borderTop: `1px solid ${color}22`, background: softRowBackground, borderRadius: '7px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.6px', margin: '0 0 4px 0' }}>{label}</p>
+                    <div key={label} style={{ padding: '7px 8px', borderTop: `1px solid ${color === '#73BBC9' ? 'rgba(115,187,201,0.24)' : color === '#F1D4E5' ? 'rgba(241,212,229,0.2)' : 'rgba(241,212,229,0.14)'}`, background: softRowBackground, borderRadius: '7px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.6px', margin: '0 0 4px 0' }}>{label}</p>
                       <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>{value}</strong>
                     </div>
                   ))}
                 </div>
                 {bandPublicTracks.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada lagu promo. Upload album dulu, lalu pilih track preview/free full di Band Studio.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada lagu promo. Upload album dulu, lalu pilih track preview/free full di Band Studio.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {bandPublicTracks.map((track, index) => {
                       const isActive = activeTrack?.id === track.id && isPlaying;
                       return (
-                        <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', borderTopColor: track.freeFull ? 'rgba(242,242,242,0.26)' : 'rgba(242,242,242,0.08)', cursor: 'default' }}>
-                          <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '7px', color: '#5CB8E4', fontSize: '11px', fontWeight: '900' }}>
+                        <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', borderTopColor: track.freeFull ? 'rgba(241,212,229,0.26)' : 'rgba(241,212,229,0.08)', cursor: 'default' }}>
+                          <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '7px', color: '#73BBC9', fontSize: '11px', fontWeight: '900' }}>
                             {track.albumCover ? <img src={track.albumCover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : String(index + 1).padStart(2, '0')}
                           </div>
                           <div style={{ minWidth: 0 }}>
-                            <p style={{ color: track.freeFull ? 'rgba(242,242,242,0.62)' : track.previewUrl || track.url ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : track.previewUrl || track.url ? '30 SEC PREVIEW' : 'PREVIEW PENDING'} / {track.albumTitle?.toUpperCase()}</p>
-                            <h4 style={{ color: '#F2F2F2', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
+                            <p style={{ color: track.freeFull ? 'rgba(241,212,229,0.62)' : track.previewUrl || track.url ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : track.previewUrl || track.url ? '30 SEC PREVIEW' : 'PREVIEW PENDING'} / {track.albumTitle?.toUpperCase()}</p>
+                            <h4 style={{ color: '#F1D4E5', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
-                              <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${displayBandProfile.name || track.bandName || 'Band WiSpace'}` })} style={{ background: 'transparent', border: 'none', color: '#8758FF', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
+                              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
+                              <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${displayBandProfile.name || track.bandName || 'Band WiSpace'}` })} style={{ background: 'transparent', border: 'none', color: '#F1D4E5', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
                             </div>
                           </div>
                           <button onClick={() => handlePlayTrack(track, bandPublicTracks)} style={{ ...glassButtonStyle, padding: isTinyLayout ? '9px' : '10px 14px', fontSize: '11px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>{isActive ? 'PAUSE' : 'PLAY'}</button>
@@ -8951,30 +8951,30 @@ export default function App() {
               <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {displayBandAlbums.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {displayBandAlbums.map((album) => (
                       <article key={album.id} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '62px minmax(0, 1fr)' : '72px minmax(0, 1fr) auto', cursor: 'default' }}>
                         <div style={{ ...flatThumbStyle, width: isTinyLayout ? '62px' : '72px', height: isTinyLayout ? '62px' : '72px', borderRadius: '7px' }}>
-                          {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '11px', fontWeight: '900' }}>COVER</span>}
+                          {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900' }}>COVER</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.trackCount} TRACK / FULL ALBUM</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
-                          <p style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900', margin: 0 }}>Full Album Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{album.trackCount} TRACK / FULL ALBUM</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{album.title.toUpperCase()}</h4>
+                          <p style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900', margin: 0 }}>Full Album Rp {Number(album.price || 0).toLocaleString('id-ID')}</p>
                         </div>
                         <button onClick={() => handlePurchaseAlbum(album)} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}>{!userSession ? 'JOIN' : purchasedAlbums.some((item) => item.id === album.id) ? 'LIBRARY' : 'BELI'}</button>
                         {(album.tracks || []).length > 0 && (
-                          <div style={{ gridColumn: '1 / -1', display: 'grid', gap: '8px', borderTop: '1px solid rgba(242,242,242,0.08)', paddingTop: '10px' }}>
+                          <div style={{ gridColumn: '1 / -1', display: 'grid', gap: '8px', borderTop: '1px solid rgba(241,212,229,0.08)', paddingTop: '10px' }}>
                             {(album.tracks || []).slice(0, 10).map((track, index) => (
                               <div key={track.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center' }}>
                                 <div style={{ minWidth: 0 }}>
-                                  <p style={{ color: track.freeFull ? 'rgba(242,242,242,0.62)' : '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(index + 1).padStart(2, '0')} / {track.title.toUpperCase()}</p>
-                                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', margin: '3px 0 0 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</p>
-                                  <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${album.title}` })} style={{ marginTop: '5px', background: 'transparent', border: 'none', color: '#8758FF', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
+                                  <p style={{ color: track.freeFull ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(index + 1).padStart(2, '0')} / {track.title.toUpperCase()}</p>
+                                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', margin: '3px 0 0 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : `Rp ${Number(track.price || 0).toLocaleString('id-ID')}`}</p>
+                                  <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${album.title}` })} style={{ marginTop: '5px', background: 'transparent', border: 'none', color: '#F1D4E5', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
                                 </div>
-                                <button onClick={() => handlePurchaseTrack(album, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(242,242,242,0.08)' : 'rgba(242,242,242,0.04)', border: `1px solid ${track.freeFull ? 'rgba(242,242,242,0.24)' : 'rgba(242,242,242,0.12)'}`, color: track.freeFull ? 'rgba(242,242,242,0.62)' : '#F2F2F2', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
+                                <button onClick={() => handlePurchaseTrack(album, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(241,212,229,0.08)' : 'rgba(241,212,229,0.04)', border: `1px solid ${track.freeFull ? 'rgba(241,212,229,0.24)' : 'rgba(241,212,229,0.12)'}`, color: track.freeFull ? 'rgba(241,212,229,0.62)' : '#F1D4E5', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
                               </div>
                             ))}
                           </div>
@@ -8988,16 +8988,16 @@ export default function App() {
               <section id="band-gig-schedule" style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px' }}>
                 <h3 style={sectionHeadingStyle}>JADWAL MANGGUNG</h3>
                 {bandScheduleItems.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada jadwal manggung. Tambahkan jadwal dari Band Gig Manager, jadwal ini hanya tampil di profile band.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada jadwal manggung. Tambahkan jadwal dari Band Gig Manager, jadwal ini hanya tampil di profile band.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {bandScheduleItems.slice(0, 5).map((schedule) => (
                       <div key={schedule.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '64px 1fr', gap: '12px' }}>
-                        <div style={{ width: '64px', height: '64px', borderRadius: '8px', background: softRowBackground, border: '1px solid rgba(92,184,228,0.25)', display: 'grid', placeItems: 'center', color: '#5CB8E4', fontSize: '10px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '8px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.25)', display: 'grid', placeItems: 'center', color: '#73BBC9', fontSize: '10px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
                         <div>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{schedule.title.toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{schedule.venue} / {schedule.date} / {schedule.htm}</p>
-                          <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>CP: {schedule.cp}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{schedule.title.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{schedule.venue} / {schedule.date} / {schedule.htm}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>CP: {schedule.cp}</p>
                         </div>
                       </div>
                     ))}
@@ -9009,12 +9009,12 @@ export default function App() {
             <aside style={{ display: 'grid', gap: '18px' }}>
               <section style={{ ...bandArchivePanelStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>CONTACT</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#F2F2F2' }}>{displayBandProfile.cp || '-'}</span></p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#F2F2F2' }}>{displayBandProfile.email || '-'}</span></p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#F2F2F2' }}>{displayBandProfile.instagram || '-'}</span></p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 8px 0' }}>CP: <span style={{ color: '#F1D4E5' }}>{displayBandProfile.cp || '-'}</span></p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 8px 0' }}>Email: <span style={{ color: '#F1D4E5' }}>{displayBandProfile.email || '-'}</span></p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: 0 }}>Instagram: <span style={{ color: '#F1D4E5' }}>{displayBandProfile.instagram || '-'}</span></p>
                 {showBandContactForm ? (
                   <form onSubmit={handleMessageSubmit} style={{ display: 'grid', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${flatLineColor}` }}>
-                    <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(displayBandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE {(displayBandProfile.name || signatureName || 'BAND INI').toUpperCase()}</p>
                     <input type="text" placeholder="NAMA PENGIRIM" value={messageDraft.sender} onChange={(e) => setMessageDraft({ ...messageDraft, sender: e.target.value })} required style={formInputStyle} />
                     <input type="text" placeholder="KONTAK BALASAN" value={messageDraft.contact} onChange={(e) => setMessageDraft({ ...messageDraft, contact: e.target.value })} required style={formInputStyle} />
                     <input type="text" placeholder="SUBJEK" value={messageDraft.subject} onChange={(e) => setMessageDraft({ ...messageDraft, subject: e.target.value })} required style={formInputStyle} />
@@ -9023,7 +9023,7 @@ export default function App() {
                   </form>
                 ) : (
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${flatLineColor}` }}>
-                    <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Ini profile band lu sendiri, jadi form kirim pesan disembunyikan.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Ini profile band lu sendiri, jadi form kirim pesan disembunyikan.</p>
                   </div>
                 )}
               </section>
@@ -9031,7 +9031,7 @@ export default function App() {
               <section style={{ ...bandArchivePanelStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>MERCHANDISE</h3>
                 {displayBandMerchItems.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {displayBandMerchItems.slice(0, 4).map((item) => {
@@ -9039,11 +9039,11 @@ export default function App() {
                       return (
                         <div key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, cursor: 'pointer', gridTemplateColumns: isTinyLayout ? '50px minmax(0, 1fr)' : '50px minmax(0, 1fr) auto' }}>
                           <div style={{ ...flatThumbStyle, width: '50px', height: '50px', borderRadius: '7px' }}>
-                            {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
+                            {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                           </div>
                           <div style={{ minWidth: 0 }}>
-                            <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                            <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')} / STOCK {getMerchAvailableStock(item)}</p>
+                            <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                            <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')} / STOCK {getMerchAvailableStock(item)}</p>
                           </div>
                           {!showBandOwnerControls && (
                             <button disabled={!merchCanBePurchased} onClick={(event) => { event.stopPropagation(); if (merchCanBePurchased) handlePurchaseMerch(item); }} style={{ ...glassButtonStyle, padding: isTinyLayout ? '7px 9px' : '8px 10px', fontSize: '10px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto', opacity: merchCanBePurchased ? 1 : 0.48, cursor: merchCanBePurchased ? 'pointer' : 'not-allowed' }}>{!merchCanBePurchased ? 'SOLD OUT' : userSession ? 'BUY' : 'JOIN'}</button>
@@ -9071,9 +9071,9 @@ export default function App() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
-            <form onSubmit={handleBandSubmit} style={{ ...glassStyle('gig-upload-form'), padding: '20px', backgroundColor: '#181818' }}>
+            <form onSubmit={handleBandSubmit} style={{ ...glassStyle('gig-upload-form'), padding: '20px', backgroundColor: '#080202' }}>
               <h3 style={sectionHeadingStyle}>UPLOAD PAMFLET EVENT</h3>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.4 }}>Isi data gigs, lalu kirim ke admin WiSpace untuk dicek sebelum tampil publik.</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.4 }}>Isi data gigs, lalu kirim ke admin WiSpace untuk dicek sebelum tampil publik.</p>
               <div style={{ display: 'grid', gap: '12px' }}>
                 <input type="text" placeholder="NAMA ACARA / CONCERT" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required style={formInputStyle} />
                 <input type="text" placeholder="KOTA / VENUE" value={newCity} onChange={(e) => setNewCity(e.target.value)} required style={formInputStyle} />
@@ -9084,37 +9084,37 @@ export default function App() {
               </div>
               <label style={{ display: 'block', marginTop: '14px', cursor: 'pointer' }}>
                 <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleGigPosterImport} style={{ display: 'none' }} />
-                <div style={{ minHeight: '220px', border: '1px dashed rgba(92,184,228,0.45)', borderRadius: '14px', backgroundColor: '#181818', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+                <div style={{ minHeight: '220px', border: '1px dashed rgba(115,187,201,0.45)', borderRadius: '14px', backgroundColor: '#080202', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
                   {newPosterImage ? (
                     <img src={newPosterImage} alt="Preview pamflet event" style={{ width: '100%', height: '100%', maxHeight: '320px', objectFit: 'cover' }} />
                   ) : (
                     <div style={{ textAlign: 'center', padding: '24px' }}>
-                      <p style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>UPLOAD GAMBAR PAMFLET</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Klik area ini untuk pilih JPG, PNG, atau WEBP.</p>
+                      <p style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>UPLOAD GAMBAR PAMFLET</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Klik area ini untuk pilih JPG, PNG, atau WEBP.</p>
                     </div>
                   )}
                 </div>
               </label>
-              {newPosterName && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '8px 0 0 0' }}>FILE: {newPosterName}</p>}
-              {newPosterNotice && <p style={{ color: newPosterNotice.includes('Ideal') ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '6px 0 0 0' }}>{newPosterNotice}</p>}
+              {newPosterName && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '8px 0 0 0' }}>FILE: {newPosterName}</p>}
+              {newPosterNotice && <p style={{ color: newPosterNotice.includes('Ideal') ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '6px 0 0 0' }}>{newPosterNotice}</p>}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '14px' }}>
-                <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'free' ? '1px solid rgba(242,242,242,0.62)' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'free' ? 'rgba(242,242,242,0.12)' : '#181818', color: newGigRequestType === 'free' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE BULLETIN</button>
-                <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'exclusive' ? '1px solid #5CB8E4' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(92,184,228,0.14)' : '#181818', color: newGigRequestType === 'exclusive' ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE SLIDE</button>
+                <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'free' ? '1px solid rgba(241,212,229,0.62)' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'free' ? 'rgba(241,212,229,0.12)' : '#080202', color: newGigRequestType === 'free' ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE BULLETIN</button>
+                <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '12px', border: newGigRequestType === 'exclusive' ? '1px solid #73BBC9' : '1px solid #1f1f1f', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(115,187,201,0.14)' : '#080202', color: newGigRequestType === 'exclusive' ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE SLIDE</button>
               </div>
-              <div style={{ marginTop: '14px', padding: '14px', backgroundColor: '#181818', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(92,184,228,0.32)' : 'rgba(242,242,242,0.24)'}`, borderRadius: '14px' }}>
-                <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE EVENT SLOT' : 'FREE BULLETIN SLOT'}</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{newGigRequestType === 'exclusive' ? `Request berbayar Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} untuk masuk slide besar homepage. Admin cek konten dulu, lalu pembayaran, lalu activate 10 hari.` : 'Request gratis untuk masuk bulletin gigs homepage dan jadwal manggung publik setelah dicek admin.'}</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>MASA TAYANG: 10 HARI SEJAK ADMIN APPROVE. Setelah lewat tanggal tayang, pamflet perlu diajukan ulang.</p>
-                <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>UKURAN DISARANKAN: {posterUploadGuide.size} / {posterUploadGuide.ratio} / MAX 2MB</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{posterUploadGuide.note}</p>
+              <div style={{ marginTop: '14px', padding: '14px', backgroundColor: '#080202', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(115,187,201,0.32)' : 'rgba(241,212,229,0.24)'}`, borderRadius: '14px' }}>
+                <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE EVENT SLOT' : 'FREE BULLETIN SLOT'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{newGigRequestType === 'exclusive' ? `Request berbayar Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} untuk masuk slide besar homepage. Admin cek konten dulu, lalu pembayaran, lalu activate 10 hari.` : 'Request gratis untuk masuk bulletin gigs homepage dan jadwal manggung publik setelah dicek admin.'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>MASA TAYANG: 10 HARI SEJAK ADMIN APPROVE. Setelah lewat tanggal tayang, pamflet perlu diajukan ulang.</p>
+                <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '10px 0 0 0' }}>UKURAN DISARANKAN: {posterUploadGuide.size} / {posterUploadGuide.ratio} / MAX 2MB</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{posterUploadGuide.note}</p>
               </div>
-              <button type="submit" style={{ width: '100%', padding: '14px', marginTop: '16px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>KIRIM KE ANTREAN KURASI</button>
+              <button type="submit" style={{ width: '100%', padding: '14px', marginTop: '16px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>KIRIM KE ANTREAN KURASI</button>
             </form>
 
             <div style={{ display: 'grid', gap: '18px' }}>
-              <section style={{ ...glassStyle('band-schedule-form'), padding: '20px', backgroundColor: '#181818' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 8px 0' }}>TAMBAH JADWAL MANGGUNG</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 16px 0' }}>Untuk agenda tampil di profile band saja. Tidak masuk homepage, tidak perlu free/exclusive, dan tidak masuk antrean admin.</p>
+              <section style={{ ...glassStyle('band-schedule-form'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 8px 0' }}>TAMBAH JADWAL MANGGUNG</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 16px 0' }}>Untuk agenda tampil di profile band saja. Tidak masuk homepage, tidak perlu free/exclusive, dan tidak masuk antrean admin.</p>
                 <form onSubmit={handleScheduleSubmit} style={{ display: 'grid', gap: '12px' }}>
                   <input type="text" placeholder="NAMA ACARA / SHOWCASE" value={scheduleDraft.title} onChange={(event) => setScheduleDraft({ ...scheduleDraft, title: event.target.value })} required style={formInputStyle} />
                   <input type="text" placeholder="VENUE / KOTA" value={scheduleDraft.venue} onChange={(event) => setScheduleDraft({ ...scheduleDraft, venue: event.target.value })} required style={formInputStyle} />
@@ -9125,48 +9125,48 @@ export default function App() {
                 </form>
               </section>
 
-              <section style={{ ...glassStyle('gig-status'), padding: '20px', backgroundColor: '#181818' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>STATUS PAMFLET</h3>
+              <section style={{ ...glassStyle('gig-status'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>STATUS PAMFLET</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
-                  <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', padding: '12px' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>PENDING</p>
-                    <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '22px' }}>{pendingGigs.length}</strong>
+                  <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', padding: '12px' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>PENDING</p>
+                    <strong style={{ color: 'rgba(241,212,229,0.62)', fontSize: '22px' }}>{pendingGigs.length}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', padding: '12px' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>FREE</p>
-                    <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '22px' }}>{approvedFreeGigs.length}</strong>
+                  <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', padding: '12px' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>FREE</p>
+                    <strong style={{ color: 'rgba(241,212,229,0.62)', fontSize: '22px' }}>{approvedFreeGigs.length}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', padding: '12px' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>BAYAR</p>
-                    <strong style={{ color: 'rgba(242,242,242,0.62)', fontSize: '22px' }}>{exclusiveWaitingPaymentGigs.length}</strong>
+                  <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', padding: '12px' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>BAYAR</p>
+                    <strong style={{ color: 'rgba(241,212,229,0.62)', fontSize: '22px' }}>{exclusiveWaitingPaymentGigs.length}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', padding: '12px' }}>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>EXCLUSIVE</p>
-                    <strong style={{ color: '#5CB8E4', fontSize: '22px' }}>{approvedExclusiveGigs.length}</strong>
+                  <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', padding: '12px' }}>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>EXCLUSIVE</p>
+                    <strong style={{ color: '#73BBC9', fontSize: '22px' }}>{approvedExclusiveGigs.length}</strong>
                   </div>
                 </div>
 
                 {gigs.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada pamflet yang pernah dikirim.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada pamflet yang pernah dikirim.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {gigs.slice(0, 6).map((gig) => (
-                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', padding: '10px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px', alignItems: 'center' }}>
+                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px', alignItems: 'center' }}>
                         <div>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{gig.title?.toUpperCase()}</p>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{gig.title?.toUpperCase()}</p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
                           {gig.status === 'approved_waiting_payment' && (
-                            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>KONTEN DISETUJUI - BAYAR RP {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} UNTUK LANJUT</p>
+                            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>KONTEN DISETUJUI - BAYAR RP {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} UNTUK LANJUT</p>
                           )}
                           {gig.status === 'paid_waiting_activation' && (
-                            <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>PAYMENT RECEIVED - MENUNGGU ADMIN ACTIVATE</p>
+                            <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>PAYMENT RECEIVED - MENUNGGU ADMIN ACTIVATE</p>
                           )}
                           {isApprovedHomepageGig(gig) && (
-                            <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>TAYANG SAMPAI: {getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</p>
+                            <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: '4px 0 0 0' }}>TAYANG SAMPAI: {getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</p>
                           )}
                         </div>
                         {gig.status === 'approved_waiting_payment' ? (
-                          <button onClick={() => handleGigExclusivePayment(gig)} style={{ padding: '9px 10px', backgroundColor: 'rgba(242,242,242,0.62)', color: '#181818', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BAYAR</button>
+                          <button onClick={() => handleGigExclusivePayment(gig)} style={{ padding: '9px 10px', backgroundColor: 'rgba(241,212,229,0.62)', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BAYAR</button>
                         ) : (
                           <span style={{ color: getGigStatusColor(gig.status), fontSize: '10px', fontWeight: '900', textAlign: 'right' }}>{getGigStatusLabel(gig.status)}</span>
                         )}
@@ -9176,18 +9176,18 @@ export default function App() {
                 )}
               </section>
 
-              <section style={{ ...glassStyle('gig-public-schedule'), padding: '20px', backgroundColor: '#181818' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>PAMFLET APPROVED HOMEPAGE</h3>
+              <section style={{ ...glassStyle('gig-public-schedule'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>PAMFLET APPROVED HOMEPAGE</h3>
                 {filteredPublicGigs.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada pamflet free/exclusive yang approved untuk homepage.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', margin: 0 }}>Belum ada pamflet free/exclusive yang approved untuk homepage.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {filteredPublicGigs.slice(0, 5).map((gig) => (
-                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: '12px', padding: '10px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '12px' }}>
+                      <div key={gig.id} style={{ display: 'grid', gridTemplateColumns: '72px 1fr', gap: '12px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '12px' }}>
                         {renderGigPosterImage(gig, { width: '72px', height: '90px', objectFit: 'cover', borderRadius: '8px' })}
                         <div>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)} / {getGigHtm(gig)}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)} / {getGigHtm(gig)}</p>
                         </div>
                       </div>
                     ))}
@@ -9212,64 +9212,64 @@ export default function App() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: splitGridColumns, gap: '24px', alignItems: 'start' }}>
-            <aside style={{ ...glassStyle('audience-account-card'), padding: '22px', backgroundColor: '#181818' }}>
-              <div style={{ width: '92px', height: '92px', borderRadius: '14px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.34)', display: 'grid', placeItems: 'center', boxShadow: 'none', marginBottom: '18px', overflow: 'hidden' }}>
+            <aside style={{ ...glassStyle('audience-account-card'), padding: '22px', backgroundColor: '#080202' }}>
+              <div style={{ width: '92px', height: '92px', borderRadius: '14px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.34)', display: 'grid', placeItems: 'center', boxShadow: 'none', marginBottom: '18px', overflow: 'hidden' }}>
                 {audienceProfile.photoPreview ? (
                   <img src={audienceProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <User size={38} color="#5CB8E4" />
+                  <User size={38} color="#73BBC9" />
                 )}
               </div>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>ACCOUNT NAME</p>
-              <h3 style={{ color: '#F2F2F2', fontSize: '20px', fontWeight: '900', margin: '0 0 16px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{audienceProfile.displayName || userSession?.email || 'AUDIENCE WISPACE'}</h3>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>ACCOUNT NAME</p>
+              <h3 style={{ color: '#F1D4E5', fontSize: '20px', fontWeight: '900', margin: '0 0 16px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{audienceProfile.displayName || userSession?.email || 'AUDIENCE WISPACE'}</h3>
               <div style={{ display: 'grid', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid #8758FF', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>EMAIL</span><strong style={{ color: '#F2F2F2', textAlign: 'right', overflowWrap: 'anywhere' }}>{userSession?.email || '-'}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>EMAIL</span><strong style={{ color: '#F1D4E5', textAlign: 'right', overflowWrap: 'anywhere' }}>{userSession?.email || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid #8758FF', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>ROLE</span><strong style={{ color: '#5CB8E4' }}>{(userRole || 'audience').toUpperCase()}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>ROLE</span><strong style={{ color: '#73BBC9' }}>{(userRole || 'audience').toUpperCase()}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid #8758FF', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>KOTA</span><strong style={{ color: '#F2F2F2', textAlign: 'right' }}>{audienceProfile.city || '-'}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>KOTA</span><strong style={{ color: '#F1D4E5', textAlign: 'right' }}>{audienceProfile.city || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid #8758FF', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>GENRE</span><strong style={{ color: '#F2F2F2', textAlign: 'right' }}>{audienceProfile.favoriteGenre || '-'}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>GENRE</span><strong style={{ color: '#F1D4E5', textAlign: 'right' }}>{audienceProfile.favoriteGenre || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid #8758FF', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>STATUS</span><strong style={{ color: 'rgba(242,242,242,0.62)' }}>VERIFIED</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>STATUS</span><strong style={{ color: 'rgba(241,212,229,0.62)' }}>VERIFIED</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid #8758FF', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>PROFILE DETAIL</span><strong style={{ color: '#F2F2F2' }}>LIMITED</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>PROFILE DETAIL</span><strong style={{ color: '#F1D4E5' }}>LIMITED</strong>
                 </div>
               </div>
             </aside>
 
             <div style={{ display: 'grid', gap: '18px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px' }}>
-                <div style={{ ...glassStyle('audience-owned-stat'), padding: '18px', backgroundColor: '#181818' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>OWNED ALBUMS</p>
-                  <h3 style={{ color: '#5CB8E4', fontSize: '32px', fontWeight: '900', margin: 0 }}>{purchasedAlbums.length}</h3>
+                <div style={{ ...glassStyle('audience-owned-stat'), padding: '18px', backgroundColor: '#080202' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>OWNED ALBUMS</p>
+                  <h3 style={{ color: '#73BBC9', fontSize: '32px', fontWeight: '900', margin: 0 }}>{purchasedAlbums.length}</h3>
                 </div>
-                <div style={{ ...glassStyle('audience-message-stat'), padding: '18px', backgroundColor: '#181818' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MESSAGES</p>
-                  <h3 style={{ color: '#F2F2F2', fontSize: '32px', fontWeight: '900', margin: 0 }}>{visibleMessages.length}</h3>
+                <div style={{ ...glassStyle('audience-message-stat'), padding: '18px', backgroundColor: '#080202' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MESSAGES</p>
+                  <h3 style={{ color: '#F1D4E5', fontSize: '32px', fontWeight: '900', margin: 0 }}>{visibleMessages.length}</h3>
                 </div>
-                <div style={{ ...glassStyle('audience-order-stat'), padding: '18px', backgroundColor: '#181818' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH ORDERS</p>
-                  <h3 style={{ color: activeAudienceOrders.length ? 'rgba(242,242,242,0.62)' : '#F2F2F2', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audienceMerchOrders.length}</h3>
+                <div style={{ ...glassStyle('audience-order-stat'), padding: '18px', backgroundColor: '#080202' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH ORDERS</p>
+                  <h3 style={{ color: activeAudienceOrders.length ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audienceMerchOrders.length}</h3>
                 </div>
-                <div style={{ ...glassStyle('audience-payment-stat'), padding: '18px', backgroundColor: '#181818' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PAYMENT REQUEST</p>
-                  <h3 style={{ color: activeAudiencePaymentRequests.length ? 'rgba(242,242,242,0.62)' : '#F2F2F2', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audiencePaymentRequests.length}</h3>
+                <div style={{ ...glassStyle('audience-payment-stat'), padding: '18px', backgroundColor: '#080202' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PAYMENT REQUEST</p>
+                  <h3 style={{ color: activeAudiencePaymentRequests.length ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '32px', fontWeight: '900', margin: 0 }}>{audiencePaymentRequests.length}</h3>
                 </div>
-                <div style={{ ...glassStyle('audience-secure-stat'), padding: '18px', backgroundColor: '#181818' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>SECURE ACCESS</p>
-                  <h3 style={{ color: '#F2F2F2', fontSize: '22px', fontWeight: '900', margin: 0 }}>ON</h3>
+                <div style={{ ...glassStyle('audience-secure-stat'), padding: '18px', backgroundColor: '#080202' }}>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>SECURE ACCESS</p>
+                  <h3 style={{ color: '#F1D4E5', fontSize: '22px', fontWeight: '900', margin: 0 }}>ON</h3>
                 </div>
               </div>
 
-              <section style={{ ...glassStyle('audience-actions'), padding: '20px', backgroundColor: '#181818' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>QUICK ACTIONS</h3>
+              <section style={{ ...glassStyle('audience-actions'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>QUICK ACTIONS</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
                   <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>EXPLORE RILISAN</button>
                   <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY LIBRARY</button>
@@ -9278,25 +9278,25 @@ export default function App() {
                 </div>
               </section>
 
-              <section style={{ ...glassStyle('audience-payment-requests'), padding: '20px', backgroundColor: '#181818' }}>
+              <section style={{ ...glassStyle('audience-payment-requests'), padding: '20px', backgroundColor: '#080202' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: 0 }}>MY PAYMENT REQUESTS</h3>
-                  <span style={{ color: activeAudiencePaymentRequests.length ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>{activeAudiencePaymentRequests.length} WAITING</span>
+                  <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: 0 }}>MY PAYMENT REQUESTS</h3>
+                  <span style={{ color: activeAudiencePaymentRequests.length ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>{activeAudiencePaymentRequests.length} WAITING</span>
                 </div>
                 {audiencePaymentRequests.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada request pembayaran. Setelah checkout dan upload bukti bayar, statusnya tampil di sini.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada request pembayaran. Setelah checkout dan upload bukti bayar, statusnya tampil di sini.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {audiencePaymentRequests.slice(0, 6).map((payment) => (
-                      <div key={`audience-payment-${payment.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '10px', backgroundColor: '#181818', border: `1px solid ${payment.status === 'paid' ? 'rgba(242,242,242,0.22)' : payment.status === 'rejected' ? 'rgba(135,88,255,0.22)' : 'rgba(242,242,242,0.22)'}`, borderRadius: '10px' }}>
+                      <div key={`audience-payment-${payment.id}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0,1fr) auto', gap: '8px', alignItems: 'center', padding: '10px', backgroundColor: '#080202', border: `1px solid ${payment.status === 'paid' ? 'rgba(241,212,229,0.22)' : payment.status === 'rejected' ? 'rgba(241,212,229,0.22)' : 'rgba(241,212,229,0.22)'}`, borderRadius: '10px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / Proof: {payment.paymentProofPreview || payment.paymentProofUrl ? 'ready' : 'missing'}</p>
-                          {payment.rejectionReason && <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{payment.checkoutRef} / {(payment.type || 'order').toUpperCase()}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(payment.productTitle || 'Checkout WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Rp {Number(payment.amount || 0).toLocaleString('id-ID')} / Proof: {payment.paymentProofPreview || payment.paymentProofUrl ? 'ready' : 'missing'}</p>
+                          {payment.rejectionReason && <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
                         </div>
                         <div style={{ display: 'grid', gap: '6px', justifyItems: isTinyLayout ? 'start' : 'end' }}>
-                          <strong style={{ color: payment.status === 'paid' ? 'rgba(242,242,242,0.62)' : payment.status === 'rejected' ? '#8758FF' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{String(payment.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase()}</strong>
+                          <strong style={{ color: payment.status === 'paid' ? 'rgba(241,212,229,0.62)' : payment.status === 'rejected' ? '#F1D4E5' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{String(payment.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase()}</strong>
                           {['waiting_admin_confirmation', 'rejected'].includes(payment.status) && (
                             <label style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', cursor: 'pointer' }}>
                               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handlePaymentRequestProofImport(payment, event)} style={{ display: 'none' }} />
@@ -9310,20 +9310,20 @@ export default function App() {
                 )}
               </section>
 
-              <form onSubmit={handleAudienceProfileSave} style={{ ...glassStyle('audience-private-form'), padding: '20px', backgroundColor: '#181818' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>PRIVATE ACCOUNT INFO</h3>
-                <label style={{ display: 'grid', gridTemplateColumns: '74px 1fr', gap: '14px', alignItems: 'center', padding: '14px', border: '1px dashed rgba(92,184,228,0.35)', borderRadius: '14px', backgroundColor: '#181818', cursor: 'pointer', marginBottom: '12px' }}>
+              <form onSubmit={handleAudienceProfileSave} style={{ ...glassStyle('audience-private-form'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>PRIVATE ACCOUNT INFO</h3>
+                <label style={{ display: 'grid', gridTemplateColumns: '74px 1fr', gap: '14px', alignItems: 'center', padding: '14px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '14px', backgroundColor: '#080202', cursor: 'pointer', marginBottom: '12px' }}>
                   <input type="file" accept="image/*" onChange={handleAudiencePhotoImport} style={{ display: 'none' }} />
-                  <div style={{ width: '74px', height: '74px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', display: 'grid', placeItems: 'center' }}>
+                  <div style={{ width: '74px', height: '74px', borderRadius: '14px', overflow: 'hidden', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', display: 'grid', placeItems: 'center' }}>
                     {audienceProfile.photoPreview ? (
                       <img src={audienceProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <User size={26} color="#5CB8E4" />
+                      <User size={26} color="#73BBC9" />
                     )}
                   </div>
                   <div>
-                    <span style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900' }}>GANTI FOTO PROFILE</span>
-                    <p style={{ color: '#8758FF', fontSize: '12px', margin: '6px 0 0 0' }}>{audienceProfile.photoName || 'Upload foto akun audience lu.'}</p>
+                    <span style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900' }}>GANTI FOTO PROFILE</span>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', margin: '6px 0 0 0' }}>{audienceProfile.photoName || 'Upload foto akun audience lu.'}</p>
                   </div>
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px', marginBottom: '12px' }}>
@@ -9332,12 +9332,12 @@ export default function App() {
                   <input type="text" placeholder="GENRE FAVORIT" value={audienceProfile.favoriteGenre} onChange={(event) => setAudienceProfile({ ...audienceProfile, favoriteGenre: event.target.value })} style={formInputStyle} />
                   <input type="text" placeholder="KONTAK OPSIONAL" value={audienceProfile.contact} onChange={(event) => setAudienceProfile({ ...audienceProfile, contact: event.target.value })} style={formInputStyle} />
                 </div>
-                <button type="submit" style={{ width: '100%', padding: '13px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE AUDIENCE</button>
+                <button type="submit" style={{ width: '100%', padding: '13px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE AUDIENCE</button>
               </form>
 
-              <section style={{ ...glassStyle('audience-profile-note'), padding: '20px', backgroundColor: '#181818' }}>
-                <h3 style={{ color: '#F2F2F2', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>PROFILE AUDIENCE DIBIKIN SIMPLE</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Audience tidak perlu bikin halaman publik seperti band. Halaman publik, album, merch, jadwal manggung, dan tombol message tetap fokus di profile band.</p>
+              <section style={{ ...glassStyle('audience-profile-note'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#F1D4E5', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>PROFILE AUDIENCE DIBIKIN SIMPLE</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Audience tidak perlu bikin halaman publik seperti band. Halaman publik, album, merch, jadwal manggung, dan tombol message tetap fokus di profile band.</p>
               </section>
             </div>
           </div>
@@ -9358,8 +9358,8 @@ export default function App() {
                   ['ACCESS', 'ENCRYPTED'],
                   ['REDISTRIBUTION', 'DILARANG']
                 ].map(([label, value]) => (
-                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#181818', border: `1px solid ${label === 'REDISTRIBUTION' ? 'rgba(135,88,255,0.22)' : 'rgba(92,184,228,0.18)'}`, borderRadius: '9999px', color: label === 'REDISTRIBUTION' ? '#8758FF' : '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
-                    {label}: <strong style={{ color: label === 'REDISTRIBUTION' ? '#8758FF' : '#F2F2F2' }}>{value}</strong>
+                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#080202', border: `1px solid ${label === 'REDISTRIBUTION' ? 'rgba(241,212,229,0.22)' : 'rgba(115,187,201,0.18)'}`, borderRadius: '9999px', color: label === 'REDISTRIBUTION' ? '#F1D4E5' : '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
+                    {label}: <strong style={{ color: label === 'REDISTRIBUTION' ? '#F1D4E5' : '#F1D4E5' }}>{value}</strong>
                   </span>
                 ))}
               </div>
@@ -9367,9 +9367,9 @@ export default function App() {
           </div>
 
           {purchasedAlbums.length === 0 ? (
-            <div style={{ ...glassStyle('library-empty'), padding: '28px', backgroundColor: '#181818' }}>
-              <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>LIBRARY MASIH KOSONG</h3>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, pilih album digital, lalu klik beli. Untuk sekarang masih mock purchase dulu.</p>
+            <div style={{ ...glassStyle('library-empty'), padding: '28px', backgroundColor: '#080202' }}>
+              <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>LIBRARY MASIH KOSONG</h3>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, pilih album digital, lalu klik beli. Untuk sekarang masih mock purchase dulu.</p>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
             </div>
           ) : (
@@ -9388,14 +9388,14 @@ export default function App() {
                         setSelectedLibraryItemId(album.id);
                         setSelectedLibraryTrackId(null);
                       }}
-                      style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', gap: isTinyLayout ? '7px' : '9px', padding: isTinyLayout ? '6px 0' : '7px 0', borderTopColor: isSelectedLibraryItem ? 'rgba(92,184,228,0.55)' : flatLineColor }}
+                      style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', gap: isTinyLayout ? '7px' : '9px', padding: isTinyLayout ? '6px 0' : '7px 0', borderTopColor: isSelectedLibraryItem ? 'rgba(115,187,201,0.55)' : flatLineColor }}
                     >
                       <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '7px' }}>
-                        {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>COVER</span>}
+                        {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900' }}>COVER</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.12 }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '9px' : '10px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
+                        <h4 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.12 }}>{album.title.toUpperCase()}</h4>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: isTinyLayout ? '9px' : '10px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
                       </div>
                       <button
                         onClick={(event) => {
@@ -9415,24 +9415,24 @@ export default function App() {
               </section>
 
               <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '12px' : '14px', paddingBottom: isTinyLayout ? '12px' : '14px' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '96px 1fr' : '118px 1fr', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
-                    {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '11px', fontWeight: '900' }}>PLAYER</span>}
+                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+                    {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900' }}>PLAYER</span>}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <div style={{ minWidth: 0 }}>
-                        <h4 style={{ color: '#F2F2F2', fontSize: '17px', fontWeight: '900', margin: '0 0 6px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
-                        <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
+                        <h4 style={{ color: '#F1D4E5', fontSize: '17px', fontWeight: '900', margin: '0 0 6px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
+                        <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
                       </div>
-                      <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '9999px', color: '#F2F2F2', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
+                      <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: '#F1D4E5', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
                     </div>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Secret encrypted access. Full playback buat archive yang sudah dibeli.</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Secret encrypted access. Full playback buat archive yang sudah dibeli.</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.18)', color: '#5CB8E4', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.1)', color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>DOWNLOAD PER TRACK</span>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.16)', color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>PERSONAL LICENSE</span>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', color: '#73BBC9', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.1)', color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900' }}>DOWNLOAD PER TRACK</span>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.16)', color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900' }}>PERSONAL LICENSE</span>
                     </div>
                   </div>
                 </div>
@@ -9446,13 +9446,13 @@ export default function App() {
                       <div
                         key={track.id}
                         onClick={() => setSelectedLibraryTrackId(track.id)}
-                        style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', borderTopColor: isSelectedLibraryTrack ? 'rgba(92,184,228,0.38)' : 'rgba(242,242,242,0.08)' }}
+                        style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', borderTopColor: isSelectedLibraryTrack ? 'rgba(115,187,201,0.38)' : 'rgba(241,212,229,0.08)' }}
                       >
                         <div>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
-                          <p style={{ color: track.audioPath ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '11px', margin: 0 }}>{track.audioPath ? 'PRIVATE STORAGE / FULL OWNED' : 'LOCAL FALLBACK / FULL OWNED'}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
+                          <p style={{ color: track.audioPath ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '11px', margin: 0 }}>{track.audioPath ? 'PRIVATE STORAGE / FULL OWNED' : 'LOCAL FALLBACK / FULL OWNED'}</p>
                         </div>
-                        {!isTinyLayout && <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handleSecureLibraryDownload(track); }} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD</button>}
+                        {!isTinyLayout && <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handleSecureLibraryDownload(track); }} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD</button>}
                         <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handlePlayLibraryTrack(track); }} style={{ ...glassButtonStyle, padding: '8px 11px', fontSize: '10px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
                       </div>
                     );
@@ -9460,25 +9460,25 @@ export default function App() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
-                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
+                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Download hanya untuk akun pembeli, personal listening, dan tidak untuk distribusi ulang. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
-                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(242,242,242,0.08)' }}>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Download hanya untuk akun pembeli, personal listening, dan tidak untuk distribusi ulang. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(241,212,229,0.08)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: 0 }}>DOWNLOAD LOG</p>
-                    <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>{downloadLogs.length} RECORD</span>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: 0 }}>DOWNLOAD LOG</p>
+                    <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900' }}>{downloadLogs.length} RECORD</span>
                   </div>
                   {selectedLibraryDownloadLogs.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>Belum ada download di device ini.</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>Belum ada download di device ini.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '7px' }}>
                       {selectedLibraryDownloadLogs.slice(0, 3).map((log) => (
-                        <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', padding: '7px 0', borderTop: '1px solid rgba(242,242,242,0.06)' }}>
+                        <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', padding: '7px 0', borderTop: '1px solid rgba(241,212,229,0.06)' }}>
                           <div style={{ minWidth: 0 }}>
-                            <p style={{ color: '#F2F2F2', fontSize: '10px', fontWeight: '900', margin: '0 0 3px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.trackTitle.toUpperCase()}</p>
-                            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.albumTitle} / {log.bandName}</p>
+                            <p style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900', margin: '0 0 3px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.trackTitle.toUpperCase()}</p>
+                            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.albumTitle} / {log.bandName}</p>
                           </div>
-                          <span style={{ color: '#8758FF', fontSize: '8px', fontWeight: '900', textAlign: 'right', whiteSpace: 'nowrap' }}>{log.downloadedAt}</span>
+                          <span style={{ color: '#F1D4E5', fontSize: '8px', fontWeight: '900', textAlign: 'right', whiteSpace: 'nowrap' }}>{log.downloadedAt}</span>
                         </div>
                       ))}
                     </div>
@@ -9505,8 +9505,8 @@ export default function App() {
                   ['PAYMENT WAIT', activeAudiencePaymentRequests.length],
                   ['SELESAI', audienceMerchOrders.filter((order) => order.trackingStatus === 'completed').length]
                 ].map(([label, value]) => (
-                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.18)', borderRadius: '9999px', color: label === 'AKTIF' && value ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
-                    {label}: <strong style={{ color: '#F2F2F2' }}>{value}</strong>
+                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', borderRadius: '9999px', color: label === 'AKTIF' && value ? 'rgba(241,212,229,0.62)' : '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
+                    {label}: <strong style={{ color: '#F1D4E5' }}>{value}</strong>
                   </span>
                 ))}
               </div>
@@ -9515,16 +9515,16 @@ export default function App() {
           </div>
 
           {audiencePaymentRequests.length > 0 && (
-            <section style={{ padding: isTinyLayout ? '10px 0 14px' : '12px 0 16px', marginBottom: '16px', borderBottom: '1px solid rgba(242,242,242,0.08)' }}>
+            <section style={{ padding: isTinyLayout ? '10px 0 14px' : '12px 0 16px', marginBottom: '16px', borderBottom: '1px solid rgba(241,212,229,0.08)' }}>
               <h3 style={{ ...sectionHeadingStyle, marginBottom: '12px' }}>PAYMENT REQUEST STATUS</h3>
               <div style={flatListStyle}>
                 {audiencePaymentRequests.slice(0, 6).map((payment) => (
-                  <div key={`orders-payment-${payment.id}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1fr) auto', borderTopColor: payment.status === 'paid' ? 'rgba(242,242,242,0.2)' : payment.status === 'rejected' ? 'rgba(135,88,255,0.25)' : 'rgba(242,242,242,0.22)', cursor: 'default' }}>
+                  <div key={`orders-payment-${payment.id}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1fr) auto', borderTopColor: payment.status === 'paid' ? 'rgba(241,212,229,0.2)' : payment.status === 'rejected' ? 'rgba(241,212,229,0.25)' : 'rgba(241,212,229,0.22)', cursor: 'default' }}>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: payment.status === 'paid' ? 'rgba(242,242,242,0.62)' : payment.status === 'rejected' ? '#8758FF' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()}</p>
-                      <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.productTitle}</h4>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.checkoutRef} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
-                      {payment.rejectionReason && <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
+                      <p style={{ color: payment.status === 'paid' ? 'rgba(241,212,229,0.62)' : payment.status === 'rejected' ? '#F1D4E5' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(payment.status || '').replaceAll('_', ' ').toUpperCase()}</p>
+                      <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.productTitle}</h4>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{payment.checkoutRef} / Rp {Number(payment.amount || 0).toLocaleString('id-ID')}</p>
+                      {payment.rejectionReason && <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Reject: {payment.rejectionReason}</p>}
                     </div>
                     {['waiting_admin_confirmation', 'rejected'].includes(payment.status) && (
                       <label style={{ ...glassButtonStyle, display: 'inline-grid', width: 'fit-content', padding: '6px 8px', fontSize: '9px', borderRadius: '8px', cursor: 'pointer' }}>
@@ -9539,9 +9539,9 @@ export default function App() {
           )}
 
           {audienceMerchOrders.length === 0 ? (
-            <div style={{ ...glassStyle('orders-empty'), padding: '28px', backgroundColor: '#181818' }}>
-              <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>BELUM ADA ORDER MERCH</h3>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, masuk tab Merch, lalu checkout item fisik dari band. Status order akan tampil di sini.</p>
+            <div style={{ ...glassStyle('orders-empty'), padding: '28px', backgroundColor: '#080202' }}>
+              <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>BELUM ADA ORDER MERCH</h3>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, masuk tab Merch, lalu checkout item fisik dari band. Status order akan tampil di sini.</p>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
             </div>
           ) : (
@@ -9550,22 +9550,22 @@ export default function App() {
                 <h3 style={sectionHeadingStyle}>ORDER HISTORY</h3>
                 <div style={flatListStyle}>
                   {audienceMerchOrders.map((order) => (
-                    <article key={order.id} style={{ ...flatItemStyle, display: 'block', cursor: 'default', borderTopColor: ['completed', 'cancelled'].includes(order.trackingStatus) ? 'rgba(242,242,242,0.08)' : 'rgba(92,184,228,0.22)' }}>
+                    <article key={order.id} style={{ ...flatItemStyle, display: 'block', cursor: 'default', borderTopColor: ['completed', 'cancelled'].includes(order.trackingStatus) ? 'rgba(241,212,229,0.08)' : 'rgba(115,187,201,0.22)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''}</p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
                       {renderMerchOrderStepper(order.trackingStatus)}
-                      <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '8px 0', borderTop: '1px solid rgba(242,242,242,0.06)', borderBottom: '1px solid rgba(242,242,242,0.06)', marginBottom: '8px' }}>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#F2F2F2' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
-                        <p style={{ color: order.trackingNumber ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
+                      <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '8px 0', borderTop: '1px solid rgba(241,212,229,0.06)', borderBottom: '1px solid rgba(241,212,229,0.06)', marginBottom: '8px' }}>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#F1D4E5' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
+                        <p style={{ color: order.trackingNumber ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
                         <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
                       </div>
                     </article>
@@ -9574,7 +9574,7 @@ export default function App() {
               </section>
 
               <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '10px' : '12px', paddingBottom: isTinyLayout ? '10px' : '12px' }}>
-                <h3 style={{ color: '#5CB8E4', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
                 <div style={flatListStyle}>
                   {[
                     ['order_paid_waiting_band', 'Pembayaran tercatat, band belum proses.'],
@@ -9584,7 +9584,7 @@ export default function App() {
                   ].map(([status, description]) => (
                     <div key={status} style={{ ...flatItemStyle, display: 'block', cursor: 'default' }}>
                       <strong style={{ color: getMerchOrderStatusColor(status), fontSize: '10px', fontWeight: '900' }}>{getMerchOrderStatusLabel(status)}</strong>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{description}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{description}</p>
                     </div>
                   ))}
                 </div>
@@ -9608,27 +9608,27 @@ export default function App() {
 
           <div style={{ display: 'grid', gap: '14px', alignItems: 'start' }}>
             {isBandAccount && (
-              <section style={{ ...glassStyle('band-notifications'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#181818' }}>
+              <section style={{ ...glassStyle('band-notifications'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                    <div style={{ width: '30px', height: '30px', borderRadius: '9999px', backgroundColor: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.24)', display: 'grid', placeItems: 'center', color: '#5CB8E4' }}>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '9999px', backgroundColor: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', display: 'grid', placeItems: 'center', color: '#73BBC9' }}>
                       <Bell size={15} />
                     </div>
                     <h3 style={{ ...sectionHeadingStyle, margin: 0, fontSize: '13px' }}>BAND NOTIFICATIONS</h3>
                   </div>
-                  <span style={{ color: unreadBandNotifications ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>{unreadBandNotifications} NEW</span>
+                  <span style={{ color: unreadBandNotifications ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>{unreadBandNotifications} NEW</span>
                 </div>
                 {bandNotifications.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada notif band. Subscriber baru dan update aktivitas band akan tampil di sini.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada notif band. Subscriber baru dan update aktivitas band akan tampil di sini.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px' }}>
                     {bandNotifications.slice(0, 6).map((notification) => (
-                      <div key={notification.id} style={{ ...compactRowStyle, border: notification.read ? '1px solid #8758FF' : '1px solid rgba(242,242,242,0.3)' }}>
+                      <div key={notification.id} style={{ ...compactRowStyle, border: notification.read ? '1px solid #F1D4E5' : '1px solid rgba(241,212,229,0.3)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '4px' }}>
-                          <strong style={{ color: notification.read ? '#F2F2F2' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900' }}>{notification.title}</strong>
-                          <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{notification.createdAt}</span>
+                          <strong style={{ color: notification.read ? '#F1D4E5' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900' }}>{notification.title}</strong>
+                          <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{notification.createdAt}</span>
                         </div>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{notification.body}</p>
                       </div>
                     ))}
                   </div>
@@ -9636,13 +9636,13 @@ export default function App() {
               </section>
             )}
             {isBandAccount && (
-              <section style={{ ...glassStyle('band-admin-support'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#181818' }}>
+              <section style={{ ...glassStyle('band-admin-support'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                   <div>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>SUPPORT ADMIN</p>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>SUPPORT ADMIN</p>
                     <h3 style={{ ...sectionHeadingStyle, margin: 0, fontSize: '13px' }}>HUBUNGI ADMIN WISPACE</h3>
                   </div>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Buat masalah payout, payment, pamflet, album, merch, atau error upload.</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Buat masalah payout, payment, pamflet, album, merch, atau error upload.</p>
                 </div>
                 <form onSubmit={handleBandSupportSubmit} style={{ display: 'grid', gap: '9px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '160px 1fr', gap: '8px' }}>
@@ -9654,25 +9654,25 @@ export default function App() {
                     <input type="text" placeholder="SUBJEK KE ADMIN" value={bandSupportDraft.subject} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, subject: event.target.value })} style={formInputStyle} />
                   </div>
                   <textarea placeholder="TULIS PESAN KE ADMIN..." value={bandSupportDraft.body} onChange={(event) => setBandSupportDraft({ ...bandSupportDraft, body: event.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
-                  <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(92,184,228,0.3)', borderRadius: '10px', backgroundColor: '#181818', cursor: 'pointer' }}>
+                  <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(115,187,201,0.3)', borderRadius: '10px', backgroundColor: '#080202', cursor: 'pointer' }}>
                     <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleBandSupportAttachmentImport} style={{ display: 'none' }} />
-                    <span style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
+                    <span style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
                   </label>
                   <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '10px 14px', fontSize: '11px' }}>KIRIM KE ADMIN</button>
                 </form>
               </section>
             )}
-            <section style={{ ...glassStyle('message-inbox'), padding: '20px', backgroundColor: '#181818' }}>
+            <section style={{ ...glassStyle('message-inbox'), padding: '20px', backgroundColor: '#080202' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>INBOX</h3>
-                <span style={{ color: unreadMessages ? '#8758FF' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900' }}>{unreadMessages} NEW</span>
+                <span style={{ color: unreadMessages ? '#F1D4E5' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900' }}>{unreadMessages} NEW</span>
               </div>
 
               {visibleMessages.length === 0 ? (
-                <div style={{ padding: '24px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '14px' }}>
-                  <h4 style={{ color: '#F2F2F2', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>INBOX MASIH KOSONG</h4>
-                  <p style={{ color: '#8758FF', fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px 0' }}>{isBandAccount ? 'Belum ada pesan baru dari audience, promotor, atau band lain.' : 'Belum ada pesan masuk untuk akun audience ini.'}</p>
+                <div style={{ padding: '24px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '14px' }}>
+                  <h4 style={{ color: '#F1D4E5', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>INBOX MASIH KOSONG</h4>
+                  <p style={{ color: '#F1D4E5', fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px 0' }}>{isBandAccount ? 'Belum ada pesan baru dari audience, promotor, atau band lain.' : 'Belum ada pesan masuk untuk akun audience ini.'}</p>
                   {!isBandAccount && (
                     <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>CARI BAND DI EXPLORE</button>
                   )}
@@ -9680,23 +9680,23 @@ export default function App() {
               ) : (
                 <div style={{ display: 'grid', gap: '12px' }}>
                   {visibleMessages.map((message) => (
-                    <article key={message.id} style={{ padding: '14px', backgroundColor: '#181818', border: message.read ? '1px solid #8758FF' : '1px solid rgba(92,184,228,0.38)', borderRadius: '14px' }}>
+                    <article key={message.id} style={{ padding: '14px', backgroundColor: '#080202', border: message.read ? '1px solid #F1D4E5' : '1px solid rgba(115,187,201,0.38)', borderRadius: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
-                        <p style={{ color: '#F2F2F2', fontSize: '13px', fontWeight: '900', margin: 0 }}>{message.sender.toUpperCase()}</p>
-                        <span style={{ color: message.read ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '10px', fontWeight: '900' }}>{message.read ? message.createdAt : 'NEW'}</span>
+                        <p style={{ color: '#F1D4E5', fontSize: '13px', fontWeight: '900', margin: 0 }}>{message.sender.toUpperCase()}</p>
+                        <span style={{ color: message.read ? 'rgba(241,212,229,0.62)' : '#73BBC9', fontSize: '10px', fontWeight: '900' }}>{message.read ? message.createdAt : 'NEW'}</span>
                       </div>
-                      <h4 style={{ color: '#5CB8E4', fontSize: '13px', fontWeight: '900', margin: '0 0 8px 0' }}>{message.subject}</h4>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 10px 0' }}>{message.body}</p>
+                      <h4 style={{ color: '#73BBC9', fontSize: '13px', fontWeight: '900', margin: '0 0 8px 0' }}>{message.subject}</h4>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 10px 0' }}>{message.body}</p>
                       {message.attachmentUrl && (
-                        <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', margin: '0 0 10px 0', color: '#5CB8E4', fontSize: '10px', fontWeight: '900', textDecoration: 'none' }}>
+                        <a href={message.attachmentUrl} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', width: 'fit-content', margin: '0 0 10px 0', color: '#73BBC9', fontSize: '10px', fontWeight: '900', textDecoration: 'none' }}>
                           BUKA LAMPIRAN: {(message.attachmentName || 'FILE').toUpperCase()}
                         </a>
                       )}
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 12px 0' }}>Kontak: <span style={{ color: '#F2F2F2' }}>{message.contact}</span></p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 12px 0' }}>Kontak: <span style={{ color: '#F1D4E5' }}>{message.contact}</span></p>
                       {message.replied && (
-                        <div style={{ padding: '10px', backgroundColor: 'rgba(92,184,228,0.06)', border: '1px solid rgba(92,184,228,0.18)', borderRadius: '10px', marginBottom: '12px' }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>BALASAN TERAKHIR</p>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{message.lastReply}</p>
+                        <div style={{ padding: '10px', backgroundColor: 'rgba(115,187,201,0.06)', border: '1px solid rgba(115,187,201,0.18)', borderRadius: '10px', marginBottom: '12px' }}>
+                          <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>BALASAN TERAKHIR</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{message.lastReply}</p>
                         </div>
                       )}
                       {isBandAccount && activeReplyId === message.id ? (
@@ -9704,13 +9704,13 @@ export default function App() {
                           <textarea placeholder={`BALAS KE ${message.sender.toUpperCase()}`} value={replyDraft} onChange={(event) => setReplyDraft(event.target.value)} rows={4} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <button type="submit" style={{ ...glassButtonStyle, padding: '10px', fontSize: '11px' }}>KIRIM REPLY</button>
-                            <button type="button" onClick={() => { setActiveReplyId(null); setReplyDraft(''); }} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BATAL</button>
+                            <button type="button" onClick={() => { setActiveReplyId(null); setReplyDraft(''); }} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '12px', padding: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BATAL</button>
                           </div>
                         </form>
                       ) : isBandAccount ? (
                         <button onClick={() => { setActiveReplyId(message.id); setReplyDraft(message.lastReply || ''); }} style={{ ...glassButtonStyle, padding: '9px 14px', fontSize: '11px' }}>REPLY</button>
                       ) : (
-                        <span style={{ display: 'inline-flex', width: 'fit-content', padding: '8px 12px', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '9999px', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900' }}>READ ONLY</span>
+                        <span style={{ display: 'inline-flex', width: 'fit-content', padding: '8px 12px', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900' }}>READ ONLY</span>
                       )}
                     </article>
                   ))}
@@ -9726,116 +9726,116 @@ export default function App() {
         <section style={pageShellStyle}>
           <div style={pageHeaderStyle}>
             <div>
-              <p style={{ ...eyebrowStyle, color: 'rgba(242,242,242,0.62)' }}>BAND FINANCE DASHBOARD</p>
+              <p style={{ ...eyebrowStyle, color: 'rgba(241,212,229,0.62)' }}>BAND FINANCE DASHBOARD</p>
               <h2 style={pageTitleStyle}>PENGHASILAN & PENCAIRAN</h2>
               <p style={pageLeadStyle}>Pantau saldo bersih band, riwayat transaksi paid, order merch, dan jadwal payout tiap tanggal 1.</p>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '18px' }}>
-            <div style={{ ...glassStyle('finance-balance'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-balance'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>SALDO SIAP CAIR</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {bandBalance.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-gross'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-gross'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>PENJUALAN MASUK</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {bandGrossRevenue.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-minimum'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-minimum'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>MINIMUM PENARIKAN</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-split'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-split'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>{financeTransactions.length}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-digital'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-digital'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>RILISAN DIGITAL</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {financeDigitalRevenue.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-merch'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-merch'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>MERCH NET</p>
               <h3 style={{ ...compactMetricValueStyle, fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>Rp {financeMerchRevenue.toLocaleString('id-ID')}</h3>
             </div>
-            <div style={{ ...glassStyle('finance-active-orders'), ...compactMetricCardStyle, backgroundColor: '#181818' }}>
+            <div style={{ ...glassStyle('finance-active-orders'), ...compactMetricCardStyle, backgroundColor: '#080202' }}>
               <p style={compactMetricLabelStyle}>ORDER AKTIF</p>
-              <h3 style={{ ...compactMetricValueStyle, color: bandPendingMerchOrders ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>{bandPendingMerchOrders}</h3>
+              <h3 style={{ ...compactMetricValueStyle, color: bandPendingMerchOrders ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: isTinyLayout ? '20px' : '24px', margin: 0 }}>{bandPendingMerchOrders}</h3>
             </div>
           </div>
 
-          <div style={{ ...glassStyle('finance-progress'), padding: isTinyLayout ? '12px' : '14px', backgroundColor: '#181818', marginBottom: '18px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '8px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>
+          <div style={{ ...glassStyle('finance-progress'), padding: isTinyLayout ? '12px' : '14px', backgroundColor: '#080202', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '8px', color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900' }}>
               <span>PROGRESS MENUJU PENCAIRAN</span>
               <span>{Math.min(100, Math.round((bandBalance / MINIMUM_PAYOUT_AMOUNT) * 100))}%</span>
             </div>
-            <div style={{ height: '7px', backgroundColor: '#181818', borderRadius: '9999px', overflow: 'hidden', border: '1px solid #8758FF' }}>
-              <div style={{ width: `${Math.min(100, (bandBalance / MINIMUM_PAYOUT_AMOUNT) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, rgba(242,242,242,0.62), #5CB8E4)' }} />
+            <div style={{ height: '7px', backgroundColor: '#080202', borderRadius: '9999px', overflow: 'hidden', border: '1px solid rgba(241,212,229,0.14)' }}>
+              <div style={{ width: `${Math.min(100, (bandBalance / MINIMUM_PAYOUT_AMOUNT) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, rgba(241,212,229,0.62), #73BBC9)' }} />
             </div>
-            <p style={{ color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '10px', fontWeight: '900', margin: '9px 0 0 0' }}>{bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
+            <p style={{ color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '10px', fontWeight: '900', margin: '9px 0 0 0' }}>{bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'Saldo sudah memenuhi minimum pencairan.' : `Kurang Rp ${(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi untuk pencairan.`}</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '14px' }}>
-            <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#181818' }}>
-              <h3 style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band.</p>
-              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#181818', border: `1px solid ${hasBandPayoutAccount ? 'rgba(242,242,242,0.18)' : 'rgba(242,242,242,0.22)'}`, borderRadius: '10px' }}>
-                <p style={{ color: hasBandPayoutAccount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{hasBandPayoutAccount ? `${bandProfile.bankName} / ${bandProfile.bankAccountName} / ${bandProfile.bankAccountNumber}` : 'Belum lengkap. Isi di Edit Profile Band sebelum upload dan sebelum report payout.'}</p>
+            <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
+              <h3 style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band.</p>
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#080202', border: `1px solid ${hasBandPayoutAccount ? 'rgba(241,212,229,0.18)' : 'rgba(241,212,229,0.22)'}`, borderRadius: '10px' }}>
+                <p style={{ color: hasBandPayoutAccount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{hasBandPayoutAccount ? `${bandProfile.bankName} / ${bandProfile.bankAccountName} / ${bandProfile.bankAccountNumber}` : 'Belum lengkap. Isi di Edit Profile Band sebelum upload dan sebelum report payout.'}</p>
               </div>
             </section>
-            <section style={{ ...glassStyle('finance-history'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#181818' }}>
-              <h3 style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>RIWAYAT TRANSAKSI</h3>
+            <section style={{ ...glassStyle('finance-history'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
+              <h3 style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>RIWAYAT TRANSAKSI</h3>
               {financeTransactions.length === 0 ? (
-                <p style={{ color: '#8758FF', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini setelah payment paid.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini setelah payment paid.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {financeTransactions.slice(0, 10).map((transaction) => (
                     <div key={transaction.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{transaction.productType.toUpperCase()} / {transaction.createdAt}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{transaction.productTitle.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{transaction.productType.toUpperCase()} / {transaction.createdAt}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{transaction.productTitle.toUpperCase()}</h4>
                         </div>
-                        <strong style={{ color: '#F2F2F2', fontSize: '12px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
+                        <strong style={{ color: '#F1D4E5', fontSize: '12px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
                       </div>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
                     </div>
                   ))}
                 </div>
               )}
             </section>
-            <section style={{ ...glassStyle('finance-merch-orders'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#181818' }}>
-              <h3 style={{ color: '#5CB8E4', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ORDER MERCH MASUK</h3>
+            <section style={{ ...glassStyle('finance-merch-orders'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
+              <h3 style={{ color: '#73BBC9', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ORDER MERCH MASUK</h3>
               {bandMerchOrders.length === 0 ? (
-                <p style={{ color: '#8758FF', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch fisik. Kalau audience checkout merch, alamat dan kurir akan tampil di sini.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch fisik. Kalau audience checkout merch, alamat dan kurir akan tampil di sini.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {bandMerchOrders.slice(0, 8).map((order) => (
                     <div key={order.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
-                          <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
+                          <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
                       {renderMerchOrderStepper(order.trackingStatus)}
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{order.address}, {order.city} {order.postalCode}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '0 0 4px 0' }}>Penerima: {order.recipientName} / {order.recipientPhone}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '0 0 8px 0' }}>{order.address}, {order.city} {order.postalCode}</p>
                       {order.originShipping && (
-                        <p style={{ color: '#8758FF', fontSize: '9px', lineHeight: 1.35, margin: '0 0 8px 0' }}>Dikirim dari: {order.originShipping.city || '-'}, {order.originShipping.province || '-'} {order.originShipping.postalCode || ''}</p>
+                        <p style={{ color: '#F1D4E5', fontSize: '9px', lineHeight: 1.35, margin: '0 0 8px 0' }}>Dikirim dari: {order.originShipping.city || '-'}, {order.originShipping.province || '-'} {order.originShipping.postalCode || ''}</p>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <p style={{ color: order.trackingNumber ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'belum diisi'}</strong></p>
+                        <p style={{ color: order.trackingNumber ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'belum diisi'}</strong></p>
                         {order.fulfillmentMode === 'admin_consignment' ? (
-                          <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
                         ) : (
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
-                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.24)', color: order.trackingStatus === 'processing' ? '#8758FF' : '#5CB8E4', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
-                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} disabled={order.trackingStatus === 'packing'} style={{ background: 'rgba(92,184,228,0.08)', border: '1px solid rgba(92,184,228,0.24)', color: order.trackingStatus === 'packing' ? '#8758FF' : '#5CB8E4', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'packing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PACKING</button>
-                            <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.24)', color: 'rgba(242,242,242,0.62)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
-                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} disabled={order.trackingStatus === 'completed'} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: order.trackingStatus === 'completed' ? '#8758FF' : '#F2F2F2', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'completed' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
+                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', color: order.trackingStatus === 'processing' ? '#F1D4E5' : '#73BBC9', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
+                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} disabled={order.trackingStatus === 'packing'} style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', color: order.trackingStatus === 'packing' ? '#F1D4E5' : '#73BBC9', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'packing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PACKING</button>
+                            <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.24)', color: 'rgba(241,212,229,0.62)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
+                            <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} disabled={order.trackingStatus === 'completed'} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: order.trackingStatus === 'completed' ? '#F1D4E5' : '#F1D4E5', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'completed' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
                           </div>
                         )}
                       </div>
@@ -9861,83 +9861,83 @@ export default function App() {
 
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '24px', alignItems: 'start' }}>
             <aside style={{ ...bandArchivePanelStyle, padding: '16px' }}>
-              <div style={{ position: 'relative', minHeight: '210px', borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '1px solid rgba(242,242,242,0.08)', marginBottom: '18px' }}>
+              <div style={{ position: 'relative', minHeight: '210px', borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '1px solid rgba(241,212,229,0.08)', marginBottom: '18px' }}>
                 {bandProfile.coverPreview ? (
                   <img src={bandProfile.coverPreview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #181818 0%, #8758FF 52%, #181818 100%)' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #080202 0%, #F1D4E5 52%, #080202 100%)' }} />
                 )}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(24,24,24,0.92), rgba(24,24,24,0.18))' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(8,2,2,0.92), rgba(8,2,2,0.18))' }} />
                 <div style={{ position: 'absolute', left: '16px', right: '16px', bottom: '16px', display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
-                  <div style={{ width: '86px', height: '86px', borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '2px solid rgba(92,184,228,0.7)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '86px', height: '86px', borderRadius: '9px', overflow: 'hidden', background: softSurfaceBackground, border: '2px solid rgba(115,187,201,0.7)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     {bandProfile.photoPreview ? (
                       <img src={bandProfile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <span style={{ color: '#8758FF', fontSize: '11px', fontWeight: '900' }}>FOTO</span>
+                      <span style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900' }}>FOTO</span>
                     )}
                   </div>
                   <div>
-                    <p style={{ color: bandProfile.isPublished ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>{bandProfile.isPublished ? 'PUBLIC DRAFT' : 'DRAFT BELUM DISIMPAN'}</p>
-                    <h3 style={{ color: '#F2F2F2', fontSize: '24px', fontWeight: '900', margin: 0, lineHeight: 1 }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h3>
+                    <p style={{ color: bandProfile.isPublished ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>{bandProfile.isPublished ? 'PUBLIC DRAFT' : 'DRAFT BELUM DISIMPAN'}</p>
+                    <h3 style={{ color: '#F1D4E5', fontSize: '24px', fontWeight: '900', margin: 0, lineHeight: 1 }}>{(bandProfile.name || signatureName || 'NAMA BAND').toUpperCase()}</h3>
                   </div>
                 </div>
               </div>
-              <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PUBLIC BAND PAGE PREVIEW</p>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id{getBandProfilePath()}</p>
+              <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>PUBLIC BAND PAGE PREVIEW</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', fontWeight: '700', margin: '0 0 8px 0' }}>wispace.my.id{getBandProfilePath()}</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '0 0 12px 0' }}>
                 <div style={{ ...bandArchivePanelStyle, padding: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>SUBSCRIBERS</p>
-                  <strong style={{ color: '#5CB8E4', fontSize: '18px' }}>{bandSubscriberCount.toLocaleString('id-ID')}</strong>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>SUBSCRIBERS</p>
+                  <strong style={{ color: '#73BBC9', fontSize: '18px' }}>{bandSubscriberCount.toLocaleString('id-ID')}</strong>
                 </div>
                 <div style={{ ...bandArchivePanelStyle, padding: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>NOTIF BARU</p>
-                  <strong style={{ color: unreadBandNotifications ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '18px' }}>{unreadBandNotifications}</strong>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>NOTIF BARU</p>
+                  <strong style={{ color: unreadBandNotifications ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '18px' }}>{unreadBandNotifications}</strong>
                 </div>
               </div>
-              <p style={{ color: '#F2F2F2', fontSize: '14px', fontWeight: '900', lineHeight: 1.35, margin: '0 0 10px 0' }}>{bandProfile.headline || 'Headline singkat band akan tampil di sini.'}</p>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', fontWeight: '700', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''}</p>
-              <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band akan tampil di sini. Audience bisa lihat cerita singkat, karakter musik, dan info rilisan band.'}</p>
+              <p style={{ color: '#F1D4E5', fontSize: '14px', fontWeight: '900', lineHeight: 1.35, margin: '0 0 10px 0' }}>{bandProfile.headline || 'Headline singkat band akan tampil di sini.'}</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', fontWeight: '700', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''}</p>
+              <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band akan tampil di sini. Audience bisa lihat cerita singkat, karakter musik, dan info rilisan band.'}</p>
               <div style={{ display: 'grid', gap: '8px', marginBottom: '18px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>CP</span><strong style={{ color: '#F2F2F2', textAlign: 'right' }}>{bandProfile.cp || '-'}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>CP</span><strong style={{ color: '#F1D4E5', textAlign: 'right' }}>{bandProfile.cp || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>EMAIL</span><strong style={{ color: '#F2F2F2', textAlign: 'right' }}>{bandProfile.email || '-'}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>EMAIL</span><strong style={{ color: '#F1D4E5', textAlign: 'right' }}>{bandProfile.email || '-'}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
-                  <span>INSTAGRAM</span><strong style={{ color: '#F2F2F2', textAlign: 'right' }}>{bandProfile.instagram || '-'}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(241,212,229,0.62)', fontSize: '12px' }}>
+                  <span>INSTAGRAM</span><strong style={{ color: '#F1D4E5', textAlign: 'right' }}>{bandProfile.instagram || '-'}</strong>
                 </div>
               </div>
               <button onClick={() => openBandPublicProfile(true)} style={{ ...glassButtonStyle, width: '100%', padding: '10px', fontSize: '11px', marginBottom: '18px' }}>BUKA PUBLIC PREVIEW</button>
               <div style={{ borderTop: `1px solid ${flatLineColor}`, paddingTop: '14px', marginBottom: '14px' }}>
-                <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
+                <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
                 {bandPublicTracks.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Maksimal 5 lagu promo tampil di public profile. Pilih 1 track free full saat upload album.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Maksimal 5 lagu promo tampil di public profile. Pilih 1 track free full saat upload album.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {bandPublicTracks.slice(0, 3).map((track) => (
-                    <div key={`studio-${track.id}`} style={{ ...compactRowStyle, borderRadius: '8px', display: 'flex', justifyContent: 'space-between', gap: '10px', color: '#F2F2F2', fontSize: '11px' }}>
+                    <div key={`studio-${track.id}`} style={{ ...compactRowStyle, borderRadius: '8px', display: 'flex', justifyContent: 'space-between', gap: '10px', color: '#F1D4E5', fontSize: '11px' }}>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</span>
-                        <strong style={{ color: track.freeFull ? 'rgba(242,242,242,0.62)' : '#5CB8E4', flexShrink: 0 }}>{track.freeFull ? 'FULL' : '30S'}</strong>
+                        <strong style={{ color: track.freeFull ? 'rgba(241,212,229,0.62)' : '#73BBC9', flexShrink: 0 }}>{track.freeFull ? 'FULL' : '30S'}</strong>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
               <div style={{ borderTop: `1px solid ${flatLineColor}`, paddingTop: '14px' }}>
-                <h4 style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCHANDISE SHELF</h4>
+                <h4 style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCHANDISE SHELF</h4>
                 {merchItems.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Nanti bagian ini bisa jadi tempat jual kaos, CD, kaset, stiker, bundle album, dan item fisik lain milik band.</p>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Nanti bagian ini bisa jadi tempat jual kaos, CD, kaset, stiker, bundle album, dan item fisik lain milik band.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {merchItems.slice(0, 3).map((item) => (
                       <div key={item.id} style={{ ...compactRowStyle, borderRadius: '8px', display: 'grid', gridTemplateColumns: '54px 1fr', gap: '10px', alignItems: 'center' }}>
-                        <div style={{ width: '54px', height: '54px', borderRadius: '7px', overflow: 'hidden', backgroundColor: '#8758FF', display: 'grid', placeItems: 'center' }}>
-                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
+                        <div style={{ width: '54px', height: '54px', borderRadius: '7px', overflow: 'hidden', backgroundColor: '#F1D4E5', display: 'grid', placeItems: 'center' }}>
+                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
                         <div>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.name.toUpperCase()}</p>
-                          <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{item.name.toUpperCase()}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                         </div>
                       </div>
                     ))}
@@ -9953,7 +9953,7 @@ export default function App() {
                     key={tab}
                     type="button"
                     onClick={() => setBandProfileTab(tab)}
-                    style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#5CB8E4' : 'transparent', color: bandProfileTab === tab ? '#181818' : 'rgba(242,242,242,0.62)', border: bandProfileTab === tab ? 'none' : '1px solid #8758FF', borderRadius: '8px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
+                    style={{ padding: '10px 16px', backgroundColor: bandProfileTab === tab ? '#73BBC9' : 'transparent', color: bandProfileTab === tab ? '#080202' : 'rgba(241,212,229,0.62)', border: bandProfileTab === tab ? 'none' : '1px solid #F1D4E5', borderRadius: '8px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
                   >
                     {tab === 'profile' ? 'PROFILE BAND' : tab === 'album' ? 'UPLOAD ALBUM' : tab === 'merch' ? 'MERCHANDISE' : 'ARTIKEL'}
                   </button>
@@ -9973,13 +9973,13 @@ export default function App() {
                     <input type="email" placeholder="EMAIL BAND" value={bandProfile.email || ''} onChange={(e) => updateBandProfileField('email', e.target.value)} style={formInputStyle} />
                     <input type="text" placeholder="INSTAGRAM / SOSMED" value={bandProfile.instagram || ''} onChange={(e) => updateBandProfileField('instagram', e.target.value)} style={formInputStyle} />
                   </div>
-                  <div style={{ backgroundColor: '#181818', border: `1px solid ${hasBandPayoutAccount ? 'rgba(242,242,242,0.22)' : 'rgba(242,242,242,0.26)'}`, borderRadius: '9px', padding: '14px', marginBottom: '12px' }}>
+                  <div style={{ backgroundColor: '#080202', border: `1px solid ${hasBandPayoutAccount ? 'rgba(241,212,229,0.22)' : 'rgba(241,212,229,0.26)'}`, borderRadius: '9px', padding: '14px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <div>
-                        <p style={{ color: hasBandPayoutAccount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum upload album atau merch. Data ini dipakai report tanggal 1 dan proses pencairan.</p>
+                        <p style={{ color: hasBandPayoutAccount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum upload album atau merch. Data ini dipakai report tanggal 1 dan proses pencairan.</p>
                       </div>
-                      <strong style={{ color: hasBandPayoutAccount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px' }}>{hasBandPayoutAccount ? 'READY' : 'BELUM LENGKAP'}</strong>
+                      <strong style={{ color: hasBandPayoutAccount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px' }}>{hasBandPayoutAccount ? 'READY' : 'BELUM LENGKAP'}</strong>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
                       <input type="text" placeholder="NAMA BANK (BCA / BNI / MANDIRI)" value={bandProfile.bankName || ''} onChange={(e) => updateBandProfileField('bankName', e.target.value)} style={formInputStyle} />
@@ -9987,13 +9987,13 @@ export default function App() {
                       <input type="text" inputMode="numeric" placeholder="NOMOR REKENING" value={bandProfile.bankAccountNumber || ''} onChange={(e) => updateBandProfileField('bankAccountNumber', e.target.value)} style={formInputStyle} />
                     </div>
                   </div>
-                  <div style={{ backgroundColor: '#181818', border: `1px solid ${hasBandShippingOrigin ? 'rgba(242,242,242,0.22)' : 'rgba(242,242,242,0.26)'}`, borderRadius: '9px', padding: '14px', marginBottom: '12px' }}>
+                  <div style={{ backgroundColor: '#080202', border: `1px solid ${hasBandShippingOrigin ? 'rgba(241,212,229,0.22)' : 'rgba(241,212,229,0.26)'}`, borderRadius: '9px', padding: '14px', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <div>
-                        <p style={{ color: hasBandShippingOrigin ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ALAMAT ASAL PENGIRIMAN</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch. Nanti dipakai sebagai lokasi pengirim untuk hitung ongkir ekspedisi.</p>
+                        <p style={{ color: hasBandShippingOrigin ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ALAMAT ASAL PENGIRIMAN</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch. Nanti dipakai sebagai lokasi pengirim untuk hitung ongkir ekspedisi.</p>
                       </div>
-                      <strong style={{ color: hasBandShippingOrigin ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px' }}>{hasBandShippingOrigin ? 'READY' : 'BELUM LENGKAP'}</strong>
+                      <strong style={{ color: hasBandShippingOrigin ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px' }}>{hasBandShippingOrigin ? 'READY' : 'BELUM LENGKAP'}</strong>
                     </div>
                     <textarea placeholder="ALAMAT LENGKAP ASAL PENGIRIMAN" value={bandProfile.shipFromAddress || ''} onChange={(e) => updateBandProfileField('shipFromAddress', e.target.value)} rows={3} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '10px', lineHeight: 1.5 }} />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
@@ -10004,27 +10004,27 @@ export default function App() {
                   </div>
                   <textarea placeholder="BIO BAND" value={bandProfile.bio || ''} onChange={(e) => updateBandProfileField('bio', e.target.value)} rows={6} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(92,184,228,0.35)', borderRadius: '9px', backgroundColor: '#181818', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '9px', backgroundColor: '#080202', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleBandCoverImport} style={{ display: 'none' }} />
-                      <span style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900' }}>IMPORT COVER / BANNER</span>
-                      <p style={{ color: '#8758FF', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.coverName || 'Gambar lebar untuk header profile band.'}</p>
+                      <span style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900' }}>IMPORT COVER / BANNER</span>
+                      <p style={{ color: '#F1D4E5', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.coverName || 'Gambar lebar untuk header profile band.'}</p>
                     </label>
-                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(92,184,228,0.35)', borderRadius: '9px', backgroundColor: '#181818', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '18px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '9px', backgroundColor: '#080202', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleBandPhotoImport} style={{ display: 'none' }} />
-                      <span style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900' }}>IMPORT FOTO BAND</span>
-                      <p style={{ color: '#8758FF', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.photoName || 'Foto utama/avatar band.'}</p>
+                      <span style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900' }}>IMPORT FOTO BAND</span>
+                      <p style={{ color: '#F1D4E5', fontSize: '12px', margin: '6px 0 0 0' }}>{bandProfile.photoName || 'Foto utama/avatar band.'}</p>
                     </label>
                   </div>
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE BAND</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SIMPAN PROFILE BAND</button>
                 </form>
               )}
 
               {bandProfileTab === 'album' && (
                 <form onSubmit={handleAlbumDraftSubmit}>
                   {!hasBandPayoutAccount && (
-                    <div style={{ backgroundColor: 'rgba(242,242,242,0.06)', border: '1px solid rgba(242,242,242,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>LENGKAPI REKENING DULU</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Upload album butuh nama bank, nama pemegang rekening, dan nomor rekening di tab Profile Band supaya agreement dan report payout valid.</p>
+                    <div style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>LENGKAPI REKENING DULU</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Upload album butuh nama bank, nama pemegang rekening, dan nomor rekening di tab Profile Band supaya agreement dan report payout valid.</p>
                     </div>
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
@@ -10034,39 +10034,39 @@ export default function App() {
                   <textarea placeholder="DESKRIPSI ALBUM / CATATAN RILISAN" value={albumDraft.description} onChange={(e) => setAlbumDraft({ ...albumDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
-                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(92,184,228,0.35)', borderRadius: '9px', backgroundColor: '#181818', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '9px', backgroundColor: '#080202', cursor: 'pointer' }}>
                       <input type="file" accept="image/*" onChange={handleAlbumCoverImport} style={{ display: 'none' }} />
-                      <span style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900' }}>IMPORT COVER ALBUM</span>
-                      <p style={{ color: '#8758FF', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.coverName || 'Artwork/cover album.'}</p>
+                      <span style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900' }}>IMPORT COVER ALBUM</span>
+                      <p style={{ color: '#F1D4E5', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.coverName || 'Artwork/cover album.'}</p>
                     </label>
-                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(92,184,228,0.35)', borderRadius: '9px', backgroundColor: '#181818', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '9px', backgroundColor: '#080202', cursor: 'pointer' }}>
                       <input type="file" accept="audio/mpeg,.mp3" multiple onChange={handleAlbumAudioImport} style={{ display: 'none' }} />
-                      <span style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900' }}>IMPORT MP3</span>
-                      <p style={{ color: '#8758FF', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload + auto preview` : 'Pilih track MP3 album. WiSpace otomatis bikin preview 30 detik.'}</p>
+                      <span style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900' }}>IMPORT MP3</span>
+                      <p style={{ color: '#F1D4E5', fontSize: '12px', margin: '6px 0 0 0' }}>{albumDraft.audioFiles.length ? `${albumDraft.audioFiles.length} file siap upload + auto preview` : 'Pilih track MP3 album. WiSpace otomatis bikin preview 30 detik.'}</p>
                     </label>
                   </div>
 
                   {albumDraft.audioFiles.length > 0 && (
-                    <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
-                      <p style={{ color: hasFreeFullBandTrack ? '#8758FF' : '#5CB8E4', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
+                    <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
+                      <p style={{ color: hasFreeFullBandTrack ? '#F1D4E5' : '#73BBC9', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
                         {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru otomatis dibuatkan preview 30 detik.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain otomatis dibuatkan preview 30 detik.'}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '8px', marginBottom: '12px' }}>
                         {[
-                          ['MASTER PRIVATE', `${albumDraftMasterStoredCount}/${albumDraft.audioFiles.length}`, albumDraftMasterStoredCount === albumDraft.audioFiles.length ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'],
-                          ['PREVIEW READY', `${albumDraftPreviewReadyCount}/${albumDraftPaidTrackCount}`, albumDraftMissingPreviewCount ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)'],
-                          ['MISSING PREVIEW', albumDraftMissingPreviewCount, albumDraftMissingPreviewCount ? '#8758FF' : 'rgba(242,242,242,0.62)'],
-                          ['FREE FULL', albumDraftFreeFullLabel, albumDraft.freeTrackIndex !== '' || hasFreeFullBandTrack ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)']
+                          ['MASTER PRIVATE', `${albumDraftMasterStoredCount}/${albumDraft.audioFiles.length}`, albumDraftMasterStoredCount === albumDraft.audioFiles.length ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'],
+                          ['PREVIEW READY', `${albumDraftPreviewReadyCount}/${albumDraftPaidTrackCount}`, albumDraftMissingPreviewCount ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)'],
+                          ['MISSING PREVIEW', albumDraftMissingPreviewCount, albumDraftMissingPreviewCount ? '#F1D4E5' : 'rgba(241,212,229,0.62)'],
+                          ['FREE FULL', albumDraftFreeFullLabel, albumDraft.freeTrackIndex !== '' || hasFreeFullBandTrack ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)']
                         ].map(([label, value, color]) => (
-                          <div key={label} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${color === '#8758FF' ? 'rgba(135,88,255,0.25)' : color === 'rgba(242,242,242,0.62)' ? 'rgba(242,242,242,0.18)' : 'rgba(242,242,242,0.1)'}`, borderRadius: '10px', minWidth: 0 }}>
-                            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
+                          <div key={label} style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${color === '#F1D4E5' ? 'rgba(241,212,229,0.25)' : color === 'rgba(241,212,229,0.62)' ? 'rgba(241,212,229,0.18)' : 'rgba(241,212,229,0.1)'}`, borderRadius: '10px', minWidth: 0 }}>
+                            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
                             <strong style={{ display: 'block', color, fontSize: '12px', fontWeight: '900', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</strong>
                           </div>
                         ))}
                       </div>
                       {albumDraft.audioFiles.map((file, index) => (
-                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'auto minmax(0, 1fr)' : hasFreeFullBandTrack ? 'minmax(0, 1.4fr) minmax(118px, 0.7fr) minmax(92px, 112px) auto' : 'auto minmax(0, 1.4fr) minmax(118px, 0.7fr) minmax(92px, 112px) auto', gap: '10px', padding: '10px 0', borderTop: index ? '1px solid #8758FF' : 'none', color: '#F2F2F2', fontSize: '12px', alignItems: 'center' }}>
+                        <div key={`${file.name}-${index}`} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'auto minmax(0, 1fr)' : hasFreeFullBandTrack ? 'minmax(0, 1.4fr) minmax(118px, 0.7fr) minmax(92px, 112px) auto' : 'auto minmax(0, 1.4fr) minmax(118px, 0.7fr) minmax(92px, 112px) auto', gap: '10px', padding: '10px 0', borderTop: index ? '1px solid #F1D4E5' : 'none', color: '#F1D4E5', fontSize: '12px', alignItems: 'center' }}>
                           {!hasFreeFullBandTrack && (
                             <input
                               type="radio"
@@ -10077,15 +10077,15 @@ export default function App() {
                             />
                           )}
                           <div style={{ minWidth: 0, gridColumn: isTinyLayout ? '2 / -1' : 'auto' }}>
-                            <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {file.name}</p>
+                            <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {file.name}</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                              <small style={{ color: file.storageStatus === 'stored' ? 'rgba(242,242,242,0.62)' : file.storageStatus === 'fallback' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontWeight: '900' }}>
+                              <small style={{ color: file.storageStatus === 'stored' ? 'rgba(241,212,229,0.62)' : file.storageStatus === 'fallback' ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontWeight: '900' }}>
                                 {file.storageStatus === 'stored' ? 'PRIVATE MASTER' : file.storageStatus === 'fallback' ? 'MASTER FALLBACK' : 'LOCAL MASTER'}
                               </small>
-                              <small style={{ color: file.previewStatus === 'auto_failed' ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontWeight: '900' }}>{getTrackPreviewStatusLabel(file)}</small>
+                              <small style={{ color: file.previewStatus === 'auto_failed' ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontWeight: '900' }}>{getTrackPreviewStatusLabel(file)}</small>
                             </div>
                           </div>
-                          <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', minHeight: '34px', padding: '0 10px', border: `1px solid ${file.previewUrl ? 'rgba(242,242,242,0.25)' : 'rgba(92,184,228,0.25)'}`, borderRadius: '10px', backgroundColor: file.previewUrl ? 'rgba(242,242,242,0.06)' : 'rgba(92,184,228,0.06)', color: file.previewUrl ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '10px', fontWeight: '900', cursor: 'pointer', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
+                          <label onClick={(event) => event.stopPropagation()} style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', minHeight: '34px', padding: '0 10px', border: `1px solid ${file.previewUrl ? 'rgba(241,212,229,0.25)' : 'rgba(115,187,201,0.25)'}`, borderRadius: '10px', backgroundColor: file.previewUrl ? 'rgba(241,212,229,0.06)' : 'rgba(115,187,201,0.06)', color: file.previewUrl ? 'rgba(241,212,229,0.62)' : '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
                               <input type="file" accept="audio/mpeg,.mp3" onChange={(event) => handleTrackPreviewImport(index, event)} style={{ display: 'none' }} />
                               {file.previewUrl ? 'REPLACE PREVIEW' : 'UPLOAD MANUAL 30S'}
                           </label>
@@ -10095,23 +10095,23 @@ export default function App() {
                             placeholder="Rp/track"
                             value={file.price}
                             onChange={(event) => updateAlbumTrackPrice(index, event.target.value)}
-                            style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '10px', color: '#F2F2F2', padding: '8px', fontSize: '11px', fontFamily: FONT_STACK, boxSizing: 'border-box', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}
+                            style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px', color: '#F1D4E5', padding: '8px', fontSize: '11px', fontFamily: FONT_STACK, boxSizing: 'border-box', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}
                           />
-                          <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontWeight: '900', textAlign: isTinyLayout ? 'left' : 'right', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
+                          <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontWeight: '900', textAlign: isTinyLayout ? 'left' : 'right', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
                             {String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'FREE FULL' : `${(file.size / (1024 * 1024)).toFixed(2)} MB`}
                           </span>
                         </div>
                       ))}
                       {!hasFreeFullBandTrack && albumDraft.freeTrackIndex !== '' && (
-                        <button type="button" onClick={() => setAlbumDraft({ ...albumDraft, freeTrackIndex: '' })} style={{ marginTop: '10px', background: 'transparent', border: '1px solid rgba(242,242,242,0.12)', color: 'rgba(242,242,242,0.62)', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BATALKAN FREE FULL</button>
+                        <button type="button" onClick={() => setAlbumDraft({ ...albumDraft, freeTrackIndex: '' })} style={{ marginTop: '10px', background: 'transparent', border: '1px solid rgba(241,212,229,0.12)', color: 'rgba(241,212,229,0.62)', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BATALKAN FREE FULL</button>
                       )}
                     </div>
                   )}
 
-                  <div style={{ backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.2)', borderRadius: '9px', padding: '14px', marginBottom: '14px' }}>
-                    <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 8px 0' }}>AGREEMENT UPLOAD ALBUM</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Band menyatakan punya hak atas karya ini. Penjualan dibagi 80% untuk band dan 20% untuk WiSpace dari penjualan bersih. Pencairan minimal Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')} setiap tanggal 1.</p>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F2F2F2', fontSize: '12px', fontWeight: '800', marginBottom: '12px', cursor: 'pointer' }}>
+                  <div style={{ backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.2)', borderRadius: '9px', padding: '14px', marginBottom: '14px' }}>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 8px 0' }}>AGREEMENT UPLOAD ALBUM</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 12px 0' }}>Band menyatakan punya hak atas karya ini. Penjualan dibagi 80% untuk band dan 20% untuk WiSpace dari penjualan bersih. Pencairan minimal Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')} setiap tanggal 1.</p>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F1D4E5', fontSize: '12px', fontWeight: '800', marginBottom: '12px', cursor: 'pointer' }}>
                       <input type="checkbox" checked={albumDraft.accepted} onChange={(e) => setAlbumDraft({ ...albumDraft, accepted: e.target.checked })} />
                       SAYA SETUJU DAN BERTANGGUNG JAWAB ATAS KARYA INI
                     </label>
@@ -10119,21 +10119,21 @@ export default function App() {
                   </div>
 
                   {displayBandAlbums.length > 0 && (
-                    <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>RILISAN YANG SUDAH DIUPLOAD</p>
+                    <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>RILISAN YANG SUDAH DIUPLOAD</p>
                       {displayBandAlbums.map((album) => (
-                        <div key={album.id} style={{ padding: '10px 0', borderTop: '1px solid #8758FF', color: '#F2F2F2', fontSize: '12px' }}>
+                        <div key={album.id} style={{ padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)', color: '#F1D4E5', fontSize: '12px' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', gap: '10px', alignItems: 'center' }}>
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '900' }}>{album.title}</span>
-                            <span style={{ color: '#5CB8E4', fontWeight: '900' }}>{album.trackCount || 0} TRACK</span>
-                            <button type="button" onClick={() => handleDeleteAlbum(album)} style={{ background: 'rgba(135,88,255,0.1)', border: '1px solid rgba(135,88,255,0.35)', color: '#8758FF', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE ALBUM</button>
+                            <span style={{ color: '#73BBC9', fontWeight: '900' }}>{album.trackCount || 0} TRACK</span>
+                            <button type="button" onClick={() => handleDeleteAlbum(album)} style={{ background: 'rgba(241,212,229,0.1)', border: '1px solid rgba(241,212,229,0.35)', color: '#F1D4E5', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE ALBUM</button>
                           </div>
                           {(album.tracks || []).length > 0 && (
                             <div style={{ display: 'grid', gap: '6px', marginTop: '8px' }}>
                               {(album.tracks || []).map((track, index) => (
-                                <div key={track.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px', alignItems: 'center', padding: '7px 8px', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '10px' }}>
-                                  <span style={{ color: 'rgba(242,242,242,0.62)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {track.title}</span>
-                                  <button type="button" onClick={() => handleDeleteAlbumTrack(album, track)} style={{ background: 'transparent', border: '1px solid rgba(135,88,255,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE LAGU</button>
+                                <div key={track.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px', alignItems: 'center', padding: '7px 8px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px' }}>
+                                  <span style={{ color: 'rgba(241,212,229,0.62)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(index + 1).padStart(2, '0')} / {track.title}</span>
+                                  <button type="button" onClick={() => handleDeleteAlbumTrack(album, track)} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE LAGU</button>
                                 </div>
                               ))}
                             </div>
@@ -10143,26 +10143,26 @@ export default function App() {
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SETUJUI & SIAPKAN UPLOAD ALBUM</button>
                 </form>
               )}
 
               {bandProfileTab === 'merch' && (
                 <form onSubmit={handleMerchDraftSubmit}>
                   {!hasBandPayoutAccount && (
-                    <div style={{ backgroundColor: 'rgba(242,242,242,0.06)', border: '1px solid rgba(242,242,242,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>REKENING PAYOUT WAJIB</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
+                    <div style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>REKENING PAYOUT WAJIB</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
                     </div>
                   )}
                   {!merchUsesAdminConsignment && !hasBandShippingOrigin && (
-                    <div style={{ backgroundColor: 'rgba(242,242,242,0.06)', border: '1px solid rgba(242,242,242,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>ALAMAT PENGIRIM WAJIB</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir merch.</p>
+                    <div style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>ALAMAT PENGIRIM WAJIB</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir merch.</p>
                     </div>
                   )}
-                  <div style={{ backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.18)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
-                    <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>FULFILLMENT MERCH</p>
+                  <div style={{ backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
+                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>FULFILLMENT MERCH</p>
                     <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, 1fr)', gap: '8px' }}>
                       {[
                         ['band_ship', 'BAND KIRIM SENDIRI', 'Ongkir dari alamat asal band. Band packing dan input resi.'],
@@ -10174,17 +10174,17 @@ export default function App() {
                             key={mode}
                             type="button"
                             onClick={() => setMerchDraft({ ...merchDraft, fulfillmentMode: mode })}
-                            style={{ textAlign: 'left', padding: '11px', backgroundColor: isSelected ? 'rgba(92,184,228,0.12)' : '#181818', border: `1px solid ${isSelected ? 'rgba(92,184,228,0.45)' : 'rgba(242,242,242,0.08)'}`, borderRadius: '12px', cursor: 'pointer', fontFamily: FONT_STACK }}
+                            style={{ textAlign: 'left', padding: '11px', backgroundColor: isSelected ? 'rgba(115,187,201,0.12)' : '#080202', border: `1px solid ${isSelected ? 'rgba(115,187,201,0.45)' : 'rgba(241,212,229,0.08)'}`, borderRadius: '12px', cursor: 'pointer', fontFamily: FONT_STACK }}
                           >
-                            <strong style={{ color: isSelected ? '#5CB8E4' : '#F2F2F2', fontSize: '11px', fontWeight: '900', display: 'block', marginBottom: '5px' }}>{title}</strong>
-                            <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.35 }}>{note}</span>
+                            <strong style={{ color: isSelected ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', display: 'block', marginBottom: '5px' }}>{title}</strong>
+                            <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.35 }}>{note}</span>
                           </button>
                         );
                       })}
                     </div>
                     {merchUsesAdminConsignment && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Kalau mau stok merch ada di admin, silahkan hubungi admin untuk alamat kirim stok dan konfirmasi jumlah barang.</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Kalau mau stok merch ada di admin, silahkan hubungi admin untuk alamat kirim stok dan konfirmasi jumlah barang.</p>
                         <button type="button" onClick={() => { setShowNotificationPopout(false); setShowBandAdminPopout(true); }} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
                       </div>
                     )}
@@ -10195,27 +10195,27 @@ export default function App() {
                     <input type="number" min="0" placeholder="STOK" value={merchDraft.stock} onChange={(e) => setMerchDraft({ ...merchDraft, stock: e.target.value })} required style={formInputStyle} />
                   </div>
                   <textarea placeholder="DESKRIPSI MERCH / SIZE / WARNA / DETAIL PENGIRIMAN" value={merchDraft.description} onChange={(e) => setMerchDraft({ ...merchDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
-                  <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(92,184,228,0.35)', borderRadius: '9px', backgroundColor: '#181818', cursor: 'pointer', marginBottom: '14px' }}>
+                  <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '9px', backgroundColor: '#080202', cursor: 'pointer', marginBottom: '14px' }}>
                     <input type="file" accept="image/*" onChange={handleMerchImageImport} style={{ display: 'none' }} />
-                    <span style={{ color: '#5CB8E4', fontSize: '12px', fontWeight: '900' }}>IMPORT FOTO MERCH</span>
-                    <p style={{ color: '#8758FF', fontSize: '12px', margin: '6px 0 0 0' }}>{merchDraft.imageName || 'Foto produk untuk etalase band.'}</p>
+                    <span style={{ color: '#73BBC9', fontSize: '12px', fontWeight: '900' }}>IMPORT FOTO MERCH</span>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', margin: '6px 0 0 0' }}>{merchDraft.imageName || 'Foto produk untuk etalase band.'}</p>
                   </label>
 
                   {merchItems.length > 0 && (
                     <div style={{ marginBottom: '14px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>DRAFT MERCHANDISE</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>DRAFT MERCHANDISE</p>
                       {merchItems.map((item) => (
-                        <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid rgba(242,242,242,0.08)', color: '#F2F2F2', fontSize: '12px', alignItems: 'center' }}>
+                        <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid rgba(241,212,229,0.08)', color: '#F1D4E5', fontSize: '12px', alignItems: 'center' }}>
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
-                          <span style={{ color: '#5CB8E4', fontWeight: '900' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</span>
-                          {!isTinyLayout && <span style={{ color: 'rgba(242,242,242,0.62)' }}>Stok {item.stock} / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin' : 'Band kirim')}</span>}
-                          <button type="button" onClick={() => handleDeleteMerch(item)} style={{ background: 'transparent', border: '1px solid rgba(135,88,255,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE</button>
+                          <span style={{ color: '#73BBC9', fontWeight: '900' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</span>
+                          {!isTinyLayout && <span style={{ color: 'rgba(241,212,229,0.62)' }}>Stok {item.stock} / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin' : 'Band kirim')}</span>}
+                          <button type="button" onClick={() => handleDeleteMerch(item)} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE</button>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TAMBAH KE ETALASE MERCH</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TAMBAH KE ETALASE MERCH</button>
                 </form>
               )}
 
@@ -10229,18 +10229,18 @@ export default function App() {
                   <textarea placeholder="ISI ARTIKEL LENGKAP / CERITA BAND / CATATAN RILISAN" value={articleDraft.body} onChange={(e) => setArticleDraft({ ...articleDraft, body: e.target.value })} rows={8} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '14px', lineHeight: 1.5 }} />
 
                   {articleItems.length > 0 && (
-                    <div style={{ backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>DRAFT ARTIKEL BAND</p>
+                    <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 10px 0' }}>DRAFT ARTIKEL BAND</p>
                       {articleItems.slice(0, 5).map((article) => (
-                        <div key={article.id} style={{ padding: '10px 0', borderTop: '1px solid #8758FF' }}>
-                          <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
-                          <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', margin: 0 }}>{article.category} / {article.createdAt}</p>
+                        <div key={article.id} style={{ padding: '10px 0', borderTop: '1px solid rgba(115,187,201,0.18)' }}>
+                          <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0' }}>{article.title.toUpperCase()}</p>
+                          <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', margin: 0 }}>{article.category} / {article.createdAt}</p>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PUBLISH ARTIKEL DRAFT</button>
+                  <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PUBLISH ARTIKEL DRAFT</button>
                 </form>
               )}
             </div>
@@ -10251,7 +10251,7 @@ export default function App() {
       {/* BULLETIN MADING GIGS */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ marginBottom: '60px', ...homeRevealStyle(0) }}>
-          <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F2F2F2', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
+          <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F1D4E5', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
           <div style={bulletinGridStyle}>
             {filteredGigs.map(gig => (
               <div 
@@ -10266,7 +10266,7 @@ export default function App() {
                     event.stopPropagation();
                     setShowReportMenu(showReportMenu === gig.id ? null : gig.id);
                   }}
-                  style={{ position: 'absolute', top: isTinyLayout ? '14px' : '22px', right: isTinyLayout ? '14px' : '22px', zIndex: 2, width: isTinyLayout ? '28px' : '34px', height: isTinyLayout ? '28px' : '34px', borderRadius: '9999px', border: '1px solid rgba(135, 88, 255, 0.35)', backgroundColor: 'rgba(24, 24, 24, 0.72)', color: '#8758FF', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+                  style={{ position: 'absolute', top: isTinyLayout ? '14px' : '22px', right: isTinyLayout ? '14px' : '22px', zIndex: 2, width: isTinyLayout ? '28px' : '34px', height: isTinyLayout ? '28px' : '34px', borderRadius: '9999px', border: '1px solid rgba(241, 212, 229, 0.35)', backgroundColor: 'rgba(8, 2, 2, 0.72)', color: '#F1D4E5', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
                   aria-label="Laporkan acara"
                 >
                   <AlertTriangle size={16} />
@@ -10275,14 +10275,14 @@ export default function App() {
                 {showReportMenu === gig.id && (
                   <div
                     onClick={(event) => event.stopPropagation()}
-                    style={{ position: 'absolute', top: '62px', right: '14px', zIndex: 5, width: '190px', padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(135, 88, 255, 0.35)', borderRadius: '12px', boxShadow: '0 18px 40px rgba(24,24,24,0.65)' }}
+                    style={{ position: 'absolute', top: '62px', right: '14px', zIndex: 5, width: '190px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241, 212, 229, 0.35)', borderRadius: '12px', boxShadow: '0 18px 40px rgba(8,2,2,0.65)' }}
                   >
-                    <p style={{ color: '#8758FF', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>LAPORKAN ACARA</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>LAPORKAN ACARA</p>
                     {['penipuan', 'poster palsu', 'info salah'].map((jenis) => (
                       <button
                         key={jenis}
                         onClick={() => handleKirimLaporan(gig.id, jenis)}
-                        style={{ width: '100%', background: 'transparent', border: 'none', borderTop: '1px solid #8758FF', color: '#F2F2F2', fontSize: '11px', fontWeight: '800', padding: '8px 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}
+                        style={{ width: '100%', background: 'transparent', border: 'none', borderTop: '1px solid rgba(115,187,201,0.18)', color: '#F1D4E5', fontSize: '11px', fontWeight: '800', padding: '8px 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}
                       >
                         {jenis.toUpperCase()}
                       </button>
@@ -10291,8 +10291,8 @@ export default function App() {
                 )}
 
                 {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: isTinyLayout ? '10px' : '12px', marginBottom: isTinyLayout ? '10px' : '14px' })}
-                <h3 style={{ fontSize: isTinyLayout ? '12px' : '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#F2F2F2', lineHeight: 1.15 }}>{gig.title.toUpperCase()}</h3>
-                <p style={{ color: '#5CB8E4', fontSize: isTinyLayout ? '10px' : '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>📍 {gig.city.toUpperCase()}</p>
+                <h3 style={{ fontSize: isTinyLayout ? '12px' : '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#F1D4E5', lineHeight: 1.15 }}>{gig.title.toUpperCase()}</h3>
+                <p style={{ color: '#73BBC9', fontSize: isTinyLayout ? '10px' : '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>📍 {gig.city.toUpperCase()}</p>
               </div>
             ))}
           </div>
@@ -10303,27 +10303,27 @@ export default function App() {
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px', ...homeRevealStyle(120) }}>
           <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={railPanelStyle}>
-            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#F2F2F2', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#5CB8E4"/> MUSIC DIGITAL TERBARU</h3>
+            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#F1D4E5', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#73BBC9"/> MUSIC DIGITAL TERBARU</h3>
             {top10Tracks.map(track => (
               <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: `1.5px solid ${flatLineColor}`, alignItems: 'center' }}>
-                <div style={{ minWidth: 0 }}><h4 style={{ fontSize: '12px', color: '#F2F2F2', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '10px', color: 'rgba(242,242,242,0.62)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.band.toUpperCase()}</p></div>
+                <div style={{ minWidth: 0 }}><h4 style={{ fontSize: '12px', color: '#F1D4E5', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '10px', color: 'rgba(241,212,229,0.62)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.band.toUpperCase()}</p></div>
                 <button onClick={() => handlePlayTrack(track, top10Tracks)} style={{ ...glassButtonStyle, padding: '5px 10px', fontSize: '10px', flexShrink: 0 }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
               </div>
             ))}
           </div>
           <div style={railPanelStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '12px', color: '#F2F2F2', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><FileText size={13} color="#5CB8E4"/> 10 ARTIKEL BAND TERBARU</h3>
-              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
+              <h3 style={{ fontSize: '12px', color: '#F1D4E5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><FileText size={13} color="#73BBC9"/> 10 ARTIKEL BAND TERBARU</h3>
+              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#F1D4E5', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
             {publicArticleList.length === 0 ? (
-              <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
+              <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
             ) : (
               <div style={{ display: 'grid', gap: '7px' }}>
                 {publicArticleList.slice(0, 10).map((article) => (
                   <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '7px 0', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
-                    <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0' }}>{article.title.toUpperCase()}</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', margin: 0 }}>{article.category} / {article.bandName}</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0' }}>{article.title.toUpperCase()}</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', margin: 0 }}>{article.category} / {article.bandName}</p>
                   </button>
                 ))}
               </div>
@@ -10331,24 +10331,24 @@ export default function App() {
           </div>
           <div style={railPanelStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '12px', color: '#F2F2F2', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#5CB8E4"/> DISTRO BAND MERCHANDISE</h3>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
+              <h3 style={{ fontSize: '12px', color: '#F1D4E5', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#73BBC9"/> DISTRO BAND MERCHANDISE</h3>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ background: 'transparent', border: 'none', color: '#F1D4E5', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
             {publicMerchList.length === 0 ? (
-              <p style={{ color: '#8758FF', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch band. Nanti kaos, CD, kaset, bundle, dan item fisik muncul di sini.</p>
+              <p style={{ color: '#F1D4E5', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch band. Nanti kaos, CD, kaset, bundle, dan item fisik muncul di sini.</p>
             ) : (
               <div style={{ ...flatListStyle, maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
                 {publicMerchList.slice(0, 4).map((item) => (
                   <button key={`home-merch-${item.id}`} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '46px minmax(0, 1fr)' : '48px minmax(0, 1fr) auto', padding: '7px 0' }}>
                     <div style={{ ...flatThumbStyle, width: isTinyLayout ? '46px' : '48px', height: isTinyLayout ? '46px' : '48px', borderRadius: '8px' }}>
-                      {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
+                      {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F1D4E5', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
-                      <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
+                      <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
+                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
                     </div>
-                    {!isTinyLayout && <span style={{ color: '#8758FF', fontSize: '9px', fontWeight: '900' }}>BUY</span>}
+                    {!isTinyLayout && <span style={{ color: '#F1D4E5', fontSize: '9px', fontWeight: '900' }}>BUY</span>}
                   </button>
                 ))}
               </div>
@@ -10358,15 +10358,15 @@ export default function App() {
       )}
 
       {selectedMerchOrderDetail && !loading && (
-        <div onClick={() => setSelectedMerchOrderDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: 'rgba(24,24,24,0.88)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}>
-          <div onClick={(event) => event.stopPropagation()} style={{ width: 'min(760px, 96vw)', maxHeight: '90vh', overflowY: 'auto', backgroundColor: 'rgba(24,24,24,0.98)', border: '1.5px solid rgba(92,184,228,0.2)', borderRadius: '12px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', boxShadow: '0 24px 60px rgba(0,0,0,0.42)' }}>
+        <div onClick={() => setSelectedMerchOrderDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: 'rgba(8,2,2,0.88)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}>
+          <div onClick={(event) => event.stopPropagation()} style={{ width: 'min(760px, 96vw)', maxHeight: '90vh', overflowY: 'auto', backgroundColor: 'rgba(8,2,2,0.98)', border: '1.5px solid rgba(115,187,201,0.2)', borderRadius: '12px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', boxShadow: '0 24px 60px rgba(0,0,0,0.42)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>MERCH ORDER DETAIL</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '20px' : '26px', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 1.02, overflowWrap: 'anywhere' }}>{String(selectedMerchOrderDetail.itemName || 'Merch WiSpace').toUpperCase()}</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedMerchOrderDetail.orderId || selectedMerchOrderDetail.transactionId || selectedMerchOrderDetail.id} / {selectedMerchOrderDetail.createdAt || '-'}</p>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>MERCH ORDER DETAIL</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '20px' : '26px', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 1.02, overflowWrap: 'anywhere' }}>{String(selectedMerchOrderDetail.itemName || 'Merch WiSpace').toUpperCase()}</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedMerchOrderDetail.orderId || selectedMerchOrderDetail.transactionId || selectedMerchOrderDetail.id} / {selectedMerchOrderDetail.createdAt || '-'}</p>
               </div>
-              <button type="button" onClick={() => setSelectedMerchOrderDetail(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button type="button" onClick={() => setSelectedMerchOrderDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F1D4E5', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.15fr 0.85fr', gap: '12px', alignItems: 'start' }}>
@@ -10374,7 +10374,7 @@ export default function App() {
                 <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
                     <strong style={{ color: getMerchOrderStatusColor(selectedMerchOrderDetail.trackingStatus), fontSize: '11px', fontWeight: '900' }}>{getMerchOrderStatusLabel(selectedMerchOrderDetail.trackingStatus)}</strong>
-                    <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900' }}>{selectedMerchOrderDetail.fulfillmentMode === 'admin_consignment' ? 'DIKIRIM WISPACE' : 'DIKIRIM BAND'}</span>
+                    <span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900' }}>{selectedMerchOrderDetail.fulfillmentMode === 'admin_consignment' ? 'DIKIRIM WISPACE' : 'DIKIRIM BAND'}</span>
                   </div>
                   {renderMerchOrderStepper(selectedMerchOrderDetail.trackingStatus)}
                 </div>
@@ -10388,21 +10388,21 @@ export default function App() {
                     ['STOCK RESTORE', selectedMerchOrderDetail.stockRestored ? `SUDAH / ${selectedMerchOrderDetail.stockRestoredAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedMerchOrderDetail.stockRestoredAt)) : 'LOCAL'}` : 'BELUM / TIDAK PERLU']
                   ].map(([label, value]) => (
                     <div key={label} style={{ padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                      <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
-                      <strong style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', lineHeight: 1.35, overflowWrap: 'anywhere' }}>{value}</strong>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
+                      <strong style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', lineHeight: 1.35, overflowWrap: 'anywhere' }}>{value}</strong>
                     </div>
                   ))}
                 </div>
 
                 <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                  <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>ALAMAT PENERIMA</p>
-                  <p style={{ color: 'rgba(242,242,242,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{selectedMerchOrderDetail.recipientName || '-'} / {selectedMerchOrderDetail.recipientPhone || '-'}<br />{selectedMerchOrderDetail.address || '-'}, {selectedMerchOrderDetail.city || '-'} {selectedMerchOrderDetail.postalCode || ''}</p>
-                  {selectedMerchOrderDetail.note && <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Catatan: {selectedMerchOrderDetail.note}</p>}
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>ALAMAT PENERIMA</p>
+                  <p style={{ color: 'rgba(241,212,229,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{selectedMerchOrderDetail.recipientName || '-'} / {selectedMerchOrderDetail.recipientPhone || '-'}<br />{selectedMerchOrderDetail.address || '-'}, {selectedMerchOrderDetail.city || '-'} {selectedMerchOrderDetail.postalCode || ''}</p>
+                  {selectedMerchOrderDetail.note && <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Catatan: {selectedMerchOrderDetail.note}</p>}
                 </div>
               </section>
 
               <aside style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>ORDER ACTIONS</p>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>ORDER ACTIONS</p>
                 {(isAdminUnlocked || String(selectedMerchOrderDetail.sellerBandUserId || '') === String(userSession?.id || '')) ? (
                   <div style={{ display: 'grid', gap: '7px' }}>
                     {[
@@ -10412,18 +10412,18 @@ export default function App() {
                     ].map(([status, label]) => (
                       <button key={status} type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, status)} disabled={selectedMerchOrderDetail.trackingStatus === status} style={{ ...glassButtonStyle, padding: '9px 10px', fontSize: '10px', borderRadius: '9px', opacity: selectedMerchOrderDetail.trackingStatus === status ? 0.55 : 1 }}>{label}</button>
                     ))}
-                    <button type="button" onClick={() => handleMerchTrackingNumberUpdate(selectedMerchOrderDetail)} style={{ background: 'rgba(242,242,242,0.08)', border: '1px solid rgba(242,242,242,0.24)', color: 'rgba(242,242,242,0.72)', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>INPUT / UPDATE RESI</button>
-                    <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'completed')} disabled={selectedMerchOrderDetail.trackingStatus === 'completed'} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: selectedMerchOrderDetail.trackingStatus === 'completed' ? 'default' : 'pointer', opacity: selectedMerchOrderDetail.trackingStatus === 'completed' ? 0.55 : 1, fontFamily: FONT_STACK }}>SELESAI</button>
+                    <button type="button" onClick={() => handleMerchTrackingNumberUpdate(selectedMerchOrderDetail)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.24)', color: 'rgba(241,212,229,0.72)', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>INPUT / UPDATE RESI</button>
+                    <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'completed')} disabled={selectedMerchOrderDetail.trackingStatus === 'completed'} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F1D4E5', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: selectedMerchOrderDetail.trackingStatus === 'completed' ? 'default' : 'pointer', opacity: selectedMerchOrderDetail.trackingStatus === 'completed' ? 0.55 : 1, fontFamily: FONT_STACK }}>SELESAI</button>
                     {isAdminUnlocked && (
                       <>
-                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refund_requested')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REVIEW REFUND</button>
-                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refunded')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK REFUNDED</button>
-                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'cancelled')} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CANCEL ORDER</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refund_requested')} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F1D4E5', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REVIEW REFUND</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'refunded')} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F1D4E5', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>MARK REFUNDED</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'cancelled')} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F1D4E5', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CANCEL ORDER</button>
                       </>
                     )}
                   </div>
                 ) : (
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Detail order ini read-only buat buyer. Update status dilakukan oleh band atau admin WiSpace.</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Detail order ini read-only buat buyer. Update status dilakukan oleh band atau admin WiSpace.</p>
                 )}
               </aside>
             </div>
@@ -10434,7 +10434,7 @@ export default function App() {
       {selectedMerchDetail && !loading && (
         <div
           onClick={() => { setSelectedMerchDetail(null); setSelectedMerchId(null); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 1320, backgroundColor: 'rgba(24,24,24,0.78)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1320, backgroundColor: 'rgba(8,2,2,0.78)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             onClick={(event) => event.stopPropagation()}
@@ -10442,29 +10442,29 @@ export default function App() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH DETAIL / STOCK {getMerchAvailableStock(selectedMerchDetail)}</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1.02, margin: 0 }}>{String(selectedMerchDetail.name || 'Merch WiSpace').toUpperCase()}</h3>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH DETAIL / STOCK {getMerchAvailableStock(selectedMerchDetail)}</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1.02, margin: 0 }}>{String(selectedMerchDetail.name || 'Merch WiSpace').toUpperCase()}</h3>
               </div>
-              <button type="button" onClick={() => { setSelectedMerchDetail(null); setSelectedMerchId(null); }} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button type="button" onClick={() => { setSelectedMerchDetail(null); setSelectedMerchId(null); }} style={{ background: 'transparent', border: 'none', color: 'rgba(241,212,229,0.62)', padding: '3px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(180px, 260px) minmax(0, 1fr)', gap: isTinyLayout ? '12px' : '16px', alignItems: 'start' }}>
-              <div style={{ width: '100%', aspectRatio: isTinyLayout ? '4/5' : '3/4', background: softSurfaceBackground, border: '1px solid rgba(242,242,242,0.12)', borderRadius: '10px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+              <div style={{ width: '100%', aspectRatio: isTinyLayout ? '4/5' : '3/4', background: softSurfaceBackground, border: '1px solid rgba(241,212,229,0.12)', borderRadius: '10px', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
                 {selectedMerchDetail.imagePreview ? (
                   <img src={selectedMerchDetail.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <span style={{ color: '#8758FF', fontSize: '12px', fontWeight: '900' }}>MERCH</span>
+                  <span style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '900' }}>MERCH</span>
                 )}
               </div>
 
               <div style={{ minWidth: 0 }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', fontWeight: '800', lineHeight: 1.45, margin: '0 0 10px 0' }}>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', fontWeight: '800', lineHeight: 1.45, margin: '0 0 10px 0' }}>
                   {(selectedMerchDetail.bandName || 'Band WiSpace').toUpperCase()} / {(selectedMerchDetail.city || 'Indonesia').toUpperCase()}
                 </p>
-                <p style={{ color: selectedMerchDetail.fulfillmentMode === 'admin_consignment' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 12px 0' }}>
+                <p style={{ color: selectedMerchDetail.fulfillmentMode === 'admin_consignment' ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 12px 0' }}>
                   {selectedMerchDetail.fulfillmentLabel || (selectedMerchDetail.fulfillmentMode === 'admin_consignment' ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI')}
                 </p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedMerchDetail.description || 'Merchandise resmi band di WiSpace.'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', lineHeight: 1.55, margin: '0 0 14px 0' }}>{selectedMerchDetail.description || 'Merchandise resmi band di WiSpace.'}</p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
                   {[
@@ -10473,14 +10473,14 @@ export default function App() {
                     ['SELLER', selectedMerchDetail.bandName || 'Band WiSpace']
                   ].map(([label, value]) => (
                     <div key={label} style={{ ...compactSurfaceStyle, padding: '8px', minWidth: 0 }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
-                      <strong style={{ color: '#F2F2F2', fontSize: label === 'SELLER' ? '11px' : '12px', fontWeight: '900', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(value).toUpperCase()}</strong>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                      <strong style={{ color: '#F1D4E5', fontSize: label === 'SELLER' ? '11px' : '12px', fontWeight: '900', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(value).toUpperCase()}</strong>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', borderTop: '1px solid rgba(242,242,242,0.12)', paddingTop: '12px' }}>
-                  <strong style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900' }}>Rp {Number(selectedMerchDetail.price || 0).toLocaleString('id-ID')}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', borderTop: '1px solid rgba(241,212,229,0.12)', paddingTop: '12px' }}>
+                  <strong style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900' }}>Rp {Number(selectedMerchDetail.price || 0).toLocaleString('id-ID')}</strong>
                   <button type="button" disabled={!isMerchPurchasable(selectedMerchDetail)} onClick={() => handlePurchaseMerch(selectedMerchDetail)} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px', opacity: isMerchPurchasable(selectedMerchDetail) ? 1 : 0.48, cursor: isMerchPurchasable(selectedMerchDetail) ? 'pointer' : 'not-allowed' }}>{!isMerchPurchasable(selectedMerchDetail) ? 'SOLD OUT' : userSession ? 'BUY MERCH' : 'JOIN TO BUY'}</button>
                 </div>
               </div>
@@ -10492,7 +10492,7 @@ export default function App() {
       {selectedPosterPreview && (
         <div
           onClick={() => setSelectedPosterPreview(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 1300, backgroundColor: 'rgba(24,24,24,0.94)', display: 'grid', placeItems: 'center', padding: '24px', boxSizing: 'border-box' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1300, backgroundColor: 'rgba(8,2,2,0.94)', display: 'grid', placeItems: 'center', padding: '24px', boxSizing: 'border-box' }}
         >
           <div
             onClick={(event) => event.stopPropagation()}
@@ -10500,15 +10500,15 @@ export default function App() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>PREVIEW PAMFLET UTUH</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPosterPreview.title?.toUpperCase()}</h3>
+                <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>PREVIEW PAMFLET UTUH</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPosterPreview.title?.toUpperCase()}</h3>
               </div>
-              <button onClick={() => setSelectedPosterPreview(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button onClick={() => setSelectedPosterPreview(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F1D4E5', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
-            <div style={{ width: '100%', maxHeight: '74vh', overflow: 'auto', background: softSurfaceBackground, border: '1px solid rgba(242,242,242,0.12)', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
+            <div style={{ width: '100%', maxHeight: '74vh', overflow: 'auto', background: softSurfaceBackground, border: '1px solid rgba(241,212,229,0.12)', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
               <img src={selectedPosterPreview.image} alt="" style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
             </div>
-            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPosterPreview.city} / {getGigDate(selectedPosterPreview)} / {getGigHtm(selectedPosterPreview)} / {getGigCp(selectedPosterPreview)}</p>
+            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPosterPreview.city} / {getGigDate(selectedPosterPreview)} / {getGigHtm(selectedPosterPreview)} / {getGigCp(selectedPosterPreview)}</p>
           </div>
         </div>
       )}
@@ -10516,7 +10516,7 @@ export default function App() {
       {selectedPaymentDetail && (
         <div
           onClick={() => setSelectedPaymentDetail(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 1390, backgroundColor: 'rgba(24,24,24,0.94)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1390, backgroundColor: 'rgba(8,2,2,0.94)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}
         >
           <div
             onClick={(event) => event.stopPropagation()}
@@ -10524,42 +10524,42 @@ export default function App() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1.2px', margin: '0 0 6px 0' }}>PAYMENT REQUEST DETAIL</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', margin: '0 0 6px 0', lineHeight: 1.05 }}>{String(selectedPaymentDetail.productTitle || 'Checkout WiSpace').toUpperCase()}</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPaymentDetail.checkoutRef} / {(selectedPaymentDetail.type || 'order').toUpperCase()} / Rp {Number(selectedPaymentDetail.amount || 0).toLocaleString('id-ID')}</p>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1.2px', margin: '0 0 6px 0' }}>PAYMENT REQUEST DETAIL</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', margin: '0 0 6px 0', lineHeight: 1.05 }}>{String(selectedPaymentDetail.productTitle || 'Checkout WiSpace').toUpperCase()}</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPaymentDetail.checkoutRef} / {(selectedPaymentDetail.type || 'order').toUpperCase()} / Rp {Number(selectedPaymentDetail.amount || 0).toLocaleString('id-ID')}</p>
               </div>
-              <button onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F1D4E5', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '260px minmax(0, 1fr)', gap: '12px', alignItems: 'start' }}>
-              <div style={{ ...compactSurfaceStyle, padding: '10px', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl || isProviderPaidPendingActivation(selectedPaymentDetail) ? 'rgba(242,242,242,0.22)' : 'rgba(135,88,255,0.22)'}` }}>
-                <p style={{ color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl || isProviderPaidPendingActivation(selectedPaymentDetail) ? 'rgba(242,242,242,0.62)' : '#8758FF', fontSize: '9px', fontWeight: '900', margin: '0 0 8px 0' }}>{selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'PROOF READY' : isProviderPaidPendingActivation(selectedPaymentDetail) ? 'PROVIDER PAID' : 'NO PAYMENT PROOF'}</p>
+              <div style={{ ...compactSurfaceStyle, padding: '10px', border: `1px solid ${selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl || isProviderPaidPendingActivation(selectedPaymentDetail) ? 'rgba(241,212,229,0.22)' : 'rgba(241,212,229,0.22)'}` }}>
+                <p style={{ color: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl || isProviderPaidPendingActivation(selectedPaymentDetail) ? 'rgba(241,212,229,0.62)' : '#F1D4E5', fontSize: '9px', fontWeight: '900', margin: '0 0 8px 0' }}>{selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'PROOF READY' : isProviderPaidPendingActivation(selectedPaymentDetail) ? 'PROVIDER PAID' : 'NO PAYMENT PROOF'}</p>
                 <button
                   type="button"
                   disabled={!selectedPaymentDetail.paymentProofPreview && !selectedPaymentDetail.paymentProofUrl}
                   onClick={() => setSelectedPaymentProofPreview(selectedPaymentDetail)}
-                  style={{ width: '100%', aspectRatio: '4/3', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(242,242,242,0.08)', background: '#181818', padding: 0, display: 'grid', placeItems: 'center', cursor: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'pointer' : 'not-allowed' }}
+                  style={{ width: '100%', aspectRatio: '4/3', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(241,212,229,0.08)', background: '#080202', padding: 0, display: 'grid', placeItems: 'center', cursor: selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? 'pointer' : 'not-allowed' }}
                 >
                   {selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl ? (
                     <img src={selectedPaymentDetail.paymentProofPreview || selectedPaymentDetail.paymentProofUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   ) : (
-                    <span style={{ color: isProviderPaidPendingActivation(selectedPaymentDetail) ? '#5CB8E4' : '#8758FF', fontSize: '11px', fontWeight: '900' }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'GATEWAY' : 'PROOF MISSING'}</span>
+                    <span style={{ color: isProviderPaidPendingActivation(selectedPaymentDetail) ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900' }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'GATEWAY' : 'PROOF MISSING'}</span>
                   )}
                 </button>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{selectedPaymentDetail.paymentProofName || 'Belum ada file proof.'}<br />{String(selectedPaymentDetail.paymentProofStatus || 'missing').toUpperCase()}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{selectedPaymentDetail.paymentProofName || 'Belum ada file proof.'}<br />{String(selectedPaymentDetail.paymentProofStatus || 'missing').toUpperCase()}</p>
               </div>
 
               <div style={{ display: 'grid', gap: '10px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                   {[
-                    ['STATUS', String(selectedPaymentDetail.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase(), selectedPaymentDetail.status === 'paid' ? 'rgba(242,242,242,0.62)' : selectedPaymentDetail.status === 'rejected' ? '#8758FF' : 'rgba(242,242,242,0.62)'],
-                    ['PROVIDER', `${String(selectedPaymentDetail.provider || PAYMENT_GATEWAY_PROVIDER || 'manual').toUpperCase()} / ${String(selectedPaymentDetail.providerStatus || 'pending').replaceAll('_', ' ').toUpperCase()}`, isProviderPaidPendingActivation(selectedPaymentDetail) ? '#5CB8E4' : 'rgba(242,242,242,0.62)'],
-                    ['BUYER', `${selectedPaymentDetail.buyerName || '-'} / ${selectedPaymentDetail.buyerEmail || '-'}`, '#F2F2F2'],
-                    ['SELLER', selectedPaymentDetail.sellerBandName || 'Band WiSpace', '#F2F2F2'],
-                    ['SUBMITTED', selectedPaymentDetail.submittedAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedPaymentDetail.submittedAt)) : '-', 'rgba(242,242,242,0.62)']
+                    ['STATUS', String(selectedPaymentDetail.status || 'waiting_admin_confirmation').replaceAll('_', ' ').toUpperCase(), selectedPaymentDetail.status === 'paid' ? 'rgba(241,212,229,0.62)' : selectedPaymentDetail.status === 'rejected' ? '#F1D4E5' : 'rgba(241,212,229,0.62)'],
+                    ['PROVIDER', `${String(selectedPaymentDetail.provider || PAYMENT_GATEWAY_PROVIDER || 'manual').toUpperCase()} / ${String(selectedPaymentDetail.providerStatus || 'pending').replaceAll('_', ' ').toUpperCase()}`, isProviderPaidPendingActivation(selectedPaymentDetail) ? '#73BBC9' : 'rgba(241,212,229,0.62)'],
+                    ['BUYER', `${selectedPaymentDetail.buyerName || '-'} / ${selectedPaymentDetail.buyerEmail || '-'}`, '#F1D4E5'],
+                    ['SELLER', selectedPaymentDetail.sellerBandName || 'Band WiSpace', '#F1D4E5'],
+                    ['SUBMITTED', selectedPaymentDetail.submittedAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedPaymentDetail.submittedAt)) : '-', 'rgba(241,212,229,0.62)']
                   ].map(([label, value, color]) => (
                     <div key={label} style={{ ...compactSurfaceStyle, padding: '10px' }}>
-                      <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
+                      <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{label}</p>
                       <strong style={{ color, fontSize: '11px', fontWeight: '900', lineHeight: 1.35, overflowWrap: 'anywhere' }}>{value}</strong>
                     </div>
                   ))}
@@ -10567,25 +10567,25 @@ export default function App() {
 
                 {selectedPaymentDetail.shipping && (
                   <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
-                    <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>SHIPPING MERCH</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'} / Rp {Number(selectedPaymentDetail.shipping.shippingCost || selectedPaymentDetail.shippingCost || 0).toLocaleString('id-ID')} {selectedPaymentDetail.shipping.shippingEstimate ? `/ ${selectedPaymentDetail.shipping.shippingEstimate}` : ''}</p>
-                    {selectedPaymentDetail.shipping.origin && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Origin: {selectedPaymentDetail.shipping.origin.city || '-'}, {selectedPaymentDetail.shipping.origin.province || '-'} {selectedPaymentDetail.shipping.origin.postalCode || ''}</p>}
-                    {selectedPaymentDetail.shipping.note && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Note: {selectedPaymentDetail.shipping.note}</p>}
+                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 7px 0' }}>SHIPPING MERCH</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedPaymentDetail.shipping.recipientName || '-'} / {selectedPaymentDetail.shipping.recipientPhone || '-'}<br />{selectedPaymentDetail.shipping.address || '-'}, {selectedPaymentDetail.shipping.city || '-'} {selectedPaymentDetail.shipping.postalCode || ''}<br />Courier: {selectedPaymentDetail.shipping.courier || '-'} / Rp {Number(selectedPaymentDetail.shipping.shippingCost || selectedPaymentDetail.shippingCost || 0).toLocaleString('id-ID')} {selectedPaymentDetail.shipping.shippingEstimate ? `/ ${selectedPaymentDetail.shipping.shippingEstimate}` : ''}</p>
+                    {selectedPaymentDetail.shipping.origin && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Origin: {selectedPaymentDetail.shipping.origin.city || '-'}, {selectedPaymentDetail.shipping.origin.province || '-'} {selectedPaymentDetail.shipping.origin.postalCode || ''}</p>}
+                    {selectedPaymentDetail.shipping.note && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0' }}>Note: {selectedPaymentDetail.shipping.note}</p>}
                   </div>
                 )}
 
                 <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'Provider sudah mengirim status paid verified. Admin tinggal activate supaya Library/Order dan ledger WiSpace dibuat.' : 'Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.'}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'Provider sudah mengirim status paid verified. Admin tinggal activate supaya Library/Order dan ledger WiSpace dibuat.' : 'Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.'}</p>
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.12)', color: '#F2F2F2', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button type="button" onClick={() => setSelectedPaymentDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F1D4E5', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
               {isPaymentReadyForAdminActivation(selectedPaymentDetail) && (
                 <>
-                  {selectedPaymentDetail.status === 'waiting_admin_confirmation' && <button type="button" onClick={() => { handleRejectPendingPayment(selectedPaymentDetail); setSelectedPaymentDetail(null); }} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>}
-                  <button type="button" onClick={() => { handleConfirmPendingPayment(selectedPaymentDetail); if (canAdminConfirmPayment(selectedPaymentDetail)) setSelectedPaymentDetail(null); }} disabled={!canAdminConfirmPayment(selectedPaymentDetail)} style={{ ...glassButtonStyle, padding: '9px 11px', fontSize: '10px', borderRadius: '10px', color: canAdminConfirmPayment(selectedPaymentDetail) ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canAdminConfirmPayment(selectedPaymentDetail) ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canAdminConfirmPayment(selectedPaymentDetail) ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
+                  {selectedPaymentDetail.status === 'waiting_admin_confirmation' && <button type="button" onClick={() => { handleRejectPendingPayment(selectedPaymentDetail); setSelectedPaymentDetail(null); }} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F1D4E5', borderRadius: '10px', padding: '9px 11px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>}
+                  <button type="button" onClick={() => { handleConfirmPendingPayment(selectedPaymentDetail); if (canAdminConfirmPayment(selectedPaymentDetail)) setSelectedPaymentDetail(null); }} disabled={!canAdminConfirmPayment(selectedPaymentDetail)} style={{ ...glassButtonStyle, padding: '9px 11px', fontSize: '10px', borderRadius: '10px', color: canAdminConfirmPayment(selectedPaymentDetail) ? 'rgba(241,212,229,0.62)' : '#F1D4E5', border: canAdminConfirmPayment(selectedPaymentDetail) ? '1px solid rgba(241,212,229,0.35)' : '1px solid rgba(241,212,229,0.08)', cursor: canAdminConfirmPayment(selectedPaymentDetail) ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
                 </>
               )}
             </div>
@@ -10596,23 +10596,23 @@ export default function App() {
       {selectedPaymentProofPreview && (
         <div
           onClick={() => setSelectedPaymentProofPreview(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 1400, backgroundColor: 'rgba(24,24,24,0.94)', display: 'grid', placeItems: 'center', padding: '24px', boxSizing: 'border-box' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1400, backgroundColor: 'rgba(8,2,2,0.94)', display: 'grid', placeItems: 'center', padding: '24px', boxSizing: 'border-box' }}
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(760px, 96vw)', maxHeight: '92vh', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.28)', borderRadius: '16px', padding: '16px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
+            style={{ width: 'min(760px, 96vw)', maxHeight: '92vh', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '16px', padding: '16px', boxSizing: 'border-box', display: 'grid', gap: '12px' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
               <div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>BUKTI BAYAR BUYER</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPaymentProofPreview.checkoutRef}</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 5px 0' }}>BUKTI BAYAR BUYER</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: 0 }}>{selectedPaymentProofPreview.checkoutRef}</h3>
               </div>
-              <button onClick={() => setSelectedPaymentProofPreview(null)} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: '#F2F2F2', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button onClick={() => setSelectedPaymentProofPreview(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F1D4E5', borderRadius: '12px', padding: '10px 12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
-            <div style={{ width: '100%', maxHeight: '70vh', overflow: 'auto', backgroundColor: '#181818', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
+            <div style={{ width: '100%', maxHeight: '70vh', overflow: 'auto', backgroundColor: '#080202', borderRadius: '12px', display: 'grid', placeItems: 'center', padding: '12px', boxSizing: 'border-box' }}>
               <img src={selectedPaymentProofPreview.paymentProofPreview || selectedPaymentProofPreview.paymentProofUrl} alt="" style={{ maxWidth: '100%', maxHeight: '66vh', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block' }} />
             </div>
-            <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPaymentProofPreview.productTitle} / {selectedPaymentProofPreview.buyerName} / Rp {Number(selectedPaymentProofPreview.amount || 0).toLocaleString('id-ID')}</p>
+            <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedPaymentProofPreview.productTitle} / {selectedPaymentProofPreview.buyerName} / Rp {Number(selectedPaymentProofPreview.amount || 0).toLocaleString('id-ID')}</p>
           </div>
         </div>
       )}
@@ -10620,42 +10620,42 @@ export default function App() {
       {activeCheckout && checkoutProduct && (
         <div
           onClick={handleCheckoutCancel}
-          style={{ position: 'fixed', inset: 0, zIndex: 1450, backgroundColor: 'rgba(24,24,24,0.94)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1450, backgroundColor: 'rgba(8,2,2,0.94)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}
         >
           <form
             onSubmit={handleCheckoutSubmit}
             onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(640px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: 'rgba(24,24,24,0.96)', border: '1.5px solid rgba(92,184,228,0.22)', borderRadius: '14px', padding: isTinyLayout ? '12px' : '15px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(24,24,24,0.46)' }}
+            style={{ width: 'min(640px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: 'rgba(8,2,2,0.96)', border: '1.5px solid rgba(115,187,201,0.22)', borderRadius: '14px', padding: isTinyLayout ? '12px' : '15px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(8,2,2,0.46)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>WISPACE CHECKOUT</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '20px' : '25px', fontWeight: '900', lineHeight: 1, margin: 0 }}>{checkoutTitle.toUpperCase()}</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: '7px 0 0 0' }}>{(activeCheckout.type || '').toUpperCase()} / {(checkoutSellerName || 'Band WiSpace').toUpperCase()}</p>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>WISPACE CHECKOUT</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: isTinyLayout ? '20px' : '25px', fontWeight: '900', lineHeight: 1, margin: 0 }}>{checkoutTitle.toUpperCase()}</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: '7px 0 0 0' }}>{(activeCheckout.type || '').toUpperCase()} / {(checkoutSellerName || 'Band WiSpace').toUpperCase()}</p>
               </div>
               <div style={{ display: 'grid', gap: '7px', justifyItems: 'end' }}>
-                <span style={{ color: checkoutAccentColor, border: `1px solid ${checkoutAccentColor}55`, backgroundColor: 'rgba(24,24,24,0.5)', borderRadius: '999px', padding: '5px 8px', fontSize: '8px', fontWeight: '900', whiteSpace: 'nowrap' }}>{checkoutReviewLabel}</span>
-                <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: checkoutIsProcessing ? '#8758FF' : '#F2F2F2', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin ? 'CLOSE' : 'CANCEL'}</button>
+                <span style={{ color: checkoutAccentColor, border: `1px solid ${checkoutAccentColor}55`, backgroundColor: 'rgba(8,2,2,0.5)', borderRadius: '999px', padding: '5px 8px', fontSize: '8px', fontWeight: '900', whiteSpace: 'nowrap' }}>{checkoutReviewLabel}</span>
+                <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: checkoutIsProcessing ? '#F1D4E5' : '#F1D4E5', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin ? 'CLOSE' : 'CANCEL'}</button>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '0.86fr 1.14fr', gap: '10px', marginBottom: '11px' }}>
               <div style={checkoutBlockStyle}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
-                <strong style={{ color: '#5CB8E4', fontSize: '23px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
-                <div style={{ display: 'grid', gap: '3px', marginTop: '7px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35 }}>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
+                <strong style={{ color: '#73BBC9', fontSize: '23px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
+                <div style={{ display: 'grid', gap: '3px', marginTop: '7px', color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.35 }}>
                   <span>Item: Rp {checkoutSubtotal.toLocaleString('id-ID')}</span>
                   {activeCheckout.type === 'merch' && <span>Ongkir: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
                 </div>
               </div>
               <div style={checkoutBlockStyle}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>ORDER STATUS</p>
-                <div style={{ display: 'grid', gap: '5px', color: 'rgba(242,242,242,0.62)', fontSize: '11px' }}>
-                  <span>Order ID: <strong style={{ color: '#5CB8E4' }}>{checkoutReference}</strong></span>
-                  <span>Item: <strong style={{ color: '#F2F2F2' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong>{activeCheckout.type === 'merch' ? ` / ${checkoutCourierOption?.label || checkoutDraft.courier}` : ''}</span>
-                  <span>Provider: <strong style={{ color: checkoutProviderCheckoutUrl ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutProviderLabel.toUpperCase()}</strong>{checkoutProviderStatus ? ` / ${checkoutProviderStatus.replaceAll('_', ' ').toUpperCase()}` : ''}</span>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>ORDER STATUS</p>
+                <div style={{ display: 'grid', gap: '5px', color: 'rgba(241,212,229,0.62)', fontSize: '11px' }}>
+                  <span>Order ID: <strong style={{ color: '#73BBC9' }}>{checkoutReference}</strong></span>
+                  <span>Item: <strong style={{ color: '#F1D4E5' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong>{activeCheckout.type === 'merch' ? ` / ${checkoutCourierOption?.label || checkoutDraft.courier}` : ''}</span>
+                  <span>Provider: <strong style={{ color: checkoutProviderCheckoutUrl ? '#73BBC9' : 'rgba(241,212,229,0.62)' }}>{checkoutProviderLabel.toUpperCase()}</strong>{checkoutProviderStatus ? ` / ${checkoutProviderStatus.replaceAll('_', ' ').toUpperCase()}` : ''}</span>
                   <span>Status: <strong style={{ color: checkoutAccentColor }}>{checkoutStatusCopy}</strong></span>
-                  <span style={{ color: 'rgba(242,242,242,0.62)', lineHeight: 1.35 }}>{checkoutBuyerStatusText}</span>
+                  <span style={{ color: 'rgba(241,212,229,0.62)', lineHeight: 1.35 }}>{checkoutBuyerStatusText}</span>
                 </div>
               </div>
             </div>
@@ -10668,10 +10668,10 @@ export default function App() {
                 const isGood = ['ready', 'paid', 'active'].includes(status);
                 const isWarn = ['waiting', 'upload proof'].includes(status);
                 return (
-                  <div key={number} style={{ padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${isGood ? 'rgba(242,242,242,0.35)' : isWarn ? 'rgba(242,242,242,0.32)' : flatLineColor}`, borderRadius: 0 }}>
-                    <p style={{ color: isGood ? 'rgba(242,242,242,0.62)' : isWarn ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {number}</p>
-                    <strong style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900' }}>{label}</strong>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{String(status).toUpperCase()}</p>
+                  <div key={number} style={{ padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${isGood ? 'rgba(241,212,229,0.35)' : isWarn ? 'rgba(241,212,229,0.32)' : flatLineColor}`, borderRadius: 0 }}>
+                    <p style={{ color: isGood ? 'rgba(241,212,229,0.62)' : isWarn ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>STEP {number}</p>
+                    <strong style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900' }}>{label}</strong>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0' }}>{String(status).toUpperCase()}</p>
                   </div>
                 );
               })}
@@ -10680,17 +10680,17 @@ export default function App() {
             <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <div>
-                  <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Simpan Order ID dan nominal persis. Buyer tidak perlu lihat pembagian fee internal WiSpace.</p>
+                  <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Simpan Order ID dan nominal persis. Buyer tidak perlu lihat pembagian fee internal WiSpace.</p>
                 </div>
                 <button type="button" onClick={handleCopyCheckoutReference} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY ORDER ID</button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                 {WISPACE_MANUAL_PAYMENT_CHANNELS.map((channel) => (
                   <div key={channel.title} style={{ padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0 }}>
-                    <p style={{ color: '#F2F2F2', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{channel.title.toUpperCase()}</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0' }}>{channel.detail}</p>
-                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{channel.note}</p>
+                    <p style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{channel.title.toUpperCase()}</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0' }}>{channel.detail}</p>
+                    <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{channel.note}</p>
                   </div>
                 ))}
               </div>
@@ -10699,36 +10699,36 @@ export default function App() {
                   href={checkoutProviderCheckoutUrl}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ display: 'block', marginTop: '10px', padding: '12px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textAlign: 'center', textDecoration: 'none', fontFamily: FONT_STACK }}
+                  style={{ display: 'block', marginTop: '10px', padding: '12px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textAlign: 'center', textDecoration: 'none', fontFamily: FONT_STACK }}
                 >
                   BAYAR VIA GATEWAY
                 </a>
               )}
               {!checkoutProviderCheckoutUrl && checkoutProviderId !== 'manual' && checkoutIsAwaitingAdmin && (
-                <p style={{ color: '#8758FF', fontSize: '10px', lineHeight: 1.4, margin: '10px 0 0 0', fontWeight: '800' }}>Gateway belum ngasih checkout URL. Request tetap masuk admin lewat fallback manual.</p>
+                <p style={{ color: '#F1D4E5', fontSize: '10px', lineHeight: 1.4, margin: '10px 0 0 0', fontWeight: '800' }}>Gateway belum ngasih checkout URL. Request tetap masuk admin lewat fallback manual.</p>
               )}
             </div>
 
-            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '88px 1fr auto', gap: '10px', alignItems: 'center', padding: isTinyLayout ? '10px' : '11px', backgroundColor: 'transparent', border: checkoutDraft.paymentProofPreview ? '1.5px solid rgba(242,242,242,0.24)' : '1.5px dashed rgba(242,242,242,0.34)', borderRadius: '9px', marginBottom: '12px', cursor: checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
+            <label style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '88px 1fr auto', gap: '10px', alignItems: 'center', padding: isTinyLayout ? '10px' : '11px', backgroundColor: 'transparent', border: checkoutDraft.paymentProofPreview ? '1.5px solid rgba(241,212,229,0.24)' : '1.5px dashed rgba(241,212,229,0.34)', borderRadius: '9px', marginBottom: '12px', cursor: checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled ? 'default' : 'pointer' }}>
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePaymentProofImport} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={{ display: 'none' }} />
-              <div style={{ width: isTinyLayout ? '100%' : '88px', aspectRatio: isTinyLayout ? '16/9' : '4/3', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', display: 'grid', placeItems: 'center' }}>
+              <div style={{ width: isTinyLayout ? '100%' : '88px', aspectRatio: isTinyLayout ? '16/9' : '4/3', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', display: 'grid', placeItems: 'center' }}>
                 {checkoutDraft.paymentProofPreview ? (
                   <img src={checkoutDraft.paymentProofPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>BUKTI</span>
+                  <span style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900' }}>BUKTI</span>
                 )}
               </div>
               <div style={{ minWidth: 0 }}>
-                <p style={{ color: checkoutDraft.paymentProofPreview ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{checkoutDraft.paymentProofPreview ? 'BUKTI BAYAR TERLAMPIR' : 'UPLOAD BUKTI BAYAR'}</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || (checkoutProofRequired ? 'PNG/JPG/WebP maksimal 2MB. Admin cek bukti ini sebelum confirm paid.' : 'Opsional kalau gateway aktif. Tetap bisa dipakai untuk fallback manual.')}</p>
+                <p style={{ color: checkoutDraft.paymentProofPreview ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{checkoutDraft.paymentProofPreview ? 'BUKTI BAYAR TERLAMPIR' : 'UPLOAD BUKTI BAYAR'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || (checkoutProofRequired ? 'PNG/JPG/WebP maksimal 2MB. Admin cek bukti ini sebelum confirm paid.' : 'Opsional kalau gateway aktif. Tetap bisa dipakai untuk fallback manual.')}</p>
               </div>
-              <span style={{ color: checkoutDraft.paymentProofStatus === 'stored' ? 'rgba(242,242,242,0.62)' : checkoutDraft.paymentProofPreview ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isTinyLayout ? 'start' : 'end' }}>{checkoutDraft.paymentProofStatus ? checkoutDraft.paymentProofStatus.toUpperCase() : checkoutProofRequired ? 'REQUIRED' : 'OPTIONAL'}</span>
+              <span style={{ color: checkoutDraft.paymentProofStatus === 'stored' ? 'rgba(241,212,229,0.62)' : checkoutDraft.paymentProofPreview ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '9px', fontWeight: '900', justifySelf: isTinyLayout ? 'start' : 'end' }}>{checkoutDraft.paymentProofStatus ? checkoutDraft.paymentProofStatus.toUpperCase() : checkoutProofRequired ? 'REQUIRED' : 'OPTIONAL'}</span>
             </label>
 
             {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
-              <div style={{ padding: '10px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${checkoutIsPaid ? 'rgba(242,242,242,0.42)' : checkoutIsAwaitingAdmin ? 'rgba(92,184,228,0.42)' : 'rgba(135,88,255,0.42)'}`, borderRadius: 0, marginBottom: '12px' }}>
-                <p style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsAwaitingAdmin ? '#5CB8E4' : '#8758FF', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : checkoutIsAwaitingAdmin ? 'WAITING ADMIN CONFIRM' : 'CHECKOUT CANCELLED'}</p>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Pembayaran berhasil dan akses/order sudah aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Request pembayaran sudah masuk ke admin. Akses/order aktif setelah admin confirm paid.' : 'Checkout dibatalkan. Tidak ada transaksi, saldo, order, atau library yang dibuat.'}</p>
+              <div style={{ padding: '10px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${checkoutIsPaid ? 'rgba(241,212,229,0.42)' : checkoutIsAwaitingAdmin ? 'rgba(115,187,201,0.42)' : 'rgba(241,212,229,0.42)'}`, borderRadius: 0, marginBottom: '12px' }}>
+                <p style={{ color: checkoutIsPaid ? 'rgba(241,212,229,0.62)' : checkoutIsAwaitingAdmin ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : checkoutIsAwaitingAdmin ? 'WAITING ADMIN CONFIRM' : 'CHECKOUT CANCELLED'}</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Pembayaran berhasil dan akses/order sudah aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Request pembayaran sudah masuk ke admin. Akses/order aktif setelah admin confirm paid.' : 'Checkout dibatalkan. Tidak ada transaksi, saldo, order, atau library yang dibuat.'}</p>
               </div>
             )}
 
@@ -10739,7 +10739,7 @@ export default function App() {
 
             {activeCheckout.type === 'merch' && (
               <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
-                <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>DATA PENGIRIMAN MERCH</p>
+                <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>DATA PENGIRIMAN MERCH</p>
                 <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
@@ -10773,29 +10773,29 @@ export default function App() {
                     ['ESTIMASI', checkoutCourierOption?.estimate || checkoutDraft.shippingEstimate || '-']
                   ].map(([label, value]) => (
                     <div key={label} style={{ padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                      <p style={{ color: '#5CB8E4', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
-                      <strong style={{ color: '#F2F2F2', fontSize: '10px', fontWeight: '900', lineHeight: 1.35 }}>{value}</strong>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{label}</p>
+                      <strong style={{ color: '#F1D4E5', fontSize: '10px', fontWeight: '900', lineHeight: 1.35 }}>{value}</strong>
                     </div>
                   ))}
                 </div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih estimasi manual. Nanti bisa disambung ke API ekspedisi buat tarif, pilihan service, dan tracking real-time.</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih estimasi manual. Nanti bisa disambung ke API ekspedisi buat tarif, pilihan service, dan tracking real-time.</p>
               </div>
             )}
 
             {activeCheckout.type !== 'merch' && (
               <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Setelah bayar, item masuk Library terenkripsi. File bisa diputar dari player WiSpace dan tidak untuk distribusi ulang.</p>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Setelah bayar, item masuk Library terenkripsi. File bisa diputar dari player WiSpace dan tidak untuk distribusi ulang.</p>
               </div>
             )}
 
             {checkoutIsPaid ? (
-              <button type="button" onClick={closeCompletedCheckout} style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(242,242,242,0.62)', color: '#181818', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{activeCheckout.type === 'merch' ? 'BUKA MY ORDERS' : 'BUKA LIBRARY'}</button>
+              <button type="button" onClick={closeCompletedCheckout} style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(241,212,229,0.62)', color: '#080202', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{activeCheckout.type === 'merch' ? 'BUKA MY ORDERS' : 'BUKA LIBRARY'}</button>
             ) : checkoutIsCancelled || checkoutIsAwaitingAdmin ? (
-              <button type="button" onClick={() => setActiveCheckout(null)} style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(242,242,242,0.04)', color: '#F2F2F2', border: '1px solid rgba(242,242,242,0.16)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TUTUP CHECKOUT</button>
+              <button type="button" onClick={() => setActiveCheckout(null)} style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(241,212,229,0.04)', color: '#F1D4E5', border: '1px solid rgba(241,212,229,0.16)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TUTUP CHECKOUT</button>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr auto', gap: '10px' }}>
-                <button type="submit" disabled={checkoutIsProcessing} style={{ width: '100%', padding: '14px', backgroundColor: checkoutIsProcessing ? '#8758FF' : '#5CB8E4', color: checkoutIsProcessing ? '#8758FF' : '#181818', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsProcessing ? 'MEMPROSES REQUEST...' : 'KIRIM REQUEST KONFIRMASI PAYMENT'}</button>
-                <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ padding: '14px', backgroundColor: 'rgba(135,88,255,0.08)', color: checkoutIsProcessing ? '#8758FF' : '#8758FF', border: '1px solid rgba(135,88,255,0.28)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>CANCEL</button>
+                <button type="submit" disabled={checkoutIsProcessing} style={{ width: '100%', padding: '14px', backgroundColor: checkoutIsProcessing ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: checkoutIsProcessing ? 'rgba(241,212,229,0.44)' : '#080202', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsProcessing ? 'MEMPROSES REQUEST...' : 'KIRIM REQUEST KONFIRMASI PAYMENT'}</button>
+                <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ padding: '14px', backgroundColor: 'rgba(241,212,229,0.08)', color: checkoutIsProcessing ? '#F1D4E5' : '#F1D4E5', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>CANCEL</button>
               </div>
             )}
           </form>
@@ -10804,21 +10804,21 @@ export default function App() {
 
       {/* POPUP SAKRAL MULTIFUNGSI SECURITY CREDENTIAL & PROFILE SYSTEM */}
       {showAuthModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(24,24,24,0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ ...glassStyle('modal'), padding: '36px', maxWidth: '420px', width: '100%', position: 'relative', backgroundColor: '#181818' }}>
-            <button onClick={() => { setShowAuthModal(false); setAuthType(''); setAuthError(''); }} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#F2F2F2', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(8,2,2,0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ ...glassStyle('modal'), padding: '36px', maxWidth: '420px', width: '100%', position: 'relative', backgroundColor: '#080202' }}>
+            <button onClick={() => { setShowAuthModal(false); setAuthType(''); setAuthError(''); }} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#F1D4E5', cursor: 'pointer', fontSize: '18px' }}>✕</button>
 
             {/* FORM LOGIN AKUN */}
             {authType === 'login' && (
               <form onSubmit={handleLoginAkun}>
-                <h3 style={{ color: '#5CB8E4', margin: '0 0 24px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>MASUK MOSHPIT WISPACE</h3>
-                <input type="email" placeholder="EMAIL USER" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
-                <input type="password" placeholder="PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                <h3 style={{ color: '#73BBC9', margin: '0 0 24px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>MASUK MOSHPIT WISPACE</h3>
+                <input type="email" placeholder="EMAIL USER" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                <input type="password" placeholder="PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
                 {authError && (
-                  <div style={{ backgroundColor: '#181818', border: `1px solid ${authError.startsWith('Link') ? 'rgba(92,184,228,0.35)' : 'rgba(135,88,255,0.35)'}`, color: authError.startsWith('Link') ? '#5CB8E4' : '#8758FF', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
+                  <div style={{ backgroundColor: '#080202', border: `1px solid ${authError.startsWith('Link') ? 'rgba(115,187,201,0.35)' : 'rgba(241,212,229,0.35)'}`, color: authError.startsWith('Link') ? '#73BBC9' : '#F1D4E5', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
                 )}
-                <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? '#8758FF' : '#5CB8E4', color: authLoading ? '#8758FF' : '#181818', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{authLoading ? 'MEMPROSES...' : 'LOG MASUK'}</button>
-                <button type="button" onClick={handleResendVerification} disabled={authLoading} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: 'transparent', color: '#5CB8E4', border: '1px solid rgba(92,184,228,0.35)', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK, fontSize: '12px' }}>KIRIM ULANG VERIFIKASI EMAIL</button>
+                <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: authLoading ? 'rgba(241,212,229,0.44)' : '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{authLoading ? 'MEMPROSES...' : 'LOG MASUK'}</button>
+                <button type="button" onClick={handleResendVerification} disabled={authLoading} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: 'transparent', color: '#73BBC9', border: '1px solid rgba(115,187,201,0.35)', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK, fontSize: '12px' }}>KIRIM ULANG VERIFIKASI EMAIL</button>
               </form>
             )}
 
@@ -10826,18 +10826,18 @@ export default function App() {
             {/* REVISI: FORM REGISTRASI JOIN DENGAN SAKELAR GESER TOGGLE ROLE DI AWAL (GAYA 2) */}
             {authType === 'join' && (
               <form onSubmit={handleDaftarAkun}>
-                <h3 style={{ color: '#F2F2F2', margin: '0 0 16px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>JOIN THE SKENA ECOSYSTEM</h3>
+                <h3 style={{ color: '#F1D4E5', margin: '0 0 16px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>JOIN THE SKENA ECOSYSTEM</h3>
                 
                 {/* SAKELAR GESER (TOGGLE SWITCH) CAPSULE PREMIUM */}
-                <div style={{ display: 'flex', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.1)', borderRadius: '9999px', padding: '4px', marginBottom: '20px', position: 'relative' }}>
+                <div style={{ display: 'flex', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.1)', borderRadius: '9999px', padding: '4px', marginBottom: '20px', position: 'relative' }}>
                   {/* Tombol Geser Musisi */}
                   <div 
                     onClick={() => setUserRole('musisi')} 
                     style={{ 
                       flex: 1, textAlign: 'center', padding: '8px 0', fontSize: '12px', fontWeight: '900', cursor: 'pointer', borderRadius: '9999px',
-                      backgroundColor: userRole === 'musisi' ? '#5CB8E4' : 'transparent',
-                      color: userRole === 'musisi' ? '#181818' : 'rgba(242,242,242,0.62)',
-                      boxShadow: userRole === 'musisi' ? 'inset 0 -1px 0 rgba(92, 184, 228, 0.45)' : 'none',
+                      backgroundColor: userRole === 'musisi' ? '#73BBC9' : 'transparent',
+                      color: userRole === 'musisi' ? '#080202' : 'rgba(241,212,229,0.62)',
+                      boxShadow: userRole === 'musisi' ? 'inset 0 -1px 0 rgba(115, 187, 201, 0.45)' : 'none',
                       transition: 'all 0.3s ease-in-out'
                     }}
                   >
@@ -10848,9 +10848,9 @@ export default function App() {
                     onClick={() => setUserRole('audience')} 
                     style={{ 
                       flex: 1, textAlign: 'center', padding: '8px 0', fontSize: '12px', fontWeight: '900', cursor: 'pointer', borderRadius: '9999px',
-                      backgroundColor: userRole === 'audience' ? '#5CB8E4' : 'transparent',
-                      color: userRole === 'audience' ? '#181818' : 'rgba(242,242,242,0.62)',
-                      boxShadow: userRole === 'audience' ? 'inset 0 -1px 0 rgba(92, 184, 228, 0.45)' : 'none',
+                      backgroundColor: userRole === 'audience' ? '#73BBC9' : 'transparent',
+                      color: userRole === 'audience' ? '#080202' : 'rgba(241,212,229,0.62)',
+                      boxShadow: userRole === 'audience' ? 'inset 0 -1px 0 rgba(115, 187, 201, 0.45)' : 'none',
                       transition: 'all 0.3s ease-in-out'
                     }}
                   >
@@ -10859,18 +10859,18 @@ export default function App() {
                 </div>
 
                 {/* NOTIFIKASI DINAMIS BERDASARKAN ARAH SAKELAR */}
-                <p style={{ color: '#5CB8E4', fontSize: '11px', textAlign: 'center', marginTop: '-10px', marginBottom: '16px', fontWeight: '700' }}>
+                <p style={{ color: '#73BBC9', fontSize: '11px', textAlign: 'center', marginTop: '-10px', marginBottom: '16px', fontWeight: '700' }}>
                   {userRole === 'musisi' ? '👉 LU AKAN TERDAFTAR SEBAGAI BAND/KREATOR' : '👉 LU AKAN TERDAFTAR SEBAGAI PENIKMAT/KOLEKTOR MUSIK'}
                 </p>
 
-                <input type="email" placeholder="ALAMAT EMAIL RESMI" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
-                <input type="password" placeholder="BUAT PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                <input type="email" placeholder="ALAMAT EMAIL RESMI" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                <input type="password" placeholder="BUAT PASSWORD AKUN" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
                 {authError && (
-                  <div style={{ backgroundColor: '#181818', border: `1px solid ${authError.startsWith('Link') ? 'rgba(92,184,228,0.35)' : 'rgba(135,88,255,0.35)'}`, color: authError.startsWith('Link') ? '#5CB8E4' : '#8758FF', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
+                  <div style={{ backgroundColor: '#080202', border: `1px solid ${authError.startsWith('Link') ? 'rgba(115,187,201,0.35)' : 'rgba(241,212,229,0.35)'}`, color: authError.startsWith('Link') ? '#73BBC9' : '#F1D4E5', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
                 )}
                 
                 {/* Tombol Submit Kunci Akun */}
-                <button type="submit" disabled={!userRole || authLoading} style={{ width: '100%', padding: '14px', backgroundColor: userRole && !authLoading ? '#5CB8E4' : '#8758FF', color: userRole && !authLoading ? '#181818' : '#8758FF', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: userRole && !authLoading ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK, transition: 'all 0.2s' }}>
+                <button type="submit" disabled={!userRole || authLoading} style={{ width: '100%', padding: '14px', backgroundColor: userRole && !authLoading ? '#73BBC9' : 'rgba(241,212,229,0.1)', color: userRole && !authLoading ? '#080202' : 'rgba(241,212,229,0.44)', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: userRole && !authLoading ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK, transition: 'all 0.2s' }}>
                   {authLoading ? 'MEMPROSES...' : userRole ? 'DAFTAR AKUN BARU' : 'PILIH ROL LU DI ATAS DULU'}
                 </button>
               </form>
@@ -10879,11 +10879,11 @@ export default function App() {
             {/* INTERACTIVE USER TAKDIR GATEWAY: MUSISI VS AUDIENCE */}
             {authType === 'pilih_peran' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#F2F2F2', fontWeight: '900', fontSize: '20px', margin: '0 0 8px 0' }}>CHOOSE YOUR DESTINY</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 24px 0' }}>Tentukan kasta pergerakan lu di dalam platform WiSpace</p>
+                <h3 style={{ color: '#F1D4E5', fontWeight: '900', fontSize: '20px', margin: '0 0 8px 0' }}>CHOOSE YOUR DESTINY</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '13px', margin: '0 0 24px 0' }}>Tentukan kasta pergerakan lu di dalam platform WiSpace</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <button onClick={() => handleRoleSelection('musisi')} style={{ padding: '16px', backgroundColor: 'rgba(92,184,228,0.05)', border: '1px solid #5CB8E4', borderRadius: '16px', color: '#5CB8E4', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: FONT_STACK }}>🎸 SEBAGAI MUSISI (UPLOAD KARYA/GIGS)</button>
-                  <button onClick={() => handleRoleSelection('audience')} style={{ padding: '16px', backgroundColor: 'rgba(242,242,242,0.03)', border: '1px solid rgba(242,242,242,0.1)', borderRadius: '16px', color: '#F2F2F2', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: FONT_STACK }}>🎧 SEBAGAI AUDIENCE (PENIKMAT/KOLEKTOR)</button>
+                  <button onClick={() => handleRoleSelection('musisi')} style={{ padding: '16px', backgroundColor: 'rgba(115,187,201,0.05)', border: '1px solid #73BBC9', borderRadius: '16px', color: '#73BBC9', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: FONT_STACK }}>🎸 SEBAGAI MUSISI (UPLOAD KARYA/GIGS)</button>
+                  <button onClick={() => handleRoleSelection('audience')} style={{ padding: '16px', backgroundColor: 'rgba(241,212,229,0.03)', border: '1px solid rgba(241,212,229,0.1)', borderRadius: '16px', color: '#F1D4E5', fontWeight: '900', fontSize: '14px', cursor: 'pointer', fontFamily: FONT_STACK }}>🎧 SEBAGAI AUDIENCE (PENIKMAT/KOLEKTOR)</button>
                 </div>
               </div>
             )}
@@ -10891,38 +10891,38 @@ export default function App() {
             {/* GABUNGAN OPSI 2 CONTRACT DIGITAL SIGNATURE (LEGALITAS MUSISI) */}
             {authType === 'legalitas_musisi' && (
               <form onSubmit={handleContractSignature}>
-                <h3 style={{ color: '#8758FF', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldCheck size={16}/> MANIFESTO HUKUM & DISTRIBUSI WISPACE</h3>
-                <div style={{ maxHeight: '180px', overflowY: 'auto', backgroundColor: '#181818', padding: '12px', borderRadius: '12px', fontSize: '11px', color: 'rgba(242,242,242,0.62)', lineHeight: '1.4', marginBottom: '16px', border: '1px solid #8758FF' }}>
+                <h3 style={{ color: '#F1D4E5', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldCheck size={16}/> MANIFESTO HUKUM & DISTRIBUSI WISPACE</h3>
+                <div style={{ maxHeight: '180px', overflowY: 'auto', backgroundColor: '#080202', padding: '12px', borderRadius: '12px', fontSize: '11px', color: 'rgba(241,212,229,0.62)', lineHeight: '1.4', marginBottom: '16px', border: '1px solid rgba(241,212,229,0.14)' }}>
                 <p style={{ margin: '0 0 10px 0' }}>1. Segala bentuk file audio MP3, foto, dan poster acara yang di-upload sepenuhnya merupakan <strong>tanggung jawab hukum band masing-masing</strong>. WiSpace murni bertindak sebagai wadah distribusi digital independen. Simpan WAV/master hi-res di arsip pribadi band.</p>
                   <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi tetap sebesar <strong>20%</strong> dari setiap nominal karya lagu/album/merch yang berhasil terjual untuk kebutuhan operasional platform.</p>
                   <p style={{ margin: '0 0 10px 0' }}>3. Pihak band/musisi diberikan kebebasan mutlak 100% untuk <strong>menentukan harga jual sendiri</strong> terhadap karya tunggal maupun album penuh mereka.</p>
                   <p style={{ margin: '0 0 10px 0' }}>4. Laporan keuangan komprehensif dapat dipantau real-time di profil band, dan dana hasil penjualan dapat dicairkan aman <strong>setiap tanggal 1 awal bulan (Minimal Saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')})</strong>.</p>
                   <p style={{ margin: '0' }}>5. Tindakan Plagiarisme dilarang keras! Apabila di masa depan ditemukan indikasi plagiat karya orang lain, hal tersebut adalah <strong>pelanggaran mutlak band</strong> dan WiSpace lepas dari segala tuntutan hukum (karena admin tidak mengurasi orisinalitas nada satu per satu).</p>
                 </div>
-                <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '700', marginBottom: '8px' }}>Ketik Nama Band Lu Untuk Tanda Tangan Digital Sah:</p>
-                <input type="text" placeholder="CONTOH: SKENA NOISE SYNDICATE" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '16px', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
-                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#8758FF', color: '#F2F2F2', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SAYA SETUJU & SIGN KONTRAK ✍️</button>
+                <p style={{ color: '#F1D4E5', fontSize: '12px', fontWeight: '700', marginBottom: '8px' }}>Ketik Nama Band Lu Untuk Tanda Tangan Digital Sah:</p>
+                <input type="text" placeholder="CONTOH: SKENA NOISE SYNDICATE" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '16px', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
+                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#F1D4E5', color: '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SAYA SETUJU & SIGN KONTRAK ✍️</button>
               </form>
             )}
 
             {/* SPLIT DASHBOARD PROFILE MUSISI (GABUNGAN OPSI 3) */}
             {authType === 'pilihan_upload' && (
               <div>
-                <h3 style={{ color: '#5CB8E4', fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0', textAlign: 'center' }}>{signatureName ? signatureName.toUpperCase() : 'BACKSTAGE MUSISI'}</h3>
+                <h3 style={{ color: '#73BBC9', fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0', textAlign: 'center' }}>{signatureName ? signatureName.toUpperCase() : 'BACKSTAGE MUSISI'}</h3>
                 
                 {/* BLOK INTUOS LAPORAN KEUANGAN TRANSPARAN */}
-                <div style={{ backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.2)', padding: '14px', borderRadius: '16px', marginBottom: '20px', position: 'relative' }}>
+                <div style={{ backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.2)', padding: '14px', borderRadius: '16px', marginBottom: '20px', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div><span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900' }}>TOTAL SALDO SIAP CAIR</span><h4 style={{ margin: 0, fontSize: '24px', color: '#F2F2F2', fontWeight: '900', display: 'flex', alignItems: 'center' }}><DollarSign size={20} color="#5CB8E4"/> Rp {bandBalance.toLocaleString('id-ID')}</h4></div>
-                    <button disabled={bandBalance < MINIMUM_PAYOUT_AMOUNT} style={{ padding: '8px 14px', backgroundColor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#5CB8E4' : '#8758FF', border: 'none', borderRadius: '16px', color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#181818' : '#8758FF', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>TARIK DANA</button>
+                    <div><span style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900' }}>TOTAL SALDO SIAP CAIR</span><h4 style={{ margin: 0, fontSize: '24px', color: '#F1D4E5', fontWeight: '900', display: 'flex', alignItems: 'center' }}><DollarSign size={20} color="#73BBC9"/> Rp {bandBalance.toLocaleString('id-ID')}</h4></div>
+                    <button disabled={bandBalance < MINIMUM_PAYOUT_AMOUNT} style={{ padding: '8px 14px', backgroundColor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#73BBC9' : 'rgba(241,212,229,0.1)', border: 'none', borderRadius: '16px', color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#080202' : 'rgba(241,212,229,0.44)', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>TARIK DANA</button>
                   </div>
-                  <p style={{ margin: '8px 0 0 0', color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 20%. Pencairan berkala tiap tanggal 1. {bandBalance < MINIMUM_PAYOUT_AMOUNT && <span style={{ color: '#8758FF' }}>Kurang Rp {(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, bro!</span>}</p>
+                  <p style={{ margin: '8px 0 0 0', color: 'rgba(241,212,229,0.62)', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 20%. Pencairan berkala tiap tanggal 1. {bandBalance < MINIMUM_PAYOUT_AMOUNT && <span style={{ color: '#F1D4E5' }}>Kurang Rp {(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, bro!</span>}</p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <button onClick={() => { setShowAuthModal(false); setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center' }}>EDIT PROFILE BAND</button>
-                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F2F2F2', borderColor: '#8758FF' }}>UPLOAD ALBUM DIGITAL</button>
-                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F2F2F2', borderColor: '#8758FF' }}>KELOLA MERCHANDISE</button>
+                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F1D4E5', borderColor: 'rgba(115,187,201,0.3)' }}>UPLOAD ALBUM DIGITAL</button>
+                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F1D4E5', borderColor: 'rgba(115,187,201,0.3)' }}>KELOLA MERCHANDISE</button>
                   <button onClick={() => setAuthType('band')} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center' }}>📌 UPLOAD PAMFLET EVENT</button>
                 </div>
               </div>
@@ -10931,11 +10931,11 @@ export default function App() {
             {/* DASHBOARD PROFILE AUDIENCE */}
             {authType === 'profil_audience' && (
               <div>
-                <h3 style={{ color: '#F2F2F2', fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0' }}>🎧 AUDIENCE PROFILE ARCHIVE</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 20px 0' }}>Daftar kepemilikan rilisan lagu & tanda hak dukungan skena</p>
-                <div style={{ backgroundColor: '#181818', padding: '16px', borderRadius: '16px', border: '1px solid #8758FF' }}>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#5CB8E4', fontWeight: '900' }}>📚 MY MUSIC ARCHIVE (0)</h4>
-                  <p style={{ color: '#8758FF', fontSize: '12px', margin: 0, textAlign: 'center', padding: '20px 0' }}>Belum ada riwayat pembelian rilisan lagu, breo!</p>
+                <h3 style={{ color: '#F1D4E5', fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0' }}>🎧 AUDIENCE PROFILE ARCHIVE</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 20px 0' }}>Daftar kepemilikan rilisan lagu & tanda hak dukungan skena</p>
+                <div style={{ backgroundColor: '#080202', padding: '16px', borderRadius: '16px', border: '1px solid rgba(241,212,229,0.14)' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#73BBC9', fontWeight: '900' }}>📚 MY MUSIC ARCHIVE (0)</h4>
+                  <p style={{ color: '#F1D4E5', fontSize: '12px', margin: 0, textAlign: 'center', padding: '20px 0' }}>Belum ada riwayat pembelian rilisan lagu, breo!</p>
                 </div>
               </div>
             )}
@@ -10944,51 +10944,51 @@ export default function App() {
             {/* UPDATE FORM SUNTIK POSTER ACARA + DATA LENGKAP */}
             {authType === 'band' && (
               <form onSubmit={handleBandSubmit}>
-                <h3 style={{ color: '#5CB8E4', margin: '0 0 8px 0', fontSize: '16px', fontWeight: '900' }}>📌 UPLOAD PAMFLET EVENT</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.4 }}>Pamflet masuk antrean kurasi WiSpace dulu. Setelah admin approve, baru tampil di homepage.</p>
-                <input type="text" placeholder="NAMA ACARA CONCERT" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="KOTA PELAKSANAAN" value={newCity} onChange={(e) => setNewCity(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="GENRE / SUB-SKENA (Contoh: Punk, Hardcore, Indie)" value={newGenre} onChange={(e) => setNewGenre(e.target.value)} style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="HTM (Contoh: FREE / Rp 50.000)" value={newHtm} onChange={(e) => setNewHtm(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="CONTACT PERSON (WA/IG: @bandmu)" value={newCp} onChange={(e) => setNewCp(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <h3 style={{ color: '#73BBC9', margin: '0 0 8px 0', fontSize: '16px', fontWeight: '900' }}>📌 UPLOAD PAMFLET EVENT</h3>
+                <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '12px', margin: '0 0 18px 0', lineHeight: 1.4 }}>Pamflet masuk antrean kurasi WiSpace dulu. Setelah admin approve, baru tampil di homepage.</p>
+                <input type="text" placeholder="NAMA ACARA CONCERT" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="KOTA PELAKSANAAN" value={newCity} onChange={(e) => setNewCity(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="GENRE / SUB-SKENA (Contoh: Punk, Hardcore, Indie)" value={newGenre} onChange={(e) => setNewGenre(e.target.value)} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="HTM (Contoh: FREE / Rp 50.000)" value={newHtm} onChange={(e) => setNewHtm(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="CONTACT PERSON (WA/IG: @bandmu)" value={newCp} onChange={(e) => setNewCp(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
                 <label style={{ display: 'block', marginBottom: '12px', cursor: 'pointer' }}>
                   <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleGigPosterImport} style={{ display: 'none' }} />
-                  <div style={{ minHeight: '180px', border: '1px dashed rgba(92,184,228,0.45)', borderRadius: '16px', backgroundColor: '#181818', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
+                  <div style={{ minHeight: '180px', border: '1px dashed rgba(115,187,201,0.45)', borderRadius: '16px', backgroundColor: '#080202', overflow: 'hidden', display: 'grid', placeItems: 'center' }}>
                     {newPosterImage ? (
                       <img src={newPosterImage} alt="Preview pamflet event" style={{ width: '100%', height: '100%', maxHeight: '260px', objectFit: 'cover' }} />
                     ) : (
                       <div style={{ textAlign: 'center', padding: '20px' }}>
-                        <p style={{ color: '#5CB8E4', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>UPLOAD GAMBAR PAMFLET</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Klik untuk pilih JPG, PNG, atau WEBP. Max 2MB.</p>
+                        <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>UPLOAD GAMBAR PAMFLET</p>
+                        <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Klik untuk pilih JPG, PNG, atau WEBP. Max 2MB.</p>
                       </div>
                     )}
                   </div>
                 </label>
-                {newPosterName && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', margin: '-4px 0 12px 0' }}>FILE: {newPosterName}</p>}
-                {newPosterNotice && <p style={{ color: newPosterNotice.includes('Ideal') ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '-4px 0 12px 0' }}>{newPosterNotice}</p>}
+                {newPosterName && <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', margin: '-4px 0 12px 0' }}>FILE: {newPosterName}</p>}
+                {newPosterNotice && <p style={{ color: newPosterNotice.includes('Ideal') ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '-4px 0 12px 0' }}>{newPosterNotice}</p>}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-                  <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'free' ? '1px solid rgba(242,242,242,0.62)' : '1px solid #8758FF', backgroundColor: newGigRequestType === 'free' ? 'rgba(242,242,242,0.12)' : '#181818', color: newGigRequestType === 'free' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE BULLETIN</button>
-                  <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'exclusive' ? '1px solid #5CB8E4' : '1px solid #8758FF', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(92,184,228,0.14)' : '#181818', color: newGigRequestType === 'exclusive' ? '#5CB8E4' : 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE SLIDE</button>
+                  <button type="button" onClick={() => { setNewGigRequestType('free'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'free' ? '1px solid rgba(241,212,229,0.62)' : '1px solid #F1D4E5', backgroundColor: newGigRequestType === 'free' ? 'rgba(241,212,229,0.12)' : '#080202', color: newGigRequestType === 'free' ? 'rgba(241,212,229,0.62)' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE BULLETIN</button>
+                  <button type="button" onClick={() => { setNewGigRequestType('exclusive'); setNewPosterNotice(''); }} style={{ padding: '12px', borderRadius: '14px', border: newGigRequestType === 'exclusive' ? '1px solid #73BBC9' : '1px solid #F1D4E5', backgroundColor: newGigRequestType === 'exclusive' ? 'rgba(115,187,201,0.14)' : '#080202', color: newGigRequestType === 'exclusive' ? '#73BBC9' : 'rgba(241,212,229,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXCLUSIVE SLIDE</button>
                 </div>
-                <div style={{ padding: '12px', backgroundColor: '#181818', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(92,184,228,0.32)' : 'rgba(242,242,242,0.24)'}`, borderRadius: '14px', marginBottom: '18px' }}>
-                  <p style={{ color: '#F2F2F2', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE SLIDE BERBAYAR' : 'FREE BULLETIN GRATIS'}</p>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{newGigRequestType === 'exclusive' ? `Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} / 10 hari. Admin approve konten dulu, lalu user bayar, lalu admin activate.` : 'Masuk daftar bulletin gigs homepage setelah admin approve.'}</p>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', lineHeight: 1.4, margin: '8px 0 0 0' }}>MASA TAYANG: 10 HARI SEJAK ADMIN APPROVE</p>
-                  <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', lineHeight: 1.4, margin: '8px 0 0 0' }}>UKURAN: {posterUploadGuide.size} / {posterUploadGuide.ratio}</p>
+                <div style={{ padding: '12px', backgroundColor: '#080202', border: `1px solid ${newGigRequestType === 'exclusive' ? 'rgba(115,187,201,0.32)' : 'rgba(241,212,229,0.24)'}`, borderRadius: '14px', marginBottom: '18px' }}>
+                  <p style={{ color: '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{newGigRequestType === 'exclusive' ? 'EXCLUSIVE SLIDE BERBAYAR' : 'FREE BULLETIN GRATIS'}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{newGigRequestType === 'exclusive' ? `Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')} / 10 hari. Admin approve konten dulu, lalu user bayar, lalu admin activate.` : 'Masuk daftar bulletin gigs homepage setelah admin approve.'}</p>
+                  <p style={{ color: 'rgba(241,212,229,0.62)', fontSize: '10px', fontWeight: '900', lineHeight: 1.4, margin: '8px 0 0 0' }}>MASA TAYANG: 10 HARI SEJAK ADMIN APPROVE</p>
+                  <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', lineHeight: 1.4, margin: '8px 0 0 0' }}>UKURAN: {posterUploadGuide.size} / {posterUploadGuide.ratio}</p>
                 </div>
-                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer' }}>KIRIM KE ANTREAN KURASI</button>
+                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer' }}>KIRIM KE ANTREAN KURASI</button>
               </form>
             )}
 
             {/* FORM INPUT SUNTIK FILE DATA LAGU */}
             {authType === 'upload_lagu' && (
               <form onSubmit={handleTrackSubmit}>
-                <h3 style={{ color: '#5CB8E4', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900' }}>🎵 SUNTIK RILISAN LAGU BARU</h3>
-                <input type="text" placeholder="NAMA BAND" value={trackBand} onChange={(e) => setTrackBand(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="JUDUL SINGLE / LAGU" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="url" placeholder="LINK AUDIO CLOUD URL (MP3)" value={trackUrl} onChange={(e) => setTrackUrl(e.target.value)} required style={{ width: '100%', backgroundColor: '#181818', border: '1px solid #8758FF', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F2F2F2', marginBottom: '20px', boxSizing: 'border-box' }} />
-                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#5CB8E4', color: '#181818', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer' }}>LUNCURKAN RILISAN BARU</button>
+                <h3 style={{ color: '#73BBC9', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '900' }}>🎵 SUNTIK RILISAN LAGU BARU</h3>
+                <input type="text" placeholder="NAMA BAND" value={trackBand} onChange={(e) => setTrackBand(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="JUDUL SINGLE / LAGU" value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="url" placeholder="LINK AUDIO CLOUD URL (MP3)" value={trackUrl} onChange={(e) => setTrackUrl(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F1D4E5', marginBottom: '20px', boxSizing: 'border-box' }} />
+                <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer' }}>LUNCURKAN RILISAN BARU</button>
               </form>
             )}
 
