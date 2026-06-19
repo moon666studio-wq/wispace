@@ -5430,7 +5430,6 @@ export default function App() {
     album.description,
     (album.tracks || []).map((track) => `${track.title} ${track.fileName}`).join(' ')
   ));
-  const filteredTracks = top10Tracks.filter((track) => matchesSearch(track.title, track.band));
   const filteredAlbumTracks = albumItems
     .flatMap((album) => (album.tracks || []).map((track) => ({
       ...track,
@@ -8487,25 +8486,6 @@ export default function App() {
                     ))}
                   </div>
                 )}
-              </section>
-
-              <section>
-                <h3 style={sectionHeadingStyle}>30 SECOND PREVIEW TRACKS</h3>
-                <div style={flatListStyle}>
-                  {filteredTracks.length === 0 ? (
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
-                  ) : (
-                    filteredTracks.map(track => (
-                      <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
-                        <div>
-                          <h4 style={{ fontSize: '14px', color: '#F8F7F8', margin: '0 0 3px 0' }}>{track.title.toUpperCase()}</h4>
-                          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.72)', margin: 0 }}>{track.band.toUpperCase()}</p>
-                        </div>
-                        <button onClick={() => handlePlayTrack(track, filteredTracks)} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PREVIEW'}</button>
-                      </div>
-                    ))
-                  )}
-                </div>
               </section>
             </div>
 
