@@ -19,6 +19,28 @@ export const getYoutubeThumbnail = (url = '') => {
   return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
 };
 
+export const mapWispacePickFromRow = (row) => ({
+  ...createEmptyWispacePick(),
+  youtubeUrl: row?.youtube_url || '',
+  title: row?.title || createEmptyWispacePick().title,
+  bandName: row?.band_name || createEmptyWispacePick().bandName,
+  review: row?.review || createEmptyWispacePick().review,
+  thumbnail: row?.thumbnail || '',
+  updatedAt: row?.updated_at || ''
+});
+
+export const mapWispacePickToRow = (pick, userId = null) => ({
+  id: 'homepage',
+  youtube_url: pick.youtubeUrl || '',
+  title: pick.title || createEmptyWispacePick().title,
+  band_name: pick.bandName || createEmptyWispacePick().bandName,
+  review: pick.review || createEmptyWispacePick().review,
+  thumbnail: pick.thumbnail || '',
+  is_published: Boolean(pick.youtubeUrl),
+  updated_by: userId || null,
+  updated_at: new Date().toISOString()
+});
+
 export const loadWispacePick = () => {
   if (typeof window === 'undefined') return createEmptyWispacePick();
   try {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
-import { createEmptyWispacePick, getYoutubeThumbnail, loadWispacePick, saveWispacePick } from './wispacePickStorage';
+import { createEmptyWispacePick, getYoutubeThumbnail, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
@@ -34,6 +34,11 @@ const fetchCloudData = async (user = null) => {
   const { data: messagesData, error: messagesError } = user?.id
     ? await supabase.from('wispace_messages').select('*').order('created_at', { ascending: false }).limit(200)
     : { data: null, error: null };
+  const { data: wispacePickData, error: wispacePickError } = await supabase
+    .from('wispace_picks')
+    .select('*')
+    .eq('id', 'homepage')
+    .maybeSingle();
 
   return {
     gigsData: gigsData || [],
@@ -57,6 +62,7 @@ const fetchCloudData = async (user = null) => {
     updateNotificationsData: updateNotificationsError ? [] : (updateNotificationsData || []).map(mapBandUpdateNotificationFromRow),
     releaseAgreementsData: releaseAgreementsError ? loadReleaseAgreementLedger() : (releaseAgreementsData || []).map(mapReleaseAgreementFromRow),
     messagesData: !user?.id || messagesError ? loadMessageLedger() : (messagesData || []).map(mapMessageFromRow),
+    wispacePickData: wispacePickError ? loadWispacePick() : mapWispacePickFromRow(wispacePickData),
   };
 };
 
@@ -1944,11 +1950,14 @@ export default function App() {
           notificationReadsData,
           updateNotificationsData,
           releaseAgreementsData,
-          messagesData
+          messagesData,
+          wispacePickData
         }) => {
           setSaleTransactions(saleTransactionsData);
           setReleaseAgreements(releaseAgreementsData);
           setMessages(messagesData);
+          setWispacePickDraft(wispacePickData);
+          saveWispacePick(wispacePickData);
           saveMessageLedger(messagesData);
           if (audienceLibraryData?.length) {
             setPurchasedAlbums(audienceLibraryData);
@@ -2182,7 +2191,7 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData, messagesData } = await fetchCloudData(userSession);
+    const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData, messagesData, wispacePickData } = await fetchCloudData(userSession);
     setGigs(gigsData);
     setPublicBandProfiles(bandProfilesData);
     setAlbumItems(releasesData);
@@ -2197,6 +2206,7 @@ export default function App() {
     }
     setMerchOrders(merchOrdersData);
     setMessages(messagesData);
+    setWispacePickDraft(wispacePickData);
     if (userSession?.id) {
       setSubscribedBands((current) => subscribedBandsData.length ? subscribedBandsData : current);
       setReadSubscribedUpdateIds((current) => notificationReadsData.length ? notificationReadsData : current);
@@ -2211,6 +2221,7 @@ export default function App() {
     saveReleaseAgreementLedger(releaseAgreementsData);
     saveMerchOrders(merchOrdersData);
     saveMessageLedger(messagesData);
+    saveWispacePick(wispacePickData);
     setLoading(false);
   };
 
@@ -2218,7 +2229,7 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData } = await fetchCloudData();
+      const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData, wispacePickData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
@@ -2230,6 +2241,7 @@ export default function App() {
       setSaleTransactions(saleTransactionsData);
       setMerchOrders(merchOrdersData);
       setMessages(messagesData);
+      setWispacePickDraft(wispacePickData);
       cacheBandUpdateNotifications(updateNotificationsData);
       savePublicBandRegistry(bandProfilesData);
       savePublicReleaseRegistry(releasesData);
@@ -2239,6 +2251,7 @@ export default function App() {
       saveTransactionLedger(saleTransactionsData);
       saveMerchOrders(merchOrdersData);
       saveMessageLedger(messagesData);
+      saveWispacePick(wispacePickData);
       setLoading(false);
     };
 
@@ -4867,7 +4880,7 @@ export default function App() {
     alert('Artikel admin WiSpace sudah publish ke halaman Artikel.');
   };
 
-  const handleWispacePickSubmit = (event) => {
+  const handleWispacePickSubmit = async (event) => {
     event.preventDefault();
     const nextPick = saveWispacePick({
       ...wispacePickDraft,
@@ -4878,12 +4891,38 @@ export default function App() {
       thumbnail: wispacePickDraft.thumbnail.trim()
     });
     setWispacePickDraft(nextPick);
+
+    if (isSupabaseConfigured && isCloudAdmin) {
+      const { error } = await supabase
+        .from('wispace_picks')
+        .upsert(mapWispacePickToRow(nextPick, userSession?.id), { onConflict: 'id' });
+      if (error && isMissingColumnError(error)) {
+        alert('Pick lokal sudah disimpan. Supabase belum punya tabel wispace_picks, run SQL upgrade dulu ya bro.');
+        return;
+      }
+      if (error) {
+        alert('Pick lokal sudah disimpan, tapi sync cloud gagal: ' + error.message);
+        return;
+      }
+    }
+
     alert(nextPick.youtubeUrl ? 'WiSpace Pick manual sudah disimpan dan tampil di homepage.' : 'WiSpace Pick manual dikosongkan. Homepage balik pakai random pick.');
   };
 
-  const handleWispacePickClear = () => {
+  const handleWispacePickClear = async () => {
     const nextPick = saveWispacePick(createEmptyWispacePick());
     setWispacePickDraft(nextPick);
+
+    if (isSupabaseConfigured && isCloudAdmin) {
+      const { error } = await supabase
+        .from('wispace_picks')
+        .upsert(mapWispacePickToRow(nextPick, userSession?.id), { onConflict: 'id' });
+      if (error && !isMissingColumnError(error)) {
+        alert('Pick lokal direset, tapi sync cloud gagal: ' + error.message);
+        return;
+      }
+    }
+
     alert('WiSpace Pick manual direset. Homepage balik random pick otomatis.');
   };
 
