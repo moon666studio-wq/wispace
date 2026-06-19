@@ -10364,7 +10364,7 @@ export default function App() {
               )}
 
               {homeSupportingGigs.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: isTinyLayout ? '6px' : '10px', marginTop: isTinyLayout ? '8px' : '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(auto-fit, minmax(118px, 150px))', justifyContent: 'start', gap: isTinyLayout ? '6px' : '10px', marginTop: isTinyLayout ? '8px' : '10px' }}>
                   {homeSupportingGigs.map((gig) => (
                     <button key={gig.id} onClick={() => setSelectedGigDetail({ ...gig, fromEventOverlay: true })} style={{ background: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, padding: '7px 0 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}>
                       <p style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '0.9px', margin: '0 0 5px 0' }}>{getGigDate(gig).toUpperCase()}</p>
