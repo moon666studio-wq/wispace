@@ -5546,32 +5546,56 @@ export default function App() {
     String(value).split('').reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 7)), 0)
   );
   const homeGigCards = filteredGigs.slice(0, 10);
-  const homeFeaturedGig = homeGigCards[0] || null;
   const homeSupportingGigs = homeGigCards.slice(1, 4);
   const homeFeaturedArticle = publicArticleList[0] || null;
   const showLegacyHomeDiscovery = false;
-  const homeFeaturedRelease = albumItems[0] || null;
-  const homeWispacePick = homeFeaturedRelease
+  const getYoutubeVideoId = (url = '') => {
+    const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([^?&/]+)/i);
+    return match?.[1] || '';
+  };
+  const manualWispaceYoutubePick = {
+    youtubeUrl: '',
+    title: 'WiSpace Video Review',
+    bandName: 'WiSpace',
+    review: 'Isi link YouTube manual di sini untuk nampilin video review pilihan admin. Kalau link kosong, WiSpace Pick otomatis random dari rilisan dan gigs.',
+    thumbnail: ''
+  };
+  const manualYoutubeId = getYoutubeVideoId(manualWispaceYoutubePick.youtubeUrl);
+  const manualYoutubeThumbnail = manualYoutubeId ? `https://img.youtube.com/vi/${manualYoutubeId}/hqdefault.jpg` : '';
+  const homePickSeed = new Date().toISOString().slice(0, 10);
+  const homeRandomPick = [
+    ...albumItems.map((album) => ({
+      id: `release-${album.id}`,
+      type: 'RILISAN REVIEW',
+      title: album.title || 'WiSpace Pick',
+      bandName: album.bandName || 'Band WiSpace',
+      thumbnail: album.coverPreview,
+      youtubeUrl: album.youtubeUrl || album.youtube_url || '',
+      review: 'Pilihan kurasi WiSpace: dengarkan dulu tekstur, mood, dan arah sound-nya. Slot ini nanti bisa jadi review video YouTube dari admin untuk rilisan yang layak disorot.',
+      action: () => openReleaseDetail(album)
+    })),
+    ...homeGigCards.map((gig) => ({
+      id: `gig-${gig.id}`,
+      type: 'EVENT REVIEW',
+      title: gig.title || 'WiSpace Event',
+      bandName: gig.city || 'WiSpace',
+      thumbnail: gig.image,
+      youtubeUrl: '',
+      review: `Event pilihan dari ${gig.city || 'skena lokal'}. Cocok jadi highlight buat audience yang mau cari agenda dan atmosfer baru dari WiSpace.`,
+      action: () => setSelectedGigDetail({ ...gig, fromEventOverlay: true })
+    }))
+  ].sort((a, b) => getHomeDiscoveryScore(`${b.id}-${homePickSeed}`) - getHomeDiscoveryScore(`${a.id}-${homePickSeed}`))[0] || null;
+  const homeWispacePick = manualWispaceYoutubePick.youtubeUrl.trim()
     ? {
         type: 'YOUTUBE REVIEW',
-        title: homeFeaturedRelease.title || 'WiSpace Pick',
-        bandName: homeFeaturedRelease.bandName || 'Band WiSpace',
-        thumbnail: homeFeaturedRelease.coverPreview,
-        youtubeUrl: homeFeaturedRelease.youtubeUrl || homeFeaturedRelease.youtube_url || '',
-        review: 'Pilihan kurasi WiSpace: dengarkan dulu tekstur, mood, dan arah sound-nya. Slot ini nanti bisa jadi review video YouTube dari admin untuk rilisan yang layak disorot.',
-        action: () => openReleaseDetail(homeFeaturedRelease)
+        title: manualWispaceYoutubePick.title || 'WiSpace Video Review',
+        bandName: manualWispaceYoutubePick.bandName || 'WiSpace',
+        thumbnail: manualWispaceYoutubePick.thumbnail || manualYoutubeThumbnail,
+        youtubeUrl: manualWispaceYoutubePick.youtubeUrl,
+        review: manualWispaceYoutubePick.review,
+        action: () => window.open(manualWispaceYoutubePick.youtubeUrl, '_blank', 'noopener,noreferrer')
       }
-    : homeFeaturedGig
-      ? {
-          type: 'EVENT REVIEW',
-          title: homeFeaturedGig.title || 'WiSpace Event',
-          bandName: homeFeaturedGig.city || 'WiSpace',
-          thumbnail: homeFeaturedGig.image,
-          youtubeUrl: '',
-          review: `Event pilihan dari ${homeFeaturedGig.city || 'skena lokal'}. Cocok jadi highlight buat audience yang mau cari agenda dan atmosfer baru dari WiSpace.`,
-          action: () => setSelectedGigDetail({ ...homeFeaturedGig, fromEventOverlay: true })
-        }
-      : null;
+    : homeRandomPick;
   const homeDiscoveryItems = [
     ...albumItems.map((album) => ({
       id: `release-${album.id}`,
@@ -10340,12 +10364,12 @@ export default function App() {
               )}
 
               {homeSupportingGigs.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: isTinyLayout ? '8px' : '12px', marginTop: isTinyLayout ? '12px' : '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: isTinyLayout ? '6px' : '10px', marginTop: isTinyLayout ? '8px' : '10px' }}>
                   {homeSupportingGigs.map((gig) => (
-                    <button key={gig.id} onClick={() => setSelectedGigDetail({ ...gig, fromEventOverlay: true })} style={{ background: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, padding: '10px 0 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}>
-                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>{getGigDate(gig).toUpperCase()}</p>
-                      <h3 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.15, margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.title || '').toUpperCase()}</h3>
-                      <p style={{ color: 'rgba(255,255,255,0.68)', fontSize: '10px', margin: 0 }}>{String(gig.city || '').toUpperCase()}</p>
+                    <button key={gig.id} onClick={() => setSelectedGigDetail({ ...gig, fromEventOverlay: true })} style={{ background: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, padding: '7px 0 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                      <p style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '0.9px', margin: '0 0 5px 0' }}>{getGigDate(gig).toUpperCase()}</p>
+                      <h3 style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', lineHeight: 1.1, margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.title || '').toUpperCase()}</h3>
+                      <p style={{ color: 'rgba(255,255,255,0.66)', fontSize: '9px', margin: 0 }}>{String(gig.city || '').toUpperCase()}</p>
                     </button>
                   ))}
                 </div>
