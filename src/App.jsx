@@ -5533,17 +5533,37 @@ export default function App() {
   const checkoutIsAwaitingAdmin = checkoutPaymentStatus === 'waiting_admin_confirmation';
   const checkoutIsPaid = checkoutPaymentStatus === 'paid';
   const checkoutIsCancelled = checkoutPaymentStatus === 'cancelled';
-  const checkoutAccessStatus = checkoutIsPaid
-    ? activeCheckout?.type === 'merch'
-      ? activeCheckout?.item?.fulfillmentMode === 'admin_consignment'
-        ? 'order_paid_waiting_admin'
-        : 'order_paid_waiting_band'
-      : 'library_active'
+  const checkoutAccentColor = checkoutIsPaid
+    ? 'rgba(242,242,242,0.62)'
     : checkoutIsCancelled
-      ? 'cancelled'
-      : checkoutIsAwaitingAdmin
-        ? 'waiting_admin_confirmation'
-      : 'waiting_payment';
+      ? '#8758FF'
+      : checkoutProviderCheckoutUrl
+        ? '#5CB8E4'
+        : checkoutIsAwaitingAdmin
+          ? '#5CB8E4'
+          : 'rgba(242,242,242,0.62)';
+  const checkoutReviewLabel = checkoutIsPaid
+    ? 'PAID'
+    : checkoutIsCancelled
+      ? 'CANCELLED'
+      : checkoutProviderCheckoutUrl
+        ? 'GATEWAY READY'
+        : checkoutIsAwaitingAdmin
+          ? 'ADMIN REVIEW'
+          : checkoutIsProcessing
+            ? 'PROCESSING'
+            : 'PENDING PAYMENT';
+  const checkoutBuyerStatusText = checkoutIsPaid
+    ? activeCheckout?.type === 'merch'
+      ? 'Pembayaran sudah confirmed. Order masuk antrean proses.'
+      : 'Pembayaran sudah confirmed. File masuk Library WiSpace.'
+    : checkoutIsCancelled
+      ? 'Checkout dibatalkan. Tidak ada akses/order yang dibuat.'
+      : checkoutProviderCheckoutUrl
+        ? 'Link gateway sudah siap. Setelah provider confirm paid, admin akan activate akses/order.'
+        : checkoutIsAwaitingAdmin
+          ? 'Request masuk admin. Akses/order aktif setelah payment confirmed.'
+          : 'Selesaikan pembayaran sesuai instruksi, lalu kirim request konfirmasi.';
   const checkoutStatusCopy = checkoutIsPaid
     ? activeCheckout?.type === 'merch'
       ? 'Payment paid - order masuk ke band'
@@ -5748,6 +5768,7 @@ export default function App() {
   const isProviderPaidPendingActivation = (payment) => payment.status === 'provider_paid_pending_activation';
   const canAdminConfirmPayment = (payment) => Boolean(payment.paymentProofPreview || payment.paymentProofUrl || isProviderPaidPendingActivation(payment));
   const waitingAdminPaymentRequests = pendingPayments.filter(isPaymentReadyForAdminActivation);
+  const providerPaidAdminPaymentRequests = pendingPayments.filter(isProviderPaidPendingActivation);
   const paidAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'paid');
   const rejectedAdminPaymentRequests = pendingPayments.filter((payment) => payment.status === 'rejected');
   const waitingAdminPaymentAmount = waitingAdminPaymentRequests.reduce((total, payment) => total + Number(payment.amount || payment.grossAmount || 0), 0);
@@ -7221,20 +7242,21 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(104px, 1fr))', gap: '8px', marginBottom: '10px' }}>
               {[
                 ['WAITING', waitingAdminPaymentRequests.length, 'rgba(242,242,242,0.62)'],
+                ['PROVIDER PAID', providerPaidAdminPaymentRequests.length, '#5CB8E4'],
                 ['PAID', paidAdminPaymentRequests.length, 'rgba(242,242,242,0.62)'],
                 ['REJECTED', rejectedAdminPaymentRequests.length, '#8758FF'],
                 ['ALL REQUEST', pendingPayments.length, '#5CB8E4']
               ].map(([label, value, color]) => (
-                <div key={label} style={{ padding: '10px', backgroundColor: '#181818', border: `1px solid ${color}33`, borderRadius: '10px' }}>
-                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 5px 0' }}>{label}</p>
-                  <strong style={{ color, fontSize: '18px', fontWeight: '900' }}>{value}</strong>
+                <div key={label} style={{ padding: '7px 0', backgroundColor: 'transparent', borderTop: `1.5px solid ${color}55`, borderRadius: 0 }}>
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '15px', fontWeight: '900' }}>{value}</strong>
                 </div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(116px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
                 ['WAITING CASH', waitingAdminPaymentAmount, 'rgba(242,242,242,0.62)'],
                 ['WAITING PRODUK', waitingAdminPaymentProductAmount, 'rgba(242,242,242,0.62)'],
@@ -7242,16 +7264,16 @@ export default function App() {
                 ['POTENSI FEE', waitingAdminPaymentPotentialFee, '#5CB8E4'],
                 ['REJECTED GROSS', rejectedAdminPaymentAmount, '#8758FF']
               ].map(([label, amount, color]) => (
-                <div key={label} style={{ padding: '9px', backgroundColor: '#181818', border: `1px solid ${color}30`, borderRadius: '9px' }}>
+                <div key={label} style={{ padding: '7px 0', backgroundColor: 'transparent', borderTop: `1.5px solid ${color}33`, borderRadius: 0 }}>
                   <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
-                  <strong style={{ color, fontSize: '14px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
+                  <strong style={{ color, fontSize: '12px', fontWeight: '900' }}>Rp {Number(amount || 0).toLocaleString('id-ID')}</strong>
                 </div>
               ))}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '10px' }}>
               <div style={{ padding: '10px', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.18)', borderRadius: '10px' }}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>WAITING ADMIN CONFIRM</p>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 8px 0' }}>PAYMENT QUEUE</p>
                 {waitingAdminPaymentRequests.length === 0 ? (
                   <p style={{ color: '#8758FF', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Belum ada payment buyer yang menunggu confirm.</p>
                 ) : (
@@ -7288,7 +7310,7 @@ export default function App() {
                         <div style={{ display: 'flex', gap: '6px', justifyContent: isTinyLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                           <button type="button" onClick={() => setSelectedPaymentDetail(payment)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
                           <button type="button" onClick={() => handleConfirmPendingPayment(payment)} disabled={!canConfirmPayment} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: canConfirmPayment ? 'rgba(242,242,242,0.62)' : '#8758FF', border: canConfirmPayment ? '1px solid rgba(242,242,242,0.35)' : '1px solid rgba(242,242,242,0.08)', cursor: canConfirmPayment ? 'pointer' : 'not-allowed' }}>CONFIRM PAID</button>
-                          <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
+                          {!providerPaid && <button type="button" onClick={() => handleRejectPendingPayment(payment)} style={{ background: 'rgba(135,88,255,0.08)', border: '1px solid rgba(135,88,255,0.28)', color: '#8758FF', borderRadius: '8px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>}
                         </div>
                       </div>
                       );
@@ -10536,42 +10558,41 @@ export default function App() {
           <form
             onSubmit={handleCheckoutSubmit}
             onClick={(event) => event.stopPropagation()}
-            style={{ width: 'min(680px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: 'rgba(24,24,24,0.96)', border: '1.5px solid rgba(92,184,228,0.22)', borderRadius: '12px', padding: isTinyLayout ? '13px' : '16px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(24,24,24,0.46)' }}
+            style={{ width: 'min(640px, 96vw)', maxHeight: '92vh', overflowY: 'auto', backgroundColor: 'rgba(24,24,24,0.96)', border: '1.5px solid rgba(92,184,228,0.22)', borderRadius: '14px', padding: isTinyLayout ? '12px' : '15px', boxSizing: 'border-box', boxShadow: '0 18px 46px rgba(24,24,24,0.46)' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <p style={{ color: '#5CB8E4', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>WISPACE CHECKOUT</p>
-                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '22px' : '28px', fontWeight: '900', lineHeight: 1, margin: 0 }}>{checkoutTitle.toUpperCase()}</h3>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.45, margin: '8px 0 0 0' }}>{(activeCheckout.type || '').toUpperCase()} / {(checkoutSellerName || 'Band WiSpace').toUpperCase()}</p>
+                <h3 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '20px' : '25px', fontWeight: '900', lineHeight: 1, margin: 0 }}>{checkoutTitle.toUpperCase()}</h3>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.4, margin: '7px 0 0 0' }}>{(activeCheckout.type || '').toUpperCase()} / {(checkoutSellerName || 'Band WiSpace').toUpperCase()}</p>
               </div>
-              <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: checkoutIsProcessing ? '#8758FF' : '#F2F2F2', borderRadius: '12px', padding: '9px 11px', fontSize: '11px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin ? 'CLOSE' : 'CANCEL'}</button>
+              <div style={{ display: 'grid', gap: '7px', justifyItems: 'end' }}>
+                <span style={{ color: checkoutAccentColor, border: `1px solid ${checkoutAccentColor}55`, backgroundColor: 'rgba(24,24,24,0.5)', borderRadius: '999px', padding: '5px 8px', fontSize: '8px', fontWeight: '900', whiteSpace: 'nowrap' }}>{checkoutReviewLabel}</span>
+                <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ background: 'rgba(242,242,242,0.04)', border: '1px solid rgba(242,242,242,0.16)', color: checkoutIsProcessing ? '#8758FF' : '#F2F2F2', borderRadius: '10px', padding: '7px 9px', fontSize: '10px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin ? 'CLOSE' : 'CANCEL'}</button>
+              </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '10px', marginBottom: '13px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '0.86fr 1.14fr', gap: '10px', marginBottom: '11px' }}>
               <div style={checkoutBlockStyle}>
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 6px 0' }}>TOTAL BAYAR</p>
-                <strong style={{ color: '#5CB8E4', fontSize: '26px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
-                <div style={{ display: 'grid', gap: '3px', marginTop: '8px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35 }}>
+                <strong style={{ color: '#5CB8E4', fontSize: '23px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
+                <div style={{ display: 'grid', gap: '3px', marginTop: '7px', color: 'rgba(242,242,242,0.62)', fontSize: '10px', lineHeight: 1.35 }}>
                   <span>Item: Rp {checkoutSubtotal.toLocaleString('id-ID')}</span>
                   {activeCheckout.type === 'merch' && <span>Ongkir: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
                 </div>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '11px', lineHeight: 1.45, margin: '8px 0 0 0' }}>Checkout dimulai sebagai pending payment. Data baru masuk Library, Orders, ledger, dan saldo band setelah payment berubah paid.</p>
               </div>
               <div style={checkoutBlockStyle}>
-                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>RINGKASAN AKSES</p>
-                <div style={{ display: 'grid', gap: '6px', color: 'rgba(242,242,242,0.62)', fontSize: '12px' }}>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>ORDER STATUS</p>
+                <div style={{ display: 'grid', gap: '5px', color: 'rgba(242,242,242,0.62)', fontSize: '11px' }}>
                   <span>Order ID: <strong style={{ color: '#5CB8E4' }}>{checkoutReference}</strong></span>
-                  <span>Item: <strong style={{ color: '#F2F2F2' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong></span>
-                  {activeCheckout.type === 'merch' && <span>Kurir: <strong style={{ color: '#F2F2F2' }}>{checkoutCourierOption?.label || checkoutDraft.courier} / Rp {checkoutShippingCost.toLocaleString('id-ID')}</strong></span>}
-                  <span>Payment: <strong style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsCancelled ? '#8758FF' : checkoutIsAwaitingAdmin ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutPaymentStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
+                  <span>Item: <strong style={{ color: '#F2F2F2' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong>{activeCheckout.type === 'merch' ? ` / ${checkoutCourierOption?.label || checkoutDraft.courier}` : ''}</span>
                   <span>Provider: <strong style={{ color: checkoutProviderCheckoutUrl ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutProviderLabel.toUpperCase()}</strong>{checkoutProviderStatus ? ` / ${checkoutProviderStatus.replaceAll('_', ' ').toUpperCase()}` : ''}</span>
-                  <span>Status: <strong style={{ color: checkoutIsPaid ? 'rgba(242,242,242,0.62)' : checkoutIsCancelled ? '#8758FF' : checkoutIsAwaitingAdmin ? '#5CB8E4' : 'rgba(242,242,242,0.62)' }}>{checkoutStatusCopy}</strong></span>
-                  <span>Fulfillment: <strong style={{ color: checkoutIsPaid ? activeCheckout.type === 'merch' ? 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)' : 'rgba(242,242,242,0.62)' }}>{checkoutAccessStatus.replaceAll('_', ' ').toUpperCase()}</strong></span>
-                  <span>{checkoutIsPaid ? activeCheckout.type === 'merch' ? 'Order masuk ke band untuk diproses.' : 'File masuk Library terenkripsi WiSpace.' : checkoutIsAwaitingAdmin ? 'Payment request sudah masuk admin. Belum ada akses/order aktif.' : 'Belum ada akses/order aktif sebelum payment paid.'}</span>
+                  <span>Status: <strong style={{ color: checkoutAccentColor }}>{checkoutStatusCopy}</strong></span>
+                  <span style={{ color: 'rgba(242,242,242,0.62)', lineHeight: 1.35 }}>{checkoutBuyerStatusText}</span>
                 </div>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
                 ['1', 'ORDER', checkoutIsCancelled ? 'cancelled' : 'ready'],
                 ['2', 'PAYMENT CHECK', checkoutIsPaid ? 'paid' : checkoutIsAwaitingAdmin ? 'waiting' : checkoutIsCancelled ? 'cancelled' : 'upload proof'],
