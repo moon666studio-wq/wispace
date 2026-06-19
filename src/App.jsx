@@ -78,12 +78,27 @@ const getGigMeta = (gig, key, fallback = '') => {
 };
 const getGigGenre = (gig) => (gig?.genre || 'Indie').split('::')[0] || 'Indie';
 const getGigRequestType = (gig) => gig?.request_type || ((gig?.genre || '').includes('::request=exclusive') ? 'exclusive' : 'free');
-const getGigDate = (gig) => gig?.date || getGigMeta(gig, 'date', 'Tanggal menyusul');
 const getGigHtm = (gig) => gig?.htm || getGigMeta(gig, 'htm', 'Info HTM menyusul');
 const getGigCp = (gig) => gig?.cp || getGigMeta(gig, 'cp', 'CP menyusul');
-const formatDisplayDate = (value) => value
-  ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
-  : '';
+const parseDisplayDate = (value) => {
+  if (!value) return null;
+  const rawValue = String(value);
+  const dateOnlyMatch = rawValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+  const parsedDate = new Date(rawValue);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+const formatDisplayDate = (value, options = { day: 'numeric', month: 'long', year: 'numeric' }) => {
+  const parsedDate = parseDisplayDate(value);
+  return parsedDate ? new Intl.DateTimeFormat('id-ID', options).format(parsedDate) : '';
+};
+const getGigDate = (gig) => {
+  const rawDate = gig?.date || getGigMeta(gig, 'date', '');
+  return formatDisplayDate(rawDate) || rawDate || 'Tanggal menyusul';
+};
 const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig.approved_until) : '';
 const getGigApprovedAt = (gig) => formatDisplayDate(gig?.approved_at || gig?.updated_at || gig?.created_at);
 const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_exclusive'].includes(gig?.status);
@@ -322,6 +337,14 @@ const isUuidLike = (value = '') => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[8
 const normalizePriceValue = (value) => {
   const parsedValue = Number(String(value || '').replace(/[^\d]/g, ''));
   return Number.isFinite(parsedValue) ? parsedValue : 0;
+};
+const formatRupiahInput = (value) => {
+  const amount = normalizePriceValue(value);
+  return amount ? `Rp ${amount.toLocaleString('id-ID')}` : '';
+};
+const formatOptionalRupiahText = (value) => {
+  const rawValue = String(value || '');
+  return /\d/.test(rawValue) ? formatRupiahInput(rawValue) : rawValue;
 };
 const calculateRevenueSplit = (amount = 0) => {
   const grossAmount = normalizePriceValue(amount);
@@ -9084,7 +9107,7 @@ export default function App() {
                 <input type="text" placeholder="KOTA / VENUE" value={newCity} onChange={(e) => setNewCity(e.target.value)} required style={formInputStyle} />
                 <input type="text" placeholder="GENRE / SUB-SKENA" value={newGenre} onChange={(e) => setNewGenre(e.target.value)} style={formInputStyle} />
                 <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} required style={formInputStyle} />
-                <input type="text" placeholder="HTM (Contoh: FREE / Rp 50.000)" value={newHtm} onChange={(e) => setNewHtm(e.target.value)} required style={formInputStyle} />
+                <input type="text" placeholder="HTM (Contoh: FREE / Rp 50.000)" value={newHtm} onChange={(e) => setNewHtm(formatOptionalRupiahText(e.target.value))} required style={formInputStyle} />
                 <input type="text" placeholder="CONTACT PERSON (WA/IG: @bandmu)" value={newCp} onChange={(e) => setNewCp(e.target.value)} required style={formInputStyle} />
               </div>
               <label style={{ display: 'block', marginTop: '14px', cursor: 'pointer' }}>
@@ -9124,7 +9147,7 @@ export default function App() {
                   <input type="text" placeholder="NAMA ACARA / SHOWCASE" value={scheduleDraft.title} onChange={(event) => setScheduleDraft({ ...scheduleDraft, title: event.target.value })} required style={formInputStyle} />
                   <input type="text" placeholder="VENUE / KOTA" value={scheduleDraft.venue} onChange={(event) => setScheduleDraft({ ...scheduleDraft, venue: event.target.value })} required style={formInputStyle} />
                   <input type="text" placeholder="TANGGAL MANGGUNG" value={scheduleDraft.date} onChange={(event) => setScheduleDraft({ ...scheduleDraft, date: event.target.value })} required style={formInputStyle} />
-                  <input type="text" placeholder="HTM / INFO TIKET" value={scheduleDraft.htm} onChange={(event) => setScheduleDraft({ ...scheduleDraft, htm: event.target.value })} required style={formInputStyle} />
+                  <input type="text" placeholder="HTM / INFO TIKET" value={scheduleDraft.htm} onChange={(event) => setScheduleDraft({ ...scheduleDraft, htm: formatOptionalRupiahText(event.target.value) })} required style={formInputStyle} />
                   <input type="text" placeholder="CONTACT PERSON / LINK INFO" value={scheduleDraft.cp} onChange={(event) => setScheduleDraft({ ...scheduleDraft, cp: event.target.value })} required style={formInputStyle} />
                   <button type="submit" style={{ ...glassButtonStyle, width: '100%', padding: '12px', fontSize: '12px' }}>SIMPAN JADWAL PROFILE</button>
                 </form>
@@ -10034,7 +10057,7 @@ export default function App() {
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     <input type="text" placeholder="JUDUL ALBUM / EP" value={albumDraft.title} onChange={(e) => setAlbumDraft({ ...albumDraft, title: e.target.value })} required style={formInputStyle} />
-                    <input type="number" min="0" placeholder="HARGA JUAL (Rp)" value={albumDraft.price} onChange={(e) => setAlbumDraft({ ...albumDraft, price: e.target.value })} required style={formInputStyle} />
+                    <input type="text" inputMode="numeric" placeholder="HARGA JUAL" value={formatRupiahInput(albumDraft.price)} onChange={(e) => setAlbumDraft({ ...albumDraft, price: String(normalizePriceValue(e.target.value) || '') })} required style={formInputStyle} />
                   </div>
                   <textarea placeholder="DESKRIPSI ALBUM / CATATAN RILISAN" value={albumDraft.description} onChange={(e) => setAlbumDraft({ ...albumDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
 
@@ -10095,11 +10118,11 @@ export default function App() {
                               {file.previewUrl ? 'REPLACE PREVIEW' : 'UPLOAD MANUAL 30S'}
                           </label>
                           <input
-                            type="number"
-                            min="0"
+                            type="text"
+                            inputMode="numeric"
                             placeholder="Rp/track"
-                            value={file.price}
-                            onChange={(event) => updateAlbumTrackPrice(index, event.target.value)}
+                            value={formatRupiahInput(file.price)}
+                            onChange={(event) => updateAlbumTrackPrice(index, String(normalizePriceValue(event.target.value) || ''))}
                             style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px', color: '#F8F7F8', padding: '8px', fontSize: '11px', fontFamily: FONT_STACK, boxSizing: 'border-box', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}
                           />
                           <span style={{ color: String(albumDraft.freeTrackIndex) === String(index) && !hasFreeFullBandTrack ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontWeight: '900', textAlign: isTinyLayout ? 'left' : 'right', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>
@@ -10196,7 +10219,7 @@ export default function App() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     <input type="text" placeholder="NAMA MERCH (Kaos, CD, Kaset, Sticker)" value={merchDraft.name} onChange={(e) => setMerchDraft({ ...merchDraft, name: e.target.value })} required style={formInputStyle} />
-                    <input type="number" min="0" placeholder="HARGA JUAL (Rp)" value={merchDraft.price} onChange={(e) => setMerchDraft({ ...merchDraft, price: e.target.value })} required style={formInputStyle} />
+                    <input type="text" inputMode="numeric" placeholder="HARGA JUAL" value={formatRupiahInput(merchDraft.price)} onChange={(e) => setMerchDraft({ ...merchDraft, price: String(normalizePriceValue(e.target.value) || '') })} required style={formInputStyle} />
                     <input type="number" min="0" placeholder="STOK" value={merchDraft.stock} onChange={(e) => setMerchDraft({ ...merchDraft, stock: e.target.value })} required style={formInputStyle} />
                   </div>
                   <textarea placeholder="DESKRIPSI MERCH / SIZE / WARNA / DETAIL PENGIRIMAN" value={merchDraft.description} onChange={(e) => setMerchDraft({ ...merchDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
@@ -10947,7 +10970,7 @@ export default function App() {
                 <input type="text" placeholder="KOTA PELAKSANAAN" value={newCity} onChange={(e) => setNewCity(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', boxSizing: 'border-box' }} />
                 <input type="text" placeholder="GENRE / SUB-SKENA (Contoh: Punk, Hardcore, Indie)" value={newGenre} onChange={(e) => setNewGenre(e.target.value)} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', boxSizing: 'border-box' }} />
                 <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="HTM (Contoh: FREE / Rp 50.000)" value={newHtm} onChange={(e) => setNewHtm(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="HTM (Contoh: FREE / Rp 50.000)" value={newHtm} onChange={(e) => setNewHtm(formatOptionalRupiahText(e.target.value))} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', boxSizing: 'border-box' }} />
                 <input type="text" placeholder="CONTACT PERSON (WA/IG: @bandmu)" value={newCp} onChange={(e) => setNewCp(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', boxSizing: 'border-box' }} />
                 <label style={{ display: 'block', marginBottom: '12px', cursor: 'pointer' }}>
                   <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleGigPosterImport} style={{ display: 'none' }} />
