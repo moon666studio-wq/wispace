@@ -6708,7 +6708,7 @@ export default function App() {
     : {
         display: 'grid',
         gridAutoFlow: 'column',
-        gridAutoColumns: 'calc((100% - 12px) / 2)',
+        gridAutoColumns: 'calc((100% - 36px) / 4)',
         gridTemplateRows: '1fr',
         gap: '12px',
         overflowX: 'auto',
@@ -10338,7 +10338,7 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti empat item acak dari katalog WiSpace muncul di sini.</p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: isTinyLayout ? '9px' : '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isTinyLayout ? '9px' : '12px' }}>
                 {homeDiscoveryItems.map((item) => (
                   <button key={item.id} onClick={item.action} style={{ ...compactVisualCardStyle, textAlign: 'left', fontFamily: FONT_STACK }}>
                     <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
