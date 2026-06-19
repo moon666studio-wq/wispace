@@ -1335,6 +1335,8 @@ export default function App() {
   const [selectedLibraryItemId, setSelectedLibraryItemId] = useState(null);
   const [playerQueue, setPlayerQueue] = useState([]);
   const [playerQueueIndex, setPlayerQueueIndex] = useState(0);
+  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
+  const [playerDuration, setPlayerDuration] = useState(0);
   const [activeReplyId, setActiveReplyId] = useState(null);
   const [replyDraft, setReplyDraft] = useState('');
   const [messages, setMessages] = useState(loadMessageLedger);
@@ -1805,6 +1807,30 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, [fetchAdminPaymentRequests, resolveUserRole, verifyCloudAdminAccount]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return undefined;
+
+    const syncTime = () => setPlayerCurrentTime(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
+    const syncDuration = () => setPlayerDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setPlayerCurrentTime(0);
+    };
+
+    audio.addEventListener('timeupdate', syncTime);
+    audio.addEventListener('loadedmetadata', syncDuration);
+    audio.addEventListener('durationchange', syncDuration);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', syncTime);
+      audio.removeEventListener('loadedmetadata', syncDuration);
+      audio.removeEventListener('durationchange', syncDuration);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
 
   useEffect(() => {
     if (!userSession) {
@@ -5270,6 +5296,8 @@ export default function App() {
 
     audioRef.current.src = playableTrack.url;
     audioRef.current.currentTime = 0;
+    setPlayerCurrentTime(0);
+    setPlayerDuration(0);
     audioRef.current.play()
       .then(() => setIsPlaying(true))
       .catch((error) => {
@@ -5286,6 +5314,7 @@ export default function App() {
       audioPreviewTimerRef.current = window.setTimeout(() => {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
+        setPlayerCurrentTime(0);
         setIsPlaying(false);
       }, 30000);
     }
@@ -5358,6 +5387,22 @@ export default function App() {
 
     audioRef.current.play();
     setIsPlaying(true);
+  };
+
+  const formatPlayerTime = (seconds = 0) => {
+    const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+    const minutes = Math.floor(safeSeconds / 60);
+    const remainingSeconds = safeSeconds % 60;
+    return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
+
+  const handlePlayerSeek = (event) => {
+    if (!activeTrack) return;
+    const requestedTime = Number(event.target.value || 0);
+    const previewLimit = activeTrack.freeFull || activeTrack.isOwned ? playerDuration : Math.min(playerDuration || 30, 30);
+    const nextTime = Math.max(0, Math.min(requestedTime, previewLimit || requestedTime));
+    audioRef.current.currentTime = nextTime;
+    setPlayerCurrentTime(nextTime);
   };
 
   const handlePlayerStep = (direction) => {
@@ -6332,6 +6377,12 @@ export default function App() {
     ? (bandProfile.name || signatureName || 'BAND')
     : (audienceProfile.displayName || userSession?.email?.split('@')[0] || 'USER');
   const accountPhoto = isBandAccount ? bandProfile.photoPreview : audienceProfile.photoPreview;
+  const playerSeekMax = activeTrack
+    ? activeTrack.freeFull || activeTrack.isOwned
+      ? Math.max(playerDuration || 0, playerCurrentTime || 0)
+      : Math.max(1, Math.min(playerDuration || 30, 30))
+    : 0;
+  const playerSeekValue = Math.min(playerCurrentTime || 0, playerSeekMax || 0);
   const renderProfileChip = (avatarSize = 20, maxLabelWidth = '120px') => (
     <>
       <span style={{ width: `${avatarSize}px`, height: `${avatarSize}px`, borderRadius: '9999px', overflow: 'hidden', backgroundColor: '#181818', border: '1px solid rgba(92,184,228,0.65)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -6350,7 +6401,7 @@ export default function App() {
     gig?.image ? (
       <img src={gig.image} alt="" style={style} />
     ) : (
-      <div style={{ ...style, display: 'grid', placeItems: 'center', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', color: '#8758FF', fontSize: '10px', fontWeight: '900', textAlign: 'center' }}>
+      <div style={{ ...style, display: 'grid', placeItems: 'center', backgroundColor: '#181818', border: '1px solid rgba(242,242,242,0.08)', color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900', textAlign: 'center' }}>
         {label}
       </div>
     )
@@ -6834,7 +6885,7 @@ export default function App() {
                   {unreadNotificationTotal > 0 && <span style={{ position: 'absolute', top: '-7px', right: '-7px', minWidth: '16px', height: '16px', borderRadius: '9999px', backgroundColor: '#8758FF', color: '#F2F2F2', fontSize: '9px', display: 'grid', placeItems: 'center', fontWeight: '900', lineHeight: 1 }}>{unreadNotificationTotal > 9 ? '9+' : unreadNotificationTotal}</span>}
                 </button>
                 <button onClick={openProfileModal} style={{ background: 'none', border: 'none', color: '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, minWidth: 0 }}>{renderProfileChip(28, '110px')}</button>
-                <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#8758FF', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK }}><LogOut size={13}/> LOGOUT</button>
               </>
             )}
           </div>
@@ -6886,7 +6937,7 @@ export default function App() {
           ) : (
             <>
               <button onClick={openProfileModal} style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontFamily: FONT_STACK, whiteSpace: 'nowrap', minWidth: 0 }}>{renderProfileChip(30, '110px')}</button>
-              <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#8758FF', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
+              <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}><LogOut size={13}/> LOGOUT</button>
             </>
           )}
         </div>
@@ -6992,15 +7043,29 @@ export default function App() {
       )}
 
       {activeTrack && !loading && (
-        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '8px' : '12px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 34px)' : 'min(292px, calc(100vw - 56px))', boxSizing: 'border-box', padding: isTinyLayout ? '5px 7px' : '5px 7px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '6px', alignItems: 'center', backgroundColor: 'rgba(24,24,24,0.82)', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '9px', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: isTinyLayout ? '8px' : '12px', zIndex: 1000, transform: 'translateX(-50%)', width: isTinyLayout ? 'calc(100vw - 34px)' : 'min(340px, calc(100vw - 56px))', boxSizing: 'border-box', padding: isTinyLayout ? '6px 8px' : '6px 9px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '7px', alignItems: 'center', backgroundColor: 'rgba(24,24,24,0.84)', border: '1px solid rgba(242,242,242,0.12)', borderRadius: '9px', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'none' }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ color: isPlaying ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '7px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 2px 0' }}>{isPlaying ? 'PLAYING' : 'PAUSED'}</p>
             <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '10px' : '11px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.05 }}>{(activeTrack.title || 'UNTITLED TRACK').toUpperCase()}</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '32px minmax(0, 1fr) 32px', gap: '6px', alignItems: 'center', marginTop: '5px' }}>
+              <span style={{ color: 'rgba(242,242,242,0.5)', fontSize: '8px', fontWeight: '900', fontVariantNumeric: 'tabular-nums' }}>{formatPlayerTime(playerSeekValue)}</span>
+              <input
+                type="range"
+                min="0"
+                max={playerSeekMax || 1}
+                step="0.1"
+                value={playerSeekValue}
+                onChange={handlePlayerSeek}
+                aria-label="Seek music player"
+                style={{ width: '100%', accentColor: '#5CB8E4', cursor: 'pointer' }}
+              />
+              <span style={{ color: 'rgba(242,242,242,0.5)', fontSize: '8px', fontWeight: '900', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{formatPlayerTime(playerSeekMax)}</span>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(242,242,242,0.09)', backgroundColor: '#181818', color: playerQueue.length <= 1 ? '#8758FF' : '#F2F2F2', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipBack size={10} /></button>
+            <button onClick={() => handlePlayerStep(-1)} disabled={playerQueue.length <= 1} title="Previous" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(242,242,242,0.09)', backgroundColor: '#181818', color: playerQueue.length <= 1 ? 'rgba(242,242,242,0.28)' : '#F2F2F2', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipBack size={10} /></button>
             <button onClick={handleToggleActiveTrack} title={isPlaying ? 'Pause' : 'Play'} style={{ width: '25px', height: '25px', borderRadius: '9999px', border: '1px solid rgba(92,184,228,0.3)', backgroundColor: 'rgba(92,184,228,0.16)', color: '#F2F2F2', display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none', padding: 0 }}>{isPlaying ? <Pause size={12} /> : <Play size={12} />}</button>
-            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(242,242,242,0.09)', backgroundColor: '#181818', color: playerQueue.length <= 1 ? '#8758FF' : '#F2F2F2', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipForward size={10} /></button>
+            <button onClick={() => handlePlayerStep(1)} disabled={playerQueue.length <= 1} title="Next" style={{ width: '23px', height: '23px', borderRadius: '9999px', border: '1px solid rgba(242,242,242,0.09)', backgroundColor: '#181818', color: playerQueue.length <= 1 ? 'rgba(242,242,242,0.28)' : '#F2F2F2', display: 'grid', placeItems: 'center', cursor: playerQueue.length <= 1 ? 'default' : 'pointer', padding: 0 }}><SkipForward size={10} /></button>
           </div>
         </div>
       )}
@@ -7037,7 +7102,7 @@ export default function App() {
                   {!isTinyLayout && (
                     <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '7px 14px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>{renderProfileChip(22, '130px')}</button>
                   )}
-                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#8758FF', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGOUT</button>
+                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', cursor: 'pointer', padding: isTinyLayout ? '8px 0' : '0', fontFamily: FONT_STACK }}>LOGOUT</button>
                 </>
               )}
             </div>
@@ -7051,7 +7116,7 @@ export default function App() {
               )}
               <div style={homeHeroContentStyle}>
                 <span style={{ backgroundColor: 'rgba(24,24,24,0.55)', border: '1px solid rgba(242,242,242,0.18)', color: '#F2F2F2', fontSize: '10px', fontWeight: '900', padding: '6px 10px', borderRadius: '9999px', width: 'fit-content', marginBottom: '16px', letterSpacing: '1px' }}>{currentExclusiveBanner.type}</span>
-                <h2 style={{ fontSize: isTinyLayout ? '36px' : 'clamp(54px, 7vw, 88px)', fontWeight: '900', margin: '0 0 14px 0', color: '#F2F2F2', maxWidth: '1040px', lineHeight: isTinyLayout ? 0.98 : 0.88 }}>{currentExclusiveBanner.title}</h2>
+                <h2 style={{ fontSize: isTinyLayout ? '28px' : 'clamp(34px, 4.8vw, 58px)', fontWeight: '900', margin: '0 0 12px 0', color: '#F2F2F2', maxWidth: '860px', lineHeight: isTinyLayout ? 1.02 : 0.96 }}>{currentExclusiveBanner.title}</h2>
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '720px', margin: '0 0 30px 0', lineHeight: '1.55', fontWeight: '700' }}>{currentExclusiveBanner.desc}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', width: '100%', flexWrap: 'wrap' }}>
                   <button onClick={() => setSelectedGigDetail({ ...currentExclusiveBanner.sourceGig, fromEventOverlay: true })} style={{ ...glassButtonStyle, background: 'rgba(242,242,242,0.9)', border: '1px solid rgba(242,242,242,0.7)', color: '#181818', padding: isTinyLayout ? '10px 16px' : '11px 28px', width: 'fit-content', fontSize: isTinyLayout ? '12px' : '13px', boxShadow: 'none' }}>LIHAT DETAIL EVENT</button>
@@ -7092,10 +7157,10 @@ export default function App() {
             </div>
           ) : (
             <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: '#181818', display: 'flex', alignItems: 'flex-end' }}>
-              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(242,242,242,0.08)', background: 'radial-gradient(circle at 18% 72%, rgba(92,184,228,0.16), transparent 30%), linear-gradient(135deg, #181818 0%, #8758FF 46%, #181818 100%)' }} />
+              <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(242,242,242,0.08)', background: 'radial-gradient(circle at 18% 72%, rgba(92,184,228,0.18), transparent 30%), linear-gradient(135deg, #181818 0%, rgba(92,184,228,0.18) 46%, #181818 100%)' }} />
               <div style={{ position: 'relative', zIndex: 10, padding: isTinyLayout ? '24px 18px' : '40px' }}>
                 <span style={{ color: '#F2F2F2', fontSize: '10px', fontWeight: '900', letterSpacing: '1.5px' }}>WISPACE EXCLUSIVE BOARD</span>
-                <h2 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '34px' : 'clamp(52px, 6vw, 76px)', fontWeight: '900', lineHeight: isTinyLayout ? 1 : 0.9, margin: '14px 0 12px 0', maxWidth: '900px' }}>BELUM ADA PAMFLET APPROVED</h2>
+                <h2 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '28px' : 'clamp(34px, 4.6vw, 56px)', fontWeight: '900', lineHeight: isTinyLayout ? 1.04 : 0.98, margin: '12px 0 10px 0', maxWidth: '780px' }}>BELUM ADA PAMFLET APPROVED</h2>
                 <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: isTinyLayout ? '13px' : '15px', maxWidth: '620px', lineHeight: 1.5, margin: 0 }}>Upload pamflet exclusive dari menu band, lalu approve di admin. Slide besar akan muncul di sini.</p>
               </div>
             </div>
@@ -7108,7 +7173,7 @@ export default function App() {
           <div onClick={(event) => event.stopPropagation()} style={{ width: isTinyLayout ? '100%' : 'min(960px, calc(100vw - 54px))', maxHeight: isTinyLayout ? '88vh' : '82vh', overflowY: 'auto', boxSizing: 'border-box', padding: isTinyLayout ? '12px' : '16px', backgroundColor: 'rgba(24,24,24,0.94)', border: '1.5px solid rgba(92,184,228,0.24)', borderRadius: '14px', boxShadow: '0 18px 46px rgba(24,24,24,0.5)', animation: 'wispaceRise 460ms cubic-bezier(0.18, 0.92, 0.22, 1.08) both' }}>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(280px, 0.72fr) minmax(0, 1fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch' }}>
               <div style={{ width: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', borderRadius: '13px', overflow: 'hidden', backgroundColor: '#181818', border: '1.5px solid rgba(242,242,242,0.12)', display: 'grid', placeItems: 'center' }}>
-                {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
+                {selectedGigDetail.image ? <img src={selectedGigDetail.image} alt="" style={{ width: '100%', height: '100%', maxHeight: isTinyLayout ? '42vh' : '68vh', objectFit: 'contain', display: 'block' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>POSTER</span>}
               </div>
               <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '18px' }}>
                 <div>
@@ -8414,7 +8479,7 @@ export default function App() {
                                 <button onClick={(event) => { event.stopPropagation(); handlePurchaseTrack(album, track); }} disabled={track.freeFull} style={{ background: 'transparent', border: 'none', color: track.freeFull ? 'rgba(242,242,242,0.62)' : '#5CB8E4', fontSize: '9px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK, flexShrink: 0 }}>{track.freeFull ? 'FREE' : 'BUY'}</button>
                               </div>
                             ))}
-                            {(album.tracks || []).length > 2 && <p style={{ color: '#8758FF', fontSize: '9px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 2} TRACK</p>}
+                            {(album.tracks || []).length > 2 && <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '9px', fontWeight: '900', margin: 0 }}>+{album.tracks.length - 2} TRACK</p>}
                           </div>
                         )}
                       </article>
@@ -8427,7 +8492,7 @@ export default function App() {
                 <h3 style={sectionHeadingStyle}>30 SECOND PREVIEW TRACKS</h3>
                 <div style={flatListStyle}>
                   {filteredTracks.length === 0 ? (
-                    <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
+                    <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0 }}>Belum ada track dari database. Nanti section ini jadi player preview 30 detik untuk rilisan baru.</p>
                   ) : (
                     filteredTracks.map(track => (
                       <div key={track.id} style={{ ...flatItemStyle, gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
@@ -8447,13 +8512,13 @@ export default function App() {
               <section style={{ padding: '2px 0 0 0' }}>
                 <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
                 {filteredBandProfiles.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredBandProfiles.slice(0, 4).map((profile) => (
                       <div key={`side-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: '54px minmax(0, 1fr)', cursor: 'default' }}>
                         <div style={{ ...flatThumbStyle, width: '54px', height: '54px', borderRadius: '10px' }}>
-                          {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                          {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <button
@@ -8477,13 +8542,13 @@ export default function App() {
                   <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#F2F2F2', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
                 </div>
                 {filteredMerchItems.length === 0 ? (
-                  <p style={{ color: '#8758FF', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
+                  <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredMerchItems.slice(0, 4).map(item => (
                       <button key={item.id} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, gridTemplateColumns: '48px minmax(0, 1fr)' }}>
                         <div style={{ ...flatThumbStyle, width: '48px', height: '48px', borderRadius: '8px' }}>
-                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
+                          {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>MERCH</span>}
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#F2F2F2', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
@@ -8503,21 +8568,23 @@ export default function App() {
               {filteredBandProfiles.length > 0 ? (
                 <div style={flatListStyle}>
                   {filteredBandProfiles.map((profile) => (
-                    <div key={`band-tab-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '64px minmax(0, 1fr)' : '76px minmax(0, 1fr) auto', cursor: 'default' }}>
-                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '64px' : '76px', height: isTinyLayout ? '64px' : '76px', borderRadius: '10px' }}>
-                        {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#8758FF', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
+                    <div key={`band-tab-${profile.slug}`} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '58px minmax(0, 1fr)' : '66px minmax(0, 1fr)', gap: isTinyLayout ? '10px' : '12px', cursor: 'default' }}>
+                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '58px' : '66px', height: isTinyLayout ? '58px' : '66px', borderRadius: '10px' }}>
+                        {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(242,242,242,0.62)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '15px' : '18px', fontWeight: '900', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name.toUpperCase()}</h4>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: '0 0 6px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
-                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', lineHeight: 1.45, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap', marginBottom: '5px' }}>
+                          <h4 style={{ color: '#F2F2F2', fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isTinyLayout ? '100%' : 'min(420px, 62vw)' }}>{profile.name.toUpperCase()}</h4>
+                          <button onClick={() => openBandPublicProfile(false, profile)} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '8px' }}>LIHAT PROFILE</button>
+                        </div>
+                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', margin: '0 0 5px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
+                        <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
                       </div>
-                      <button onClick={() => openBandPublicProfile(false, profile)} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px', gridColumn: isTinyLayout ? '1 / -1' : 'auto' }}>LIHAT PROFILE</button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ color: '#8758FF', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
+                <p style={{ color: 'rgba(242,242,242,0.62)', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
               )}
             </section>
           )}
