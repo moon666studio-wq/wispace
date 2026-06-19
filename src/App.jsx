@@ -1347,6 +1347,7 @@ export default function App() {
   const [showBandAdminPopout, setShowBandAdminPopout] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState(null);
   const [selectedReleaseId, setSelectedReleaseId] = useState(null);
+  const [selectedReleaseDetail, setSelectedReleaseDetail] = useState(null);
   const [selectedMerchId, setSelectedMerchId] = useState(null);
   const [selectedLibraryTrackId, setSelectedLibraryTrackId] = useState(null);
   const [viewedBandSlug, setViewedBandSlug] = useState('');
@@ -2413,6 +2414,14 @@ export default function App() {
     if (!album?.id) return;
     setSelectedReleaseId(album.id);
     navigateInternalPage('explore', { exploreTab: 'rilisan', keepReleaseDetail: true });
+  };
+
+  const openReleasePopup = (album) => {
+    if (!album?.id) return;
+    setSelectedReleaseDetail(album);
+    setSelectedMerchDetail(null);
+    setSelectedGigDetail(null);
+    setSelectedPosterPreview(null);
   };
 
   const openMerchDetail = (item) => {
@@ -5605,7 +5614,7 @@ export default function App() {
       subtitle: album.bandName || 'Band WiSpace',
       meta: `Rp ${Number(album.price || 0).toLocaleString('id-ID')}`,
       image: album.coverPreview,
-      action: () => openReleaseDetail(album)
+      action: () => openReleasePopup(album)
     })),
     ...publicMerchList.map((item) => ({
       id: `merch-${item.id}`,
@@ -10637,6 +10646,42 @@ export default function App() {
                 {selectedWispacePickDetail.youtubeUrl && (
                   <button type="button" onClick={() => window.open(selectedWispacePickDetail.youtubeUrl, '_blank', 'noopener,noreferrer')} style={{ background: 'rgba(115,187,201,0.14)', border: '1px solid rgba(115,187,201,0.32)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PLAY VIDEO</button>
                 )}
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedReleaseDetail && !loading && (
+        <div onClick={() => setSelectedReleaseDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: 'rgba(8,2,2,0.88)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}>
+          <div onClick={(event) => event.stopPropagation()} style={{ width: 'min(860px, 96vw)', maxHeight: '90vh', overflowY: 'auto', backgroundColor: 'rgba(8,2,2,0.98)', border: '1.5px solid rgba(115,187,201,0.22)', borderRadius: '12px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', boxShadow: '0 24px 60px rgba(0,0,0,0.42)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px' }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>RELEASE DETAIL / {String(selectedReleaseDetail.genre || 'DIGITAL').toUpperCase()}</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '22px' : 'clamp(28px, 4vw, 46px)', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 0.98, overflowWrap: 'anywhere' }}>{String(selectedReleaseDetail.title || 'Rilisan WiSpace').toUpperCase()}</h3>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{String(selectedReleaseDetail.bandName || 'Band WiSpace').toUpperCase()} / {String(selectedReleaseDetail.city || 'Indonesia').toUpperCase()}</p>
+              </div>
+              <button type="button" onClick={() => setSelectedReleaseDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '0.82fr 1.18fr', gap: '14px', alignItems: 'start' }}>
+              <div style={{ borderRadius: '10px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: '#080202', display: 'grid', placeItems: 'center' }}>
+                {selectedReleaseDetail.coverPreview ? <img src={selectedReleaseDetail.coverPreview} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }} /> : <span style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', padding: '52px 0' }}>COVER</span>}
+              </div>
+              <section style={{ display: 'grid', gap: '12px' }}>
+                {selectedReleaseDetail.description && <p style={{ color: 'rgba(255,255,255,0.74)', fontSize: '13px', lineHeight: 1.55, margin: 0 }}>{selectedReleaseDetail.description}</p>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', flexWrap: 'wrap', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, padding: '10px 0' }}>
+                  <strong style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900' }}>Full Album Rp {Number(selectedReleaseDetail.price || 0).toLocaleString('id-ID')}</strong>
+                  <button type="button" onClick={() => handlePurchaseAlbum(selectedReleaseDetail)} style={{ ...glassButtonStyle, padding: '9px 12px', fontSize: '10px' }}>{!userSession ? 'JOIN TO BUY' : purchasedAlbums.some((item) => item.id === selectedReleaseDetail.id) ? 'BUKA LIBRARY' : 'BELI FULL ALBUM'}</button>
+                </div>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  {(selectedReleaseDetail.tracks || []).slice(0, 6).map((track, index) => (
+                    <div key={track.id || `${selectedReleaseDetail.id}-${index}`} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto', gap: '8px', alignItems: 'center', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '8px' }}>
+                      <p style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{index + 1}. {track.title || selectedReleaseDetail.title}</p>
+                      <button type="button" onClick={() => handlePlayTrack({ ...track, albumTitle: selectedReleaseDetail.title, bandName: selectedReleaseDetail.bandName, albumCover: selectedReleaseDetail.coverPreview }, (selectedReleaseDetail.tracks || []).map((item) => ({ ...item, albumTitle: selectedReleaseDetail.title, bandName: selectedReleaseDetail.bandName, albumCover: selectedReleaseDetail.coverPreview })))} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px' }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
+                      <button type="button" onClick={() => handlePurchaseTrack(selectedReleaseDetail, track)} disabled={track.freeFull} style={{ background: track.freeFull ? 'rgba(241,212,229,0.08)' : 'rgba(115,187,201,0.08)', border: `1px solid ${track.freeFull ? 'rgba(241,212,229,0.25)' : 'rgba(115,187,201,0.25)'}`, color: track.freeFull ? 'rgba(255,255,255,0.72)' : '#73BBC9', borderRadius: '9px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: track.freeFull ? 'default' : 'pointer', fontFamily: FONT_STACK }}>{track.freeFull ? 'FREE' : `Rp ${Number(track.price || selectedReleaseDetail.price || 0).toLocaleString('id-ID')}`}</button>
+                    </div>
+                  ))}
+                </div>
               </section>
             </div>
           </div>
