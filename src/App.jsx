@@ -10278,9 +10278,9 @@ export default function App() {
 
       {/* HOME GIGS, FRESH FINDS, NEWSSPACE */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: isTinyLayout ? '28px' : '42px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
-          <div style={{ display: 'grid', gap: isTinyLayout ? '30px' : '42px', minWidth: 0 }}>
-            <section>
+        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.65fr) minmax(280px, 0.9fr)', gridTemplateAreas: isCompactLayout ? '"gigs" "news" "fresh"' : '"gigs news" "fresh fresh"', columnGap: isTinyLayout ? '28px' : '42px', rowGap: isTinyLayout ? '30px' : '44px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
+          <div style={{ display: 'contents' }}>
+            <section style={{ gridArea: 'gigs', minWidth: 0 }}>
               <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
               <div style={bulletinGridStyle}>
             {homeGigCards.map(gig => (
@@ -10328,7 +10328,7 @@ export default function App() {
               </div>
             </section>
 
-            <section>
+            <section style={{ gridArea: 'fresh', minWidth: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
               <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={13} color="#73BBC9"/> FRESH FINDS</h2>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
@@ -10338,7 +10338,7 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti empat item acak dari katalog WiSpace muncul di sini.</p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isTinyLayout ? '9px' : '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(128px, 160px))', justifyContent: 'start', gap: isTinyLayout ? '9px' : '12px' }}>
                 {homeDiscoveryItems.map((item) => (
                   <button key={item.id} onClick={item.action} style={{ ...compactVisualCardStyle, textAlign: 'left', fontFamily: FONT_STACK }}>
                     <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
@@ -10355,7 +10355,7 @@ export default function App() {
             </section>
           </div>
 
-          <aside style={{ ...railPanelStyle, paddingTop: 0, position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start' }}>
+          <aside style={{ ...railPanelStyle, gridArea: 'news', paddingTop: 0, position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={13} color="#73BBC9"/> NEWSSPACE</h2>
               <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
