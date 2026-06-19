@@ -1343,7 +1343,6 @@ export default function App() {
 
   // DATA REAL DARI CLOUD
   const [gigs, setGigs] = useState([]);
-  const [top10Tracks, setTop10Tracks] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   const audioRef = useRef(new Audio());
@@ -2042,7 +2041,6 @@ export default function App() {
       .forEach((key) => window.localStorage.removeItem(key));
 
     setGigs([]);
-    setTop10Tracks([]);
     setPublicBandProfiles([]);
     setAlbumItems([]);
     setArticleItems([]);
@@ -2158,9 +2156,8 @@ export default function App() {
 
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
-    const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData, messagesData } = await fetchCloudData(userSession);
+    const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData, messagesData } = await fetchCloudData(userSession);
     setGigs(gigsData);
-    setTop10Tracks(tracksData);
     setPublicBandProfiles(bandProfilesData);
     setAlbumItems(releasesData);
     setPublicArticleItems(articlesData);
@@ -2195,11 +2192,10 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, tracksData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData } = await fetchCloudData();
+      const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData } = await fetchCloudData();
       if (!isActive) return;
 
       setGigs(gigsData);
-      setTop10Tracks(tracksData);
       setPublicBandProfiles(bandProfilesData);
       setAlbumItems(releasesData);
       setPublicArticleItems(articlesData);
@@ -2686,10 +2682,6 @@ export default function App() {
         publicRelease,
         ...current.filter((item) => String(item.id) !== String(publicRelease.id))
       ]);
-      setTop10Tracks((current) => [
-        { id: `preview-${singleTrackId}`, band: publicRelease.bandName, title: trackTitle, url: trackUrl },
-        ...current
-      ].slice(0, 10));
       setTrackBand('');
       setTrackTitle('');
       setTrackUrl('');
@@ -5527,6 +5519,32 @@ export default function App() {
       onSelect: () => openMerchDetail(item)
     }))
   ].slice(0, 10) : [];
+  const getHomeDiscoveryScore = (value = '') => (
+    String(value).split('').reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 7)), 0)
+  );
+  const homeGigCards = filteredGigs.slice(0, 10);
+  const homeDiscoveryItems = [
+    ...albumItems.map((album) => ({
+      id: `release-${album.id}`,
+      type: 'RILISAN',
+      title: album.title,
+      subtitle: album.bandName || 'Band WiSpace',
+      meta: `Rp ${Number(album.price || 0).toLocaleString('id-ID')}`,
+      image: album.coverPreview,
+      action: () => openReleaseDetail(album)
+    })),
+    ...publicMerchList.map((item) => ({
+      id: `merch-${item.id}`,
+      type: 'MERCH',
+      title: item.name,
+      subtitle: item.bandName || 'Band WiSpace',
+      meta: `Rp ${Number(item.price || 0).toLocaleString('id-ID')}`,
+      image: item.imagePreview,
+      action: () => openMerchDetail(item)
+    }))
+  ]
+    .sort((a, b) => getHomeDiscoveryScore(`${b.id}-${homeGigCards.length}`) - getHomeDiscoveryScore(`${a.id}-${homeGigCards.length}`))
+    .slice(0, 4);
   const selectedLibraryItem = purchasedAlbums.find((album) => album.id === selectedLibraryItemId) || purchasedAlbums[0] || null;
   const selectedLibraryTracks = selectedLibraryItem?.tracks?.length
     ? selectedLibraryItem.tracks
@@ -6666,8 +6684,14 @@ export default function App() {
       }
     : {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(218px, 1fr))',
-        gap: '12px'
+        gridAutoFlow: 'column',
+        gridAutoColumns: 'calc((100% - 36px) / 4)',
+        gridTemplateRows: '1fr',
+        gap: '12px',
+        overflowX: 'auto',
+        paddingBottom: '8px',
+        scrollSnapType: 'x mandatory',
+        scrollbarWidth: 'thin'
       };
   const bulletinCardStyle = {
     padding: isTinyLayout ? '7px' : '8px',
@@ -10234,7 +10258,7 @@ export default function App() {
         <section style={{ marginBottom: '60px', ...homeRevealStyle(0) }}>
           <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
           <div style={bulletinGridStyle}>
-            {filteredGigs.map(gig => (
+            {homeGigCards.map(gig => (
               <div 
                 key={gig.id} 
                 onMouseEnter={() => setHoveredCard(gig.id)} 
@@ -10279,62 +10303,54 @@ export default function App() {
           </div>
         </section>
       )}
-
-      {/* INTERACTIVE 3 COLUMNS LOWER ROW */}
+      {/* HOME DISCOVERY ROW */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: isTinyLayout ? '12px' : '14px', ...homeRevealStyle(120) }}>
-          <div onMouseEnter={() => setHoveredCard('c1')} onMouseLeave={() => setHoveredCard(null)} style={railPanelStyle}>
-            <h3 style={{ fontSize: '12px', fontWeight: '900', color: '#F8F7F8', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><Radio size={13} color="#73BBC9"/> MUSIC DIGITAL TERBARU</h3>
-            {top10Tracks.map(track => (
-              <div key={track.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '7px 0', borderTop: `1.5px solid ${flatLineColor}`, alignItems: 'center' }}>
-                <div style={{ minWidth: 0 }}><h4 style={{ fontSize: '12px', color: '#F8F7F8', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title.toUpperCase()}</h4><p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.72)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.band.toUpperCase()}</p></div>
-                <button onClick={() => handlePlayTrack(track, top10Tracks)} style={{ ...glassButtonStyle, padding: '5px 10px', fontSize: '10px', flexShrink: 0 }}>{activeTrack?.id === track.id && isPlaying ? 'PAUSE' : 'PLAY'}</button>
+        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(260px, 340px)', gap: isTinyLayout ? '22px' : '28px', alignItems: 'start', ...homeRevealStyle(120) }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={13} color="#73BBC9"/> FRESH FINDS</h2>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
+            </div>
+            {homeDiscoveryItems.length === 0 ? (
+              <div style={{ ...flatSurfaceStyle, padding: '18px' }}>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti empat item acak dari katalog WiSpace muncul di sini.</p>
               </div>
-            ))}
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isTinyLayout ? '9px' : '12px' }}>
+                {homeDiscoveryItems.map((item) => (
+                  <button key={item.id} onClick={item.action} style={{ ...compactVisualCardStyle, textAlign: 'left', fontFamily: FONT_STACK }}>
+                    <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
+                      {item.image ? <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900' }}>{item.type}</span>}
+                    </div>
+                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{item.type}</p>
+                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', lineHeight: 1.12, margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title || '').toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.subtitle || '').toUpperCase()}</p>
+                    <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', margin: 0 }}>{item.meta}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <div style={railPanelStyle}>
+
+          <aside style={{ ...railPanelStyle, paddingTop: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '12px', color: '#F8F7F8', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><FileText size={13} color="#73BBC9"/> 10 ARTIKEL BAND TERBARU</h3>
-              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
+              <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={13} color="#73BBC9"/> NEWSSPACE</h2>
+              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
             </div>
             {publicArticleList.length === 0 ? (
-              <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada artikel band. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada NewsSpace. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
             ) : (
               <div style={{ display: 'grid', gap: '7px' }}>
-                {publicArticleList.slice(0, 10).map((article) => (
-                  <button key={article.id} onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ textAlign: 'left', padding: '7px 0', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
-                    <p style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 3px 0' }}>{article.title.toUpperCase()}</p>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', margin: 0 }}>{article.category} / {article.bandName}</p>
+                {publicArticleList.slice(0, 4).map((article) => (
+                  <button key={article.id} onClick={() => openArticleReader(article)} style={{ textAlign: 'left', padding: '8px 0', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{String(article.category || 'NewsSpace').toUpperCase()}</p>
+                    <h3 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 4px 0' }}>{String(article.title || '').toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', margin: 0 }}>{article.bandName || 'WiSpace'}</p>
                   </button>
                 ))}
               </div>
             )}
-          </div>
-          <div style={railPanelStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '12px', color: '#F8F7F8', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.6px' }}><ShoppingBag size={13} color="#73BBC9"/> DISTRO BAND MERCHANDISE</h3>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ background: 'transparent', border: 'none', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
-            </div>
-            {publicMerchList.length === 0 ? (
-              <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch band. Nanti kaos, CD, kaset, bundle, dan item fisik muncul di sini.</p>
-            ) : (
-              <div style={{ ...flatListStyle, maxHeight: isTinyLayout ? '230px' : 'none', overflowY: isTinyLayout ? 'auto' : 'visible' }}>
-                {publicMerchList.slice(0, 4).map((item) => (
-                  <button key={`home-merch-${item.id}`} onClick={() => openMerchDetail(item)} style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '46px minmax(0, 1fr)' : '48px minmax(0, 1fr) auto', padding: '7px 0' }}>
-                    <div style={{ ...flatThumbStyle, width: isTinyLayout ? '46px' : '48px', height: isTinyLayout ? '46px' : '48px', borderRadius: '8px' }}>
-                      {item.imagePreview ? <img src={item.imagePreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '9px', fontWeight: '900' }}>MERCH</span>}
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name.toUpperCase()}</p>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(item.bandName || 'Band WiSpace').toUpperCase()}</p>
-                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: 0 }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</p>
-                    </div>
-                    {!isTinyLayout && <span style={{ color: '#F8F7F8', fontSize: '9px', fontWeight: '900' }}>BUY</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          </aside>
         </section>
       )}
 
