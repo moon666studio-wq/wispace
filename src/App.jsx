@@ -5550,6 +5550,28 @@ export default function App() {
   const homeSupportingGigs = homeGigCards.slice(1, 4);
   const homeFeaturedArticle = publicArticleList[0] || null;
   const showLegacyHomeDiscovery = false;
+  const homeFeaturedRelease = albumItems[0] || null;
+  const homeWispacePick = homeFeaturedRelease
+    ? {
+        type: 'YOUTUBE REVIEW',
+        title: homeFeaturedRelease.title || 'WiSpace Pick',
+        bandName: homeFeaturedRelease.bandName || 'Band WiSpace',
+        thumbnail: homeFeaturedRelease.coverPreview,
+        youtubeUrl: homeFeaturedRelease.youtubeUrl || homeFeaturedRelease.youtube_url || '',
+        review: 'Pilihan kurasi WiSpace: dengarkan dulu tekstur, mood, dan arah sound-nya. Slot ini nanti bisa jadi review video YouTube dari admin untuk rilisan yang layak disorot.',
+        action: () => openReleaseDetail(homeFeaturedRelease)
+      }
+    : homeFeaturedGig
+      ? {
+          type: 'EVENT REVIEW',
+          title: homeFeaturedGig.title || 'WiSpace Event',
+          bandName: homeFeaturedGig.city || 'WiSpace',
+          thumbnail: homeFeaturedGig.image,
+          youtubeUrl: '',
+          review: `Event pilihan dari ${homeFeaturedGig.city || 'skena lokal'}. Cocok jadi highlight buat audience yang mau cari agenda dan atmosfer baru dari WiSpace.`,
+          action: () => setSelectedGigDetail({ ...homeFeaturedGig, fromEventOverlay: true })
+        }
+      : null;
   const homeDiscoveryItems = [
     ...albumItems.map((album) => ({
       id: `release-${album.id}`,
@@ -10287,30 +10309,33 @@ export default function App() {
             <section style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: isTinyLayout ? '14px' : '18px', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '12px' }}>
                 <div>
-                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>01 / GIGS</p>
-                  <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px' }}>CURATED EVENT BOARD</h2>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>01 / WISPACE PICKS</p>
+                  <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px' }}>VIDEO REVIEW / CURATED DROP</h2>
                 </div>
                 <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
               </div>
 
-              {homeFeaturedGig ? (
-                <article onClick={() => setSelectedGigDetail({ ...homeFeaturedGig, fromEventOverlay: true })} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(210px, 0.62fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch', padding: isTinyLayout ? '10px 0 14px' : '12px 0 18px', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, cursor: 'pointer' }}>
+              {homeWispacePick ? (
+                <article onClick={() => homeWispacePick.action()} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(210px, 0.62fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch', padding: isTinyLayout ? '10px 0 14px' : '12px 0 18px', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, cursor: 'pointer' }}>
                   <div style={{ position: 'relative', minWidth: 0, overflow: 'hidden', borderRadius: '10px', background: '#080202' }}>
-                    {renderGigPosterImage(homeFeaturedGig, { width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', objectFit: 'cover', borderRadius: '10px', display: 'block' })}
-                    <span style={{ position: 'absolute', left: '12px', top: '12px', padding: '5px 8px', borderRadius: '9999px', background: 'rgba(8,2,2,0.72)', border: '1px solid rgba(115,187,201,0.28)', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', letterSpacing: '1px' }}>FEATURED</span>
+                    {homeWispacePick.thumbnail ? <img src={homeWispacePick.thumbnail} alt="" style={{ width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', objectFit: 'cover', borderRadius: '10px', display: 'block' }} /> : <div style={{ width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', display: 'grid', placeItems: 'center', borderRadius: '10px', border: `1.5px solid ${flatLineColor}` }}><Play size={26} color="#73BBC9" /></div>}
+                    <span style={{ position: 'absolute', left: '12px', top: '12px', padding: '5px 8px', borderRadius: '9999px', background: 'rgba(8,2,2,0.72)', border: '1px solid rgba(115,187,201,0.28)', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', letterSpacing: '1px' }}>{homeWispacePick.youtubeUrl ? 'YOUTUBE' : 'PICK'}</span>
+                    <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
+                      <span style={{ width: isTinyLayout ? '42px' : '52px', height: isTinyLayout ? '42px' : '52px', borderRadius: '9999px', display: 'grid', placeItems: 'center', background: 'rgba(8,2,2,0.62)', border: '1px solid rgba(115,187,201,0.34)', boxShadow: '0 18px 46px rgba(0,0,0,0.34)' }}><Play size={isTinyLayout ? 18 : 22} color="#F8F7F8" /></span>
+                    </span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '14px', minWidth: 0 }}>
                     <div>
-                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.6px', margin: '0 0 9px 0' }}>UPCOMING / {getGigDate(homeFeaturedGig).toUpperCase()}</p>
-                      <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '24px' : 'clamp(26px, 3vw, 44px)', fontWeight: '900', lineHeight: 0.96, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{String(homeFeaturedGig.title || 'WiSpace Event').toUpperCase()}</h3>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{String(homeFeaturedGig.city || 'Indonesia').toUpperCase()} / {getGigHtm(homeFeaturedGig).toUpperCase()}</p>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.6px', margin: '0 0 9px 0' }}>{homeWispacePick.type} / {String(homeWispacePick.bandName || 'WiSpace').toUpperCase()}</p>
+                      <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '24px' : 'clamp(26px, 3vw, 44px)', fontWeight: '900', lineHeight: 0.96, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{String(homeWispacePick.title || 'WiSpace Pick').toUpperCase()}</h3>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{homeWispacePick.review}</p>
                     </div>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); setSelectedGigDetail({ ...homeFeaturedGig, fromEventOverlay: true }); }} style={{ alignSelf: 'flex-start', background: 'rgba(115,187,201,0.14)', border: '1px solid rgba(115,187,201,0.32)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT DETAIL</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); homeWispacePick.youtubeUrl ? window.open(homeWispacePick.youtubeUrl, '_blank', 'noopener,noreferrer') : homeWispacePick.action(); }} style={{ alignSelf: 'flex-start', background: 'rgba(115,187,201,0.14)', border: '1px solid rgba(115,187,201,0.32)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{homeWispacePick.youtubeUrl ? 'PLAY VIDEO' : 'LIHAT DETAIL'}</button>
                   </div>
                 </article>
               ) : (
                 <div style={{ ...flatSurfaceStyle, padding: '18px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}` }}>
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada gig live. Nanti event pilihan WiSpace muncul sebagai featured di sini.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada WiSpace Pick. Nanti video YouTube pilihan dan review singkat admin muncul di sini.</p>
                 </div>
               )}
 
