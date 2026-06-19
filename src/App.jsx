@@ -6708,7 +6708,7 @@ export default function App() {
     : {
         display: 'grid',
         gridAutoFlow: 'column',
-        gridAutoColumns: 'calc((100% - 36px) / 4)',
+        gridAutoColumns: 'calc((100% - 12px) / 2)',
         gridTemplateRows: '1fr',
         gap: '12px',
         overflowX: 'auto',
@@ -10278,7 +10278,7 @@ export default function App() {
 
       {/* HOME GIGS, FRESH FINDS, NEWSSPACE */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(280px, 360px)', gap: isTinyLayout ? '28px' : '34px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
+        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: isTinyLayout ? '28px' : '42px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
           <div style={{ display: 'grid', gap: isTinyLayout ? '30px' : '42px', minWidth: 0 }}>
             <section>
               <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
@@ -10338,7 +10338,7 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti empat item acak dari katalog WiSpace muncul di sini.</p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isTinyLayout ? '9px' : '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: isTinyLayout ? '9px' : '12px' }}>
                 {homeDiscoveryItems.map((item) => (
                   <button key={item.id} onClick={item.action} style={{ ...compactVisualCardStyle, textAlign: 'left', fontFamily: FONT_STACK }}>
                     <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
