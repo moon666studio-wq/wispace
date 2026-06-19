@@ -10276,11 +10276,13 @@ export default function App() {
         </section>
       )}
 
-      {/* BULLETIN MADING GIGS */}
+      {/* HOME GIGS, FRESH FINDS, NEWSSPACE */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ marginBottom: '60px', ...homeRevealStyle(0) }}>
-          <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
-          <div style={bulletinGridStyle}>
+        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(280px, 360px)', gap: isTinyLayout ? '28px' : '34px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
+          <div style={{ display: 'grid', gap: isTinyLayout ? '30px' : '42px', minWidth: 0 }}>
+            <section>
+              <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
+              <div style={bulletinGridStyle}>
             {homeGigCards.map(gig => (
               <div 
                 key={gig.id} 
@@ -10323,13 +10325,10 @@ export default function App() {
                 <p style={{ color: '#73BBC9', fontSize: isTinyLayout ? '10px' : '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>📍 {gig.city.toUpperCase()}</p>
               </div>
             ))}
-          </div>
-        </section>
-      )}
-      {/* HOME DISCOVERY ROW */}
-      {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(260px, 340px)', gap: isTinyLayout ? '22px' : '28px', alignItems: 'start', ...homeRevealStyle(120) }}>
-          <div>
+              </div>
+            </section>
+
+            <section>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
               <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={13} color="#73BBC9"/> FRESH FINDS</h2>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
@@ -10353,9 +10352,10 @@ export default function App() {
                 ))}
               </div>
             )}
+            </section>
           </div>
 
-          <aside style={{ ...railPanelStyle, paddingTop: 0 }}>
+          <aside style={{ ...railPanelStyle, paddingTop: 0, position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={13} color="#73BBC9"/> NEWSSPACE</h2>
               <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
