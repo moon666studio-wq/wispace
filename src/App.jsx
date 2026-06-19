@@ -5546,6 +5546,10 @@ export default function App() {
     String(value).split('').reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 7)), 0)
   );
   const homeGigCards = filteredGigs.slice(0, 10);
+  const homeFeaturedGig = homeGigCards[0] || null;
+  const homeSupportingGigs = homeGigCards.slice(1, 4);
+  const homeFeaturedArticle = publicArticleList[0] || null;
+  const showLegacyHomeDiscovery = false;
   const homeDiscoveryItems = [
     ...albumItems.map((album) => ({
       id: `release-${album.id}`,
@@ -10276,8 +10280,119 @@ export default function App() {
         </section>
       )}
 
-      {/* HOME GIGS, FRESH FINDS, NEWSSPACE */}
+      {/* HOME PREMIUM EDITORIAL */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
+        <section style={{ display: 'grid', gap: isTinyLayout ? '34px' : '52px', marginBottom: '68px', ...homeRevealStyle(0) }}>
+          <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.55fr) minmax(280px, 0.85fr)', gap: isTinyLayout ? '28px' : '46px', alignItems: 'start' }}>
+            <section style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: isTinyLayout ? '14px' : '18px', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '12px' }}>
+                <div>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>01 / GIGS</p>
+                  <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px' }}>CURATED EVENT BOARD</h2>
+                </div>
+                <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
+              </div>
+
+              {homeFeaturedGig ? (
+                <article onClick={() => setSelectedGigDetail({ ...homeFeaturedGig, fromEventOverlay: true })} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(210px, 0.62fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch', padding: isTinyLayout ? '10px 0 14px' : '12px 0 18px', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, cursor: 'pointer' }}>
+                  <div style={{ position: 'relative', minWidth: 0, overflow: 'hidden', borderRadius: '10px', background: '#080202' }}>
+                    {renderGigPosterImage(homeFeaturedGig, { width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', objectFit: 'cover', borderRadius: '10px', display: 'block' })}
+                    <span style={{ position: 'absolute', left: '12px', top: '12px', padding: '5px 8px', borderRadius: '9999px', background: 'rgba(8,2,2,0.72)', border: '1px solid rgba(115,187,201,0.28)', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', letterSpacing: '1px' }}>FEATURED</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '14px', minWidth: 0 }}>
+                    <div>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.6px', margin: '0 0 9px 0' }}>UPCOMING / {getGigDate(homeFeaturedGig).toUpperCase()}</p>
+                      <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '24px' : 'clamp(26px, 3vw, 44px)', fontWeight: '900', lineHeight: 0.96, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{String(homeFeaturedGig.title || 'WiSpace Event').toUpperCase()}</h3>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{String(homeFeaturedGig.city || 'Indonesia').toUpperCase()} / {getGigHtm(homeFeaturedGig).toUpperCase()}</p>
+                    </div>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setSelectedGigDetail({ ...homeFeaturedGig, fromEventOverlay: true }); }} style={{ alignSelf: 'flex-start', background: 'rgba(115,187,201,0.14)', border: '1px solid rgba(115,187,201,0.32)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT DETAIL</button>
+                  </div>
+                </article>
+              ) : (
+                <div style={{ ...flatSurfaceStyle, padding: '18px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}` }}>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada gig live. Nanti event pilihan WiSpace muncul sebagai featured di sini.</p>
+                </div>
+              )}
+
+              {homeSupportingGigs.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: isTinyLayout ? '8px' : '12px', marginTop: isTinyLayout ? '12px' : '14px' }}>
+                  {homeSupportingGigs.map((gig) => (
+                    <button key={gig.id} onClick={() => setSelectedGigDetail({ ...gig, fromEventOverlay: true })} style={{ background: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, padding: '10px 0 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>{getGigDate(gig).toUpperCase()}</p>
+                      <h3 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.15, margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.title || '').toUpperCase()}</h3>
+                      <p style={{ color: 'rgba(255,255,255,0.68)', fontSize: '10px', margin: 0 }}>{String(gig.city || '').toUpperCase()}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <aside style={{ ...railPanelStyle, paddingTop: '12px', position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <div>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>02 / EDITORIAL</p>
+                  <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={13} color="#73BBC9"/> NEWSSPACE</h2>
+                </div>
+                <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
+              </div>
+              {homeFeaturedArticle ? (
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  <button onClick={() => openArticleReader(homeFeaturedArticle)} style={{ textAlign: 'left', padding: '0 0 12px', border: 'none', borderBottom: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 8px 0' }}>{String(homeFeaturedArticle.category || 'NewsSpace').toUpperCase()}</p>
+                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '18px' : '22px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 9px 0' }}>{String(homeFeaturedArticle.title || '').toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{homeFeaturedArticle.excerpt || homeFeaturedArticle.bandName || 'Cerita baru dari skena WiSpace.'}</p>
+                  </button>
+                  {publicArticleList.slice(1, 4).map((article) => (
+                    <button key={article.id} onClick={() => openArticleReader(article)} style={{ textAlign: 'left', padding: '8px 0', border: 'none', borderBottom: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
+                      <p style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 4px 0' }}>{String(article.title || '').toUpperCase()}</p>
+                      <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: '10px', margin: 0 }}>{article.bandName || 'WiSpace'}</p>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: '11px' }}>
+                  <p style={{ color: 'rgba(255,255,255,0.74)', fontSize: '13px', lineHeight: 1.55, margin: 0 }}>Interviews, release notes, scene reports, and independent music stories.</p>
+                  {['Scene report coming soon', 'Band interview archive', 'Release notes from WiSpace'].map((line) => (
+                    <div key={line} style={{ paddingTop: '9px', borderTop: `1.5px solid ${flatLineColor}`, color: 'rgba(255,255,255,0.58)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px' }}>{line.toUpperCase()}</div>
+                  ))}
+                </div>
+              )}
+            </aside>
+          </section>
+
+          <section style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '12px' }}>
+              <div>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>03 / MARKET</p>
+                <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={13} color="#73BBC9"/> FRESH FINDS</h2>
+              </div>
+              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
+            </div>
+            {homeDiscoveryItems.length === 0 ? (
+              <div style={{ ...flatSurfaceStyle, padding: '18px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti pilihan kecil dari katalog WiSpace muncul di sini.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(128px, 160px))', justifyContent: 'start', gap: isTinyLayout ? '9px' : '12px' }}>
+                {homeDiscoveryItems.map((item) => (
+                  <button key={item.id} onClick={item.action} style={{ ...compactVisualCardStyle, textAlign: 'left', fontFamily: FONT_STACK }}>
+                    <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
+                      {item.image ? <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900' }}>{item.type}</span>}
+                    </div>
+                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{item.type}</p>
+                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', lineHeight: 1.12, margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title || '').toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.subtitle || '').toUpperCase()}</p>
+                    <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', margin: 0 }}>{item.meta}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </section>
+      )}
+
+      {/* HOME GIGS, FRESH FINDS, NEWSSPACE */}
+      {showLegacyHomeDiscovery && !loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.65fr) minmax(280px, 0.9fr)', gridTemplateAreas: isCompactLayout ? '"gigs" "news" "fresh"' : '"gigs news" "fresh fresh"', columnGap: isTinyLayout ? '28px' : '42px', rowGap: isTinyLayout ? '30px' : '44px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
           <div style={{ display: 'contents' }}>
             <section style={{ gridArea: 'gigs', minWidth: 0 }}>
