@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { createEmptyWispacePick, getYoutubeThumbnail, loadWispacePick, saveWispacePick } from './wispacePickStorage';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
-import { Search, ShoppingBag, Radio, User, LogOut, AlertTriangle, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
+import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
 const fetchCloudData = async (user = null) => {
   const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
@@ -1203,7 +1204,7 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false); 
   const [authType, setAuthType] = useState(''); 
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard] = useState(null);
   const [activeBanner, setActiveBanner] = useState(0); 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -1233,7 +1234,6 @@ export default function App() {
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
-  const [showReportMenu, setShowReportMenu] = useState(null); // id gig yang dilaporkan
 
   // STATE FORM INPUT DATA SUNTIKAN
   const [newTitle, setNewTitle] = useState('');
@@ -1306,6 +1306,7 @@ export default function App() {
     excerpt: '',
     body: ''
   });
+  const [wispacePickDraft, setWispacePickDraft] = useState(loadWispacePick);
   const [adminMessageDraft, setAdminMessageDraft] = useState({
     targetBandSlug: 'all',
     category: 'payment',
@@ -4866,6 +4867,26 @@ export default function App() {
     alert('Artikel admin WiSpace sudah publish ke halaman Artikel.');
   };
 
+  const handleWispacePickSubmit = (event) => {
+    event.preventDefault();
+    const nextPick = saveWispacePick({
+      ...wispacePickDraft,
+      youtubeUrl: wispacePickDraft.youtubeUrl.trim(),
+      title: wispacePickDraft.title.trim() || 'WiSpace Video Review',
+      bandName: wispacePickDraft.bandName.trim() || 'WiSpace',
+      review: wispacePickDraft.review.trim() || createEmptyWispacePick().review,
+      thumbnail: wispacePickDraft.thumbnail.trim()
+    });
+    setWispacePickDraft(nextPick);
+    alert(nextPick.youtubeUrl ? 'WiSpace Pick manual sudah disimpan dan tampil di homepage.' : 'WiSpace Pick manual dikosongkan. Homepage balik pakai random pick.');
+  };
+
+  const handleWispacePickClear = () => {
+    const nextPick = saveWispacePick(createEmptyWispacePick());
+    setWispacePickDraft(nextPick);
+    alert('WiSpace Pick manual direset. Homepage balik random pick otomatis.');
+  };
+
   const handleArticleCommentSubmit = (event, article) => {
     event.preventDefault();
     if (!userSession) {
@@ -5264,11 +5285,6 @@ export default function App() {
     alert(`Balasan ke ${message.sender} tersimpan${message.source === 'admin' ? ' dan masuk inbox admin' : ''}.`);
   };
 
-  const handleKirimLaporan = (id, jenis) => {
-    alert(`⚠️ LAPORAN DIKUNCI! Acara ID: ${id} dilaporkan atas kasus: [${jenis.toUpperCase()}]. Admin WiSpace akan segera mengecek legalitasnya.`);
-    setShowReportMenu(null);
-  };
-
   // PLAYER SYSTEM
   const resolvePlayableTrack = async (track) => {
     if (!track) return null;
@@ -5558,20 +5574,7 @@ export default function App() {
   const homeGigCards = filteredGigs.slice(0, 10);
   const homeSupportingGigs = homeGigCards.slice(1, 4);
   const homeFeaturedArticle = publicArticleList[0] || null;
-  const showLegacyHomeDiscovery = false;
-  const getYoutubeVideoId = (url = '') => {
-    const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([^?&/]+)/i);
-    return match?.[1] || '';
-  };
-  const manualWispaceYoutubePick = {
-    youtubeUrl: '',
-    title: 'WiSpace Video Review',
-    bandName: 'WiSpace',
-    review: 'Isi link YouTube manual di sini untuk nampilin video review pilihan admin. Kalau link kosong, WiSpace Pick otomatis random dari rilisan dan gigs.',
-    thumbnail: ''
-  };
-  const manualYoutubeId = getYoutubeVideoId(manualWispaceYoutubePick.youtubeUrl);
-  const manualYoutubeThumbnail = manualYoutubeId ? `https://img.youtube.com/vi/${manualYoutubeId}/hqdefault.jpg` : '';
+  const manualYoutubeThumbnail = getYoutubeThumbnail(wispacePickDraft.youtubeUrl);
   const homePickSeed = new Date().toISOString().slice(0, 10);
   const homeRandomPick = [
     ...albumItems.map((album) => ({
@@ -5595,15 +5598,15 @@ export default function App() {
       action: () => setSelectedGigDetail({ ...gig, fromEventOverlay: true })
     }))
   ].sort((a, b) => getHomeDiscoveryScore(`${b.id}-${homePickSeed}`) - getHomeDiscoveryScore(`${a.id}-${homePickSeed}`))[0] || null;
-  const homeWispacePick = manualWispaceYoutubePick.youtubeUrl.trim()
+  const homeWispacePick = wispacePickDraft.youtubeUrl.trim()
     ? {
         type: 'YOUTUBE REVIEW',
-        title: manualWispaceYoutubePick.title || 'WiSpace Video Review',
-        bandName: manualWispaceYoutubePick.bandName || 'WiSpace',
-        thumbnail: manualWispaceYoutubePick.thumbnail || manualYoutubeThumbnail,
-        youtubeUrl: manualWispaceYoutubePick.youtubeUrl,
-        review: manualWispaceYoutubePick.review,
-        action: () => window.open(manualWispaceYoutubePick.youtubeUrl, '_blank', 'noopener,noreferrer')
+        title: wispacePickDraft.title || 'WiSpace Video Review',
+        bandName: wispacePickDraft.bandName || 'WiSpace',
+        thumbnail: wispacePickDraft.thumbnail || manualYoutubeThumbnail,
+        youtubeUrl: wispacePickDraft.youtubeUrl,
+        review: wispacePickDraft.review,
+        action: () => window.open(wispacePickDraft.youtubeUrl, '_blank', 'noopener,noreferrer')
       }
     : homeRandomPick;
   const homeDiscoveryItems = [
@@ -6753,40 +6756,6 @@ export default function App() {
     flexDirection: 'column',
     justifyContent: 'flex-end'
   };
-  const bulletinGridStyle = isTinyLayout
-    ? {
-        display: 'grid',
-        gridAutoFlow: 'column',
-        gridAutoColumns: 'calc((100vw - 48px) / 2)',
-        gridTemplateRows: '1fr',
-        gap: '8px',
-        overflowX: 'auto',
-        paddingBottom: '6px',
-        scrollSnapType: 'x mandatory',
-        scrollbarWidth: 'none'
-      }
-    : {
-        display: 'grid',
-        gridAutoFlow: 'column',
-        gridAutoColumns: 'calc((100% - 36px) / 4)',
-        gridTemplateRows: '1fr',
-        gap: '12px',
-        overflowX: 'auto',
-        paddingBottom: '8px',
-        scrollSnapType: 'x mandatory',
-        scrollbarWidth: 'thin'
-      };
-  const bulletinCardStyle = {
-    padding: isTinyLayout ? '7px' : '8px',
-    background: softRowBackground,
-    borderTop: `1.5px solid ${flatLineColor}`,
-    borderLeft: '1px solid rgba(115,187,201,0.08)',
-    position: 'relative',
-    cursor: 'pointer',
-    scrollSnapAlign: 'start',
-    minWidth: 0,
-    borderRadius: '8px'
-  };
   const ownerActionsPanelStyle = {
     ...glassStyle('band-owner-actions'),
     padding: isTinyLayout ? '7px' : '8px',
@@ -7387,6 +7356,7 @@ export default function App() {
               ['setup', 'SETUP'],
               ['ledger', 'LEDGER'],
               ['article', 'ARTIKEL'],
+              ['picks', 'PICKS'],
               ['moderation', 'MODERASI'],
               ['pamflet', 'PAMFLET']
             ].map(([sectionId, label]) => (
@@ -8308,6 +8278,40 @@ export default function App() {
               <textarea placeholder="RINGKASAN ARTIKEL" value={adminArticleDraft.excerpt} onChange={(event) => setAdminArticleDraft({ ...adminArticleDraft, excerpt: event.target.value })} required rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
               <textarea placeholder="ISI ARTIKEL LENGKAP" value={adminArticleDraft.body} onChange={(event) => setAdminArticleDraft({ ...adminArticleDraft, body: event.target.value })} rows={6} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
               <button type="submit" style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px', width: 'fit-content' }}>PUBLISH ARTIKEL WISPACE</button>
+            </form>
+          </section>
+          )}
+
+          {adminActiveSection === 'picks' && (
+          <section id="admin-picks-section" style={{ ...glassStyle('admin-wispace-picks'), padding: '18px', backgroundColor: '#080202', marginBottom: '24px', scrollMarginTop: '110px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE PICKS</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: 0 }}>YOUTUBE REVIEW HOMEPAGE</h3>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Isi link YouTube dan review manual. Kalau URL dikosongkan, homepage otomatis random harian dari rilisan dan gigs.</p>
+            </div>
+            <form onSubmit={handleWispacePickSubmit} style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(260px, 0.55fr)', gap: '14px', alignItems: 'start' }}>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                <input type="url" placeholder="YOUTUBE URL (opsional)" value={wispacePickDraft.youtubeUrl} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, youtubeUrl: event.target.value })} style={formInputStyle} />
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                  <input type="text" placeholder="JUDUL PICK" value={wispacePickDraft.title} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, title: event.target.value })} style={formInputStyle} />
+                  <input type="text" placeholder="NAMA BAND / CHANNEL" value={wispacePickDraft.bandName} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, bandName: event.target.value })} style={formInputStyle} />
+                </div>
+                <input type="url" placeholder="THUMBNAIL URL CUSTOM (opsional)" value={wispacePickDraft.thumbnail} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, thumbnail: event.target.value })} style={formInputStyle} />
+                <textarea placeholder="REVIEW SINGKAT WISPACE" value={wispacePickDraft.review} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, review: event.target.value })} rows={5} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button type="submit" style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px', width: 'fit-content' }}>SAVE WISPACE PICK</button>
+                  <button type="button" onClick={handleWispacePickClear} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F8F7F8', borderRadius: '10px', padding: '12px 14px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESET RANDOM</button>
+                </div>
+              </div>
+              <aside style={{ padding: '12px', border: `1.5px solid ${flatLineColor}`, borderRadius: '12px', background: 'rgba(8,2,2,0.72)' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 9px 0' }}>PREVIEW THUMBNAIL</p>
+                <div style={{ borderRadius: '10px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: '#080202', display: 'grid', placeItems: 'center', marginBottom: '10px' }}>
+                  {(wispacePickDraft.thumbnail || getYoutubeThumbnail(wispacePickDraft.youtubeUrl)) ? <img src={wispacePickDraft.thumbnail || getYoutubeThumbnail(wispacePickDraft.youtubeUrl)} alt="" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }} /> : <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', padding: '42px 0' }}>AUTO RANDOM ACTIVE</span>}
+                </div>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{wispacePickDraft.youtubeUrl ? `Manual pick aktif${wispacePickDraft.updatedAt ? ` / update ${new Date(wispacePickDraft.updatedAt).toLocaleDateString('id-ID')}` : ''}.` : 'URL kosong: homepage pakai random pick otomatis.'}</p>
+              </aside>
             </form>
           </section>
           )}
@@ -10447,107 +10451,6 @@ export default function App() {
               </div>
             )}
           </section>
-        </section>
-      )}
-
-      {/* HOME GIGS, FRESH FINDS, NEWSSPACE */}
-      {showLegacyHomeDiscovery && !loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
-        <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.65fr) minmax(280px, 0.9fr)', gridTemplateAreas: isCompactLayout ? '"gigs" "news" "fresh"' : '"gigs news" "fresh fresh"', columnGap: isTinyLayout ? '28px' : '42px', rowGap: isTinyLayout ? '30px' : '44px', alignItems: 'start', marginBottom: '60px', ...homeRevealStyle(0) }}>
-          <div style={{ display: 'contents' }}>
-            <section style={{ gridArea: 'gigs', minWidth: 0 }}>
-              <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', marginBottom: isTinyLayout ? '16px' : '24px', letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}>UPDATED GIGS BULLETIN BOARD</h2>
-              <div style={bulletinGridStyle}>
-            {homeGigCards.map(gig => (
-              <div 
-                key={gig.id} 
-                onMouseEnter={() => setHoveredCard(gig.id)} 
-                onMouseLeave={() => setHoveredCard(null)} 
-                onClick={() => setSelectedGigDetail(selectedGigDetail?.id === gig.id && selectedGigDetail?.fromEventOverlay ? null : { ...gig, fromEventOverlay: true })}
-                style={{ ...glassStyle(gig.id), ...bulletinCardStyle }}
-              >
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setShowReportMenu(showReportMenu === gig.id ? null : gig.id);
-                  }}
-                  style={{ position: 'absolute', top: isTinyLayout ? '14px' : '22px', right: isTinyLayout ? '14px' : '22px', zIndex: 2, width: isTinyLayout ? '28px' : '34px', height: isTinyLayout ? '28px' : '34px', borderRadius: '9999px', border: '1px solid rgba(241, 212, 229, 0.35)', backgroundColor: 'rgba(8, 2, 2, 0.72)', color: '#F8F7F8', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
-                  aria-label="Laporkan acara"
-                >
-                  <AlertTriangle size={16} />
-                </button>
-
-                {showReportMenu === gig.id && (
-                  <div
-                    onClick={(event) => event.stopPropagation()}
-                    style={{ position: 'absolute', top: '62px', right: '14px', zIndex: 5, width: '190px', padding: '10px', backgroundColor: '#080202', border: '1px solid rgba(241, 212, 229, 0.35)', borderRadius: '12px', boxShadow: '0 18px 40px rgba(8,2,2,0.65)' }}
-                  >
-                    <p style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', margin: '0 0 8px 0' }}>LAPORKAN ACARA</p>
-                    {['penipuan', 'poster palsu', 'info salah'].map((jenis) => (
-                      <button
-                        key={jenis}
-                        onClick={() => handleKirimLaporan(gig.id, jenis)}
-                        style={{ width: '100%', background: 'transparent', border: 'none', borderTop: '1px solid rgba(115,187,201,0.18)', color: '#F8F7F8', fontSize: '11px', fontWeight: '800', padding: '8px 0', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK }}
-                      >
-                        {jenis.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {renderGigPosterImage(gig, { width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: isTinyLayout ? '10px' : '12px', marginBottom: isTinyLayout ? '10px' : '14px' })}
-                <h3 style={{ fontSize: isTinyLayout ? '12px' : '16px', fontWeight: '900', margin: '0 0 6px 0', color: '#F8F7F8', lineHeight: 1.15 }}>{gig.title.toUpperCase()}</h3>
-                <p style={{ color: '#73BBC9', fontSize: isTinyLayout ? '10px' : '12px', fontWeight: '700', margin: 0, lineHeight: 1.3 }}>📍 {gig.city.toUpperCase()}</p>
-              </div>
-            ))}
-              </div>
-            </section>
-
-            <section style={{ gridArea: 'fresh', minWidth: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-              <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={13} color="#73BBC9"/> FRESH FINDS</h2>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>EXPLORE</button>
-            </div>
-            {homeDiscoveryItems.length === 0 ? (
-              <div style={{ ...flatSurfaceStyle, padding: '18px' }}>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti empat item acak dari katalog WiSpace muncul di sini.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(128px, 160px))', justifyContent: 'start', gap: isTinyLayout ? '9px' : '12px' }}>
-                {homeDiscoveryItems.map((item) => (
-                  <button key={item.id} onClick={item.action} style={{ ...compactVisualCardStyle, textAlign: 'left', fontFamily: FONT_STACK }}>
-                    <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, borderRadius: '8px', overflow: 'hidden', display: 'grid', placeItems: 'center', marginBottom: '9px' }}>
-                      {item.image ? <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900' }}>{item.type}</span>}
-                    </div>
-                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{item.type}</p>
-                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', lineHeight: 1.12, margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.title || '').toUpperCase()}</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(item.subtitle || '').toUpperCase()}</p>
-                    <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', margin: 0 }}>{item.meta}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-            </section>
-          </div>
-
-          <aside style={{ ...railPanelStyle, gridArea: 'news', paddingTop: 0, position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <h2 style={{ fontSize: isTinyLayout ? '13px' : '15px', fontWeight: '900', color: '#F8F7F8', margin: 0, letterSpacing: '1.6px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={13} color="#73BBC9"/> NEWSSPACE</h2>
-              <button onClick={() => { setActivePage('articles'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'transparent', border: 'none', color: '#73BBC9', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT</button>
-            </div>
-            {publicArticleList.length === 0 ? (
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada NewsSpace. Nanti interview, catatan rilisan, dan report skena terbaru muncul di sini.</p>
-            ) : (
-              <div style={{ display: 'grid', gap: '7px' }}>
-                {publicArticleList.slice(0, 4).map((article) => (
-                  <button key={article.id} onClick={() => openArticleReader(article)} style={{ textAlign: 'left', padding: '8px 0', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, background: 'transparent', cursor: 'pointer', fontFamily: FONT_STACK }}>
-                    <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{String(article.category || 'NewsSpace').toUpperCase()}</p>
-                    <h3 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.2, margin: '0 0 4px 0' }}>{String(article.title || '').toUpperCase()}</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', margin: 0 }}>{article.bandName || 'WiSpace'}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </aside>
         </section>
       )}
 
