@@ -4097,6 +4097,13 @@ export default function App() {
     const providerCheckoutUrl = gatewayData.providerCheckoutUrl || gatewayData.provider_checkout_url || gatewayData.checkoutUrl || gatewayData.invoiceUrl || '';
     const providerInvoiceId = gatewayData.providerInvoiceId || gatewayData.provider_invoice_id || gatewayData.invoiceId || gatewayData.transactionId || '';
     const providerStatus = gatewayData.providerStatus || gatewayData.provider_status || (providerCheckoutUrl ? 'gateway_ready' : PAYMENT_GATEWAY_PROVIDER === 'manual' ? 'manual_fallback' : 'manual_fallback');
+    const gatewayErrorMessage = gatewayResult.ok
+      ? ''
+      : [
+          gatewayData.error || gatewayResult.error || 'gateway_unavailable',
+          gatewayData.missingEnv ? `missing ${gatewayData.missingEnv}` : '',
+          gatewayData.message || ''
+        ].filter(Boolean).join(' / ');
     const pendingPayment = {
       ...pendingPaymentBase,
       provider: gatewayData.provider || PAYMENT_GATEWAY_PROVIDER || 'manual',
@@ -4104,12 +4111,14 @@ export default function App() {
       providerInvoiceId,
       providerCheckoutUrl,
       gatewayStatusCode: gatewayResult.status,
-      gatewayError: gatewayResult.ok ? '' : (gatewayResult.error || gatewayData.message || 'manual_fallback'),
+      gatewayError: gatewayErrorMessage,
       manualFallback: gatewayData.manualFallback !== false || !providerCheckoutUrl
     };
     const checkoutMessage = providerCheckoutUrl
       ? `Order ${pendingPayment.checkoutRef} siap dibayar via gateway. Akses/order aktif setelah payment confirmed.`
-      : `Order ${pendingPayment.checkoutRef} masuk antrean admin lewat fallback manual. Akses/order aktif setelah admin confirm paid.`;
+      : gatewayErrorMessage
+        ? `Gateway belum siap: ${gatewayErrorMessage}. Order ${pendingPayment.checkoutRef} masuk fallback manual dulu.`
+        : `Order ${pendingPayment.checkoutRef} masuk antrean admin lewat fallback manual. Akses/order aktif setelah admin confirm paid.`;
 
     markPendingPayment(pendingPayment);
     setActiveCheckout((current) => current ? {
@@ -4125,7 +4134,7 @@ export default function App() {
       manualFallback: pendingPayment.manualFallback,
       successMessage: checkoutMessage
     } : current);
-    alert(providerCheckoutUrl ? `Payment gateway siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar via gateway.` : `Payment request ${pendingPayment.checkoutRef} masuk ke admin. Setelah admin confirm paid, akses/order baru aktif.`);
+    alert(providerCheckoutUrl ? `Payment gateway siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar via gateway.` : checkoutMessage);
   };
 
   const handleConfirmPendingPayment = (payment) => {
@@ -10863,6 +10872,7 @@ export default function App() {
                   <span>Order ID: <strong style={{ color: '#73BBC9' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#F8F7F8' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong>{activeCheckout.type === 'merch' ? ` / ${checkoutCourierOption?.label || checkoutDraft.courier}` : ''}</span>
                   <span>Provider: <strong style={{ color: checkoutProviderCheckoutUrl ? '#73BBC9' : 'rgba(255,255,255,0.72)' }}>{checkoutProviderLabel.toUpperCase()}</strong>{checkoutProviderStatus ? ` / ${checkoutProviderStatus.replaceAll('_', ' ').toUpperCase()}` : ''}</span>
+                  {checkoutProviderId === 'manual' && <span style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35 }}>Mode manual aktif. Kalau mau Midtrans, cek `VITE_PAYMENT_PROVIDER=midtrans` lalu redeploy.</span>}
                   <span>Status: <strong style={{ color: checkoutAccentColor }}>{checkoutStatusCopy}</strong></span>
                   <span style={{ color: 'rgba(255,255,255,0.72)', lineHeight: 1.35 }}>{checkoutBuyerStatusText}</span>
                 </div>
@@ -10914,7 +10924,10 @@ export default function App() {
                 </a>
               )}
               {!checkoutProviderCheckoutUrl && checkoutProviderId !== 'manual' && checkoutIsAwaitingAdmin && (
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '10px 0 0 0', fontWeight: '800' }}>Gateway belum ngasih checkout URL. Request tetap masuk admin lewat fallback manual.</p>
+                <div style={{ marginTop: '10px', padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                  <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0', fontWeight: '800' }}>Gateway belum ngasih checkout URL. Request tetap masuk admin lewat fallback manual.</p>
+                  {activeCheckout.gatewayError && <p style={{ color: '#73BBC9', fontSize: '9px', lineHeight: 1.35, margin: 0, fontWeight: '900' }}>Detail: {activeCheckout.gatewayError}</p>}
+                </div>
               )}
             </div>
 
