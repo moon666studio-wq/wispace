@@ -106,11 +106,15 @@ const createMidtransSnapTransaction = async (checkout, serverKey) => {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    const rawError = data?.error_messages?.join(', ') || data?.message || 'midtrans_snap_request_failed';
+    const isAccessDenied = String(rawError).toLowerCase().includes('access denied');
     return {
       ok: false,
       status: response.status,
       data,
-      error: data?.error_messages?.join(', ') || data?.message || 'midtrans_snap_request_failed'
+      error: isAccessDenied
+        ? `${rawError}. Check that MIDTRANS_ENV matches the key mode and Client Key/Server Key come from the same Midtrans merchant account.`
+        : rawError
     };
   }
 
