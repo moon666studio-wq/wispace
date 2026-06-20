@@ -213,6 +213,30 @@ const getMerchAvailableStock = (item = {}) => (
     : normalizePriceValue(item.stock || 0)
 );
 const isMerchPurchasable = (item = {}) => getMerchAvailableStock(item) > 0;
+const getShippingOriginMissingFields = (profile = {}) => ([
+  ['CP / WhatsApp pengirim', profile.cp],
+  ['Alamat asal pengiriman', profile.shipFromAddress],
+  ['Kecamatan pengirim', profile.shipFromDistrict],
+  ['Kota / kabupaten pengirim', profile.shipFromCity],
+  ['Provinsi pengirim', profile.shipFromProvince],
+  ['Kode pos pengirim', profile.shipFromPostalCode]
+].filter(([, value]) => !String(value || '').trim()).map(([label]) => label));
+const isShippingOriginReady = (profile = {}) => getShippingOriginMissingFields(profile).length === 0;
+const getMerchShipmentLabelSummary = (order = {}) => {
+  if (order.shipmentLabelUrl) {
+    return { title: 'Label siap dicetak', note: 'Buka file label dari Biteship lalu print untuk ditempel di paket.', color: '#73BBC9' };
+  }
+  if (order.trackingNumber) {
+    return { title: 'Resi tersedia', note: `Resi ${order.trackingNumber}. Label file belum tersedia, tapi nomor resi sudah bisa dipakai.`, color: '#73BBC9' };
+  }
+  if (order.shipmentBookingStatus === 'shipment_booking_failed') {
+    return { title: 'Label gagal dibuat', note: 'Cek alamat asal/tujuan, nomor HP, kode pos, kurir aktif, lalu retry booking.', color: '#F1D4E5' };
+  }
+  if (order.shipmentBookingStatus === 'manual_label_pending') {
+    return { title: 'Label manual', note: 'Provider belum membuat label otomatis. Input resi manual kalau paket sudah dikirim.', color: 'rgba(255,255,255,0.72)' };
+  }
+  return { title: 'Menunggu label', note: 'Setelah payment paid, sistem mencoba booking shipment ke ekspedisi.', color: 'rgba(255,255,255,0.72)' };
+};
 const getReadinessColor = (status = 'todo') => ({
   ready: 'rgba(255,255,255,0.72)',
   scaffold: '#73BBC9',
@@ -5036,7 +5060,7 @@ export default function App() {
   const handleMerchDraftSubmit = (event) => {
     event.preventDefault();
     if (!hasBandPayoutAccount) return alert('Lengkapi data rekening payout di Profile Band dulu bro sebelum upload merch.');
-    if (!merchUsesAdminConsignment && !hasBandShippingOrigin) return alert('Lengkapi alamat asal pengiriman di Profile Band dulu bro. Ini wajib buat hitung ongkir merch kalau band kirim sendiri.');
+    if (!merchUsesAdminConsignment && !hasBandShippingOrigin) return alert(`Lengkapi data asal pengiriman di Profile Band dulu bro: ${bandShippingOriginMissingFields.join(', ')}.`);
     if (!normalizePriceValue(merchDraft.weightGram)) return alert('Isi berat merch dalam gram dulu bro. Ini dipakai buat hitung ongkir.');
     const nextItem = {
       id: createClientId(),
@@ -6069,6 +6093,7 @@ export default function App() {
           ? '#73BBC9'
       : 'rgba(255,255,255,0.72)';
   const selectedMerchOrderStage = selectedMerchOrderDetail ? getMerchOrderStageSummary(selectedMerchOrderDetail) : null;
+  const selectedMerchOrderLabelStatus = selectedMerchOrderDetail ? getMerchShipmentLabelSummary(selectedMerchOrderDetail) : null;
   const checkoutReviewLabel = checkoutIsPaid
     ? 'PAID'
     : checkoutIsCancelled
@@ -6158,13 +6183,8 @@ export default function App() {
     && bandProfile.bankAccountName?.trim()
     && bandProfile.bankAccountNumber?.trim()
   );
-  const hasBandShippingOrigin = Boolean(
-    bandProfile.shipFromAddress?.trim()
-    && bandProfile.shipFromDistrict?.trim()
-    && bandProfile.shipFromCity?.trim()
-    && bandProfile.shipFromProvince?.trim()
-    && bandProfile.shipFromPostalCode?.trim()
-  );
+  const bandShippingOriginMissingFields = getShippingOriginMissingFields(bandProfile);
+  const hasBandShippingOrigin = isShippingOriginReady(bandProfile);
   const merchUsesAdminConsignment = merchDraft.fulfillmentMode === 'admin_consignment';
   const adminConsignmentMerchItems = publicMerchList.filter((item) => item.fulfillmentMode === 'admin_consignment');
   const adminWaitingConsignmentItems = adminConsignmentMerchItems.filter((item) => item.consignmentStatus !== 'stock_received');
@@ -8061,6 +8081,7 @@ export default function App() {
                 <div style={{ display: 'grid', gap: '7px', maxHeight: '260px', overflowY: 'auto' }}>
                   {adminActiveMerchOrderList.slice(0, 8).map((order) => {
                     const stage = getMerchOrderStageSummary(order);
+                    const labelStatus = getMerchShipmentLabelSummary(order);
                     return (
                     <div key={`admin-order-${order.id}`} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start' }}>
@@ -8069,6 +8090,7 @@ export default function App() {
                           <h4 style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} / {order.recipientName || '-'} / {order.city || '-'}</p>
                           <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
+                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{labelStatus.note}</span></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -8076,6 +8098,7 @@ export default function App() {
                       {order.fulfillmentMode === 'admin_consignment' ? (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                           <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                          {order.shipmentLabelUrl && <button type="button" onClick={() => window.open(order.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL</button>}
                           <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing_admin')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES ADMIN</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PACKING</button>
@@ -8086,6 +8109,7 @@ export default function App() {
                       ) : (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px', alignItems: 'center' }}>
                           <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                          {order.shipmentLabelUrl && <button type="button" onClick={() => window.open(order.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL</button>}
                           <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
                           <p style={{ color: '#F8F7F8', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>Band ship. Admin pantau/follow up via message kalau macet.</p>
                         </div>
@@ -10032,6 +10056,7 @@ export default function App() {
                 <div style={flatListStyle}>
                   {audienceMerchOrders.map((order) => {
                     const stage = getMerchOrderStageSummary(order);
+                    const labelStatus = getMerchShipmentLabelSummary(order);
                     return (
                     <article key={order.id} style={{ ...flatItemStyle, display: 'block', cursor: 'default', borderTopColor: ['completed', 'cancelled'].includes(order.trackingStatus) ? 'rgba(241,212,229,0.08)' : 'rgba(115,187,201,0.22)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
@@ -10039,6 +10064,7 @@ export default function App() {
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''}</p>
+                          <p style={{ color: labelStatus.color, fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()}</p>
                           <p style={{ color: stage.color, fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
@@ -10299,6 +10325,7 @@ export default function App() {
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {bandMerchOrders.slice(0, 8).map((order) => {
                     const stage = getMerchOrderStageSummary(order);
+                    const labelStatus = getMerchShipmentLabelSummary(order);
                     return (
                     <div key={order.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
@@ -10306,6 +10333,7 @@ export default function App() {
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir pass-through Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
                           <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
+                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{labelStatus.note}</span></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -10324,6 +10352,7 @@ export default function App() {
                         ) : (
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                            {order.shipmentLabelUrl && <button type="button" onClick={() => window.open(order.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL</button>}
                             <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
                             <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', color: order.trackingStatus === 'processing' ? '#F1D4E5' : '#73BBC9', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
                             <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} disabled={order.trackingStatus === 'packing'} style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', color: order.trackingStatus === 'packing' ? '#F1D4E5' : '#73BBC9', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'packing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PACKING</button>
@@ -10485,10 +10514,13 @@ export default function App() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <div>
                         <p style={{ color: hasBandShippingOrigin ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ALAMAT ASAL PENGIRIMAN</p>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch. Nanti dipakai sebagai lokasi pengirim untuk hitung ongkir ekspedisi.</p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch. Nanti dipakai sebagai lokasi pengirim untuk hitung ongkir, booking resi, dan cetak label ekspedisi.</p>
                       </div>
                       <strong style={{ color: hasBandShippingOrigin ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px' }}>{hasBandShippingOrigin ? 'READY' : 'BELUM LENGKAP'}</strong>
                     </div>
+                    {!hasBandShippingOrigin && (
+                      <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0', fontWeight: '800' }}>Kurang: {bandShippingOriginMissingFields.join(', ')}.</p>
+                    )}
                     <textarea placeholder="ALAMAT LENGKAP ASAL PENGIRIMAN" value={bandProfile.shipFromAddress || ''} onChange={(e) => updateBandProfileField('shipFromAddress', e.target.value)} rows={3} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '10px', lineHeight: 1.5 }} />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
                       <input type="text" placeholder="KECAMATAN PENGIRIM" value={bandProfile.shipFromDistrict || ''} onChange={(e) => updateBandProfileField('shipFromDistrict', e.target.value)} style={formInputStyle} />
@@ -10653,7 +10685,8 @@ export default function App() {
                   {!merchUsesAdminConsignment && !hasBandShippingOrigin && (
                     <div style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>ALAMAT PENGIRIM WAJIB</p>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir merch.</p>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 6px 0' }}>Isi alamat asal pengiriman di Profile Band dulu. Ini bakal jadi titik awal hitung ongkir, resi, dan label cetak.</p>
+                      <p style={{ color: '#F1D4E5', fontSize: '11px', lineHeight: 1.4, margin: 0, fontWeight: '800' }}>Kurang: {bandShippingOriginMissingFields.join(', ')}.</p>
                     </div>
                   )}
                   <div style={{ backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
@@ -10874,6 +10907,7 @@ export default function App() {
                 <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '20px' : '26px', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 1.02, overflowWrap: 'anywhere' }}>{String(selectedMerchOrderDetail.itemName || 'Merch WiSpace').toUpperCase()}</h3>
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedMerchOrderDetail.orderId || selectedMerchOrderDetail.transactionId || selectedMerchOrderDetail.id} / {selectedMerchOrderDetail.createdAt || '-'}</p>
                 {selectedMerchOrderStage && <p style={{ color: selectedMerchOrderStage.color, fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0', fontWeight: '900' }}>{selectedMerchOrderStage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.64)', fontWeight: '700' }}>{selectedMerchOrderStage.note}</span></p>}
+                {selectedMerchOrderLabelStatus && <p style={{ color: selectedMerchOrderLabelStatus.color, fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0', fontWeight: '900' }}>{selectedMerchOrderLabelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.64)', fontWeight: '700' }}>{selectedMerchOrderLabelStatus.note}</span></p>}
               </div>
               <button type="button" onClick={() => setSelectedMerchOrderDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
@@ -10906,6 +10940,11 @@ export default function App() {
                 </div>
 
                 <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                  <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>ALAMAT ASAL PENGIRIM</p>
+                  <p style={{ color: 'rgba(241,212,229,0.72)', fontSize: '12px', lineHeight: 1.55, margin: '0 0 10px 0' }}>
+                    {selectedMerchOrderDetail.originShipping?.contactName || selectedMerchOrderDetail.sellerBandName || '-'} / {selectedMerchOrderDetail.originShipping?.contactPhone || '-'}<br />
+                    {selectedMerchOrderDetail.originShipping?.address || '-'}, {selectedMerchOrderDetail.originShipping?.district || '-'}, {selectedMerchOrderDetail.originShipping?.city || '-'} {selectedMerchOrderDetail.originShipping?.postalCode || ''}
+                  </p>
                   <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>ALAMAT PENERIMA</p>
                   <p style={{ color: 'rgba(241,212,229,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{selectedMerchOrderDetail.recipientName || '-'} / {selectedMerchOrderDetail.recipientPhone || '-'}<br />{selectedMerchOrderDetail.address || '-'}, {selectedMerchOrderDetail.city || '-'} {selectedMerchOrderDetail.postalCode || ''}</p>
                   {selectedMerchOrderDetail.note && <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Catatan: {selectedMerchOrderDetail.note}</p>}
