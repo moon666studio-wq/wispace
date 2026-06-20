@@ -14,6 +14,32 @@ const getMidtransSnapBaseUrl = () => {
   return isProduction ? 'https://app.midtrans.com' : 'https://app.sandbox.midtrans.com';
 };
 
+const getMidtransEnvironmentName = () => (
+  getMidtransSnapBaseUrl().includes('sandbox') ? 'sandbox' : 'production'
+);
+
+const validateMidtransServerKey = (serverKey) => {
+  const environment = getMidtransEnvironmentName();
+  const key = String(serverKey || '').trim();
+  if (environment === 'sandbox' && !key.startsWith('SB-Mid-server-')) {
+    return {
+      ok: false,
+      environment,
+      error: 'midtrans_server_key_environment_mismatch',
+      message: 'MIDTRANS_ENV=sandbox but MIDTRANS_SERVER_KEY is not a Sandbox Server Key. Use key that starts with SB-Mid-server-.'
+    };
+  }
+  if (environment === 'production' && key.startsWith('SB-Mid-server-')) {
+    return {
+      ok: false,
+      environment,
+      error: 'midtrans_server_key_environment_mismatch',
+      message: 'MIDTRANS_ENV=production but MIDTRANS_SERVER_KEY is a Sandbox Server Key. Use Production Server Key or switch MIDTRANS_ENV=sandbox.'
+    };
+  }
+  return { ok: true, environment };
+};
+
 const clampText = (value = '', maxLength = 50) => String(value || '').trim().slice(0, maxLength);
 
 const getPublicSiteUrl = () => {
@@ -146,6 +172,20 @@ export default async function handler(req, res) {
     }
 
     if (provider === 'midtrans') {
+      const keyValidation = validateMidtransServerKey(serverKey);
+      if (!keyValidation.ok) {
+        return sendJson(res, 400, {
+          ok: false,
+          provider,
+          error: keyValidation.error,
+          manualFallback: true,
+          checkoutRef: validation.checkout.checkoutRef,
+          providerStatus: 'gateway_key_mismatch',
+          midtransEnvironment: keyValidation.environment,
+          message: keyValidation.message
+        });
+      }
+
       const snapResult = await createMidtransSnapTransaction(validation.checkout, serverKey);
       if (!snapResult.ok) {
         return sendJson(res, 502, {
