@@ -3,8 +3,8 @@ import { getEnv, normalizeProvider, sendJson } from './_payment-utils.js';
 const getMidtransKeyMode = (key = '') => {
   const trimmedKey = String(key || '').trim();
   if (!trimmedKey) return 'missing';
-  if (trimmedKey.startsWith('SB-Mid-server-')) return 'sandbox';
-  if (trimmedKey.startsWith('Mid-server-')) return 'production';
+  if (trimmedKey.startsWith('SB-Mid-server-') || trimmedKey.startsWith('SB-Mid-client-')) return 'sandbox';
+  if (trimmedKey.startsWith('Mid-server-') || trimmedKey.startsWith('Mid-client-')) return 'production';
   return 'unknown_prefix';
 };
 
@@ -17,6 +17,10 @@ export default async function handler(req, res) {
   const provider = normalizeProvider(getEnv('PAYMENT_PROVIDER') || getEnv('VITE_PAYMENT_PROVIDER') || 'manual');
   const midtransEnv = String(getEnv('MIDTRANS_ENV') || 'sandbox').toLowerCase();
   const serverKeyMode = getMidtransKeyMode(getEnv('MIDTRANS_SERVER_KEY'));
+  const clientKeyMode = getMidtransKeyMode(getEnv('VITE_MIDTRANS_CLIENT_KEY'));
+  const keyModeMismatch = [serverKeyMode, clientKeyMode]
+    .filter((mode) => !['missing', 'unknown_prefix'].includes(mode))
+    .some((mode) => mode !== midtransEnv);
 
   return sendJson(res, 200, {
     ok: true,
@@ -26,10 +30,14 @@ export default async function handler(req, res) {
       present: Boolean(getEnv('MIDTRANS_SERVER_KEY')),
       mode: serverKeyMode
     },
+    midtransClientKey: {
+      present: Boolean(getEnv('VITE_MIDTRANS_CLIENT_KEY')),
+      mode: clientKeyMode
+    },
     publicSiteUrlPresent: Boolean(getEnv('PUBLIC_SITE_URL')),
     supabaseServiceRolePresent: Boolean(getEnv('SUPABASE_SERVICE_ROLE_KEY')),
-    hint: serverKeyMode !== 'missing' && serverKeyMode !== 'unknown_prefix' && serverKeyMode !== midtransEnv
-      ? `MIDTRANS_ENV=${midtransEnv} but MIDTRANS_SERVER_KEY looks like ${serverKeyMode}.`
+    hint: keyModeMismatch
+      ? `MIDTRANS_ENV=${midtransEnv} but one or more Midtrans keys look like a different mode.`
       : 'If checkout still says access denied, use Client Key and Server Key from the same Midtrans dashboard mode and merchant account.'
   });
 }

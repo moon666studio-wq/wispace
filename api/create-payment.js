@@ -50,6 +50,7 @@ const getPublicSiteUrl = () => {
 
 const createMidtransSnapTransaction = async (checkout, serverKey) => {
   const baseUrl = getMidtransSnapBaseUrl();
+  const cleanServerKey = String(serverKey || '').trim();
   const productAmount = Number(checkout.productAmount || checkout.amount || 0);
   const shippingCost = Number(checkout.shippingCost || 0);
   const itemDetails = [
@@ -97,7 +98,7 @@ const createMidtransSnapTransaction = async (checkout, serverKey) => {
   const response = await fetch(`${baseUrl}/snap/v1/transactions`, {
     method: 'POST',
     headers: {
-      Authorization: `Basic ${Buffer.from(`${serverKey}:`).toString('base64')}`,
+      Authorization: `Basic ${Buffer.from(`${cleanServerKey}:`).toString('base64')}`,
       'Content-Type': 'application/json',
       Accept: 'application/json'
     },
