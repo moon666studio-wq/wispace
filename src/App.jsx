@@ -275,6 +275,7 @@ const PAYMENT_FLOW_STEPS = [
 const PAYMENT_GATEWAY_PROVIDER = String(import.meta.env.VITE_PAYMENT_PROVIDER || 'manual').toLowerCase();
 const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT || '/api/create-payment';
 const ORDER_NOTIFICATION_API_ENDPOINT = import.meta.env.VITE_ORDER_NOTIFICATION_API_ENDPOINT || '/api/notify-order';
+const SHIPPING_RATES_API_ENDPOINT = import.meta.env.VITE_SHIPPING_RATES_API_ENDPOINT || '/api/shipping-rates';
 const PAYMENT_GATEWAY_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
 const PAYMENT_GATEWAY_WEBHOOK_PATH = '/api/payment-webhook';
 const PAYMENT_GATEWAY_PROVIDER_OPTIONS = [
@@ -369,8 +370,17 @@ const MERCH_COURIER_OPTIONS = [
   { label: 'POS Kilat', code: 'POS', service: 'KILAT', estimate: '3-5 hari', cost: 14000 }
 ];
 
-const getCourierOption = (label = 'JNE REG') => (
-  MERCH_COURIER_OPTIONS.find((option) => option.label === label) || MERCH_COURIER_OPTIONS[0]
+const normalizeCourierOption = (option = {}) => ({
+  label: option.label || `${option.code || 'KURIR'} ${option.service || ''}`.trim(),
+  code: option.code || '',
+  service: option.service || '',
+  estimate: option.estimate || option.etd || '-',
+  cost: normalizePriceValue(option.cost || option.price || 0),
+  source: option.source || 'static'
+});
+
+const getCourierOption = (label = 'JNE REG', options = MERCH_COURIER_OPTIONS) => (
+  options.find((option) => option.label === label) || MERCH_COURIER_OPTIONS.find((option) => option.label === label) || options[0] || MERCH_COURIER_OPTIONS[0]
 );
 
 const createEmptyAudienceProfile = () => ({
@@ -1351,6 +1361,8 @@ export default function App() {
   const [merchOrders, setMerchOrders] = useState(loadMerchOrders);
   const [activeCheckout, setActiveCheckout] = useState(null);
   const [checkoutDraft, setCheckoutDraft] = useState(createEmptyCheckoutDraft);
+  const [checkoutCourierOptions, setCheckoutCourierOptions] = useState(MERCH_COURIER_OPTIONS);
+  const [checkoutShippingStatus, setCheckoutShippingStatus] = useState({ loading: false, message: '', mode: 'static' });
   const [showNotificationPopout, setShowNotificationPopout] = useState(false);
   const [showBandAdminPopout, setShowBandAdminPopout] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState(null);
@@ -3815,6 +3827,8 @@ export default function App() {
       return;
     }
 
+    setCheckoutCourierOptions(MERCH_COURIER_OPTIONS);
+    setCheckoutShippingStatus({ loading: false, message: 'Isi kota tujuan lalu cek ongkir.', mode: 'static' });
     setActiveCheckout({ type: 'merch', item: { ...item, stockAvailableAtCheckout: getMerchAvailableStock(item) }, checkoutRef: createCheckoutReference('merch'), status: 'pending_payment', startedAt: new Date().toISOString() });
     setCheckoutDraft({
       ...createEmptyCheckoutDraft(),
@@ -3823,6 +3837,78 @@ export default function App() {
       recipientName: audienceProfile.displayName || userSession.email?.split('@')[0] || '',
       city: audienceProfile.city || ''
     });
+  };
+
+  const handleFetchCheckoutShippingRates = async () => {
+    if (!activeCheckout || activeCheckout.type !== 'merch') return;
+    const destinationCity = checkoutDraft.city.trim();
+    if (!destinationCity) {
+      setCheckoutShippingStatus({ loading: false, message: 'Isi kota tujuan dulu bro buat cek ongkir.', mode: 'error' });
+      return;
+    }
+
+    const originShipping = activeCheckout.item?.originShipping || null;
+    const originCity = originShipping?.city || originShipping?.province || WISPACE_ADMIN_SHIPPING_ORIGIN.city;
+    setCheckoutShippingStatus({ loading: true, message: 'Cek ongkir...', mode: 'loading' });
+
+    try {
+      const response = await fetch(SHIPPING_RATES_API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originCity,
+          destinationCity,
+          weightGram: activeCheckout.item?.weightGram || activeCheckout.item?.weight || 1000,
+          origin: originShipping,
+          destination: {
+            city: destinationCity,
+            postalCode: checkoutDraft.postalCode.trim()
+          }
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      const nextOptions = Array.isArray(data?.rates)
+        ? data.rates.map(normalizeCourierOption).filter((option) => option.label && option.cost > 0)
+        : [];
+
+      if (!response.ok || !nextOptions.length) {
+        setCheckoutCourierOptions(MERCH_COURIER_OPTIONS);
+        const fallbackCourier = getCourierOption(checkoutDraft.courier);
+        setCheckoutDraft((current) => ({
+          ...current,
+          courier: fallbackCourier.label,
+          shippingCost: fallbackCourier.cost,
+          shippingEstimate: fallbackCourier.estimate
+        }));
+        setCheckoutShippingStatus({
+          loading: false,
+          message: data?.message || 'Ongkir API belum kebaca, pakai estimasi manual WiSpace dulu.',
+          mode: 'fallback'
+        });
+        return;
+      }
+
+      const selectedOption = nextOptions.find((option) => option.label === checkoutDraft.courier) || nextOptions[0];
+      setCheckoutCourierOptions(nextOptions);
+      setCheckoutDraft((current) => ({
+        ...current,
+        courier: selectedOption.label,
+        shippingCost: selectedOption.cost,
+        shippingEstimate: selectedOption.estimate
+      }));
+      setCheckoutShippingStatus({
+        loading: false,
+        message: data?.mode === 'manual_fallback' ? 'Ongkir estimasi manual WiSpace sudah diperbarui.' : 'Ongkir dari ekspedisi sudah diperbarui.',
+        mode: data?.mode || 'api'
+      });
+    } catch (error) {
+      setCheckoutCourierOptions(MERCH_COURIER_OPTIONS);
+      setCheckoutShippingStatus({
+        loading: false,
+        message: error?.message || 'Endpoint ongkir belum bisa dihubungi, pakai estimasi manual dulu.',
+        mode: 'fallback'
+      });
+    }
   };
 
   const handleCheckoutCancel = () => {
@@ -3868,7 +3954,7 @@ export default function App() {
     const albumContext = activeCheckout.album || null;
     const revenueSplit = calculateRevenueSplit(product?.price);
     const selectedCourier = activeCheckout.type === 'merch'
-      ? getCourierOption(checkoutDraft.courier)
+      ? getCourierOption(checkoutDraft.courier, checkoutCourierOptions)
       : null;
     const shippingCost = activeCheckout.type === 'merch'
       ? normalizePriceValue(checkoutDraft.shippingCost || selectedCourier?.cost || 0)
@@ -4112,6 +4198,10 @@ export default function App() {
       ];
       if (requiredFields.some((field) => !field.trim())) {
         alert('Lengkapi data penerima, nomor HP, alamat, kota, dan kode pos dulu bro.');
+        return;
+      }
+      if (checkoutShippingStatus.mode === 'stale') {
+        alert('Kota tujuan berubah bro. Klik cek ongkir dulu sebelum lanjut bayar.');
         return;
       }
     }
@@ -5748,7 +5838,7 @@ export default function App() {
     : checkoutProduct?.bandName;
   const checkoutSubtotal = normalizePriceValue(checkoutProduct?.price);
   const checkoutCourierOption = activeCheckout?.type === 'merch'
-    ? getCourierOption(checkoutDraft.courier)
+    ? getCourierOption(checkoutDraft.courier, checkoutCourierOptions)
     : null;
   const checkoutShippingCost = activeCheckout?.type === 'merch'
     ? normalizePriceValue(checkoutDraft.shippingCost || checkoutCourierOption?.cost || 0)
@@ -11001,12 +11091,15 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
-                  <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, city: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => {
+                    setCheckoutDraft({ ...checkoutDraft, city: event.target.value });
+                    setCheckoutShippingStatus({ loading: false, message: 'Kota berubah. Cek ongkir lagi sebelum bayar.', mode: 'stale' });
+                  }} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="KODE POS" value={checkoutDraft.postalCode} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, postalCode: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <select
                     value={checkoutDraft.courier}
                     onChange={(event) => {
-                      const nextCourier = getCourierOption(event.target.value);
+                      const nextCourier = getCourierOption(event.target.value, checkoutCourierOptions);
                       setCheckoutDraft({
                         ...checkoutDraft,
                         courier: nextCourier.label,
@@ -11017,10 +11110,13 @@ export default function App() {
                     disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled}
                     style={formInputStyle}
                   >
-                    {MERCH_COURIER_OPTIONS.map((option) => (
+                    {checkoutCourierOptions.map((option) => (
                       <option key={option.label} value={option.label}>{option.label} / Rp {option.cost.toLocaleString('id-ID')} / {option.estimate}</option>
                     ))}
                   </select>
+                  <button type="button" onClick={handleFetchCheckoutShippingRates} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled || checkoutShippingStatus.loading} style={{ ...glassButtonStyle, padding: '10px 12px', fontSize: '10px', opacity: checkoutShippingStatus.loading ? 0.68 : 1 }}>
+                    {checkoutShippingStatus.loading ? 'CEK...' : 'CEK ONGKIR'}
+                  </button>
                   <input type="text" placeholder="CATATAN OPSIONAL" value={checkoutDraft.note} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, note: event.target.value })} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                 </div>
                 <textarea placeholder="ALAMAT LENGKAP" value={checkoutDraft.address} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, address: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5, marginTop: '12px' }} />
@@ -11036,7 +11132,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Ongkir masih estimasi manual. Nanti bisa disambung ke API ekspedisi buat tarif, pilihan service, dan tracking real-time.</p>
+                <p style={{ color: checkoutShippingStatus.mode === 'error' ? '#F1D4E5' : 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>{checkoutShippingStatus.message || 'Ongkir bisa dicek dari API serverless. Mode awal masih fallback estimasi manual WiSpace.'}</p>
               </div>
             )}
 
