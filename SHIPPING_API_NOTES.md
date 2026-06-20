@@ -24,6 +24,23 @@ Flow MVP:
 6. Band input resi.
 7. Sistem fetch tracking dan update `shipment_tracking_events`.
 
+Endpoint serverless yang sudah disiapkan:
+
+- `POST /api/shipping-rates`
+  - Input: `originCity`, `destinationCity`, `weightGram`.
+  - Output: daftar courier, service, estimasi, dan ongkir.
+  - Saat API key belum diset, endpoint mengembalikan estimasi manual WiSpace.
+- `POST /api/shipping-track`
+  - Input: `courierCode` dan `trackingNumber`.
+  - Output: status ringkas dan event tracking.
+  - Saat API key belum diset, endpoint mengembalikan status manual dari resi yang sudah diinput.
+
+Environment Vercel:
+
+- `SHIPPING_PROVIDER=manual` untuk mode awal.
+- Nanti bisa diganti ke provider yang dipilih, misalnya `rajaongkir`, `komerce`, atau `binderbyte`.
+- Isi salah satu key sesuai provider: `RAJAONGKIR_API_KEY`, `KOMERCE_API_KEY`, `BINDERBYTE_API_KEY`, atau `SHIPPING_API_KEY`.
+
 Prioritas implementasi:
 
 1. **Manual fulfillment stabil**

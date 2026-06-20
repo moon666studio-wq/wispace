@@ -1,0 +1,30 @@
+import { getEnv, normalizeAmount } from './_payment-utils.js';
+
+export const DEFAULT_COURIER_RATES = [
+  { label: 'JNE REG', code: 'JNE', service: 'REG', estimate: '2-4 hari', cost: 18000 },
+  { label: 'J&T EZ', code: 'JNT', service: 'EZ', estimate: '2-4 hari', cost: 17000 },
+  { label: 'SiCepat REG', code: 'SICEPAT', service: 'REG', estimate: '2-4 hari', cost: 16000 },
+  { label: 'Anteraja REG', code: 'ANTERAJA', service: 'REG', estimate: '2-5 hari', cost: 15000 },
+  { label: 'POS Kilat', code: 'POS', service: 'KILAT', estimate: '3-5 hari', cost: 14000 }
+];
+
+export const normalizeCourierCode = (value = '') => String(value || '').trim().toUpperCase();
+
+export const getShippingProvider = () => String(getEnv('SHIPPING_PROVIDER') || 'manual').trim().toLowerCase();
+
+export const hasShippingProviderKey = () => Boolean(
+  getEnv('RAJAONGKIR_API_KEY') ||
+  getEnv('KOMERCE_API_KEY') ||
+  getEnv('BINDERBYTE_API_KEY') ||
+  getEnv('SHIPPING_API_KEY')
+);
+
+export const getFallbackRates = ({ weightGram = 1000 } = {}) => {
+  const multiplier = Math.max(1, Math.ceil(normalizeAmount(weightGram || 1000) / 1000));
+  return DEFAULT_COURIER_RATES.map((rate) => ({
+    ...rate,
+    cost: rate.cost * multiplier,
+    weightGram: normalizeAmount(weightGram || 1000),
+    source: 'manual_fallback'
+  }));
+};
