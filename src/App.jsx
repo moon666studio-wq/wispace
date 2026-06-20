@@ -154,6 +154,12 @@ const getMerchOrderStatusColor = (status = 'order_paid_waiting_band') => ({
   refund_requested: '#F1D4E5',
   refunded: '#F1D4E5'
 }[status] || 'rgba(255,255,255,0.72)');
+const getShipmentBookingLabel = (status = 'pending') => ({
+  shipment_booking_pending: 'Menunggu booking',
+  manual_label_pending: 'Label manual',
+  shipment_booking_ready: 'Label siap',
+  shipment_booking_failed: 'Booking gagal'
+}[status] || String(status || 'pending').replaceAll('_', ' '));
 const MERCH_ORDER_FLOW_STEPS = [
   { id: 'paid', label: 'PAID', statuses: ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
   { id: 'process', label: 'PROSES', statuses: ['processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
@@ -1290,6 +1296,7 @@ export default function App() {
   const [selectedPaymentProofPreview, setSelectedPaymentProofPreview] = useState(null);
   const [selectedMerchDetail, setSelectedMerchDetail] = useState(null);
   const [selectedMerchOrderDetail, setSelectedMerchOrderDetail] = useState(null);
+  const [shipmentBookingOrderId, setShipmentBookingOrderId] = useState('');
   const [selectedWispacePickDetail, setSelectedWispacePickDetail] = useState(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
@@ -4903,25 +4910,37 @@ export default function App() {
     }
   };
 
-  const syncShipmentBookingForOrder = async (order) => {
+  const syncShipmentBookingForOrder = async (order, { notify = false } = {}) => {
     if (!order?.id) return;
-    const bookingResult = await requestShipmentBooking(order);
-    if (!bookingResult) return;
-    const shipment = bookingResult.data?.shipment || {};
-    const hasTrackingNumber = Boolean(shipment.trackingNumber);
-    const updatePayload = {
-      shipmentProvider: shipment.provider || bookingResult.data?.provider || order.shipmentProvider || '',
-      shipmentId: shipment.shipmentId || order.shipmentId || '',
-      shipmentLabelUrl: shipment.labelUrl || order.shipmentLabelUrl || '',
-      shipmentBookingStatus: shipment.bookingStatus || (bookingResult.ok ? 'shipment_booking_ready' : 'shipment_booking_failed'),
-      shippingPaymentStatus: shipment.paymentStatus || 'shipping_fee_held_by_wispace',
-      trackingNumber: shipment.trackingNumber || order.trackingNumber || '',
-      trackingStatus: hasTrackingNumber ? 'ready_to_ship' : order.trackingStatus,
-      shipmentMessage: bookingResult.data?.message || bookingResult.error || ''
-    };
-    updateMerchOrderLocal(order.id, updatePayload);
-    if (hasTrackingNumber) updateMerchTransactionFulfillmentLocal(order.transactionId, 'ready_to_ship');
-    syncMerchOrderUpdate(order, updatePayload);
+    if (shipmentBookingOrderId && String(shipmentBookingOrderId) === String(order.id)) return;
+    setShipmentBookingOrderId(order.id);
+    try {
+      const bookingResult = await requestShipmentBooking(order);
+      if (!bookingResult) return;
+      const shipment = bookingResult.data?.shipment || {};
+      const hasTrackingNumber = Boolean(shipment.trackingNumber);
+      const updatePayload = {
+        shipmentProvider: shipment.provider || bookingResult.data?.provider || order.shipmentProvider || '',
+        shipmentId: shipment.shipmentId || order.shipmentId || '',
+        shipmentLabelUrl: shipment.labelUrl || order.shipmentLabelUrl || '',
+        shipmentBookingStatus: shipment.bookingStatus || (bookingResult.ok ? 'shipment_booking_ready' : 'shipment_booking_failed'),
+        shippingPaymentStatus: shipment.paymentStatus || 'shipping_fee_held_by_wispace',
+        trackingNumber: shipment.trackingNumber || order.trackingNumber || '',
+        trackingStatus: hasTrackingNumber ? 'ready_to_ship' : order.trackingStatus,
+        shipmentMessage: bookingResult.data?.message || bookingResult.error || ''
+      };
+      updateMerchOrderLocal(order.id, updatePayload);
+      if (hasTrackingNumber) updateMerchTransactionFulfillmentLocal(order.transactionId, 'ready_to_ship');
+      syncMerchOrderUpdate(order, updatePayload);
+      if (notify) {
+        alert(hasTrackingNumber
+          ? 'Shipment berhasil dibooking. Resi/label sudah masuk.'
+          : updatePayload.shipmentMessage || 'Shipment belum otomatis. Ongkir tetap ditahan WiSpace dan label masih manual.'
+        );
+      }
+    } finally {
+      setShipmentBookingOrderId('');
+    }
   };
 
   const handleMerchOrderStatusUpdate = (order, nextStatus) => {
@@ -8023,6 +8042,7 @@ export default function App() {
                       {order.fulfillmentMode === 'admin_consignment' ? (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                           <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                          <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing_admin')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES ADMIN</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PACKING</button>
                           <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'ready_to_ship')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>READY</button>
@@ -8032,6 +8052,7 @@ export default function App() {
                       ) : (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px', alignItems: 'center' }}>
                           <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                          <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
                           <p style={{ color: '#F8F7F8', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>Band ship. Admin pantau/follow up via message kalau macet.</p>
                         </div>
                       )}
@@ -9989,7 +10010,7 @@ export default function App() {
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#F8F7F8' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
                         <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu label ekspedisi'}</strong></p>
                         <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Ongkir:<br /><strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace' : order.shippingPaymentStatus || '-'}</strong></p>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Shipment:<br /><strong>{String(order.shipmentBookingStatus || 'pending').replaceAll('_', ' ')}</strong></p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Shipment:<br /><strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
@@ -10255,12 +10276,13 @@ export default function App() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'menunggu label'}</strong></p>
                         <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Ongkir: <strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'ditahan WiSpace' : order.shippingPaymentStatus || '-'}</strong></p>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Shipment: <strong>{String(order.shipmentBookingStatus || 'pending').replaceAll('_', ' ')}</strong></p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Shipment: <strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
                         {order.fulfillmentMode === 'admin_consignment' ? (
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
                         ) : (
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                            <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
                             <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'processing')} disabled={order.trackingStatus === 'processing'} style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', color: order.trackingStatus === 'processing' ? '#F1D4E5' : '#73BBC9', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'processing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PROSES</button>
                             <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} disabled={order.trackingStatus === 'packing'} style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.24)', color: order.trackingStatus === 'packing' ? '#F1D4E5' : '#73BBC9', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: order.trackingStatus === 'packing' ? 'default' : 'pointer', fontFamily: FONT_STACK }}>PACKING</button>
                             <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.24)', color: 'rgba(255,255,255,0.72)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
@@ -10829,7 +10851,7 @@ export default function App() {
                     ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
                     ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi'],
                     ['ONGKIR HELD', selectedMerchOrderDetail.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace' : selectedMerchOrderDetail.shippingPaymentStatus || '-'],
-                    ['SHIPMENT', String(selectedMerchOrderDetail.shipmentBookingStatus || 'pending').replaceAll('_', ' ')],
+                    ['SHIPMENT', getShipmentBookingLabel(selectedMerchOrderDetail.shipmentBookingStatus)],
                     ['STOCK RESTORE', selectedMerchOrderDetail.stockRestored ? `SUDAH / ${selectedMerchOrderDetail.stockRestoredAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedMerchOrderDetail.stockRestoredAt)) : 'LOCAL'}` : 'BELUM / TIDAK PERLU']
                   ].map(([label, value]) => (
                     <div key={label} style={{ padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
@@ -10846,6 +10868,7 @@ export default function App() {
                   {selectedMerchOrderDetail.shipmentLabelUrl && (
                     <button type="button" onClick={() => window.open(selectedMerchOrderDetail.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, marginTop: '10px', padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL EKSPEDISI</button>
                   )}
+                  <button type="button" onClick={() => syncShipmentBookingForOrder(selectedMerchOrderDetail, { notify: true })} disabled={shipmentBookingOrderId === selectedMerchOrderDetail.id} style={{ ...glassButtonStyle, marginTop: '10px', marginLeft: selectedMerchOrderDetail.shipmentLabelUrl ? '8px' : 0, padding: '8px 10px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === selectedMerchOrderDetail.id ? 0.55 : 1 }}>{shipmentBookingOrderId === selectedMerchOrderDetail.id ? 'BOOKING...' : 'BOOKING SHIPMENT ULANG'}</button>
                 </div>
               </section>
 
