@@ -10382,7 +10382,7 @@ export default function App() {
       {/* HOME PREMIUM EDITORIAL */}
       {!loading && !isAdminPage && !isBandProfilePage && !isBandPublicPage && !isFinancePage && !isGigManagerPage && !isMessagePage && !isAudienceProfilePage && !isAudienceLibraryPage && !isAudienceOrdersPage && !isExplorePage && !isMerchMarketPage && !isArticlesPage && (
         <section style={{ display: 'grid', gap: isTinyLayout ? '30px' : '42px', marginBottom: '68px', ...homeRevealStyle(0) }}>
-          <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.68fr) minmax(240px, 0.58fr)', gap: isTinyLayout ? '24px' : '34px', alignItems: 'start' }}>
+          <section style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.62fr) minmax(250px, 0.62fr)', gap: isTinyLayout ? '24px' : '18px', alignItems: 'start' }}>
             <section style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: isTinyLayout ? '14px' : '18px', borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '12px' }}>
                 <div>
@@ -10438,7 +10438,7 @@ export default function App() {
               )}
             </section>
 
-            <aside style={{ ...railPanelStyle, paddingTop: '12px', position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start', maxWidth: isCompactLayout ? undefined : '340px', justifySelf: isCompactLayout ? 'stretch' : 'end' }}>
+            <aside style={{ ...railPanelStyle, paddingTop: '12px', position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start', maxWidth: isCompactLayout ? undefined : '340px', justifySelf: isCompactLayout ? 'stretch' : 'start' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                 <div>
                   <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>02 / EDITORIAL</p>
