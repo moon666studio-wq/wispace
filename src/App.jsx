@@ -315,6 +315,7 @@ const WISPACE_MANUAL_PAYMENT_CHANNELS = [
 ];
 const WISPACE_ADMIN_SHIPPING_ORIGIN = {
   address: 'Gudang/Admin WiSpace - silahkan hubungi admin untuk alamat kirim stok',
+  district: '',
   city: 'Admin WiSpace',
   province: 'Indonesia',
   postalCode: '',
@@ -399,7 +400,9 @@ const createEmptyCheckoutDraft = () => ({
   recipientName: '',
   recipientPhone: '',
   address: '',
+  district: '',
   city: '',
+  province: '',
   postalCode: '',
   courier: 'JNE REG',
   shippingCost: getCourierOption('JNE REG').cost,
@@ -429,6 +432,7 @@ const createEmptyBandProfile = () => ({
   bankAccountName: '',
   bankAccountNumber: '',
   shipFromAddress: '',
+  shipFromDistrict: '',
   shipFromCity: '',
   shipFromProvince: '',
   shipFromPostalCode: '',
@@ -628,6 +632,11 @@ const mapBandProfileFromRow = (row = {}) => ({
   bankName: row.bank_name || '',
   bankAccountName: row.bank_account_name || '',
   bankAccountNumber: row.bank_account_number || '',
+  shipFromAddress: row.ship_from_address || '',
+  shipFromDistrict: row.ship_from_district || '',
+  shipFromCity: row.ship_from_city || '',
+  shipFromProvince: row.ship_from_province || '',
+  shipFromPostalCode: row.ship_from_postal_code || '',
   coverName: row.cover_name || '',
   coverPreview: row.cover_preview || '',
   photoName: row.photo_name || '',
@@ -652,6 +661,11 @@ const mapBandProfileToRow = (profile = {}, user) => ({
   bank_name: profile.bankName || '',
   bank_account_name: profile.bankAccountName || '',
   bank_account_number: profile.bankAccountNumber || '',
+  ship_from_address: profile.shipFromAddress || '',
+  ship_from_district: profile.shipFromDistrict || '',
+  ship_from_city: profile.shipFromCity || '',
+  ship_from_province: profile.shipFromProvince || '',
+  ship_from_postal_code: profile.shipFromPostalCode || '',
   cover_name: profile.coverName || '',
   cover_preview: profile.coverPreview || '',
   photo_name: profile.photoName || '',
@@ -706,6 +720,7 @@ const mapMerchFromRow = (row = {}) => ({
   description: row.description || '',
   price: row.price || '',
   stock: row.stock || 0,
+  weightGram: Number(row.weight_gram || row.weightGram || 1000),
   imageName: row.image_name || '',
   imagePreview: row.image_preview || '',
   genre: row.genre || 'Indie',
@@ -715,6 +730,7 @@ const mapMerchFromRow = (row = {}) => ({
   consignmentStatus: row.consignment_status || '',
   adminStockOnHand: Number(row.admin_stock_on_hand || 0),
   originShipping: row.origin_shipping || null,
+  destinationShipping: row.destination_shipping || null,
   isActive: row.is_active !== false,
   bandUserId: row.band_user_id || '',
   updatedAt: row.updated_at || row.created_at || ''
@@ -921,11 +937,14 @@ const mapMerchOrderFromRow = (row = {}) => ({
   recipientPhone: row.shipping_phone || '',
   address: row.shipping_address || '',
   city: row.shipping_city || '',
+  district: row.shipping_district || row.destination_shipping?.district || '',
+  province: row.shipping_province || row.destination_shipping?.province || '',
   postalCode: row.shipping_postal_code || '',
   courier: row.courier_service || row.courier_code || 'Kurir belum dipilih',
   shippingCost: Number(row.shipping_cost || 0),
   note: '',
   originShipping: row.origin_shipping || row.merch_items?.origin_shipping || null,
+  destinationShipping: row.destination_shipping || null,
   fulfillmentMode: row.fulfillment_mode || row.merch_items?.fulfillment_mode || 'band_ship',
   consignmentStatus: row.consignment_status || row.merch_items?.consignment_status || '',
   adminStockOnHand: Number(row.merch_items?.admin_stock_on_hand || 0),
@@ -1305,6 +1324,7 @@ export default function App() {
     name: '',
     price: '',
     stock: '',
+    weightGram: '500',
     fulfillmentMode: 'band_ship',
     description: '',
     imageName: '',
@@ -1560,6 +1580,11 @@ export default function App() {
             delete legacyProfileRow.bank_name;
             delete legacyProfileRow.bank_account_name;
             delete legacyProfileRow.bank_account_number;
+            delete legacyProfileRow.ship_from_address;
+            delete legacyProfileRow.ship_from_district;
+            delete legacyProfileRow.ship_from_city;
+            delete legacyProfileRow.ship_from_province;
+            delete legacyProfileRow.ship_from_postal_code;
             void supabase
               .from('band_profiles')
               .upsert(legacyProfileRow, { onConflict: 'user_id' })
@@ -1688,8 +1713,10 @@ export default function App() {
       fulfillmentLabel: usesAdminConsignment ? 'STOK DI ADMIN WISPACE' : 'BAND KIRIM SENDIRI',
       consignmentStatus: usesAdminConsignment ? (item.consignmentStatus || 'waiting_stock_handover') : '',
       adminStockOnHand: usesAdminConsignment ? normalizePriceValue(item.adminStockOnHand || 0) : 0,
+      weightGram: normalizePriceValue(item.weightGram || merchDraft.weightGram || 1000) || 1000,
       originShipping: usesAdminConsignment ? WISPACE_ADMIN_SHIPPING_ORIGIN : {
         address: bandProfile.shipFromAddress || item.originShipping?.address || '',
+        district: bandProfile.shipFromDistrict || item.originShipping?.district || '',
         city: bandProfile.shipFromCity || item.originShipping?.city || bandProfile.city || '',
         province: bandProfile.shipFromProvince || item.originShipping?.province || '',
         postalCode: bandProfile.shipFromPostalCode || item.originShipping?.postalCode || '',
@@ -1724,6 +1751,7 @@ export default function App() {
         description: publicItem.description || '',
         price: normalizePriceValue(publicItem.price),
         stock: normalizePriceValue(publicItem.stock),
+        weight_gram: normalizePriceValue(publicItem.weightGram || 1000) || 1000,
         image_name: publicItem.imageName || '',
         image_preview: publicItem.imagePreview || '',
         genre: publicItem.genre || 'Indie',
@@ -1745,6 +1773,7 @@ export default function App() {
           delete legacyMerchRow.consignment_status;
           delete legacyMerchRow.admin_stock_on_hand;
           delete legacyMerchRow.origin_shipping;
+          delete legacyMerchRow.weight_gram;
           const { error: legacyError } = await supabase.from('merch_items').upsert(legacyMerchRow);
           if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync merch ke Supabase:', legacyError.message);
           return;
@@ -1756,7 +1785,7 @@ export default function App() {
     }
 
     return publicItem;
-  }, [bandProfile.city, bandProfile.cp, bandProfile.genre, bandProfile.name, bandProfile.shipFromAddress, bandProfile.shipFromCity, bandProfile.shipFromPostalCode, bandProfile.shipFromProvince, bandProfile.slug, publishBandUpdateNotification, signatureName, userSession]);
+  }, [bandProfile.city, bandProfile.cp, bandProfile.genre, bandProfile.name, bandProfile.shipFromAddress, bandProfile.shipFromCity, bandProfile.shipFromDistrict, bandProfile.shipFromPostalCode, bandProfile.shipFromProvince, bandProfile.slug, merchDraft.weightGram, publishBandUpdateNotification, signatureName, userSession]);
 
   const publishPublicArticle = useCallback((article) => {
     const articleId = article.id || createClientId();
@@ -3849,6 +3878,7 @@ export default function App() {
 
     const originShipping = activeCheckout.item?.originShipping || null;
     const originCity = originShipping?.city || originShipping?.province || WISPACE_ADMIN_SHIPPING_ORIGIN.city;
+    const destinationDistrict = checkoutDraft.district.trim();
     setCheckoutShippingStatus({ loading: true, message: 'Cek ongkir...', mode: 'loading' });
 
     try {
@@ -3857,11 +3887,15 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           originCity,
+          originDistrict: originShipping?.district || '',
           destinationCity,
+          destinationDistrict,
           weightGram: activeCheckout.item?.weightGram || activeCheckout.item?.weight || 1000,
           origin: originShipping,
           destination: {
+            district: destinationDistrict,
             city: destinationCity,
+            province: checkoutDraft.province.trim(),
             postalCode: checkoutDraft.postalCode.trim()
           }
         })
@@ -3995,7 +4029,9 @@ export default function App() {
             recipientName: checkoutDraft.recipientName.trim(),
             recipientPhone: checkoutDraft.recipientPhone.trim(),
             address: checkoutDraft.address.trim(),
+            district: checkoutDraft.district.trim(),
             city: checkoutDraft.city.trim(),
+            province: checkoutDraft.province.trim(),
             postalCode: checkoutDraft.postalCode.trim(),
             courier: selectedCourier?.label || checkoutDraft.courier,
             courierCode: selectedCourier?.code || '',
@@ -4003,7 +4039,15 @@ export default function App() {
             shippingCost,
             shippingEstimate: checkoutDraft.shippingEstimate || selectedCourier?.estimate || '',
             note: checkoutDraft.note.trim(),
-            origin: activeCheckout.item?.originShipping || null
+            origin: activeCheckout.item?.originShipping || null,
+            destination: {
+              address: checkoutDraft.address.trim(),
+              district: checkoutDraft.district.trim(),
+              city: checkoutDraft.city.trim(),
+              province: checkoutDraft.province.trim(),
+              postalCode: checkoutDraft.postalCode.trim()
+            },
+            weightGram: activeCheckout.item?.weightGram || activeCheckout.item?.weight || 1000
           }
         : null,
       status: 'waiting_admin_confirmation',
@@ -4193,11 +4237,13 @@ export default function App() {
         checkoutDraft.recipientName,
         checkoutDraft.recipientPhone,
         checkoutDraft.address,
+        checkoutDraft.district,
         checkoutDraft.city,
+        checkoutDraft.province,
         checkoutDraft.postalCode
       ];
       if (requiredFields.some((field) => !field.trim())) {
-        alert('Lengkapi data penerima, nomor HP, alamat, kota, dan kode pos dulu bro.');
+        alert('Lengkapi data penerima, nomor HP, alamat, kecamatan, kota, provinsi, dan kode pos dulu bro.');
         return;
       }
       if (checkoutShippingStatus.mode === 'stale') {
@@ -4447,9 +4493,13 @@ export default function App() {
         recipientName: payment.shipping?.recipientName || '',
         recipientPhone: payment.shipping?.recipientPhone || '',
         address: payment.shipping?.address || '',
+        district: payment.shipping?.district || payment.shipping?.destination?.district || '',
         city: payment.shipping?.city || '',
+        province: payment.shipping?.province || payment.shipping?.destination?.province || '',
         postalCode: payment.shipping?.postalCode || '',
         originShipping: payment.shipping?.origin || item.originShipping || null,
+        destinationShipping: payment.shipping?.destination || null,
+        weightGram: payment.shipping?.weightGram || item.weightGram || 1000,
         fulfillmentMode: item.fulfillmentMode || 'band_ship',
         consignmentStatus: item.consignmentStatus || '',
         courier: payment.shipping?.courier || 'JNE REG',
@@ -4511,12 +4561,16 @@ export default function App() {
           shipping_recipient: nextOrder.recipientName,
           shipping_phone: nextOrder.recipientPhone,
           shipping_address: nextOrder.address,
+          shipping_district: nextOrder.district,
           shipping_city: nextOrder.city,
+          shipping_province: nextOrder.province,
           shipping_postal_code: nextOrder.postalCode,
           courier_code: nextOrder.courierCode || nextOrder.courier.split(' ')[0],
           courier_service: nextOrder.courier,
           shipping_cost: nextOrder.shippingCost || 0,
           origin_shipping: nextOrder.originShipping || null,
+          destination_shipping: nextOrder.destinationShipping || null,
+          weight_gram: normalizePriceValue(nextOrder.weightGram || 1000) || 1000,
           fulfillment_mode: nextOrder.fulfillmentMode || 'band_ship',
           consignment_status: nextOrder.consignmentStatus || '',
           tracking_status: nextOrder.trackingStatus
@@ -4525,9 +4579,13 @@ export default function App() {
           if (error && isMissingColumnError(error)) {
             const legacyMerchOrderRow = { ...merchOrderRow };
             delete legacyMerchOrderRow.origin_shipping;
+            delete legacyMerchOrderRow.destination_shipping;
             delete legacyMerchOrderRow.fulfillment_mode;
             delete legacyMerchOrderRow.consignment_status;
             delete legacyMerchOrderRow.shipping_cost;
+            delete legacyMerchOrderRow.shipping_district;
+            delete legacyMerchOrderRow.shipping_province;
+            delete legacyMerchOrderRow.weight_gram;
             const { error: legacyError } = await supabase.from('merch_orders').insert([legacyMerchOrderRow]);
             if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync order merch ke Supabase:', legacyError.message);
             return;
@@ -4835,6 +4893,7 @@ export default function App() {
     event.preventDefault();
     if (!hasBandPayoutAccount) return alert('Lengkapi data rekening payout di Profile Band dulu bro sebelum upload merch.');
     if (!merchUsesAdminConsignment && !hasBandShippingOrigin) return alert('Lengkapi alamat asal pengiriman di Profile Band dulu bro. Ini wajib buat hitung ongkir merch kalau band kirim sendiri.');
+    if (!normalizePriceValue(merchDraft.weightGram)) return alert('Isi berat merch dalam gram dulu bro. Ini dipakai buat hitung ongkir.');
     const nextItem = {
       id: createClientId(),
       ...merchDraft,
@@ -4853,6 +4912,7 @@ export default function App() {
       name: '',
       price: '',
       stock: '',
+      weightGram: '500',
       fulfillmentMode: 'band_ship',
       description: '',
       imageName: '',
@@ -5955,6 +6015,7 @@ export default function App() {
   );
   const hasBandShippingOrigin = Boolean(
     bandProfile.shipFromAddress?.trim()
+    && bandProfile.shipFromDistrict?.trim()
     && bandProfile.shipFromCity?.trim()
     && bandProfile.shipFromProvince?.trim()
     && bandProfile.shipFromPostalCode?.trim()
@@ -10266,6 +10327,7 @@ export default function App() {
                     </div>
                     <textarea placeholder="ALAMAT LENGKAP ASAL PENGIRIMAN" value={bandProfile.shipFromAddress || ''} onChange={(e) => updateBandProfileField('shipFromAddress', e.target.value)} rows={3} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '10px', lineHeight: 1.5 }} />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                      <input type="text" placeholder="KECAMATAN PENGIRIM" value={bandProfile.shipFromDistrict || ''} onChange={(e) => updateBandProfileField('shipFromDistrict', e.target.value)} style={formInputStyle} />
                       <input type="text" placeholder="KOTA / KABUPATEN PENGIRIM" value={bandProfile.shipFromCity || ''} onChange={(e) => updateBandProfileField('shipFromCity', e.target.value)} style={formInputStyle} />
                       <input type="text" placeholder="PROVINSI" value={bandProfile.shipFromProvince || ''} onChange={(e) => updateBandProfileField('shipFromProvince', e.target.value)} style={formInputStyle} />
                       <input type="text" inputMode="numeric" placeholder="KODE POS" value={bandProfile.shipFromPostalCode || ''} onChange={(e) => updateBandProfileField('shipFromPostalCode', e.target.value)} style={formInputStyle} />
@@ -10462,6 +10524,7 @@ export default function App() {
                     <input type="text" placeholder="NAMA MERCH (Kaos, CD, Kaset, Sticker)" value={merchDraft.name} onChange={(e) => setMerchDraft({ ...merchDraft, name: e.target.value })} required style={formInputStyle} />
                     <input type="text" inputMode="numeric" placeholder="HARGA JUAL" value={formatRupiahInput(merchDraft.price)} onChange={(e) => setMerchDraft({ ...merchDraft, price: String(normalizePriceValue(e.target.value) || '') })} required style={formInputStyle} />
                     <input type="number" min="0" placeholder="STOK" value={merchDraft.stock} onChange={(e) => setMerchDraft({ ...merchDraft, stock: e.target.value })} required style={formInputStyle} />
+                    <input type="text" inputMode="numeric" placeholder="BERAT GRAM (contoh 500)" value={merchDraft.weightGram} onChange={(e) => setMerchDraft({ ...merchDraft, weightGram: String(normalizePriceValue(e.target.value) || '') })} required style={formInputStyle} />
                   </div>
                   <textarea placeholder="DESKRIPSI MERCH / SIZE / WARNA / DETAIL PENGIRIMAN" value={merchDraft.description} onChange={(e) => setMerchDraft({ ...merchDraft, description: e.target.value })} rows={4} style={{ ...formInputStyle, resize: 'vertical', marginBottom: '12px', lineHeight: 1.5 }} />
                   <label style={{ display: 'block', padding: '16px', border: '1px dashed rgba(115,187,201,0.35)', borderRadius: '9px', backgroundColor: '#080202', cursor: 'pointer', marginBottom: '14px' }}>
@@ -10477,7 +10540,7 @@ export default function App() {
                         <div key={item.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto auto auto', gap: '10px', padding: '9px 0', borderTop: '1px solid rgba(241,212,229,0.08)', color: '#F8F7F8', fontSize: '12px', alignItems: 'center' }}>
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
                           <span style={{ color: '#73BBC9', fontWeight: '900' }}>Rp {Number(item.price || 0).toLocaleString('id-ID')}</span>
-                          {!isTinyLayout && <span style={{ color: 'rgba(255,255,255,0.72)' }}>Stok {item.stock} / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin' : 'Band kirim')}</span>}
+                          {!isTinyLayout && <span style={{ color: 'rgba(255,255,255,0.72)' }}>Stok {item.stock} / {Number(item.weightGram || 0).toLocaleString('id-ID')}g / {item.fulfillmentLabel || (item.fulfillmentMode === 'admin_consignment' ? 'Stok di admin' : 'Band kirim')}</span>}
                           <button type="button" onClick={() => handleDeleteMerch(item)} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.25)', color: '#ff6666', borderRadius: '9px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DELETE</button>
                         </div>
                       ))}
@@ -11091,9 +11154,17 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <input type="text" placeholder="NAMA PENERIMA" value={checkoutDraft.recipientName} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientName: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="NO HP / WHATSAPP" value={checkoutDraft.recipientPhone} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, recipientPhone: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="KECAMATAN" value={checkoutDraft.district} onChange={(event) => {
+                    setCheckoutDraft({ ...checkoutDraft, district: event.target.value });
+                    setCheckoutShippingStatus({ loading: false, message: 'Kecamatan berubah. Cek ongkir lagi sebelum bayar.', mode: 'stale' });
+                  }} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="KOTA" value={checkoutDraft.city} onChange={(event) => {
                     setCheckoutDraft({ ...checkoutDraft, city: event.target.value });
                     setCheckoutShippingStatus({ loading: false, message: 'Kota berubah. Cek ongkir lagi sebelum bayar.', mode: 'stale' });
+                  }} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
+                  <input type="text" placeholder="PROVINSI" value={checkoutDraft.province} onChange={(event) => {
+                    setCheckoutDraft({ ...checkoutDraft, province: event.target.value });
+                    setCheckoutShippingStatus({ loading: false, message: 'Provinsi berubah. Cek ongkir lagi sebelum bayar.', mode: 'stale' });
                   }} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <input type="text" placeholder="KODE POS" value={checkoutDraft.postalCode} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, postalCode: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                   <select
@@ -11120,9 +11191,11 @@ export default function App() {
                   <input type="text" placeholder="CATATAN OPSIONAL" value={checkoutDraft.note} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, note: event.target.value })} disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} style={formInputStyle} />
                 </div>
                 <textarea placeholder="ALAMAT LENGKAP" value={checkoutDraft.address} onChange={(event) => setCheckoutDraft({ ...checkoutDraft, address: event.target.value })} required disabled={checkoutIsProcessing || checkoutIsAwaitingAdmin || checkoutIsPaid || checkoutIsCancelled} rows={3} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5, marginTop: '12px' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px', marginTop: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: '8px', marginTop: '10px' }}>
                   {[
-                    ['ASAL', checkoutProduct?.originShipping ? `${checkoutProduct.originShipping.city || '-'}, ${checkoutProduct.originShipping.province || '-'}` : 'Alamat band/admin'],
+                    ['ASAL', checkoutProduct?.originShipping ? `${checkoutProduct.originShipping.district || '-'}, ${checkoutProduct.originShipping.city || '-'}, ${checkoutProduct.originShipping.province || '-'}` : 'Alamat band/admin'],
+                    ['TUJUAN', `${checkoutDraft.district || '-'}, ${checkoutDraft.city || '-'}, ${checkoutDraft.province || '-'}`],
+                    ['BERAT', `${Number(checkoutProduct?.weightGram || 1000).toLocaleString('id-ID')} gram`],
                     ['ONGKIR', `Rp ${checkoutShippingCost.toLocaleString('id-ID')}`],
                     ['ESTIMASI', checkoutCourierOption?.estimate || checkoutDraft.shippingEstimate || '-']
                   ].map(([label, value]) => (

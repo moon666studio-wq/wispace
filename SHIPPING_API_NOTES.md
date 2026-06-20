@@ -27,7 +27,7 @@ Flow MVP:
 Endpoint serverless yang sudah disiapkan:
 
 - `POST /api/shipping-rates`
-  - Input: `originCity`, `destinationCity`, `weightGram`.
+  - Input: `originDistrict`, `originCity`, `originProvince`, `destinationDistrict`, `destinationCity`, `destinationProvince`, `weightGram`.
   - Output: daftar courier, service, estimasi, dan ongkir.
   - Saat API key belum diset, endpoint mengembalikan estimasi manual WiSpace.
 - `POST /api/shipping-track`
@@ -49,7 +49,7 @@ Prioritas implementasi:
    - Audience bisa lihat status order dan resi.
 2. **Cek ongkir server-side**
    - Endpoint `/api/shipping-rates`.
-   - Input origin band/admin, destination buyer, berat barang.
+   - Input origin band/admin, destination buyer sampai level kecamatan/kota/provinsi, dan berat barang.
    - API key ekspedisi disimpan di Vercel server env.
 3. **Tracking server-side**
    - Endpoint `/api/shipping-track`.

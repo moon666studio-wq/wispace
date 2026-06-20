@@ -17,6 +17,11 @@ create table if not exists public.band_profiles (
   bank_name text,
   bank_account_name text,
   bank_account_number text,
+  ship_from_address text,
+  ship_from_district text,
+  ship_from_city text,
+  ship_from_province text,
+  ship_from_postal_code text,
   cover_name text,
   cover_preview text,
   photo_name text,
@@ -34,7 +39,12 @@ on public.band_profiles (is_published, updated_at desc);
 alter table if exists public.band_profiles
 add column if not exists bank_name text,
 add column if not exists bank_account_name text,
-add column if not exists bank_account_number text;
+add column if not exists bank_account_number text,
+add column if not exists ship_from_address text,
+add column if not exists ship_from_district text,
+add column if not exists ship_from_city text,
+add column if not exists ship_from_province text,
+add column if not exists ship_from_postal_code text;
 
 create table if not exists public.band_agreements (
   user_id uuid primary key references auth.users(id) on delete cascade,
