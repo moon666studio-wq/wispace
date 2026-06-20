@@ -29,7 +29,7 @@ const extractProviderInvoiceId = (provider, payload = {}) => {
 };
 
 const verifyMidtransSignature = (payload = {}) => {
-  const serverKey = getEnv(getProviderServerKeyName('midtrans'));
+  const serverKey = String(getEnv(getProviderServerKeyName('midtrans')) || '').trim();
   if (!serverKey || !payload.signature_key || !payload.order_id || !payload.status_code || !payload.gross_amount) {
     return { verified: false, reason: 'missing_midtrans_signature_fields' };
   }
@@ -92,6 +92,11 @@ const updatePaymentRequestFromWebhook = async ({ checkoutRef, providerInvoiceId,
         : paymentRequest.status || 'waiting_admin_confirmation';
   const nextPayload = {
     ...(paymentRequest.payload && typeof paymentRequest.payload === 'object' ? paymentRequest.payload : {}),
+    status: nextStatus,
+    paymentStatus: nextStatus,
+    providerStatus,
+    providerInvoiceId: providerInvoiceId || paymentRequest.payload?.providerInvoiceId || '',
+    gatewayError: '',
     providerWebhook: {
       providerStatus,
       wispaceStatus,
