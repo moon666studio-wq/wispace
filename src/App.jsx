@@ -276,6 +276,7 @@ const PAYMENT_GATEWAY_PROVIDER = String(import.meta.env.VITE_PAYMENT_PROVIDER ||
 const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT || '/api/create-payment';
 const ORDER_NOTIFICATION_API_ENDPOINT = import.meta.env.VITE_ORDER_NOTIFICATION_API_ENDPOINT || '/api/notify-order';
 const SHIPPING_RATES_API_ENDPOINT = import.meta.env.VITE_SHIPPING_RATES_API_ENDPOINT || '/api/shipping-rates';
+const SHIPMENT_CREATE_API_ENDPOINT = import.meta.env.VITE_SHIPMENT_CREATE_API_ENDPOINT || '/api/create-shipment';
 const PAYMENT_GATEWAY_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
 const PAYMENT_GATEWAY_WEBHOOK_PATH = '/api/payment-webhook';
 const PAYMENT_GATEWAY_PROVIDER_OPTIONS = [
@@ -950,6 +951,11 @@ const mapMerchOrderFromRow = (row = {}) => ({
   adminStockOnHand: Number(row.merch_items?.admin_stock_on_hand || 0),
   trackingNumber: row.tracking_number || '',
   trackingStatus: row.tracking_status || 'order_paid_waiting_band',
+  shipmentProvider: row.shipment_provider || '',
+  shipmentId: row.shipment_id || '',
+  shipmentLabelUrl: row.shipment_label_url || '',
+  shipmentBookingStatus: row.shipment_booking_status || '',
+  shippingPaymentStatus: row.shipping_payment_status || '',
   createdAt: row.created_at
     ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
     : ''
@@ -4127,6 +4133,55 @@ export default function App() {
     }
   };
 
+  const requestShipmentBooking = async (order) => {
+    if (!SHIPMENT_CREATE_API_ENDPOINT || !order?.orderId) return null;
+    try {
+      const response = await fetch(SHIPMENT_CREATE_API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: order.orderId,
+          merchOrderId: order.id,
+          courierCode: order.courierCode,
+          courierService: order.courierService || order.courier,
+          shippingCost: order.shippingCost,
+          weightGram: order.weightGram || 1000,
+          origin: order.originShipping || {},
+          destination: order.destinationShipping || {
+            address: order.address,
+            district: order.district,
+            city: order.city,
+            province: order.province,
+            postalCode: order.postalCode
+          },
+          recipient: {
+            name: order.recipientName,
+            phone: order.recipientPhone
+          },
+          item: {
+            id: order.merchItemId,
+            name: order.itemName,
+            sellerBandName: order.sellerBandName
+          }
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      return {
+        ok: response.ok && Boolean(data?.ok),
+        status: response.status,
+        data,
+        error: data?.error || data?.message || ''
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        status: 0,
+        data: {},
+        error: error?.message || 'shipment_api_unreachable'
+      };
+    }
+  };
+
   const markPendingPayment = (payment) => {
     setPendingPayments((current) => {
       const nextPayments = [
@@ -4510,6 +4565,11 @@ export default function App() {
         note: payment.shipping?.note || '',
         trackingNumber: '',
         trackingStatus: merchFulfillmentStatus,
+        shipmentProvider: '',
+        shipmentId: '',
+        shipmentLabelUrl: '',
+        shipmentBookingStatus: 'shipment_booking_pending',
+        shippingPaymentStatus: 'shipping_fee_held_by_wispace',
         createdAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
       };
 
@@ -4573,6 +4633,11 @@ export default function App() {
           weight_gram: normalizePriceValue(nextOrder.weightGram || 1000) || 1000,
           fulfillment_mode: nextOrder.fulfillmentMode || 'band_ship',
           consignment_status: nextOrder.consignmentStatus || '',
+          shipment_provider: nextOrder.shipmentProvider || null,
+          shipment_id: nextOrder.shipmentId || null,
+          shipment_label_url: nextOrder.shipmentLabelUrl || null,
+          shipment_booking_status: nextOrder.shipmentBookingStatus || null,
+          shipping_payment_status: nextOrder.shippingPaymentStatus || null,
           tracking_status: nextOrder.trackingStatus
         };
         void supabase.from('merch_orders').insert([merchOrderRow]).then(async ({ error }) => {
@@ -4586,6 +4651,11 @@ export default function App() {
             delete legacyMerchOrderRow.shipping_district;
             delete legacyMerchOrderRow.shipping_province;
             delete legacyMerchOrderRow.weight_gram;
+            delete legacyMerchOrderRow.shipment_provider;
+            delete legacyMerchOrderRow.shipment_id;
+            delete legacyMerchOrderRow.shipment_label_url;
+            delete legacyMerchOrderRow.shipment_booking_status;
+            delete legacyMerchOrderRow.shipping_payment_status;
             const { error: legacyError } = await supabase.from('merch_orders').insert([legacyMerchOrderRow]);
             if (legacyError && !isMissingColumnError(legacyError)) console.warn('Gagal sync order merch ke Supabase:', legacyError.message);
             return;
@@ -4619,6 +4689,7 @@ export default function App() {
         confirmedAt: new Date().toISOString(),
         confirmedBy: userSession?.email || 'admin_wsu'
       });
+      void syncShipmentBookingForOrder(nextOrder);
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
@@ -4781,6 +4852,11 @@ export default function App() {
       cancelled_at: updatePayload.cancelledAt || order.cancelledAt || null,
       refunded_at: updatePayload.refundedAt || order.refundedAt || null,
       resolved_at: updatePayload.resolvedAt || order.resolvedAt || null,
+      shipment_provider: updatePayload.shipmentProvider ?? order.shipmentProvider ?? null,
+      shipment_id: updatePayload.shipmentId ?? order.shipmentId ?? null,
+      shipment_label_url: updatePayload.shipmentLabelUrl ?? order.shipmentLabelUrl ?? null,
+      shipment_booking_status: updatePayload.shipmentBookingStatus ?? order.shipmentBookingStatus ?? null,
+      shipping_payment_status: updatePayload.shippingPaymentStatus ?? order.shippingPaymentStatus ?? null,
       updated_at: new Date().toISOString()
     };
     void supabase
@@ -4827,6 +4903,27 @@ export default function App() {
           }
         });
     }
+  };
+
+  const syncShipmentBookingForOrder = async (order) => {
+    if (!order?.id) return;
+    const bookingResult = await requestShipmentBooking(order);
+    if (!bookingResult) return;
+    const shipment = bookingResult.data?.shipment || {};
+    const hasTrackingNumber = Boolean(shipment.trackingNumber);
+    const updatePayload = {
+      shipmentProvider: shipment.provider || bookingResult.data?.provider || order.shipmentProvider || '',
+      shipmentId: shipment.shipmentId || order.shipmentId || '',
+      shipmentLabelUrl: shipment.labelUrl || order.shipmentLabelUrl || '',
+      shipmentBookingStatus: shipment.bookingStatus || (bookingResult.ok ? 'shipment_booking_ready' : 'shipment_booking_failed'),
+      shippingPaymentStatus: shipment.paymentStatus || 'shipping_fee_held_by_wispace',
+      trackingNumber: shipment.trackingNumber || order.trackingNumber || '',
+      trackingStatus: hasTrackingNumber ? 'ready_to_ship' : order.trackingStatus,
+      shipmentMessage: bookingResult.data?.message || bookingResult.error || ''
+    };
+    updateMerchOrderLocal(order.id, updatePayload);
+    if (hasTrackingNumber) updateMerchTransactionFulfillmentLocal(order.transactionId, 'ready_to_ship');
+    syncMerchOrderUpdate(order, updatePayload);
   };
 
   const handleMerchOrderStatusUpdate = (order, nextStatus) => {
@@ -9892,7 +9989,9 @@ export default function App() {
                       {renderMerchOrderStepper(order.trackingStatus)}
                       <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '8px', padding: '8px 0', borderTop: '1px solid rgba(241,212,229,0.06)', borderBottom: '1px solid rgba(241,212,229,0.06)', marginBottom: '8px' }}>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Penerima:<br /><strong style={{ color: '#F8F7F8' }}>{order.recipientName || '-'}</strong> / {order.recipientPhone || '-'}</p>
-                        <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu input band'}</strong></p>
+                        <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Resi:<br /><strong>{order.trackingNumber || 'Menunggu label ekspedisi'}</strong></p>
+                        <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Ongkir:<br /><strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace' : order.shippingPaymentStatus || '-'}</strong></p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Shipment:<br /><strong>{String(order.shipmentBookingStatus || 'pending').replaceAll('_', ' ')}</strong></p>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
@@ -10156,7 +10255,9 @@ export default function App() {
                         <p style={{ color: '#F8F7F8', fontSize: '9px', lineHeight: 1.35, margin: '0 0 8px 0' }}>Dikirim dari: {order.originShipping.city || '-'}, {order.originShipping.province || '-'} {order.originShipping.postalCode || ''}</p>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'belum diisi'}</strong></p>
+                        <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'menunggu label'}</strong></p>
+                        <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Ongkir: <strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'ditahan WiSpace' : order.shippingPaymentStatus || '-'}</strong></p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Shipment: <strong>{String(order.shipmentBookingStatus || 'pending').replaceAll('_', ' ')}</strong></p>
                         {order.fulfillmentMode === 'admin_consignment' ? (
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
                         ) : (
@@ -10729,6 +10830,8 @@ export default function App() {
                     ['SELLER', selectedMerchOrderDetail.sellerBandName || 'Band WiSpace'],
                     ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
                     ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi'],
+                    ['ONGKIR HELD', selectedMerchOrderDetail.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace' : selectedMerchOrderDetail.shippingPaymentStatus || '-'],
+                    ['SHIPMENT', String(selectedMerchOrderDetail.shipmentBookingStatus || 'pending').replaceAll('_', ' ')],
                     ['STOCK RESTORE', selectedMerchOrderDetail.stockRestored ? `SUDAH / ${selectedMerchOrderDetail.stockRestoredAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedMerchOrderDetail.stockRestoredAt)) : 'LOCAL'}` : 'BELUM / TIDAK PERLU']
                   ].map(([label, value]) => (
                     <div key={label} style={{ padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
@@ -10742,6 +10845,9 @@ export default function App() {
                   <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>ALAMAT PENERIMA</p>
                   <p style={{ color: 'rgba(241,212,229,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{selectedMerchOrderDetail.recipientName || '-'} / {selectedMerchOrderDetail.recipientPhone || '-'}<br />{selectedMerchOrderDetail.address || '-'}, {selectedMerchOrderDetail.city || '-'} {selectedMerchOrderDetail.postalCode || ''}</p>
                   {selectedMerchOrderDetail.note && <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '8px 0 0 0' }}>Catatan: {selectedMerchOrderDetail.note}</p>}
+                  {selectedMerchOrderDetail.shipmentLabelUrl && (
+                    <button type="button" onClick={() => window.open(selectedMerchOrderDetail.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, marginTop: '10px', padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL EKSPEDISI</button>
+                  )}
                 </div>
               </section>
 

@@ -24,6 +24,15 @@ Flow MVP:
 6. Band input resi.
 7. Sistem fetch tracking dan update `shipment_tracking_events`.
 
+Flow target setelah provider ekspedisi aktif:
+
+1. Buyer bayar `harga merch + ongkir` via Midtrans.
+2. Webhook/provider paid membuat payment siap diaktifkan.
+3. Setelah order merch aktif, WiSpace memanggil `/api/create-shipment`.
+4. Provider ekspedisi membuat resi/label dengan ongkir ditagihkan ke akun WiSpace.
+5. Band/admin tinggal cetak label dan kirim paket tanpa bayar ongkir lagi.
+6. Payout band dihitung dari harga merch saja, ongkir tetap dana titipan untuk ekspedisi.
+
 Endpoint serverless yang sudah disiapkan:
 
 - `POST /api/shipping-rates`
@@ -34,6 +43,10 @@ Endpoint serverless yang sudah disiapkan:
   - Input: `courierCode` dan `trackingNumber`.
   - Output: status ringkas dan event tracking.
   - Saat API key belum diset, endpoint mengembalikan status manual dari resi yang sudah diinput.
+- `POST /api/create-shipment`
+  - Input: order merch, origin, destination, courier, berat, dan ongkir yang sudah dibayar buyer.
+  - Output: `shipmentId`, `trackingNumber`, `labelUrl`, `bookingStatus`, dan `paymentStatus`.
+  - Saat API key belum diset, endpoint mencatat `shipping_fee_held_by_wispace` dan `manual_label_pending`.
 
 Environment Vercel:
 
@@ -55,3 +68,7 @@ Prioritas implementasi:
    - Endpoint `/api/shipping-track`.
    - Input courier + tracking number.
    - Simpan event tracking agar admin/band/audience bisa lihat histori.
+4. **Create shipment / label**
+   - Endpoint `/api/create-shipment`.
+   - Dijalankan setelah payment/order merch aktif.
+   - Target: provider mengembalikan resi dan label cetak, ongkir ditagihkan ke akun WiSpace.

@@ -28,3 +28,17 @@ export const getFallbackRates = ({ weightGram = 1000 } = {}) => {
     source: 'manual_fallback'
   }));
 };
+
+export const createManualShipmentFallback = ({ orderId = '', courierCode = '', courierService = '', shippingCost = 0 } = {}) => ({
+  provider: getShippingProvider(),
+  shipmentId: orderId ? `MANUAL-${orderId}` : `MANUAL-${Date.now().toString(36).toUpperCase()}`,
+  trackingNumber: '',
+  labelUrl: '',
+  courierCode: normalizeCourierCode(courierCode),
+  courierService: courierService || normalizeCourierCode(courierCode),
+  bookingStatus: 'manual_label_pending',
+  paymentStatus: 'shipping_fee_held_by_wispace',
+  shippingCost: normalizeAmount(shippingCost),
+  summary: 'Ongkir sudah masuk pembayaran buyer dan ditahan di WiSpace. Resi otomatis aktif setelah provider ekspedisi disambungkan.',
+  source: 'manual_fallback'
+});
