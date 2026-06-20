@@ -23,3 +23,18 @@ Flow MVP:
 5. Order masuk `merch_orders`.
 6. Band input resi.
 7. Sistem fetch tracking dan update `shipment_tracking_events`.
+
+Prioritas implementasi:
+
+1. **Manual fulfillment stabil**
+   - Buyer isi alamat lengkap.
+   - Band/admin input nomor resi manual.
+   - Audience bisa lihat status order dan resi.
+2. **Cek ongkir server-side**
+   - Endpoint `/api/shipping-rates`.
+   - Input origin band/admin, destination buyer, berat barang.
+   - API key ekspedisi disimpan di Vercel server env.
+3. **Tracking server-side**
+   - Endpoint `/api/shipping-track`.
+   - Input courier + tracking number.
+   - Simpan event tracking agar admin/band/audience bisa lihat histori.

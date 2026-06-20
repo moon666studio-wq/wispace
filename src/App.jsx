@@ -274,6 +274,7 @@ const PAYMENT_FLOW_STEPS = [
 ];
 const PAYMENT_GATEWAY_PROVIDER = String(import.meta.env.VITE_PAYMENT_PROVIDER || 'manual').toLowerCase();
 const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT || '/api/create-payment';
+const ORDER_NOTIFICATION_API_ENDPOINT = import.meta.env.VITE_ORDER_NOTIFICATION_API_ENDPOINT || '/api/notify-order';
 const PAYMENT_GATEWAY_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
 const PAYMENT_GATEWAY_WEBHOOK_PATH = '/api/payment-webhook';
 const PAYMENT_GATEWAY_PROVIDER_OPTIONS = [
@@ -3962,6 +3963,40 @@ export default function App() {
     }
   };
 
+  const requestOrderNotification = async (payment) => {
+    if (!ORDER_NOTIFICATION_API_ENDPOINT || !payment?.checkoutRef) return;
+    try {
+      const response = await fetch(ORDER_NOTIFICATION_API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: {
+            checkoutRef: payment.checkoutRef,
+            type: payment.type,
+            productTitle: payment.productTitle,
+            amount: payment.amount,
+            productAmount: payment.productAmount || payment.grossAmount,
+            shippingCost: payment.shippingCost,
+            buyerName: payment.buyerName,
+            buyerEmail: payment.buyerEmail,
+            sellerBandName: payment.sellerBandName,
+            sellerBandSlug: payment.sellerBandSlug,
+            provider: payment.provider,
+            providerStatus: payment.providerStatus,
+            providerCheckoutUrl: payment.providerCheckoutUrl,
+            shipping: payment.shipping || null
+          }
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok) {
+        console.warn('Order notification belum terkirim:', data?.error || data?.message || response.status);
+      }
+    } catch (error) {
+      console.warn('Order notification endpoint belum bisa dihubungi:', error?.message || error);
+    }
+  };
+
   const markPendingPayment = (payment) => {
     setPendingPayments((current) => {
       const nextPayments = [
@@ -4121,6 +4156,7 @@ export default function App() {
         : `Order ${pendingPayment.checkoutRef} masuk antrean admin lewat fallback manual. Akses/order aktif setelah admin confirm paid.`;
 
     markPendingPayment(pendingPayment);
+    void requestOrderNotification(pendingPayment);
     setActiveCheckout((current) => current ? {
       ...current,
       status: 'waiting_admin_confirmation',
