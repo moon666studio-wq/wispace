@@ -1,5 +1,5 @@
 import { normalizeAmount, readJsonBody, sendJson } from './_payment-utils.js';
-import { compact, getFallbackRates, getShippingProvider, hasShippingProviderKey, normalizeBiteshipCourierCompany, requestShippingProviderJson } from './_shipping-utils.js';
+import { compact, getFallbackRates, getServerShipperOrigin, getShippingProvider, hasShippingProviderKey, normalizeBiteshipCourierCompany, requestShippingProviderJson } from './_shipping-utils.js';
 
 const BITESHIP_COURIERS = 'jne,jnt,sicepat';
 
@@ -86,6 +86,14 @@ const fetchBiteshipRates = async ({ origin, destination, weightGram }) => {
   };
 };
 
+const withServerOriginFallback = (origin = {}) => {
+  const serverOrigin = getServerShipperOrigin();
+  return {
+    ...serverOrigin,
+    ...Object.fromEntries(Object.entries(origin || {}).filter(([, value]) => compact(value)))
+  };
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -101,13 +109,14 @@ export default async function handler(req, res) {
       province: compact(payload.destinationProvince || payload.destination?.province),
       postalCode: compact(payload.destinationPostalCode || payload.destination?.postalCode)
     };
-    const origin = {
+    const rawOrigin = {
       ...(payload.origin || {}),
       district: compact(payload.originDistrict || payload.origin?.district),
       city: compact(payload.originCity || payload.origin?.city),
       province: compact(payload.originProvince || payload.origin?.province),
       postalCode: compact(payload.originPostalCode || payload.origin?.postalCode)
     };
+    const origin = withServerOriginFallback(rawOrigin);
     const destinationCity = destination.city;
     const destinationDistrict = destination.district;
     const destinationProvince = destination.province;
@@ -125,7 +134,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const fallbackRates = getFallbackRates({ weightGram });
+    const fallbackRates = getFallbackRates({ weightGram, destination });
     if (provider === 'manual' || !hasShippingProviderKey()) {
       return sendJson(res, 200, {
         ok: true,

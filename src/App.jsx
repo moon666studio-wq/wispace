@@ -3961,6 +3961,7 @@ export default function App() {
       }
 
       const selectedOption = nextOptions.find((option) => option.label === checkoutDraft.courier) || nextOptions[0];
+      const isManualFallbackRate = data?.mode === 'manual_fallback' || data?.mode === 'provider_fallback' || nextOptions.every((option) => option.source === 'manual_fallback');
       setCheckoutCourierOptions(nextOptions);
       setCheckoutDraft((current) => ({
         ...current,
@@ -3970,7 +3971,9 @@ export default function App() {
       }));
       setCheckoutShippingStatus({
         loading: false,
-        message: data?.mode === 'manual_fallback' ? 'Ongkir estimasi manual WiSpace sudah diperbarui.' : 'Ongkir dari ekspedisi sudah diperbarui.',
+        message: isManualFallbackRate
+          ? `${data?.message || 'Biteship belum kebaca, pakai estimasi manual WiSpace dulu.'} Tarif bisa beda dari final provider.`
+          : 'Ongkir live dari ekspedisi sudah diperbarui.',
         mode: data?.mode || 'api'
       });
     } catch (error) {

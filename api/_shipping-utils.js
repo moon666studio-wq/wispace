@@ -91,13 +91,35 @@ export const getServerShipperOrigin = () => ({
   postalCode: getEnv('WISPACE_SHIPPER_POSTAL_CODE') || ''
 });
 
-export const getFallbackRates = ({ weightGram = 1000 } = {}) => {
+const getFallbackZoneMultiplier = (destination = {}) => {
+  const text = [
+    destination.city,
+    destination.district,
+    destination.province,
+    destination.postalCode
+  ].map(compact).join(' ').toLowerCase();
+  if (!text) return 1;
+  if (/(malang|surabaya|sidoarjo|gresik|kediri|blitar|jember|banyuwangi|pasuruan|probolinggo|madiun|jawa timur|jatim)/.test(text)) return 1.7;
+  if (/(semarang|solo|surakarta|yogyakarta|jogja|sleman|bantul|magelang|purwokerto|tegal|pekalongan|jawa tengah|jateng|diy)/.test(text)) return 1.45;
+  if (/(bandung|cimahi|garut|tasik|cirebon|sukabumi|sumedang|majalengka|kuningan|jawa barat|jabar)/.test(text)) return 1.2;
+  if (/(jakarta|bogor|depok|tangerang|bekasi|jabodetabek)/.test(text)) return 1;
+  if (/(bali|denpasar|badung|ntb|nusa tenggara|lombok)/.test(text)) return 2.1;
+  if (/(sumatera|medan|palembang|padang|pekanbaru|lampung|aceh|jambi|bengkulu|batam)/.test(text)) return 2.3;
+  if (/(kalimantan|banjarmasin|balikpapan|samarinda|pontianak|palangkaraya)/.test(text)) return 2.6;
+  if (/(sulawesi|makassar|manado|palu|kendari|gorontalo)/.test(text)) return 2.8;
+  if (/(papua|maluku|ambon|jayapura|sorong|ternate)/.test(text)) return 3.4;
+  return 1.55;
+};
+
+export const getFallbackRates = ({ weightGram = 1000, destination = {} } = {}) => {
   const multiplier = Math.max(1, Math.ceil(normalizeAmount(weightGram || 1000) / 1000));
+  const zoneMultiplier = getFallbackZoneMultiplier(destination);
   return DEFAULT_COURIER_RATES.map((rate) => ({
     ...rate,
-    cost: rate.cost * multiplier,
+    cost: Math.round((rate.cost * multiplier * zoneMultiplier) / 1000) * 1000,
     weightGram: normalizeAmount(weightGram || 1000),
-    source: 'manual_fallback'
+    source: 'manual_fallback',
+    estimate: zoneMultiplier > 1.6 ? '3-6 hari estimasi' : rate.estimate
   }));
 };
 

@@ -39,7 +39,8 @@ Endpoint serverless yang sudah disiapkan:
   - Input: `originDistrict`, `originCity`, `originProvince`, `destinationDistrict`, `destinationCity`, `destinationProvince`, `weightGram`.
   - Output: daftar courier, service, estimasi, dan ongkir.
   - Jika `SHIPPING_PROVIDER=biteship`, endpoint mencoba membaca ongkir live Biteship untuk JNE, J&T, dan SiCepat.
-  - Saat API key belum diset atau area belum kebaca, endpoint mengembalikan estimasi manual WiSpace.
+  - Saat API key belum diset atau area belum kebaca, endpoint mengembalikan estimasi manual WiSpace berbasis berat dan zona kota.
+  - Kalau harga Bogor/Malang tetap sama, cek response mode: biasanya masih `manual_fallback` / `provider_fallback`, bukan `provider_live`.
 - `POST /api/shipping-track`
   - Input: `courierCode` dan `trackingNumber`.
   - Output: status ringkas dan event tracking.
@@ -70,6 +71,7 @@ Environment Vercel:
   - `WISPACE_SHIPPER_PROVINCE`
   - `WISPACE_SHIPPER_POSTAL_CODE`
 - Kalau merch dikirim langsung dari band, band tetap harus isi alamat origin lengkap di profile/merch supaya booking tidak jatuh ke fallback.
+- Untuk cek ongkir live yang akurat, alamat asal dan tujuan sebaiknya punya kecamatan, kota, provinsi, dan kode pos.
 
 Prioritas implementasi:
 
