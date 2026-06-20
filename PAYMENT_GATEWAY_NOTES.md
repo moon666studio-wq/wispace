@@ -31,13 +31,15 @@ These must only live in Vercel/serverless env:
 
 ## API Routes
 
-These routes now exist as safe scaffolds. They do not charge real money yet.
+These routes now exist as safe scaffolds. Midtrans Snap checkout is implemented, while manual fallback stays available.
 
 1. `POST /api/create-payment`
    - Input: `checkoutRef`, buyer data, product amount, shipping cost, product metadata.
    - Manual provider returns a manual fallback response.
-   - Midtrans/Xendit currently check server secret availability and return `provider_not_implemented`.
-   - Later: create a provider invoice/transaction and store `provider_invoice_id`, `provider_checkout_url`, and `provider_status` in `payment_requests`.
+   - Midtrans creates a Snap transaction when `PAYMENT_PROVIDER=midtrans` and `MIDTRANS_SERVER_KEY` are set.
+   - Midtrans returns `provider_checkout_url`, `transactionToken`, and `provider_status=gateway_ready`.
+   - Xendit currently checks server secret availability and returns `provider_not_implemented`.
+   - If Midtrans env/API fails, frontend still saves the payment request as manual fallback.
 
 2. `POST /api/payment-webhook`
    - Verifies provider signature/callback token before any DB write.
@@ -58,7 +60,15 @@ These routes now exist as safe scaffolds. They do not charge real money yet.
 ## Next Implementation Locks
 
 - Add Supabase service role only in Vercel server env.
-- Make `/api/create-payment` write provider invoice data to `payment_requests`.
+- Set Midtrans env in Vercel:
+  - frontend/public: `VITE_PAYMENT_PROVIDER=midtrans`
+  - frontend/public: `VITE_PAYMENT_API_ENDPOINT=/api/create-payment`
+  - frontend/public: `VITE_MIDTRANS_CLIENT_KEY=...`
+  - server-only: `PAYMENT_PROVIDER=midtrans`
+  - server-only: `MIDTRANS_SERVER_KEY=...`
+  - server-only: `MIDTRANS_ENV=sandbox | production`
+  - optional: `PUBLIC_SITE_URL=https://wispace.my.id`
+- Keep `/api/create-payment` writes client-side for now; frontend stores returned provider data into `payment_requests`.
 - Make `/api/payment-webhook` call the same internal activation logic currently handled by admin confirm, after provider integration is live-tested.
 - Keep manual proof upload as fallback.
 

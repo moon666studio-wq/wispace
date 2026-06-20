@@ -5760,8 +5760,11 @@ export default function App() {
       : checkoutIsAwaitingAdmin
         ? 'Menunggu admin confirm paid'
       : checkoutIsProcessing
-        ? 'Memproses simulasi payment'
+        ? 'Memproses payment'
         : 'Menunggu konfirmasi pembayaran';
+  const checkoutSubmitLabel = PAYMENT_GATEWAY_PROVIDER === 'manual'
+    ? 'KIRIM REQUEST KONFIRMASI PAYMENT'
+    : `BUAT LINK PAYMENT ${checkoutProviderLabel.toUpperCase()}`;
   const isAdminPage = searchTerm.toLowerCase() === 'admin_wsu';
   const isCloudAdmin = Boolean(cloudAdminAccount?.user_id);
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
@@ -11000,7 +11003,7 @@ export default function App() {
               <button type="button" onClick={() => setActiveCheckout(null)} style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(241,212,229,0.04)', color: '#F8F7F8', border: '1px solid rgba(241,212,229,0.16)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>TUTUP CHECKOUT</button>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr auto', gap: '10px' }}>
-                <button type="submit" disabled={checkoutIsProcessing} style={{ width: '100%', padding: '14px', backgroundColor: checkoutIsProcessing ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: checkoutIsProcessing ? 'rgba(255,255,255,0.50)' : '#080202', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsProcessing ? 'MEMPROSES REQUEST...' : 'KIRIM REQUEST KONFIRMASI PAYMENT'}</button>
+                <button type="submit" disabled={checkoutIsProcessing} style={{ width: '100%', padding: '14px', backgroundColor: checkoutIsProcessing ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: checkoutIsProcessing ? 'rgba(255,255,255,0.50)' : '#080202', border: 'none', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{checkoutIsProcessing ? 'MEMPROSES REQUEST...' : checkoutSubmitLabel}</button>
                 <button type="button" onClick={handleCheckoutCancel} disabled={checkoutIsProcessing} style={{ padding: '14px', backgroundColor: 'rgba(241,212,229,0.08)', color: checkoutIsProcessing ? '#F1D4E5' : '#F1D4E5', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '14px', fontSize: '12px', fontWeight: '900', cursor: checkoutIsProcessing ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>CANCEL</button>
               </div>
             )}
