@@ -10422,15 +10422,13 @@ export default function App() {
                     <p style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1.4px', margin: 0 }}>UPCOMING GIGS</p>
                     <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.72)', fontSize: '8px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
                   </div>
-                  <div style={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: isTinyLayout ? 'minmax(118px, 42vw)' : 'minmax(118px, 142px)', gap: isTinyLayout ? '8px' : '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'thin' }}>
+                  <div style={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: isTinyLayout ? 'minmax(138px, 54vw)' : 'minmax(132px, 168px)', gap: isTinyLayout ? '8px' : '10px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'thin' }}>
                   {homeSupportingGigs.map((gig) => (
-                    <button key={gig.id} onClick={() => setSelectedGigDetail({ ...gig, fromEventOverlay: true })} style={{ background: 'transparent', border: 'none', borderLeft: `1.5px solid ${flatLineColor}`, padding: '0 0 0 8px', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK, minWidth: 0 }}>
-                      <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#080202', border: `1.5px solid ${flatLineColor}`, marginBottom: '7px', display: 'grid', placeItems: 'center' }}>
-                        {gig.image ? <img src={gig.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900' }}>GIGS</span>}
-                      </div>
-                      <p style={{ color: '#73BBC9', fontSize: '7.5px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{getGigDate(gig).toUpperCase()}</p>
-                      <h3 style={{ color: '#F8F7F8', fontSize: '9.5px', fontWeight: '900', lineHeight: 1.1, margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.title || '').toUpperCase()}</h3>
-                      <p style={{ color: 'rgba(255,255,255,0.66)', fontSize: '8.5px', margin: 0 }}>{String(gig.city || '').toUpperCase()}</p>
+                    <button key={gig.id} onClick={() => setSelectedGigDetail({ ...gig, fromEventOverlay: true })} style={{ background: 'transparent', border: 'none', borderLeft: `1.5px solid ${flatLineColor}`, borderTop: `1.5px solid ${flatLineColor}`, padding: '8px 0 0 9px', textAlign: 'left', cursor: 'pointer', fontFamily: FONT_STACK, minWidth: 0 }}>
+                      <p style={{ color: '#73BBC9', fontSize: '7.5px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{getGigDate(gig).toUpperCase()}</p>
+                      <h3 style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', lineHeight: 1.12, margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.title || '').toUpperCase()}</h3>
+                      <p style={{ color: 'rgba(255,255,255,0.66)', fontSize: '8.5px', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.city || '').toUpperCase()} / {String(getGigGenre(gig) || 'INDIE').toUpperCase()}</p>
+                      <span style={{ color: 'rgba(255,255,255,0.44)', fontSize: '7.5px', fontWeight: '900', letterSpacing: '0.8px' }}>LIHAT POSTER</span>
                     </button>
                   ))}
                   </div>
