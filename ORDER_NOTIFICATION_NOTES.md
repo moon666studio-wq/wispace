@@ -5,6 +5,7 @@ Endpoint:
 - `POST /api/notify-order`
 - Dipanggil otomatis setelah checkout masuk pending payment.
 - Checkout tidak gagal kalau email/WA/webhook belum diset.
+- `POST /api/payment-webhook` juga mengirim email admin saat provider status menjadi paid, refunded, atau rejected.
 
 ## Email via Resend
 
@@ -16,6 +17,12 @@ Server-only Vercel env:
 
 Kalau `ORDER_NOTIFY_EMAIL_FROM` belum diset, endpoint pakai fallback `WiSpace <onboarding@resend.dev>`.
 Untuk production, pakai domain email sendiri yang sudah diverifikasi di Resend.
+
+Email yang dikirim:
+
+- Order baru setelah checkout dibuat.
+- Payment paid setelah Midtrans webhook verified dan payment request diupdate.
+- Payment rejected/refunded kalau provider mengirim status gagal/refund.
 
 ## WhatsApp Cloud API
 

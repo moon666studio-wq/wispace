@@ -1,8 +1,5 @@
-import { getEnv, normalizeAmount, readJsonBody, sendJson } from './_payment-utils.js';
-
-const compact = (value = '') => String(value || '').trim();
-
-const formatCurrency = (value) => `Rp ${normalizeAmount(value).toLocaleString('id-ID')}`;
+import { getEnv, readJsonBody, sendJson } from './_payment-utils.js';
+import { compact, formatCurrency, postJson, sendAdminEmailNotification } from './_notification-utils.js';
 
 const createOrderMessage = (order = {}) => {
   const lines = [
@@ -24,30 +21,6 @@ const createOrderMessage = (order = {}) => {
   return lines.join('\n');
 };
 
-const postJson = async (url, payload, headers = {}) => {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers
-    },
-    body: JSON.stringify(payload)
-  });
-  const text = await response.text();
-  let data;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = text;
-  }
-  return {
-    ok: response.ok,
-    status: response.status,
-    data,
-    error: response.ok ? '' : (data?.message || data?.error || text || 'request_failed')
-  };
-};
-
 const sendWebhookNotification = async (order, message) => {
   const webhookUrl = compact(getEnv('ORDER_NOTIFY_WEBHOOK_URL'));
   if (!webhookUrl) return { channel: 'webhook', skipped: true, reason: 'missing ORDER_NOTIFY_WEBHOOK_URL' };
@@ -61,26 +34,11 @@ const sendWebhookNotification = async (order, message) => {
 };
 
 const sendEmailNotification = async (order, message) => {
-  const apiKey = compact(getEnv('RESEND_API_KEY'));
-  const to = compact(getEnv('ORDER_NOTIFY_EMAIL_TO') || getEnv('ADMIN_NOTIFY_EMAIL'));
-  const from = compact(getEnv('ORDER_NOTIFY_EMAIL_FROM') || 'WiSpace <onboarding@resend.dev>');
-  if (!apiKey || !to) {
-    return {
-      channel: 'email',
-      skipped: true,
-      reason: 'missing RESEND_API_KEY or ORDER_NOTIFY_EMAIL_TO'
-    };
-  }
-
-  const result = await postJson('https://api.resend.com/emails', {
-    from,
-    to: [to],
+  const result = await sendAdminEmailNotification({
     subject: `Order baru WiSpace - ${compact(order.checkoutRef) || 'checkout'}`,
     text: message
-  }, {
-    Authorization: `Bearer ${apiKey}`
   });
-  return { channel: 'email', ...result };
+  return result;
 };
 
 const sendWhatsAppNotification = async (order, message) => {

@@ -8,6 +8,7 @@ import {
   sendJson,
   supabaseAdminRequest
 } from './_payment-utils.js';
+import { compact, formatCurrency, sendAdminEmailNotification } from './_notification-utils.js';
 import crypto from 'node:crypto';
 
 const extractProviderStatus = (provider, payload = {}) => {
@@ -107,7 +108,7 @@ const updatePaymentRequestFromWebhook = async ({ checkoutRef, providerInvoiceId,
   };
 
   const encodedId = encodeURIComponent(paymentRequest.id);
-  return supabaseAdminRequest(`payment_requests?id=eq.${encodedId}`, {
+  const updateResult = await supabaseAdminRequest(`payment_requests?id=eq.${encodedId}`, {
     method: 'PATCH',
     body: JSON.stringify({
       status: nextStatus,
@@ -119,6 +120,10 @@ const updatePaymentRequestFromWebhook = async ({ checkoutRef, providerInvoiceId,
       updated_at: new Date().toISOString()
     })
   });
+  return {
+    ...updateResult,
+    paymentPayload: nextPayload
+  };
 };
 
 const recordWebhookEvent = async ({ provider, checkoutRef, providerInvoiceId, providerStatus, wispaceStatus, verified, payload }) => {
@@ -135,6 +140,37 @@ const recordWebhookEvent = async ({ provider, checkoutRef, providerInvoiceId, pr
     }])
   });
   return insertResult;
+};
+
+const notifyPaymentWebhookStatus = async ({ checkoutRef, provider, providerStatus, wispaceStatus, providerInvoiceId, payload, updateResult }) => {
+  if (!checkoutRef || !['paid', 'rejected', 'refunded'].includes(wispaceStatus)) {
+    return { channel: 'email', skipped: true, reason: 'wispace status does not require email notification' };
+  }
+
+  const orderPayload = updateResult?.paymentPayload || {};
+  const amount = payload?.gross_amount || orderPayload.amount || orderPayload.productAmount || 0;
+  const subjectLabel = wispaceStatus === 'paid'
+    ? 'Payment paid'
+    : wispaceStatus === 'refunded'
+      ? 'Payment refunded'
+      : 'Payment rejected';
+  const lines = [
+    `WiSpace ${subjectLabel}`,
+    `Order: ${checkoutRef}`,
+    `Produk: ${compact(orderPayload.productTitle) || '-'}`,
+    `Buyer: ${compact(orderPayload.buyerName) || '-'} / ${compact(orderPayload.buyerEmail) || '-'}`,
+    `Seller: ${compact(orderPayload.sellerBandName) || '-'}`,
+    `Amount: ${formatCurrency(amount)}`,
+    `Provider: ${provider} / ${providerStatus || '-'}`,
+    `Provider Invoice: ${providerInvoiceId || '-'}`,
+    `Dashboard status: ${updateResult?.ok ? (wispaceStatus === 'paid' ? 'provider_paid_pending_activation' : wispaceStatus) : 'update_failed'}`
+  ];
+
+  const result = await sendAdminEmailNotification({
+    subject: `${subjectLabel} WiSpace - ${checkoutRef}`,
+    text: lines.join('\n')
+  });
+  return result;
 };
 
 export default async function handler(req, res) {
@@ -200,6 +236,15 @@ export default async function handler(req, res) {
       payload,
       verified: signature.verified
     });
+    const notificationResult = await notifyPaymentWebhookStatus({
+      checkoutRef,
+      provider,
+      providerStatus,
+      wispaceStatus,
+      providerInvoiceId,
+      payload,
+      updateResult
+    });
 
     return sendJson(res, updateResult.ok ? 200 : 202, {
       ok: true,
@@ -213,6 +258,8 @@ export default async function handler(req, res) {
       writeEnabled: updateResult.ok,
       eventLogged: eventResult.ok,
       paymentRequestUpdated: updateResult.ok,
+      adminEmailNotified: Boolean(notificationResult.ok),
+      adminEmailSkipped: Boolean(notificationResult.skipped),
       paymentRequestStatus: wispaceStatus === 'paid' ? 'provider_paid_pending_activation' : wispaceStatus,
       message: updateResult.ok
         ? 'Webhook verified dan payment_requests sudah diupdate. Aktivasi library/order tetap lewat admin confirm sampai fulfillment webhook dikunci.'
