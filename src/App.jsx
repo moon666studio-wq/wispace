@@ -10436,7 +10436,7 @@ export default function App() {
               )}
             </section>
 
-            <aside style={{ ...railPanelStyle, paddingTop: '12px', position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start', maxWidth: isCompactLayout ? undefined : '340px', justifySelf: isCompactLayout ? 'stretch' : 'start' }}>
+            <aside style={{ ...railPanelStyle, width: '100%', paddingTop: '12px', position: isCompactLayout ? 'static' : 'sticky', top: isCompactLayout ? undefined : '92px', alignSelf: 'start', justifySelf: 'stretch' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                 <div>
                   <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.8px', margin: '0 0 5px 0' }}>02 / EDITORIAL</p>
