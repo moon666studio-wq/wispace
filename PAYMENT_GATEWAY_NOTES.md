@@ -68,11 +68,10 @@ These routes now exist as safe scaffolds. Midtrans Snap checkout is implemented,
   - server-only: `MIDTRANS_SERVER_KEY=...`
   - server-only: `MIDTRANS_ENV=sandbox | production`
   - optional: `PUBLIC_SITE_URL=https://wispace.my.id`
-- Key environment must match:
-  - Sandbox keys start with `SB-Mid-client-...` and `SB-Mid-server-...`
-  - Production keys usually start with `Mid-client-...` and `Mid-server-...`
-  - If `MIDTRANS_ENV=sandbox`, use Sandbox Client Key + Sandbox Server Key.
-  - If `MIDTRANS_ENV=production`, use Production Client Key + Production Server Key.
+- Key environment must match the dashboard mode/account:
+  - If `MIDTRANS_ENV=sandbox`, copy Client Key + Server Key from Midtrans Sandbox dashboard.
+  - If `MIDTRANS_ENV=production`, copy Client Key + Server Key from Midtrans Production dashboard.
+  - Some dashboards may not use a visible `SB-` prefix, so do not rely on prefix alone. Use the selected Midtrans dashboard mode.
 - Keep `/api/create-payment` writes client-side for now; frontend stores returned provider data into `payment_requests`.
 - Make `/api/payment-webhook` call the same internal activation logic currently handled by admin confirm, after provider integration is live-tested.
 - Keep manual proof upload as fallback.
