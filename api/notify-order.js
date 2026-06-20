@@ -1,5 +1,5 @@
 import { getEnv, readJsonBody, sendJson } from './_payment-utils.js';
-import { compact, formatCurrency, postJson, sendAdminEmailNotification } from './_notification-utils.js';
+import { compact, formatCurrency, postJson, sendAdminEmailNotification, sendEmailNotification } from './_notification-utils.js';
 
 const createOrderMessage = (order = {}) => {
   const lines = [
@@ -10,6 +10,7 @@ const createOrderMessage = (order = {}) => {
     `Seller: ${compact(order.sellerBandName) || '-'}`,
     `Buyer: ${compact(order.buyerName) || '-'} / ${compact(order.buyerEmail) || '-'}`,
     `Total: ${formatCurrency(order.amount)}`,
+    `Status: ${compact(order.paymentStatus || order.status) || 'waiting_admin_confirmation'}`,
     `Provider: ${compact(order.provider) || 'manual'} / ${compact(order.providerStatus) || 'pending'}`
   ];
 
@@ -33,12 +34,39 @@ const sendWebhookNotification = async (order, message) => {
   return { channel: 'webhook', ...result };
 };
 
-const sendEmailNotification = async (order, message) => {
+const sendAdminOrderEmailNotification = async (order, message) => {
   const result = await sendAdminEmailNotification({
     subject: `Order baru WiSpace - ${compact(order.checkoutRef) || 'checkout'}`,
     text: message
   });
   return result;
+};
+
+const sendBandOrderEmailNotification = async (order, message) => {
+  const sellerBandEmail = compact(order.sellerBandEmail || order.bandEmail || order.sellerEmail);
+  if (!sellerBandEmail) {
+    return { channel: 'email_band', skipped: true, reason: 'missing sellerBandEmail' };
+  }
+
+  const status = compact(order.paymentStatus || order.status);
+  const subjectPrefix = status === 'paid'
+    ? 'Order paid WiSpace'
+    : status === 'provider_paid_pending_activation'
+      ? 'Payment masuk WiSpace'
+      : 'Order baru WiSpace';
+  return sendEmailNotification({
+    to: sellerBandEmail,
+    channel: 'email_band',
+    subject: `${subjectPrefix} - ${compact(order.productTitle) || compact(order.checkoutRef) || 'checkout'}`,
+    text: [
+      message,
+      '',
+      'Catatan untuk band:',
+      status === 'paid'
+        ? 'Payment sudah paid. Cek dashboard WiSpace untuk proses order, cetak label/resi, atau aktivasi akses digital.'
+        : 'Order masuk. Tunggu payment paid/konfirmasi admin sebelum kirim barang atau anggap akses final.'
+    ].join('\n')
+  });
 };
 
 const sendWhatsAppNotification = async (order, message) => {
@@ -89,7 +117,8 @@ export default async function handler(req, res) {
     const message = createOrderMessage(order);
     const channels = await Promise.allSettled([
       sendWebhookNotification(order, message),
-      sendEmailNotification(order, message),
+      sendAdminOrderEmailNotification(order, message),
+      sendBandOrderEmailNotification(order, message),
       sendWhatsAppNotification(order, message)
     ]);
     const results = channels.map((channel) => (

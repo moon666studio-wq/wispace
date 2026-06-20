@@ -5,7 +5,7 @@ Endpoint:
 - `POST /api/notify-order`
 - Dipanggil otomatis setelah checkout masuk pending payment.
 - Checkout tidak gagal kalau email/WA/webhook belum diset.
-- `POST /api/payment-webhook` juga mengirim email admin saat provider status menjadi paid, refunded, atau rejected.
+- `POST /api/payment-webhook` juga mengirim email admin dan band saat provider status menjadi paid, refunded, atau rejected.
 
 ## Email via Resend
 
@@ -20,9 +20,13 @@ Untuk production, pakai domain email sendiri yang sudah diverifikasi di Resend.
 
 Email yang dikirim:
 
-- Order baru setelah checkout dibuat.
-- Payment paid setelah Midtrans webhook verified dan payment request diupdate.
-- Payment rejected/refunded kalau provider mengirim status gagal/refund.
+- Admin: order baru setelah checkout dibuat.
+- Admin: payment paid setelah Midtrans webhook verified dan payment request diupdate.
+- Admin: payment rejected/refunded kalau provider mengirim status gagal/refund.
+- Band: order baru setelah checkout dibuat, dikirim ke email band yang tersimpan di profile/data seller.
+- Band: payment paid setelah Midtrans webhook verified, lalu email paid final setelah admin confirm order.
+
+Email band hanya terkirim kalau profile band punya email atau payload order punya `sellerBandEmail`.
 
 ## WhatsApp Cloud API
 

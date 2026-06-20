@@ -8,7 +8,7 @@ import {
   sendJson,
   supabaseAdminRequest
 } from './_payment-utils.js';
-import { compact, formatCurrency, sendAdminEmailNotification } from './_notification-utils.js';
+import { compact, formatCurrency, sendAdminEmailNotification, sendEmailNotification } from './_notification-utils.js';
 import crypto from 'node:crypto';
 
 const extractProviderStatus = (provider, payload = {}) => {
@@ -166,11 +166,33 @@ const notifyPaymentWebhookStatus = async ({ checkoutRef, provider, providerStatu
     `Dashboard status: ${updateResult?.ok ? (wispaceStatus === 'paid' ? 'provider_paid_pending_activation' : wispaceStatus) : 'update_failed'}`
   ];
 
-  const result = await sendAdminEmailNotification({
+  const adminResult = await sendAdminEmailNotification({
     subject: `${subjectLabel} WiSpace - ${checkoutRef}`,
     text: lines.join('\n')
   });
-  return result;
+  const sellerBandEmail = compact(orderPayload.sellerBandEmail || orderPayload.bandEmail || orderPayload.sellerEmail);
+  const bandResult = sellerBandEmail
+    ? await sendEmailNotification({
+      to: sellerBandEmail,
+      channel: 'email_band',
+      subject: `${subjectLabel} WiSpace - ${compact(orderPayload.productTitle) || checkoutRef}`,
+      text: [
+        lines.join('\n'),
+        '',
+        'Catatan untuk band:',
+        wispaceStatus === 'paid'
+          ? 'Payment sudah masuk dari gateway. Admin WiSpace akan aktivasi/konfirmasi order sebelum fulfillment final.'
+          : 'Status payment berubah dari gateway. Cek dashboard atau inbox WiSpace untuk update dari admin.'
+      ].join('\n')
+    })
+    : { channel: 'email_band', skipped: true, reason: 'missing sellerBandEmail' };
+
+  return {
+    channel: 'payment_webhook_email',
+    ok: Boolean(adminResult.ok || bandResult.ok),
+    skipped: Boolean(adminResult.skipped && bandResult.skipped),
+    results: [adminResult, bandResult]
+  };
 };
 
 export default async function handler(req, res) {
@@ -258,8 +280,9 @@ export default async function handler(req, res) {
       writeEnabled: updateResult.ok,
       eventLogged: eventResult.ok,
       paymentRequestUpdated: updateResult.ok,
-      adminEmailNotified: Boolean(notificationResult.ok),
-      adminEmailSkipped: Boolean(notificationResult.skipped),
+      emailNotified: Boolean(notificationResult.ok),
+      emailSkipped: Boolean(notificationResult.skipped),
+      emailNotificationResults: notificationResult.results || [notificationResult],
       paymentRequestStatus: wispaceStatus === 'paid' ? 'provider_paid_pending_activation' : wispaceStatus,
       message: updateResult.ok
         ? 'Webhook verified dan payment_requests sudah diupdate. Aktivasi library/order tetap lewat admin confirm sampai fulfillment webhook dikunci.'

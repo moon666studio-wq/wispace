@@ -4044,6 +4044,18 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const getSellerBandEmail = (product = {}, albumContext = null) => {
+    const bandSlug = product.bandSlug || albumContext?.bandSlug || '';
+    const bandName = product.bandName || albumContext?.bandName || '';
+    const bandUserId = product.bandUserId || albumContext?.bandUserId || '';
+    const profile = publicBandProfiles.find((item) => (
+      (bandSlug && item.slug === bandSlug)
+      || (bandName && item.name === bandName)
+      || (bandUserId && item.bandUserId === bandUserId)
+    ));
+    return product.sellerBandEmail || product.bandEmail || albumContext?.sellerBandEmail || albumContext?.bandEmail || profile?.email || '';
+  };
+
   const createCheckoutPendingPayment = (buyerName, buyerEmail) => {
     const product = activeCheckout.type === 'album'
       ? activeCheckout.album
@@ -4051,6 +4063,7 @@ export default function App() {
         ? activeCheckout.track
         : activeCheckout.item;
     const albumContext = activeCheckout.album || null;
+    const sellerBandEmail = getSellerBandEmail(product, albumContext);
     const revenueSplit = calculateRevenueSplit(product?.price);
     const selectedCourier = activeCheckout.type === 'merch'
       ? getCourierOption(checkoutDraft.courier, checkoutCourierOptions)
@@ -4077,6 +4090,7 @@ export default function App() {
       sellerBandName: activeCheckout.type === 'track' ? albumContext?.bandName : product?.bandName,
       sellerBandSlug: activeCheckout.type === 'track' ? albumContext?.bandSlug : product?.bandSlug,
       sellerBandUserId: activeCheckout.type === 'track' ? albumContext?.bandUserId : product?.bandUserId,
+      sellerBandEmail,
       album: albumContext,
       track: activeCheckout.track || null,
       trackPurchaseId: activeCheckout.trackPurchaseId || '',
@@ -4138,7 +4152,8 @@ export default function App() {
           buyerName: payment.buyerName,
           buyerEmail: payment.buyerEmail,
           sellerBandName: payment.sellerBandName,
-          sellerBandSlug: payment.sellerBandSlug
+          sellerBandSlug: payment.sellerBandSlug,
+          sellerBandEmail: payment.sellerBandEmail
         })
       });
       const data = await response.json().catch(() => ({}));
@@ -4176,6 +4191,9 @@ export default function App() {
             buyerEmail: payment.buyerEmail,
             sellerBandName: payment.sellerBandName,
             sellerBandSlug: payment.sellerBandSlug,
+            sellerBandEmail: payment.sellerBandEmail,
+            status: payment.status,
+            paymentStatus: payment.paymentStatus || payment.status,
             provider: payment.provider,
             providerStatus: payment.providerStatus,
             providerCheckoutUrl: payment.providerCheckoutUrl,
@@ -4191,6 +4209,14 @@ export default function App() {
       console.warn('Order notification endpoint belum bisa dihubungi:', error?.message || error);
     }
   };
+
+  const requestPaidOrderNotification = (payment, extra = {}) => requestOrderNotification({
+    ...payment,
+    ...extra,
+    status: 'paid',
+    paymentStatus: 'paid',
+    providerStatus: payment.providerStatus || 'paid'
+  });
 
   const requestShipmentBooking = async (order) => {
     if (!SHIPMENT_CREATE_API_ENDPOINT || !order?.orderId) return null;
@@ -4489,6 +4515,13 @@ export default function App() {
         confirmedAt: new Date().toISOString(),
         confirmedBy: userSession?.email || 'admin_wsu'
       });
+      void requestPaidOrderNotification(payment, {
+        productTitle: album.title,
+        sellerBandName: album.bandName,
+        sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
+        sellerBandUserId: album.bandUserId || '',
+        sellerBandEmail: payment.sellerBandEmail || getSellerBandEmail(album, album)
+      });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
         status: 'paid',
@@ -4555,6 +4588,13 @@ export default function App() {
         paymentStatus: 'paid',
         confirmedAt: new Date().toISOString(),
         confirmedBy: userSession?.email || 'admin_wsu'
+      });
+      void requestPaidOrderNotification(payment, {
+        productTitle: track.title,
+        sellerBandName: album.bandName,
+        sellerBandSlug: album.bandSlug || createSlug(album.bandName || ''),
+        sellerBandUserId: album.bandUserId || '',
+        sellerBandEmail: payment.sellerBandEmail || getSellerBandEmail(track, album)
       });
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
         ...current,
@@ -4747,6 +4787,13 @@ export default function App() {
         paymentStatus: 'paid',
         confirmedAt: new Date().toISOString(),
         confirmedBy: userSession?.email || 'admin_wsu'
+      });
+      void requestPaidOrderNotification(payment, {
+        productTitle: item.name,
+        sellerBandName: item.bandName,
+        sellerBandSlug: item.bandSlug || createSlug(item.bandName || ''),
+        sellerBandUserId: item.bandUserId || '',
+        sellerBandEmail: payment.sellerBandEmail || getSellerBandEmail(item, null)
       });
       void syncShipmentBookingForOrder(nextOrder);
       setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {

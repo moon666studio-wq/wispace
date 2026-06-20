@@ -28,25 +28,30 @@ export const postJson = async (url, payload, headers = {}) => {
   };
 };
 
-export const sendAdminEmailNotification = async ({ subject, text }) => {
+export const sendEmailNotification = async ({ to, subject, text, channel = 'email' }) => {
   const apiKey = compact(getEnv('RESEND_API_KEY'));
-  const to = compact(getEnv('ORDER_NOTIFY_EMAIL_TO') || getEnv('ADMIN_NOTIFY_EMAIL'));
   const from = compact(getEnv('ORDER_NOTIFY_EMAIL_FROM') || 'WiSpace <onboarding@resend.dev>');
-  if (!apiKey || !to) {
+  const recipient = compact(to);
+  if (!apiKey || !recipient) {
     return {
-      channel: 'email',
+      channel,
       skipped: true,
-      reason: 'missing RESEND_API_KEY or ORDER_NOTIFY_EMAIL_TO'
+      reason: `missing RESEND_API_KEY or ${channel}_recipient`
     };
   }
 
   const result = await postJson('https://api.resend.com/emails', {
     from,
-    to: [to],
+    to: [recipient],
     subject,
     text
   }, {
     Authorization: `Bearer ${apiKey}`
   });
-  return { channel: 'email', ...result };
+  return { channel, ...result };
+};
+
+export const sendAdminEmailNotification = async ({ subject, text }) => {
+  const to = compact(getEnv('ORDER_NOTIFY_EMAIL_TO') || getEnv('ADMIN_NOTIFY_EMAIL'));
+  return sendEmailNotification({ to, subject, text, channel: 'email_admin' });
 };
