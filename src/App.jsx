@@ -160,6 +160,30 @@ const getShipmentBookingLabel = (status = 'pending') => ({
   shipment_booking_ready: 'Label siap',
   shipment_booking_failed: 'Booking gagal'
 }[status] || String(status || 'pending').replaceAll('_', ' '));
+const getMerchOrderStageSummary = (order = {}) => {
+  if (order.trackingStatus === 'completed') {
+    return { title: 'Selesai', note: 'Order sudah ditandai selesai.', color: 'rgba(255,255,255,0.72)' };
+  }
+  if (['cancelled', 'refunded'].includes(order.trackingStatus)) {
+    return { title: order.trackingStatus === 'refunded' ? 'Refunded' : 'Dibatalkan', note: 'Order sudah final dan tidak diproses kirim.', color: '#F1D4E5' };
+  }
+  if (order.trackingStatus === 'shipped') {
+    return { title: 'Paket dikirim', note: order.trackingNumber ? `Resi ${order.trackingNumber}` : 'Paket sudah masuk tahap kirim.', color: '#73BBC9' };
+  }
+  if (order.trackingNumber || order.shipmentLabelUrl || order.shipmentBookingStatus === 'shipment_booking_ready') {
+    return { title: 'Label siap', note: 'Band/admin bisa cetak label dan lanjut kirim paket.', color: '#73BBC9' };
+  }
+  if (order.shipmentBookingStatus === 'manual_label_pending') {
+    return { title: 'Label manual', note: 'Ongkir ditahan WiSpace. Resi masih perlu input manual sampai provider aktif.', color: 'rgba(255,255,255,0.72)' };
+  }
+  if (order.shipmentBookingStatus === 'shipment_booking_failed') {
+    return { title: 'Booking gagal', note: 'Coba booking shipment ulang atau input resi manual.', color: '#F1D4E5' };
+  }
+  if (['processing', 'processing_admin', 'packing', 'ready_to_ship'].includes(order.trackingStatus)) {
+    return { title: getMerchOrderStatusLabel(order.trackingStatus), note: 'Order sudah paid dan sedang diproses fulfillment.', color: '#73BBC9' };
+  }
+  return { title: 'Paid, tunggu label', note: 'Pembayaran masuk. Ongkir ditahan WiSpace sambil menunggu label/resi.', color: 'rgba(255,255,255,0.72)' };
+};
 const MERCH_ORDER_FLOW_STEPS = [
   { id: 'paid', label: 'PAID', statuses: ['order_paid_waiting_band', 'order_paid_waiting_admin', 'processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
   { id: 'process', label: 'PROSES', statuses: ['processing', 'processing_admin', 'packing', 'ready_to_ship', 'shipped', 'completed'] },
@@ -6037,7 +6061,8 @@ export default function App() {
         ? '#73BBC9'
         : checkoutIsAwaitingAdmin
           ? '#73BBC9'
-          : 'rgba(255,255,255,0.72)';
+      : 'rgba(255,255,255,0.72)';
+  const selectedMerchOrderStage = selectedMerchOrderDetail ? getMerchOrderStageSummary(selectedMerchOrderDetail) : null;
   const checkoutReviewLabel = checkoutIsPaid
     ? 'PAID'
     : checkoutIsCancelled
@@ -8028,13 +8053,16 @@ export default function App() {
                 <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: 0 }}>Belum ada order merch aktif yang perlu diproses.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px', maxHeight: '260px', overflowY: 'auto' }}>
-                  {adminActiveMerchOrderList.slice(0, 8).map((order) => (
+                  {adminActiveMerchOrderList.slice(0, 8).map((order) => {
+                    const stage = getMerchOrderStageSummary(order);
+                    return (
                     <div key={`admin-order-${order.id}`} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: order.fulfillmentMode === 'admin_consignment' ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.fulfillmentMode === 'admin_consignment' ? 'WISPACE SHIP' : 'BAND SHIP'} / {order.orderId || order.id}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} / {order.recipientName || '-'} / {order.city || '-'}</p>
+                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -8057,7 +8085,8 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               {adminConsignmentOrderQueue.length > 0 && <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{adminConsignmentOrderQueue.length} order titipan stok sedang menunggu action admin WiSpace.</p>}
@@ -9995,13 +10024,16 @@ export default function App() {
               <section style={{ padding: isTinyLayout ? '10px 0' : '12px 0' }}>
                 <h3 style={sectionHeadingStyle}>ORDER HISTORY</h3>
                 <div style={flatListStyle}>
-                  {audienceMerchOrders.map((order) => (
+                  {audienceMerchOrders.map((order) => {
+                    const stage = getMerchOrderStageSummary(order);
+                    return (
                     <article key={order.id} style={{ ...flatItemStyle, display: 'block', cursor: 'default', borderTopColor: ['completed', 'cancelled'].includes(order.trackingStatus) ? 'rgba(241,212,229,0.08)' : 'rgba(115,187,201,0.22)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{order.orderId || order.transactionId || order.id} / {order.createdAt}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''}</p>
+                          <p style={{ color: stage.color, fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -10017,7 +10049,8 @@ export default function App() {
                         <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
                       </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
 
@@ -10025,13 +10058,13 @@ export default function App() {
                 <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
                 <div style={flatListStyle}>
                   {[
-                    ['order_paid_waiting_band', 'Pembayaran tercatat, band belum proses.'],
-                    ['processing', 'Band sedang siapkan paket.'],
-                    ['shipped', 'Band sudah input resi dan paket dikirim.'],
-                    ['completed', 'Order selesai.']
-                  ].map(([status, description]) => (
+                    ['Paid, tunggu label', 'Pembayaran tercatat. Ongkir ditahan WiSpace sambil menunggu label/resi.', 'rgba(255,255,255,0.72)'],
+                    ['Label manual', 'Resi masih perlu input manual sampai provider ekspedisi aktif.', 'rgba(255,255,255,0.72)'],
+                    ['Label siap', 'Band/admin bisa cetak label dan lanjut kirim paket.', '#73BBC9'],
+                    ['Paket dikirim', 'Resi sudah ada dan paket masuk tahap pengiriman.', '#73BBC9']
+                  ].map(([status, description, color]) => (
                     <div key={status} style={{ ...flatItemStyle, display: 'block', cursor: 'default' }}>
-                      <strong style={{ color: getMerchOrderStatusColor(status), fontSize: '10px', fontWeight: '900' }}>{getMerchOrderStatusLabel(status)}</strong>
+                      <strong style={{ color, fontSize: '10px', fontWeight: '900' }}>{status.toUpperCase()}</strong>
                       <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{description}</p>
                     </div>
                   ))}
@@ -10258,12 +10291,15 @@ export default function App() {
                 <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch fisik. Kalau audience checkout merch, alamat dan kurir akan tampil di sini.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px' }}>
-                  {bandMerchOrders.slice(0, 8).map((order) => (
+                  {bandMerchOrders.slice(0, 8).map((order) => {
+                    const stage = getMerchOrderStageSummary(order);
+                    return (
                     <div key={order.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
+                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -10291,7 +10327,8 @@ export default function App() {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -10830,6 +10867,7 @@ export default function App() {
                 <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>MERCH ORDER DETAIL</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '20px' : '26px', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 1.02, overflowWrap: 'anywhere' }}>{String(selectedMerchOrderDetail.itemName || 'Merch WiSpace').toUpperCase()}</h3>
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedMerchOrderDetail.orderId || selectedMerchOrderDetail.transactionId || selectedMerchOrderDetail.id} / {selectedMerchOrderDetail.createdAt || '-'}</p>
+                {selectedMerchOrderStage && <p style={{ color: selectedMerchOrderStage.color, fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0', fontWeight: '900' }}>{selectedMerchOrderStage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.64)', fontWeight: '700' }}>{selectedMerchOrderStage.note}</span></p>}
               </div>
               <button type="button" onClick={() => setSelectedMerchOrderDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
