@@ -3,9 +3,7 @@ import { getEnv, normalizeAmount } from './_payment-utils.js';
 export const DEFAULT_COURIER_RATES = [
   { label: 'JNE REG', code: 'JNE', service: 'REG', estimate: '2-4 hari', cost: 18000 },
   { label: 'J&T EZ', code: 'JNT', service: 'EZ', estimate: '2-4 hari', cost: 17000 },
-  { label: 'SiCepat REG', code: 'SICEPAT', service: 'REG', estimate: '2-4 hari', cost: 16000 },
-  { label: 'Anteraja REG', code: 'ANTERAJA', service: 'REG', estimate: '2-5 hari', cost: 15000 },
-  { label: 'POS Kilat', code: 'POS', service: 'KILAT', estimate: '3-5 hari', cost: 14000 }
+  { label: 'SiCepat REG', code: 'SICEPAT', service: 'REG', estimate: '2-4 hari', cost: 16000 }
 ];
 
 export const normalizeCourierCode = (value = '') => String(value || '').trim().toUpperCase();
