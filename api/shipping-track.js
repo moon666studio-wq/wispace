@@ -1,7 +1,5 @@
 import { readJsonBody, sendJson } from './_payment-utils.js';
-import { getShippingProvider, hasShippingProviderKey, normalizeCourierCode } from './_shipping-utils.js';
-
-const compact = (value = '') => String(value || '').trim();
+import { compact, getShippingProvider, hasShippingProviderKey, normalizeBiteshipCourierCompany, normalizeCourierCode, requestShippingProviderJson } from './_shipping-utils.js';
 
 const manualTrackingStatus = ({ courier, trackingNumber }) => ({
   courier,
@@ -23,6 +21,27 @@ const manualTrackingStatus = ({ courier, trackingNumber }) => ({
     : [],
   source: 'manual_fallback'
 });
+
+const mapBiteshipTracking = ({ courier, trackingNumber, data = {} }) => {
+  const history = data.history || data.events || data.checkpoints || data.data?.history || [];
+  const latest = data.status || data.order_status || data.courier?.status || data.data?.status || '';
+  return {
+    courier,
+    trackingNumber,
+    status: compact(latest).toLowerCase().replace(/\s+/g, '_') || 'tracking_live',
+    statusLabel: compact(latest) || 'Tracking live',
+    summary: data.note || data.description || data.message || 'Tracking real-time dari provider ekspedisi.',
+    events: Array.isArray(history)
+      ? history.map((event, index) => ({
+          status: compact(event.status || event.code || event.state) || `event_${index + 1}`,
+          label: compact(event.note || event.message || event.status || event.description) || 'Tracking update',
+          description: compact(event.description || event.note || event.message),
+          timestamp: event.updated_at || event.created_at || event.date || event.datetime || ''
+        }))
+      : [],
+    source: 'biteship'
+  };
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -62,7 +81,31 @@ export default async function handler(req, res) {
       });
     }
 
-    return sendJson(res, 501, {
+    if (provider === 'biteship') {
+      const result = await requestShippingProviderJson({
+        provider: 'biteship',
+        path: `/v1/trackings/${encodeURIComponent(trackingNumber)}/couriers/${encodeURIComponent(normalizeBiteshipCourierCompany(courier))}`
+      });
+      if (result.ok) {
+        return sendJson(res, 200, {
+          ok: true,
+          provider,
+          mode: 'provider_live',
+          tracking: mapBiteshipTracking({ courier, trackingNumber, data: result.data || {} }),
+          message: 'Tracking Biteship berhasil dibaca.'
+        });
+      }
+
+      return sendJson(res, 200, {
+        ok: false,
+        provider,
+        mode: 'provider_fallback',
+        tracking: manualTrackingStatus({ courier, trackingNumber }),
+        message: result.error || 'Tracking Biteship belum kebaca. Menampilkan status manual.'
+      });
+    }
+
+    return sendJson(res, 200, {
       ok: false,
       provider,
       mode: 'provider_not_implemented',

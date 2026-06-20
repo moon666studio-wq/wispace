@@ -1,7 +1,90 @@
 import { normalizeAmount, readJsonBody, sendJson } from './_payment-utils.js';
-import { getFallbackRates, getShippingProvider, hasShippingProviderKey } from './_shipping-utils.js';
+import { compact, getFallbackRates, getShippingProvider, hasShippingProviderKey, normalizeBiteshipCourierCompany, requestShippingProviderJson } from './_shipping-utils.js';
 
-const compact = (value = '') => String(value || '').trim();
+const BITESHIP_COURIERS = 'jne,jnt,sicepat';
+
+const getBiteshipAreaQuery = (address = {}) => [
+  address.district,
+  address.city,
+  address.province,
+  address.postalCode
+].map(compact).filter(Boolean).join(' ');
+
+const resolveBiteshipAreaId = async (address = {}) => {
+  if (compact(address.areaId || address.area_id)) return compact(address.areaId || address.area_id);
+  const query = getBiteshipAreaQuery(address);
+  if (!query) return '';
+
+  const result = await requestShippingProviderJson({
+    provider: 'biteship',
+    path: `/v1/maps/areas?countries=ID&input=${encodeURIComponent(query)}&type=single`
+  });
+  const areas = result.data?.areas || result.data?.data || [];
+  const firstArea = Array.isArray(areas) ? areas[0] : areas;
+  return compact(firstArea?.id || firstArea?.area_id || firstArea?.areaId);
+};
+
+const mapBiteshipPricingToRate = (pricing = {}, weightGram = 1000) => {
+  const courierCode = normalizeBiteshipCourierCompany(pricing.courier_code || pricing.courier_company || pricing.company);
+  const service = compact(pricing.courier_service_code || pricing.service_code || pricing.type || pricing.courier_type || pricing.courier_service_name).toUpperCase();
+  const courierName = compact(pricing.courier_name || pricing.courier_code || courierCode).toUpperCase();
+  const duration = compact(pricing.duration || pricing.shipment_duration || pricing.estimate || pricing.etd);
+  const durationUnit = compact(pricing.duration_unit || pricing.shipment_duration_unit);
+  return {
+    label: `${courierName} ${service || 'REG'}`.trim(),
+    code: courierCode.toUpperCase(),
+    service: service || 'REG',
+    estimate: duration ? `${duration}${durationUnit ? ` ${durationUnit}` : ''}` : 'Estimasi provider',
+    cost: normalizeAmount(pricing.price || pricing.total_price || pricing.cost || pricing.rate),
+    weightGram: normalizeAmount(weightGram || 1000),
+    source: 'biteship',
+    providerRateId: compact(pricing.id || pricing.rate_id || pricing.pricing_id)
+  };
+};
+
+const fetchBiteshipRates = async ({ origin, destination, weightGram }) => {
+  const originAreaId = await resolveBiteshipAreaId(origin);
+  const destinationAreaId = await resolveBiteshipAreaId(destination);
+  if (!originAreaId || !destinationAreaId) {
+    return {
+      ok: false,
+      status: 422,
+      rates: [],
+      error: 'biteship_area_not_found',
+      message: 'Area origin/tujuan belum kebaca provider. Isi kecamatan/kota/kode pos lebih lengkap.'
+    };
+  }
+
+  const result = await requestShippingProviderJson({
+    provider: 'biteship',
+    path: '/v1/rates/couriers',
+    method: 'POST',
+    body: {
+      origin_area_id: originAreaId,
+      destination_area_id: destinationAreaId,
+      couriers: BITESHIP_COURIERS,
+      items: [
+        {
+          name: 'WiSpace Merchandise',
+          description: 'Merchandise order from WiSpace',
+          value: 100000,
+          quantity: 1,
+          weight: normalizeAmount(weightGram || 1000) || 1000
+        }
+      ]
+    }
+  });
+  const pricing = result.data?.pricing || result.data?.data?.pricing || result.data?.rates || [];
+  return {
+    ok: result.ok,
+    status: result.status,
+    rates: Array.isArray(pricing)
+      ? pricing.map((item) => mapBiteshipPricingToRate(item, weightGram)).filter((rate) => rate.cost > 0)
+      : [],
+    error: result.error,
+    message: result.error || ''
+  };
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -11,12 +94,26 @@ export default async function handler(req, res) {
 
   try {
     const payload = await readJsonBody(req);
-    const destinationCity = compact(payload.destinationCity || payload.destination?.city);
-    const destinationDistrict = compact(payload.destinationDistrict || payload.destination?.district);
-    const destinationProvince = compact(payload.destinationProvince || payload.destination?.province);
-    const originCity = compact(payload.originCity || payload.origin?.city);
-    const originDistrict = compact(payload.originDistrict || payload.origin?.district);
-    const originProvince = compact(payload.originProvince || payload.origin?.province);
+    const destination = {
+      ...(payload.destination || {}),
+      district: compact(payload.destinationDistrict || payload.destination?.district),
+      city: compact(payload.destinationCity || payload.destination?.city),
+      province: compact(payload.destinationProvince || payload.destination?.province),
+      postalCode: compact(payload.destinationPostalCode || payload.destination?.postalCode)
+    };
+    const origin = {
+      ...(payload.origin || {}),
+      district: compact(payload.originDistrict || payload.origin?.district),
+      city: compact(payload.originCity || payload.origin?.city),
+      province: compact(payload.originProvince || payload.origin?.province),
+      postalCode: compact(payload.originPostalCode || payload.origin?.postalCode)
+    };
+    const destinationCity = destination.city;
+    const destinationDistrict = destination.district;
+    const destinationProvince = destination.province;
+    const originCity = origin.city;
+    const originDistrict = origin.district;
+    const originProvince = origin.province;
     const weightGram = normalizeAmount(payload.weightGram || payload.weight || 1000) || 1000;
     const provider = getShippingProvider();
 
@@ -46,7 +143,42 @@ export default async function handler(req, res) {
       });
     }
 
-    return sendJson(res, 501, {
+    if (provider === 'biteship') {
+      const biteshipResult = await fetchBiteshipRates({ origin, destination, weightGram });
+      if (biteshipResult.ok && biteshipResult.rates.length) {
+        return sendJson(res, 200, {
+          ok: true,
+          provider,
+          mode: 'provider_live',
+          originCity,
+          originDistrict,
+          originProvince,
+          destinationCity,
+          destinationDistrict,
+          destinationProvince,
+          weightGram,
+          rates: biteshipResult.rates,
+          message: 'Ongkir live dari Biteship berhasil dibaca.'
+        });
+      }
+
+      return sendJson(res, 200, {
+        ok: false,
+        provider,
+        mode: 'provider_fallback',
+        originCity,
+        originDistrict,
+        originProvince,
+        destinationCity,
+        destinationDistrict,
+        destinationProvince,
+        weightGram,
+        rates: fallbackRates,
+        message: biteshipResult.message || 'Biteship belum berhasil membaca ongkir. Menggunakan estimasi manual WiSpace dulu.'
+      });
+    }
+
+    return sendJson(res, 200, {
       ok: false,
       provider,
       mode: 'provider_not_implemented',

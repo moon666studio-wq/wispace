@@ -38,21 +38,38 @@ Endpoint serverless yang sudah disiapkan:
 - `POST /api/shipping-rates`
   - Input: `originDistrict`, `originCity`, `originProvince`, `destinationDistrict`, `destinationCity`, `destinationProvince`, `weightGram`.
   - Output: daftar courier, service, estimasi, dan ongkir.
-  - Saat API key belum diset, endpoint mengembalikan estimasi manual WiSpace.
+  - Jika `SHIPPING_PROVIDER=biteship`, endpoint mencoba membaca ongkir live Biteship untuk JNE, J&T, dan SiCepat.
+  - Saat API key belum diset atau area belum kebaca, endpoint mengembalikan estimasi manual WiSpace.
 - `POST /api/shipping-track`
   - Input: `courierCode` dan `trackingNumber`.
   - Output: status ringkas dan event tracking.
+  - Jika `SHIPPING_PROVIDER=biteship`, endpoint mencoba membaca tracking live dari Biteship.
   - Saat API key belum diset, endpoint mengembalikan status manual dari resi yang sudah diinput.
 - `POST /api/create-shipment`
   - Input: order merch, origin, destination, courier, berat, dan ongkir yang sudah dibayar buyer.
   - Output: `shipmentId`, `trackingNumber`, `labelUrl`, `bookingStatus`, dan `paymentStatus`.
-  - Saat API key belum diset, endpoint mencatat `shipping_fee_held_by_wispace` dan `manual_label_pending`.
+  - Jika `SHIPPING_PROVIDER=biteship`, endpoint mencoba membuat order shipment live agar label/resi bisa muncul.
+  - Saat API key belum diset atau payload provider kurang lengkap, endpoint mencatat fallback manual tanpa memblokir order.
+- `GET /api/shipping-health`
+  - Output: provider aktif, status key, base URL, dan kelengkapan origin shipper server.
+  - Pakai endpoint ini setelah isi env Vercel untuk cek apakah shipment API sudah siap.
 
 Environment Vercel:
 
 - `SHIPPING_PROVIDER=manual` untuk mode awal.
-- Nanti bisa diganti ke provider yang dipilih, misalnya `rajaongkir`, `komerce`, atau `binderbyte`.
-- Isi salah satu key sesuai provider: `RAJAONGKIR_API_KEY`, `KOMERCE_API_KEY`, `BINDERBYTE_API_KEY`, atau `SHIPPING_API_KEY`.
+- Untuk live booking awal pakai `SHIPPING_PROVIDER=biteship`.
+- Isi `BITESHIP_API_KEY` dari dashboard Biteship. Alternatif universal: `SHIPPING_API_KEY`.
+- Opsional: `BITESHIP_BASE_URL=https://api.biteship.com`.
+- Isi origin server/admin agar provider bisa bikin shipment jika merch dikirim dari WiSpace:
+  - `WISPACE_SHIPPER_NAME`
+  - `WISPACE_SHIPPER_PHONE`
+  - `WISPACE_SHIPPER_EMAIL`
+  - `WISPACE_SHIPPER_ADDRESS`
+  - `WISPACE_SHIPPER_DISTRICT`
+  - `WISPACE_SHIPPER_CITY`
+  - `WISPACE_SHIPPER_PROVINCE`
+  - `WISPACE_SHIPPER_POSTAL_CODE`
+- Kalau merch dikirim langsung dari band, band tetap harus isi alamat origin lengkap di profile/merch supaya booking tidak jatuh ke fallback.
 
 Prioritas implementasi:
 
