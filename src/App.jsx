@@ -3428,18 +3428,18 @@ export default function App() {
     `WiSpace Monthly Finance Report - ${report.periodLabel}`,
     `Generated at: ${report.generatedAt}`,
     '',
-    `Cash collected: Rp ${Number(report.totalCashCollected || report.totalGross || 0).toLocaleString('id-ID')}`,
-    `Product gross paid: Rp ${Number(report.totalGross || 0).toLocaleString('id-ID')}`,
-    `Shipping collected: Rp ${Number(report.totalShippingCost || 0).toLocaleString('id-ID')}`,
+    `Cash collected (produk + ongkir): Rp ${Number(report.totalCashCollected || report.totalGross || 0).toLocaleString('id-ID')}`,
+    `Product gross paid (dasar split 80/20): Rp ${Number(report.totalGross || 0).toLocaleString('id-ID')}`,
+    `Shipping collected (pass-through ekspedisi, bukan revenue): Rp ${Number(report.totalShippingCost || 0).toLocaleString('id-ID')}`,
     `WiSpace fee: Rp ${Number(report.totalPlatformFee || 0).toLocaleString('id-ID')}`,
-    `Band payout total: Rp ${Number(report.totalBandNet || 0).toLocaleString('id-ID')}`,
+    `Band payout total (produk only): Rp ${Number(report.totalBandNet || 0).toLocaleString('id-ID')}`,
     `Ready payout: Rp ${Number(report.readyPayoutTotal || 0).toLocaleString('id-ID')}`,
     `Transaction count: ${report.transactionCount}`,
     '',
     'Revenue source summary:',
     ...((report.transactionTypeSummary || []).length
       ? report.transactionTypeSummary.map((item) => (
-          `- ${item.label}: ${item.count} transaksi / Gross Rp ${Number(item.grossAmount || 0).toLocaleString('id-ID')} / Ongkir Rp ${Number(item.shippingCost || 0).toLocaleString('id-ID')} / Fee Rp ${Number(item.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(item.bandNet || 0).toLocaleString('id-ID')}`
+          `- ${item.label}: ${item.count} transaksi / Product gross Rp ${Number(item.grossAmount || 0).toLocaleString('id-ID')} / Shipping pass-through Rp ${Number(item.shippingCost || 0).toLocaleString('id-ID')} / Fee Rp ${Number(item.platformFee || 0).toLocaleString('id-ID')} / Band net Rp ${Number(item.bandNet || 0).toLocaleString('id-ID')}`
         ))
       : ['- Belum ada summary tipe transaksi']),
     '',
@@ -3447,16 +3447,16 @@ export default function App() {
     ...(report.rows || []).map((row, index) => [
       `${index + 1}. ${row.name}`,
       `   Status: ${row.ready ? 'READY PAYOUT' : 'HOLD - CEK MINIMUM/REKENING'}`,
-      `   Gross: Rp ${Number(row.grossAmount || 0).toLocaleString('id-ID')}`,
-      `   Ongkir: Rp ${Number(row.shippingCost || 0).toLocaleString('id-ID')}`,
+      `   Product gross: Rp ${Number(row.grossAmount || 0).toLocaleString('id-ID')}`,
+      `   Ongkir pass-through: Rp ${Number(row.shippingCost || 0).toLocaleString('id-ID')} (tidak masuk fee/payout)`,
       `   WiSpace fee: Rp ${Number(row.platformFee || 0).toLocaleString('id-ID')}`,
-      `   Net band: Rp ${Number(row.amount || 0).toLocaleString('id-ID')}`,
+      `   Net band payout: Rp ${Number(row.amount || 0).toLocaleString('id-ID')}`,
       `   Transaksi: ${row.transactions || 0}`,
       `   Rekening: ${row.bankName ? `${row.bankName} / ${row.bankAccountName} / ${row.bankAccountNumber}` : 'BELUM LENGKAP'}`,
       '   Detail transaksi:',
       ...((row.transactionDetails || []).length
         ? row.transactionDetails.map((transaction) => (
-            `   - ${transaction.createdAt || transaction.paidAt || '-'} / ${transaction.orderId || '-'} / ${transaction.productType || 'order'} / ${transaction.productTitle || '-'} / Buyer: ${transaction.buyerName || '-'} / Gross Rp ${Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Ongkir Rp ${Number(transaction.shippingCost || 0).toLocaleString('id-ID')} / Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Net Rp ${Number(transaction.bandNet || 0).toLocaleString('id-ID')}`
+            `   - ${transaction.createdAt || transaction.paidAt || '-'} / ${transaction.orderId || '-'} / ${transaction.productType || 'order'} / ${transaction.productTitle || '-'} / Buyer: ${transaction.buyerName || '-'} / Product Rp ${Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Ongkir pass-through Rp ${Number(transaction.shippingCost || 0).toLocaleString('id-ID')} / Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band net Rp ${Number(transaction.bandNet || 0).toLocaleString('id-ID')}`
           ))
         : ['   - Belum ada detail transaksi'])
     ].join('\n'))
@@ -7875,14 +7875,14 @@ export default function App() {
               <div style={{ display: 'flex', gap: '7px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={handleGenerateMonthlyFinanceReport} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '9px' }}>GENERATE REPORT TGL 1</button>
                 <button type="button" onClick={() => handleDownloadMonthlyFinanceReport()} disabled={!latestMonthlyFinanceReport} style={{ background: latestMonthlyFinanceReport ? 'rgba(241,212,229,0.04)' : '#080202', border: '1px solid rgba(241,212,229,0.12)', color: latestMonthlyFinanceReport ? '#F1D4E5' : '#F1D4E5', borderRadius: '9px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: latestMonthlyFinanceReport ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>DOWNLOAD TXT</button>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '360px' }}>Report admin berisi fee platform, payout band, rekening, dan status pencairan tanggal 1.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Report admin berisi fee platform, payout band, rekening, dan status pencairan tanggal 1. Ongkir merch dicatat sebagai pass-through ekspedisi, bukan objek split 80/20.</p>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '9px' }}>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>CASH COLLECTED</p>
                 <strong style={compactMetricValueStyle}>Rp {adminCashCollected.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Produk + ongkir merch.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Produk + ongkir pass-through.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>OMZET PRODUK PAID</p>
@@ -7891,7 +7891,7 @@ export default function App() {
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ONGKIR TERKUMPUL</p>
                 <strong style={compactMetricValueStyle}>Rp {adminMerchShippingCollected.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Bukan revenue band/WiSpace.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Dana titipan ekspedisi, bukan fee/payout.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>TOTAL FEE WISPACE</p>
@@ -8594,7 +8594,7 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PAYMENT LEDGER</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Ringkasan internal admin: order id, buyer, seller, gross, fee WiSpace, dan payout band.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '410px' }}>Ringkasan internal admin: order id, buyer, seller, product gross, ongkir pass-through, fee WiSpace, dan payout band.</p>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '12px' }}>
               {adminFinanceFilters.map((filter) => (
@@ -8616,7 +8616,7 @@ export default function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '7px', marginBottom: '12px' }}>
               {[
-                ['FILTERED GROSS', adminFilteredGrossTotal],
+                ['FILTERED PRODUCT GROSS', adminFilteredGrossTotal],
                 ['FILTERED FEE', adminFilteredFeeTotal],
                 ['FILTERED BAND', adminFilteredBandNetTotal]
               ].map(([label, amount]) => (
@@ -8637,7 +8637,7 @@ export default function App() {
                       <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
                     </div>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#F8F7F8' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#F8F7F8' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Gross Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Produk Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir pass-through Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
                     <strong style={{ color: transaction.productType === 'merch' ? getMerchOrderStatusColor(transaction.fulfillmentStatus) : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{transaction.productType === 'merch' ? getMerchOrderStatusLabel(transaction.fulfillmentStatus) : String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
                   </div>
@@ -10209,7 +10209,7 @@ export default function App() {
             <div>
               <p style={{ ...eyebrowStyle, color: 'rgba(255,255,255,0.72)' }}>BAND FINANCE DASHBOARD</p>
               <h2 style={pageTitleStyle}>PENGHASILAN & PENCAIRAN</h2>
-              <p style={pageLeadStyle}>Pantau saldo bersih band, riwayat transaksi paid, order merch, dan jadwal payout tiap tanggal 1.</p>
+              <p style={pageLeadStyle}>Pantau saldo bersih band, riwayat transaksi paid, order merch, dan jadwal payout tiap tanggal 1. Ongkir merch dicatat terpisah sebagai dana ekspedisi.</p>
             </div>
           </div>
 
@@ -10258,7 +10258,7 @@ export default function App() {
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '14px' }}>
             <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
               <h3 style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band dari harga produk setelah fee 20%; ongkir merch bukan bagian payout.</p>
               <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#080202', border: `1px solid ${hasBandPayoutAccount ? 'rgba(241,212,229,0.18)' : 'rgba(241,212,229,0.22)'}`, borderRadius: '10px' }}>
                 <p style={{ color: hasBandPayoutAccount ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{hasBandPayoutAccount ? `${bandProfile.bankName} / ${bandProfile.bankAccountName} / ${bandProfile.bankAccountNumber}` : 'Belum lengkap. Isi di Edit Profile Band sebelum upload dan sebelum report payout.'}</p>
@@ -10279,7 +10279,7 @@ export default function App() {
                         </div>
                         <strong style={{ color: '#F8F7F8', fontSize: '12px', flexShrink: 0 }}>Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}</strong>
                       </div>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Order: {transaction.orderId || transaction.id} / Buyer: {transaction.buyerName} / Produk Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')} / Payment {(transaction.paymentStatus || transaction.status || 'paid').toUpperCase()} / Payout {(transaction.payoutStatus || 'available_next_cycle').replaceAll('_', ' ').toUpperCase()}</p>
                     </div>
                   ))}
                 </div>
@@ -10297,7 +10297,7 @@ export default function App() {
                     <div key={order.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir pass-through Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
                           <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
                         </div>
@@ -10311,7 +10311,7 @@ export default function App() {
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'menunggu label'}</strong></p>
-                        <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Ongkir: <strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'ditahan WiSpace' : order.shippingPaymentStatus || '-'}</strong></p>
+                        <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Ongkir: <strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'ditahan WiSpace untuk ekspedisi' : order.shippingPaymentStatus || '-'}</strong></p>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Shipment: <strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
                         {order.fulfillmentMode === 'admin_consignment' ? (
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
@@ -10886,9 +10886,9 @@ export default function App() {
                   {[
                     ['BUYER', `${selectedMerchOrderDetail.buyerName || '-'} / ${selectedMerchOrderDetail.buyerEmail || '-'}`],
                     ['SELLER', selectedMerchOrderDetail.sellerBandName || 'Band WiSpace'],
-                    ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
+                    ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir pass-through Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
                     ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi'],
-                    ['ONGKIR HELD', selectedMerchOrderDetail.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace' : selectedMerchOrderDetail.shippingPaymentStatus || '-'],
+                    ['ONGKIR HELD', selectedMerchOrderDetail.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace untuk ekspedisi' : selectedMerchOrderDetail.shippingPaymentStatus || '-'],
                     ['SHIPMENT', getShipmentBookingLabel(selectedMerchOrderDetail.shipmentBookingStatus)],
                     ['STOCK RESTORE', selectedMerchOrderDetail.stockRestored ? `SUDAH / ${selectedMerchOrderDetail.stockRestoredAt ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedMerchOrderDetail.stockRestoredAt)) : 'LOCAL'}` : 'BELUM / TIDAK PERLU']
                   ].map(([label, value]) => (
@@ -11217,7 +11217,7 @@ export default function App() {
                 <strong style={{ color: '#73BBC9', fontSize: '23px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
                 <div style={{ display: 'grid', gap: '3px', marginTop: '7px', color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35 }}>
                   <span>Item: Rp {checkoutSubtotal.toLocaleString('id-ID')}</span>
-                  {activeCheckout.type === 'merch' && <span>Ongkir: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
+                  {activeCheckout.type === 'merch' && <span>Ongkir pass-through: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
                 </div>
               </div>
               <div style={checkoutBlockStyle}>
@@ -11254,7 +11254,7 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <div>
                   <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Simpan Order ID dan nominal persis. Buyer tidak perlu lihat pembagian fee internal WiSpace.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Simpan Order ID dan nominal persis. Buyer cukup lihat total bayar; split fee internal dan ongkir pass-through dicatat di dashboard admin.</p>
                 </div>
                 <button type="button" onClick={handleCopyCheckoutReference} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY ORDER ID</button>
               </div>
@@ -11486,7 +11486,7 @@ export default function App() {
                 <h3 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '6px' }}><ShieldCheck size={16}/> MANIFESTO HUKUM & DISTRIBUSI WISPACE</h3>
                 <div style={{ maxHeight: '180px', overflowY: 'auto', backgroundColor: '#080202', padding: '12px', borderRadius: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.72)', lineHeight: '1.4', marginBottom: '16px', border: '1px solid rgba(241,212,229,0.14)' }}>
                 <p style={{ margin: '0 0 10px 0' }}>1. Segala bentuk file audio MP3, foto, dan poster acara yang di-upload sepenuhnya merupakan <strong>tanggung jawab hukum band masing-masing</strong>. WiSpace murni bertindak sebagai wadah distribusi digital independen. Simpan WAV/master hi-res di arsip pribadi band.</p>
-                  <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi tetap sebesar <strong>20%</strong> dari setiap nominal karya lagu/album/merch yang berhasil terjual untuk kebutuhan operasional platform.</p>
+                  <p style={{ margin: '0 0 10px 0' }}>2. WiSpace memberlakukan sistem potongan komisi tetap sebesar <strong>20%</strong> dari setiap nominal karya lagu/album/merch yang berhasil terjual untuk kebutuhan operasional platform. Ongkir merch adalah dana pass-through ekspedisi dan tidak masuk objek komisi.</p>
                   <p style={{ margin: '0 0 10px 0' }}>3. Pihak band/musisi diberikan kebebasan mutlak 100% untuk <strong>menentukan harga jual sendiri</strong> terhadap karya tunggal maupun album penuh mereka.</p>
                   <p style={{ margin: '0 0 10px 0' }}>4. Laporan keuangan komprehensif dapat dipantau real-time di profil band, dan dana hasil penjualan dapat dicairkan aman <strong>setiap tanggal 1 awal bulan (Minimal Saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')})</strong>.</p>
                   <p style={{ margin: '0' }}>5. Tindakan Plagiarisme dilarang keras! Apabila di masa depan ditemukan indikasi plagiat karya orang lain, hal tersebut adalah <strong>pelanggaran mutlak band</strong> dan WiSpace lepas dari segala tuntutan hukum (karena admin tidak mengurasi orisinalitas nada satu per satu).</p>
@@ -11508,7 +11508,7 @@ export default function App() {
                     <div><span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', fontWeight: '900' }}>TOTAL SALDO SIAP CAIR</span><h4 style={{ margin: 0, fontSize: '24px', color: '#F8F7F8', fontWeight: '900', display: 'flex', alignItems: 'center' }}><DollarSign size={20} color="#73BBC9"/> Rp {bandBalance.toLocaleString('id-ID')}</h4></div>
                     <button disabled={bandBalance < MINIMUM_PAYOUT_AMOUNT} style={{ padding: '8px 14px', backgroundColor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#73BBC9' : 'rgba(241,212,229,0.1)', border: 'none', borderRadius: '16px', color: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? '#080202' : 'rgba(255,255,255,0.50)', fontSize: '11px', fontWeight: '900', cursor: bandBalance >= MINIMUM_PAYOUT_AMOUNT ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>TARIK DANA</button>
                   </div>
-                  <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 20%. Pencairan berkala tiap tanggal 1. {bandBalance < MINIMUM_PAYOUT_AMOUNT && <span style={{ color: '#F8F7F8' }}>Kurang Rp {(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, bro!</span>}</p>
+                  <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: '1.2' }}>*Potongan sistem 20% dari harga produk. Ongkir merch dicatat terpisah untuk ekspedisi. Pencairan berkala tiap tanggal 1. {bandBalance < MINIMUM_PAYOUT_AMOUNT && <span style={{ color: '#F8F7F8' }}>Kurang Rp {(MINIMUM_PAYOUT_AMOUNT - bandBalance).toLocaleString('id-ID')} lagi buat mencairkan, bro!</span>}</p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
