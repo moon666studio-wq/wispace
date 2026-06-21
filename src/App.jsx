@@ -4194,6 +4194,10 @@ export default function App() {
             sellerBandEmail: payment.sellerBandEmail,
             status: payment.status,
             paymentStatus: payment.paymentStatus || payment.status,
+            trackingNumber: payment.trackingNumber,
+            shipmentLabelUrl: payment.shipmentLabelUrl,
+            shipmentBookingStatus: payment.shipmentBookingStatus,
+            shippingPaymentStatus: payment.shippingPaymentStatus,
             provider: payment.provider,
             providerStatus: payment.providerStatus,
             providerCheckoutUrl: payment.providerCheckoutUrl,
@@ -4216,6 +4220,31 @@ export default function App() {
     status: 'paid',
     paymentStatus: 'paid',
     providerStatus: payment.providerStatus || 'paid'
+  });
+
+  const requestShipmentOrderNotification = (order, updatePayload = {}) => requestOrderNotification({
+    checkoutRef: order.orderId || order.checkoutRef || order.id,
+    type: 'merch_shipment',
+    productTitle: order.itemName || order.productTitle || 'Merch WiSpace',
+    amount: Number(order.productAmount || order.itemPrice || order.amount || 0) + Number(order.shippingCost || 0),
+    productAmount: order.productAmount || order.itemPrice || order.amount || 0,
+    shippingCost: order.shippingCost || 0,
+    buyerName: order.buyerName,
+    buyerEmail: order.buyerEmail,
+    sellerBandName: order.sellerBandName,
+    sellerBandSlug: order.sellerBandSlug,
+    sellerBandEmail: order.sellerBandEmail || getSellerBandEmail(order, null),
+    status: updatePayload.shipmentBookingStatus || updatePayload.trackingStatus || order.shipmentBookingStatus || order.trackingStatus,
+    paymentStatus: updatePayload.shipmentBookingStatus || updatePayload.trackingStatus || order.shipmentBookingStatus || order.trackingStatus,
+    trackingNumber: updatePayload.trackingNumber || order.trackingNumber,
+    shipmentLabelUrl: updatePayload.shipmentLabelUrl || order.shipmentLabelUrl,
+    shipmentBookingStatus: updatePayload.shipmentBookingStatus || order.shipmentBookingStatus,
+    shippingPaymentStatus: updatePayload.shippingPaymentStatus || order.shippingPaymentStatus,
+    shipping: {
+      courier: order.courier,
+      city: order.city,
+      shippingCost: order.shippingCost
+    }
   });
 
   const requestShipmentBooking = async (order) => {
@@ -4638,9 +4667,12 @@ export default function App() {
         orderId: sale.orderId,
         merchItemId: item.id,
         itemName: item.name,
+        itemPrice: item.price,
+        productAmount: item.price,
         sellerBandName: item.bandName || 'Band WiSpace',
         sellerBandSlug: item.bandSlug || createSlug(item.bandName || 'band-wispace'),
         sellerBandUserId: item.bandUserId || '',
+        sellerBandEmail: payment.sellerBandEmail || getSellerBandEmail(item, null),
         buyerUserId: payment.buyerUserId || userSession?.id || '',
         buyerName: payment.buyerName,
         buyerEmail: payment.buyerEmail,
@@ -5033,6 +5065,9 @@ export default function App() {
       updateMerchOrderLocal(order.id, updatePayload);
       if (hasTrackingNumber) updateMerchTransactionFulfillmentLocal(order.transactionId, 'ready_to_ship');
       syncMerchOrderUpdate(order, updatePayload);
+      if (updatePayload.shipmentBookingStatus === 'shipment_booking_ready' || updatePayload.shipmentLabelUrl || updatePayload.trackingNumber || updatePayload.shipmentBookingStatus === 'shipment_booking_failed') {
+        void requestShipmentOrderNotification(order, updatePayload);
+      }
       if (notify) {
         alert(hasTrackingNumber
           ? 'Shipment berhasil dibooking. Resi/label sudah masuk.'

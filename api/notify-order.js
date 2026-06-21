@@ -15,6 +15,10 @@ const createOrderMessage = (order = {}) => {
   ];
 
   if (order.providerCheckoutUrl) lines.push(`Payment URL: ${order.providerCheckoutUrl}`);
+  if (order.trackingNumber) lines.push(`Resi: ${compact(order.trackingNumber)}`);
+  if (order.shipmentLabelUrl) lines.push(`Label: ${compact(order.shipmentLabelUrl)}`);
+  if (order.shipmentBookingStatus) lines.push(`Shipment: ${compact(order.shipmentBookingStatus)}`);
+  if (order.shippingPaymentStatus) lines.push(`Ongkir: ${compact(order.shippingPaymentStatus)}`);
   if (order.shipping?.courier || order.shipping?.city) {
     lines.push(`Kirim: ${compact(order.shipping?.courier) || '-'} / ${compact(order.shipping?.city) || '-'}`);
   }
@@ -53,7 +57,18 @@ const sendBandOrderEmailNotification = async (order, message) => {
     ? 'Order paid WiSpace'
     : status === 'provider_paid_pending_activation'
       ? 'Payment masuk WiSpace'
-      : 'Order baru WiSpace';
+      : status === 'shipment_booking_ready' || status === 'ready_to_ship'
+        ? 'Label/resi WiSpace'
+        : status === 'shipment_booking_failed'
+          ? 'Booking shipment perlu dicek'
+          : 'Order baru WiSpace';
+  const bandNote = status === 'paid'
+    ? 'Payment sudah paid. Cek dashboard WiSpace untuk proses order, cetak label/resi, atau aktivasi akses digital.'
+    : status === 'shipment_booking_ready' || status === 'ready_to_ship'
+      ? 'Label/resi sudah siap. Buka dashboard order untuk cetak label dan lanjut kirim paket.'
+      : status === 'shipment_booking_failed'
+        ? 'Booking shipment belum berhasil. Cek alamat asal/tujuan, nomor HP, kode pos, dan kurir aktif.'
+        : 'Order masuk. Tunggu payment paid/konfirmasi admin sebelum kirim barang atau anggap akses final.';
   return sendEmailNotification({
     to: sellerBandEmail,
     channel: 'email_band',
@@ -62,9 +77,7 @@ const sendBandOrderEmailNotification = async (order, message) => {
       message,
       '',
       'Catatan untuk band:',
-      status === 'paid'
-        ? 'Payment sudah paid. Cek dashboard WiSpace untuk proses order, cetak label/resi, atau aktivasi akses digital.'
-        : 'Order masuk. Tunggu payment paid/konfirmasi admin sebelum kirim barang atau anggap akses final.'
+      bandNote
     ].join('\n')
   });
 };

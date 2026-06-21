@@ -25,6 +25,7 @@ Email yang dikirim:
 - Admin: payment rejected/refunded kalau provider mengirim status gagal/refund.
 - Band: order baru setelah checkout dibuat, dikirim ke email band yang tersimpan di profile/data seller.
 - Band: payment paid setelah Midtrans webhook verified, lalu email paid final setelah admin confirm order.
+- Band: label/resi shipment setelah booking ekspedisi berhasil, termasuk link label kalau provider mengembalikan file label.
 
 Email band hanya terkirim kalau profile band punya email atau payload order punya `sellerBandEmail`.
 
