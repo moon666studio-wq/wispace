@@ -1317,6 +1317,7 @@ export default function App() {
   const [adminError, setAdminError] = useState('');
   const [adminFinanceFilter, setAdminFinanceFilter] = useState('all');
   const [adminFinanceMonth, setAdminFinanceMonth] = useState('all');
+  const [adminShipmentFilter, setAdminShipmentFilter] = useState('active');
   const [adminActiveSection, setAdminActiveSection] = useState('payment');
 
   // STATE USER & ROLE MANAGEMENT
@@ -6309,6 +6310,19 @@ export default function App() {
   const adminBandShipOrderQueue = adminActiveMerchOrderList.filter((order) => order.fulfillmentMode !== 'admin_consignment');
   const adminOrdersWithTracking = merchOrders.filter((order) => order.trackingNumber && !['completed', 'cancelled'].includes(order.trackingStatus));
   const adminCompletedMerchOrders = merchOrders.filter((order) => order.trackingStatus === 'completed');
+  const adminShipmentNeedsBooking = adminActiveMerchOrderList.filter((order) => !order.trackingNumber && !order.shipmentLabelUrl && !['shipment_booking_ready', 'manual_label_pending'].includes(order.shipmentBookingStatus));
+  const adminShipmentLabelReady = adminActiveMerchOrderList.filter((order) => order.trackingNumber || order.shipmentLabelUrl || order.shipmentBookingStatus === 'shipment_booking_ready');
+  const adminShipmentNeedsReview = adminActiveMerchOrderList.filter((order) => order.shipmentBookingStatus === 'shipment_booking_failed' || order.trackingStatus === 'refund_requested');
+  const adminShipmentShipped = merchOrders.filter((order) => order.trackingStatus === 'shipped');
+  const adminShipmentFilterOptions = [
+    ['active', 'AKTIF', adminActiveMerchOrderList],
+    ['need_booking', 'BELUM BOOKING', adminShipmentNeedsBooking],
+    ['label_ready', 'LABEL SIAP', adminShipmentLabelReady],
+    ['need_review', 'PERLU CEK', adminShipmentNeedsReview],
+    ['shipped', 'DIKIRIM', adminShipmentShipped],
+    ['completed', 'SELESAI', adminCompletedMerchOrders]
+  ];
+  const selectedAdminShipmentOrders = (adminShipmentFilterOptions.find(([filterId]) => filterId === adminShipmentFilter)?.[2] || adminActiveMerchOrderList);
   const bandPendingMerchOrders = bandMerchOrders.filter((order) => activeMerchFulfillmentStatuses.includes(order.trackingStatus)).length;
   const merchShippingByOrderId = merchOrders.reduce((lookup, order) => {
     const shippingCost = Number(order.shippingCost || 0);
@@ -6509,15 +6523,15 @@ export default function App() {
       title: 'Fulfillment + resi',
       status: merchOrders.some((order) => order.trackingNumber || ['shipped', 'completed'].includes(order.trackingStatus)) ? 'ready' : merchOrders.length ? 'scaffold' : 'todo',
       note: 'Band/admin update status, packing, input resi, shipped, completed.',
-      actionLabel: 'ADMIN FINANCE',
-      action: () => setAdminActiveSection('finance')
+      actionLabel: 'SHIPMENT',
+      action: () => setAdminActiveSection('shipment')
     },
     {
       title: 'Cancel/refund restore stock',
       status: restoredMerchOrderCount ? 'ready' : merchRefundOrCancelCount ? 'scaffold' : 'todo',
       note: 'Admin review refund/cancel, stok balik sekali, ledger keluar dari payout paid.',
       actionLabel: 'ORDER DETAIL',
-      action: () => setAdminActiveSection('finance')
+      action: () => setAdminActiveSection('shipment')
     },
     {
       title: 'Finance report tanggal 1',
@@ -6632,14 +6646,14 @@ export default function App() {
       title: 'ORDER ADMIN SHIP',
       count: adminConsignmentOrderQueue.length,
       note: 'Order stok titipan yang harus diproses WiSpace.',
-      action: () => setAdminActiveSection('finance'),
+      action: () => setAdminActiveSection('shipment'),
       color: adminConsignmentOrderQueue.length ? '#73BBC9' : 'rgba(255,255,255,0.72)'
     },
     {
       title: 'ORDER BAND SHIP',
       count: adminBandShipOrderQueue.length,
       note: 'Pantau band yang harus proses pengiriman sendiri.',
-      action: () => setAdminActiveSection('finance'),
+      action: () => setAdminActiveSection('shipment'),
       color: adminBandShipOrderQueue.length ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)'
     },
     {
@@ -6728,7 +6742,7 @@ export default function App() {
       body: `${order.itemName || 'Merch'} / ${order.sellerBandName || 'Band'} / ${order.orderId || order.id}`,
       badge: 'MERCH',
       color: 'rgba(255,255,255,0.72)',
-      targetSection: 'ledger'
+      targetSection: 'shipment'
     })),
     ...bandsMissingPayoutAccount.slice(0, 6).map((profile) => ({
       id: `missing-bank-${profile.slug || profile.name}`,
@@ -7834,6 +7848,7 @@ export default function App() {
             {[
               ['payment', `PAYMENT ${waitingAdminPaymentRequests.length}`],
               ['finance', 'FINANCE'],
+              ['shipment', `SHIPMENT ${adminWaitingMerchOrders}`],
               ['legal', `LEGAL ${releaseAgreements.length}`],
               ['notifications', `NOTIF ${adminNotificationQueue.length}`],
               ['messages', `MESSAGES ${adminSupportMessages.length}`],
@@ -8203,6 +8218,87 @@ export default function App() {
               )}
               {adminConsignmentOrderQueue.length > 0 && <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: '8px 0 0 0' }}>{adminConsignmentOrderQueue.length} order titipan stok sedang menunggu action admin WiSpace.</p>}
             </div>
+          </section>
+          )}
+
+          {adminActiveSection === 'shipment' && (
+          <section id="admin-shipment-section" style={{ ...glassStyle('admin-shipment-monitor'), ...compactPanelStyle, scrollMarginTop: '110px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN SHIPMENT MONITOR</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>ORDER MERCH & RESI</h3>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '430px' }}>Pantau order fisik dari payment paid sampai label/resi siap, dikirim, dan selesai. Ongkir tetap dicatat sebagai dana ekspedisi, bukan payout band.</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(116px, 1fr))', gap: '8px', marginBottom: '10px' }}>
+              {[
+                ['AKTIF', adminActiveMerchOrderList.length, '#73BBC9'],
+                ['BELUM BOOKING', adminShipmentNeedsBooking.length, 'rgba(255,255,255,0.72)'],
+                ['LABEL SIAP', adminShipmentLabelReady.length, '#73BBC9'],
+                ['PERLU CEK', adminShipmentNeedsReview.length, '#F1D4E5'],
+                ['DIKIRIM', adminShipmentShipped.length, 'rgba(255,255,255,0.72)'],
+                ['SELESAI', adminCompletedMerchOrders.length, 'rgba(255,255,255,0.72)']
+              ].map(([label, value, color]) => (
+                <div key={label} style={{ padding: '8px 0', backgroundColor: 'transparent', borderTop: `1.5px solid ${color}55`, borderRadius: 0 }}>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', margin: '0 0 4px 0' }}>{label}</p>
+                  <strong style={{ color, fontSize: '15px', fontWeight: '900' }}>{value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', padding: '8px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, marginBottom: '12px' }}>
+              {adminShipmentFilterOptions.map(([filterId, label, items]) => (
+                <button
+                  key={filterId}
+                  type="button"
+                  onClick={() => setAdminShipmentFilter(filterId)}
+                  style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: adminShipmentFilter === filterId ? '#F1D4E5' : '#73BBC9', background: adminShipmentFilter === filterId ? 'rgba(115,187,201,0.14)' : glassButtonStyle.background }}
+                >
+                  {label} {items.length}
+                </button>
+              ))}
+            </div>
+
+            {selectedAdminShipmentOrders.length === 0 ? (
+              <div style={{ padding: '18px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
+                <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Tidak ada order di filter ini.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '8px', maxHeight: '520px', overflowY: 'auto' }}>
+                {selectedAdminShipmentOrders.map((order) => {
+                  const stage = getMerchOrderStageSummary(order);
+                  const labelStatus = getMerchShipmentLabelSummary(order);
+                  const isAdminShipOrder = order.fulfillmentMode === 'admin_consignment';
+                  return (
+                    <div key={`shipment-monitor-${order.id}`} style={{ ...compactRowStyle, borderTopColor: order.shipmentBookingStatus === 'shipment_booking_failed' ? 'rgba(241,212,229,0.32)' : 'rgba(115,187,201,0.18)' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) auto', gap: '10px', alignItems: 'start' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ color: isAdminShipOrder ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{isAdminShipOrder ? 'WISPACE SHIP' : 'BAND SHIP'} / {order.orderId || order.id}</p>
+                          <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} {'->'} {order.recipientName || 'Buyer'} / {order.city || '-'} / {order.courier || '-'}</p>
+                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
+                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{labelStatus.note}</span></p>
+                          <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>Resi: <strong style={{ color: order.trackingNumber ? '#F8F7F8' : '#F1D4E5' }}>{order.trackingNumber || 'menunggu label'}</strong> / Shipment: <strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
+                        </div>
+                        <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
+                      </div>
+                      {renderMerchOrderStepper(order.trackingStatus)}
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px', alignItems: 'center' }}>
+                        <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                        {order.shipmentLabelUrl && <button type="button" onClick={() => window.open(order.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL</button>}
+                        <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, isAdminShipOrder ? 'processing_admin' : 'processing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PACKING</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'ready_to_ship')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>READY</button>
+                        <button type="button" onClick={() => handleMerchTrackingNumberUpdate(order)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.24)', color: 'rgba(255,255,255,0.72)', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESI</button>
+                        <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'completed')} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '8px', padding: '6px 8px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SELESAI</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
           )}
 
@@ -10160,7 +10256,12 @@ export default function App() {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{order.address}, {order.city} {order.postalCode}</p>
-                        <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          {order.trackingNumber && (
+                            <button type="button" onClick={() => navigator.clipboard?.writeText(order.trackingNumber)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY RESI</button>
+                          )}
+                          <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
+                        </div>
                       </div>
                     </article>
                     );
@@ -11002,6 +11103,13 @@ export default function App() {
                     <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900' }}>{selectedMerchOrderDetail.fulfillmentMode === 'admin_consignment' ? 'DIKIRIM WISPACE' : 'DIKIRIM BAND'}</span>
                   </div>
                   {renderMerchOrderStepper(selectedMerchOrderDetail.trackingStatus)}
+                  <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, marginTop: '10px' }}>
+                    <p style={{ color: selectedMerchOrderLabelStatus?.color || '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{selectedMerchOrderLabelStatus?.title?.toUpperCase() || 'STATUS SHIPMENT'}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedMerchOrderLabelStatus?.note || 'Order sedang diproses.'}</p>
+                    {selectedMerchOrderDetail.trackingNumber && (
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(selectedMerchOrderDetail.trackingNumber)} style={{ ...glassButtonStyle, marginTop: '9px', padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY RESI {selectedMerchOrderDetail.trackingNumber}</button>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '9px' }}>
