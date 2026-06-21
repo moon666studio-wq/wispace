@@ -7401,22 +7401,22 @@ export default function App() {
     rilisan: {
       eyebrow: 'WISPACE RELEASES',
       title: 'RILISAN DIGITAL',
-      lead: 'Katalog album digital dan preview 30 detik dari musisi indie. Cover, harga, genre, dan band dibuat gampang discan.'
+      lead: 'Rilisan digital dan preview terbaru.'
     },
     band: {
       eyebrow: 'WISPACE BAND INDEX',
       title: 'BAND DIRECTORY',
-      lead: 'Tempat audience, band lain, dan promotor nemu profile band, kontak, rilisan, merch, dan jadwal manggung.'
+      lead: 'Direktori band WiSpace.'
     },
     artikel: {
       eyebrow: 'WISPACE ARTICLES',
       title: 'ARTIKEL SKENA',
-      lead: 'Arsip cerita band, catatan rilisan, interview, dan pergerakan musik independen.'
+      lead: 'Arsip cerita dan catatan skena.'
     },
     merch: {
       eyebrow: 'WISPACE DISTRO',
       title: 'MERCH BAND',
-      lead: 'Etalase merchandise band: kaos, CD, kaset, stiker, bundle album, dan item fisik lain dari komunitas.'
+      lead: 'Etalase merchandise band.'
     }
   };
 
@@ -7584,7 +7584,7 @@ export default function App() {
               <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(115,187,201,0.3)', borderRadius: '10px', backgroundColor: '#080202', cursor: 'pointer' }}>
                 <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleBandSupportAttachmentImport} style={{ display: 'none' }} />
                 <span style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional'}</p>
               </label>
               <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '9px 12px', fontSize: '10px' }}>KIRIM KE ADMIN</button>
             </form>
@@ -7793,7 +7793,7 @@ export default function App() {
               <form onSubmit={handleAdminUnlock} style={{ ...glassStyle('admin-password-gate'), width: '100%', maxWidth: '420px', padding: '28px', backgroundColor: '#080202' }}>
                 <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 8px 0' }}>WISPACE ADMIN GATE</p>
                 <h2 style={{ color: '#F8F7F8', fontSize: '28px', fontWeight: '900', margin: '0 0 10px 0', lineHeight: 1 }}>ADMIN PASSWORD</h2>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 12px 0' }}>Login pakai akun admin Supabase untuk mode cloud. Password lokal tetap bisa dipakai buat testing cepat.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 12px 0' }}>Login admin.</p>
                 <div style={{ padding: '10px', backgroundColor: '#080202', border: `1px solid ${userSession ? 'rgba(115,187,201,0.22)' : 'rgba(241,212,229,0.22)'}`, borderRadius: '12px', marginBottom: '12px' }}>
                   <p style={{ color: userSession ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 4px 0' }}>{userSession ? 'AKUN LOGIN TERDETEKSI' : 'BELUM LOGIN ADMIN'}</p>
                   <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{userSession ? `${userSession.email || 'Admin WiSpace'} - klik unlock untuk cek admin_users.` : 'Masuk dulu kalau mau pesan admin, payment, dan data admin tersimpan ke cloud.'}</p>
@@ -7815,7 +7815,6 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>WISPACE ADMIN GATE</p>
               <h2 style={pageTitleStyle}>ADMIN CONTROL CENTER</h2>
-              <p style={pageLeadStyle}>Kelola confirm payment, kurasi pamflet, finance payout, legal agreement, artikel, dan laporan konten dari satu panel.</p>
               <p style={{ color: isCloudAdmin ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '10px 0 0 0' }}>{isCloudAdmin ? `CLOUD ADMIN: ${cloudAdminAccount.email || userSession?.email || 'admin'}` : 'LOCAL PASSWORD MODE: sync admin cloud terbatas sampai akun masuk admin_users'}</p>
             </div>
             <button onClick={closeAdminGate} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BACK HOME</button>
@@ -7998,14 +7997,12 @@ export default function App() {
               <div style={{ display: 'flex', gap: '7px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={handleGenerateMonthlyFinanceReport} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '10px', borderRadius: '9px' }}>GENERATE REPORT TGL 1</button>
                 <button type="button" onClick={() => handleDownloadMonthlyFinanceReport()} disabled={!latestMonthlyFinanceReport} style={{ background: latestMonthlyFinanceReport ? 'rgba(241,212,229,0.04)' : '#080202', border: '1px solid rgba(241,212,229,0.12)', color: latestMonthlyFinanceReport ? '#F1D4E5' : '#F1D4E5', borderRadius: '9px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: latestMonthlyFinanceReport ? 'pointer' : 'not-allowed', fontFamily: FONT_STACK }}>DOWNLOAD TXT</button>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Report admin berisi fee platform, payout band, rekening, dan status pencairan tanggal 1. Ongkir merch dicatat sebagai pass-through ekspedisi, bukan objek split 80/20.</p>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '9px' }}>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>CASH COLLECTED</p>
                 <strong style={compactMetricValueStyle}>Rp {adminCashCollected.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Produk + ongkir pass-through.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>OMZET PRODUK PAID</p>
@@ -8014,7 +8011,6 @@ export default function App() {
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ONGKIR TERKUMPUL</p>
                 <strong style={compactMetricValueStyle}>Rp {adminMerchShippingCollected.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>Dana titipan ekspedisi, bukan fee/payout.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>TOTAL FEE WISPACE</p>
@@ -8031,12 +8027,10 @@ export default function App() {
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>BIAYA PAMFLET EXCLUSIVE</p>
                 <strong style={compactMetricValueStyle}>Rp {adminExclusivePosterRevenue.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminExclusivePosterPaidCount} pembayaran x Rp {EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>TRANSAKSI PAID</p>
                 <strong style={compactMetricValueStyle}>{paidSaleTransactions.length}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{merchOrders.length} order merch fisik.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ESTIMASI PAYOUT BAND</p>
@@ -8045,12 +8039,10 @@ export default function App() {
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>SIAP CAIR MIN 100K</p>
                 <strong style={{ ...compactMetricValueStyle, color: adminPayoutReadyTotal ? 'rgba(255,255,255,0.72)' : '#F1D4E5' }}>Rp {adminPayoutReadyTotal.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{adminPayoutReadyBands.length} band tembus minimum.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>BELUM MINIMUM</p>
                 <strong style={compactMetricValueStyle}>Rp {adminPayoutBelowMinimumTotal.toLocaleString('id-ID')}</strong>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0' }}>{Math.max(0, adminPayoutBands.length - adminPayoutReadyBands.length)} band belum 100rb.</p>
               </div>
               <div style={compactMetricCardStyle}>
                 <p style={compactMetricLabelStyle}>ORDER PERLU PROSES</p>
@@ -8308,7 +8300,6 @@ export default function App() {
                 <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>LEGAL & PAYOUT RECORD</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>ARSIP AGREEMENT BAND</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setiap upload album merekam penanda tangan, email, rekening payout, versi agreement, dan waktu tanda tangan.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '12px' }}>
@@ -8430,7 +8421,6 @@ export default function App() {
                 <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN MESSAGE CENTER</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>KIRIM PESAN KE BAND</h3>
               </div>
-              <p style={{ color: isCloudAdmin ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>{isCloudAdmin ? 'Pakai ini buat info payment gagal, revisi pamflet, payout, masalah upload, atau pengumuman penting ke semua band.' : 'Mode lokal: pesan tampil di browser ini dulu. Login akun admin yang ada di admin_users supaya pesan tersimpan cloud.'}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 0.95fr) minmax(0, 1.05fr)', gap: '12px', alignItems: 'start' }}>
@@ -8507,7 +8497,6 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>MERCH STOCK CONTROL</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>STOK DI ADMIN WISPACE</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '390px' }}>Setelah band hubungi admin dan barang fisik sampai, klik stok diterima supaya item berubah jadi ready fulfillment WiSpace.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
@@ -8524,7 +8513,7 @@ export default function App() {
             </div>
             {adminConsignmentMerchItems.length === 0 ? (
               <div style={{ padding: '18px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '10px', textAlign: 'center' }}>
-                <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada merch yang memilih stok di admin. Nanti item titipan band muncul di sini.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada titipan merch.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '8px' }}>
@@ -8544,7 +8533,7 @@ export default function App() {
                       </div>
                       <div>
                         <p style={{ color: statusColor, fontSize: '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{getConsignmentStatusLabel(item.consignmentStatus || 'waiting_stock_handover')}</p>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{isReceived ? 'Barang fisik sudah ada di admin, order bisa diproses dari WiSpace.' : 'Tunggu barang fisik sampai, lalu tandai stok diterima.'}</p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{isReceived ? 'READY FULFILLMENT' : 'MENUNGGU STOK'}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', justifyContent: isCompactLayout ? 'flex-start' : 'flex-end', flexWrap: 'wrap' }}>
                         <button type="button" onClick={() => handleAdminConsignmentStatusUpdate(item, 'stock_received')} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px', color: 'rgba(255,255,255,0.72)', border: '1px solid rgba(241,212,229,0.35)' }}>{isReceived ? 'UPDATE STOK' : 'STOK DITERIMA'}</button>
@@ -8616,7 +8605,6 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PRODUCTION READINESS</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>FITUR SIAP VS DEMO</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '380px' }}>Panel internal buat tahu mana yang aman dites sekarang dan mana yang masih perlu wiring sebelum pembayaran asli.</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
@@ -8722,7 +8710,6 @@ export default function App() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
                   <div>
                     <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>RECENT WEBHOOK EVENTS</p>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Audit callback payment provider. Verified event bisa update payment request.</p>
                   </div>
                   <button type="button" onClick={() => void fetchAdminPaymentRequests(userSession)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>REFRESH</button>
                 </div>
@@ -8789,7 +8776,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Reset ini hanya membersihkan localStorage browser. Data Supabase live dan file lokal project tidak ikut terhapus, jadi aman buat test ulang UI.</p>
           </section>
           </>
           )}
@@ -8801,7 +8787,6 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PAYMENT LEDGER</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>TRANSAKSI TERBARU</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '410px' }}>Ringkasan internal admin: order id, buyer, seller, product gross, ongkir pass-through, fee WiSpace, dan payout band.</p>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '12px' }}>
               {adminFinanceFilters.map((filter) => (
@@ -8844,7 +8829,7 @@ export default function App() {
                       <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{String(transaction.productTitle || 'Transaksi WiSpace').toUpperCase()}</h4>
                     </div>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Buyer: <strong style={{ color: '#F8F7F8' }}>{transaction.buyerName || '-'}</strong><br />Seller: <strong style={{ color: '#F8F7F8' }}>{transaction.sellerBandName || 'WiSpace'}</strong></p>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Produk Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir pass-through Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Produk Rp {Number(transaction.grossAmount || 0).toLocaleString('id-ID')}<br />{transaction.productType === 'merch' ? `Ongkir Rp ${Number(merchShippingByOrderId[String(transaction.orderId || '')] || merchShippingByOrderId[String(transaction.id || '')] || 0).toLocaleString('id-ID')}` : `Fee Rp ${Number(transaction.platformFee || 0).toLocaleString('id-ID')}`}</p>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Fee Rp {Number(transaction.platformFee || 0).toLocaleString('id-ID')} / Band Rp {Number(transaction.bandNet || 0).toLocaleString('id-ID')}<br />{transaction.createdAt}</p>
                     <strong style={{ color: transaction.productType === 'merch' ? getMerchOrderStatusColor(transaction.fulfillmentStatus) : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', justifySelf: isCompactLayout ? 'start' : 'end', whiteSpace: 'nowrap' }}>{transaction.productType === 'merch' ? getMerchOrderStatusLabel(transaction.fulfillmentStatus) : String(transaction.paymentStatus || transaction.status || 'paid').replaceAll('_', ' ').toUpperCase()}</strong>
                   </div>
@@ -9224,7 +9209,7 @@ export default function App() {
                   <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#F8F7F8', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
                 </div>
                 {filteredMerchItems.length === 0 ? (
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch draft. Nanti audience bisa beli kaos, CD, kaset, stiker, dan bundle dari profile band.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredMerchItems.slice(0, 4).map(item => (
@@ -9260,7 +9245,7 @@ export default function App() {
                           <button onClick={() => openBandPublicProfile(false, profile)} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '8px' }}>LIHAT PROFILE</button>
                         </div>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', margin: '0 0 5px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{profile.headline || 'Profile band akan muncul lengkap setelah musisi mengisi Band Studio.'}</p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{profile.headline || 'Profile band belum lengkap.'}</p>
                       </div>
                     </div>
                   ))}
@@ -9275,7 +9260,7 @@ export default function App() {
             <section style={{ padding: isTinyLayout ? '14px 0' : '18px 0' }}>
               <h3 style={sectionHeadingStyle}>ARTIKEL SKENA</h3>
               {filteredArticles.length === 0 ? (
-                <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok. Band bisa tulis artikel dari Band Studio.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok.</p>
               ) : (
                 <div style={flatListStyle}>
                   {filteredArticles.map((article) => (
@@ -9298,7 +9283,7 @@ export default function App() {
                 {isBandAccount && <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>UPLOAD MERCH</button>}
               </div>
               {filteredMerchItems.length === 0 ? (
-                <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok. Merch sekarang dikumpulkan di Explore, bukan menu terpisah.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok.</p>
               ) : (
                 <div style={compactVisualGridStyle}>
                   {filteredMerchItems.map((item) => {
@@ -9333,7 +9318,6 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>WISPACE MERCH MARKET</p>
               <h2 style={pageTitleStyle}>DISTRO BAND MERCHANDISE</h2>
-              <p style={pageLeadStyle}>Satu halaman buat ngumpulin merch band indie: kaos, CD, kaset, stiker, bundle album, dan item fisik lain dari profile band.</p>
             </div>
             {isBandAccount && (
               <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>UPLOAD MERCH</button>
@@ -9349,12 +9333,12 @@ export default function App() {
                   </div>
                   <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH SLOT {String(slot).padStart(2, '0')}</p>
                   <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ITEM</h4>
-                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Nanti kaos, CD, kaset, stiker, dan bundle band akan tampil sebagai kartu merch di sini.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada item.</p>
                 </div>
               ))}
               <div style={{ ...glassStyle('merch-market-empty-action'), padding: '22px', backgroundColor: '#080202', display: 'grid', alignContent: 'center' }}>
                 <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCH MARKET MASIH KOSONG</h3>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada dummy/input merch. Begitu band upload merch dari Band Studio, item-nya langsung masuk ke grid ini.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada item merch.</p>
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TAMBAH MERCH PERTAMA</button>
                 ) : (
@@ -9394,7 +9378,6 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>WISPACE ARTICLES</p>
               <h2 style={pageTitleStyle}>ARTIKEL BAND & SKENA</h2>
-              <p style={pageLeadStyle}>Ruang cerita buat interview band, catatan rilisan, review skena, update gigs, dan arsip pergerakan musik independen.</p>
             </div>
             {isBandAccount && (
               <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL</button>
@@ -9408,14 +9391,14 @@ export default function App() {
                   <div>
                     <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 14px 0' }}>ARTICLE SLOT {String(slot).padStart(2, '0')}</p>
                     <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 12px 0' }}>BELUM ADA ARTIKEL</h3>
-                    <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Nanti artikel band, interview, catatan rilisan, dan report skena akan tampil di card ini.</p>
+                    <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada artikel.</p>
                   </div>
                   <FileText size={26} color="#12323a" />
                 </article>
               ))}
               <div style={{ ...glassStyle('articles-empty-action'), padding: '22px', backgroundColor: '#080202', display: 'grid', alignContent: 'center' }}>
                 <h3 style={{ color: '#F8F7F8', fontSize: '19px', fontWeight: '900', margin: '0 0 10px 0' }}>ARSIP ARTIKEL MASIH KOSONG</h3>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Band bisa mulai nulis cerita rilis album, proses kreatif, atau press release sederhana dari Band Studio.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada arsip artikel.</p>
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL PERTAMA</button>
                 ) : (
@@ -9562,7 +9545,7 @@ export default function App() {
                     )}
                   </div>
                   {bandNotifications.length === 0 ? (
-                    <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada notif subscribe. Nanti setiap audience subscribe band ini, activity-nya masuk di sini.</p>
+                    <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada activity.</p>
                   ) : (
                     <div style={{ display: 'grid', gap: '8px' }}>
                       {bandNotifications.slice(0, 4).map((notification) => (
@@ -9578,14 +9561,13 @@ export default function App() {
 
               <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>BIO BAND</h3>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi. Nanti audience akan membaca cerita band, karakter musik, rilisan, dan info kontak di bagian ini.'}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '14px', lineHeight: 1.65, margin: 0 }}>{displayBandProfile.bio || 'Bio band belum diisi.'}</p>
               </section>
 
               <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
                   <div>
                     <h3 style={{ ...sectionHeadingStyle, margin: '0 0 6px 0' }}>PROMO MUSIC PLAYER</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Preview maksimal 30 detik. Satu lagu bisa dibuka full gratis oleh band.</p>
                   </div>
                   {hasFreeFullBandTrack && (
                     <span style={{ padding: '7px 10px', borderRadius: '9999px', backgroundColor: 'rgba(241,212,229,0.1)', border: '1px solid rgba(241,212,229,0.25)', color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900' }}>1 FREE FULL TRACK</span>
@@ -9618,7 +9600,7 @@ export default function App() {
                             <p style={{ color: track.freeFull ? 'rgba(255,255,255,0.72)' : track.previewUrl || track.url ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{track.freeFull ? 'FREE FULL LISTEN' : track.previewUrl || track.url ? '30 SEC PREVIEW' : 'PREVIEW PENDING'} / {track.albumTitle?.toUpperCase()}</p>
                             <h4 style={{ color: '#F8F7F8', fontSize: '14px', fontWeight: '900', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title.toUpperCase()}</h4>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'Full track gratis buat kenalan sama band.' : 'Preview otomatis berhenti setelah 30 detik.'}</p>
+                              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', margin: 0 }}>{track.freeFull ? 'FULL TRACK' : '30 SEC PREVIEW'}</p>
                               <button onClick={() => createContentReport({ type: 'track', targetId: track.id, title: `${track.title} / ${displayBandProfile.name || track.bandName || 'Band WiSpace'}` })} style={{ background: 'transparent', border: 'none', color: '#F8F7F8', padding: 0, fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LAPORKAN</button>
                             </div>
                           </div>
@@ -9633,7 +9615,7 @@ export default function App() {
               <section style={{ ...bandArchivePanelStyle, padding: isTinyLayout ? '12px' : '14px', marginBottom: '18px' }}>
                 <h3 style={sectionHeadingStyle}>ALBUM DIGITAL</h3>
                 {displayBandAlbums.length === 0 ? (
-                  <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada album digital. Upload album pertama dari tombol owner actions.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada album digital.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {displayBandAlbums.map((album) => (
@@ -9713,7 +9695,7 @@ export default function App() {
               <section style={{ ...bandArchivePanelStyle, padding: '14px' }}>
                 <h3 style={sectionHeadingStyle}>MERCHANDISE</h3>
                 {displayBandMerchItems.length === 0 ? (
-                  <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise. Kelola etalase merch dari tombol owner actions.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merchandise.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {displayBandMerchItems.slice(0, 4).map((item) => {
@@ -9748,7 +9730,7 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>BAND GIG MANAGER</p>
               <h2 style={pageTitleStyle}>PAMFLET GIGS & JADWAL MANGGUNG</h2>
-              <p style={pageLeadStyle}>Upload pamflet masuk antrean kurasi admin untuk homepage. Jadwal manggung biasa cukup ditambah sendiri dan hanya tampil di profile band.</p>
+              <p style={pageLeadStyle}>Pamflet dan jadwal manggung.</p>
             </div>
           </div>
 
@@ -9888,7 +9870,7 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>AUDIENCE PROFILE</p>
               <h2 style={pageTitleStyle}>MY WISPACE ACCOUNT</h2>
-              <p style={pageLeadStyle}>Halaman akun penikmat musik. Audience tetap simpel: cek identitas akun, koleksi, message, dan akses rilisan yang sudah dibeli.</p>
+              <p style={pageLeadStyle}>Profile audience.</p>
             </div>
             <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BUKA LIBRARY</button>
           </div>
@@ -10019,7 +10001,7 @@ export default function App() {
 
               <section style={{ ...glassStyle('audience-profile-note'), padding: '20px', backgroundColor: '#080202' }}>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: '0 0 8px 0' }}>PROFILE AUDIENCE DIBIKIN SIMPLE</h3>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Audience tidak perlu bikin halaman publik seperti band. Halaman publik, album, merch, jadwal manggung, dan tombol message tetap fokus di profile band.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Akun audience.</p>
               </section>
             </div>
           </div>
@@ -10033,7 +10015,6 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>AUDIENCE LIBRARY</p>
               <h2 style={pageTitleStyle}>MY MUSIC ARCHIVE</h2>
-              <p style={pageLeadStyle}>Koleksi album digital yang sudah dibeli audience. Nanti file bisa masuk secret encrypted folder dan hanya bisa diakses dari WiSpace.</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px' }}>
                 {[
                   ['OWNED', purchasedAlbums.length],
@@ -10051,7 +10032,7 @@ export default function App() {
           {purchasedAlbums.length === 0 ? (
             <div style={{ ...glassStyle('library-empty'), padding: '28px', backgroundColor: '#080202' }}>
               <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>LIBRARY MASIH KOSONG</h3>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, pilih album digital, lalu klik beli. Untuk sekarang masih mock purchase dulu.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada rilisan digital.</p>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
             </div>
           ) : (
@@ -10110,11 +10091,8 @@ export default function App() {
                       </div>
                       <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: '#F8F7F8', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
                     </div>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Secret encrypted access. Full playback buat archive yang sudah dibeli.</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
                       <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', color: '#73BBC9', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.1)', color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900' }}>DOWNLOAD PER TRACK</span>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.16)', color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900' }}>PERSONAL LICENSE</span>
                     </div>
                   </div>
                 </div>
@@ -10132,7 +10110,7 @@ export default function App() {
                       >
                         <div>
                           <p style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
-                          <p style={{ color: track.audioPath ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '11px', margin: 0 }}>{track.audioPath ? 'PRIVATE STORAGE / FULL OWNED' : 'LOCAL FALLBACK / FULL OWNED'}</p>
+                          <p style={{ color: track.audioPath ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '11px', margin: 0 }}>{track.audioPath ? 'PRIVATE' : 'LOCAL'}</p>
                         </div>
                         {!isTinyLayout && <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handleSecureLibraryDownload(track); }} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD</button>}
                         <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handlePlayLibraryTrack(track); }} style={{ ...glassButtonStyle, padding: '8px 11px', fontSize: '10px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
@@ -10144,7 +10122,6 @@ export default function App() {
                   <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
                   <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
-                <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.45, margin: '10px 0 0 0' }}>Download hanya untuk akun pembeli, personal listening, dan tidak untuk distribusi ulang. Untuk sekarang download aman per track supaya akses bisa dicek satu-satu.</p>
                 <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(241,212,229,0.08)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
                     <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: 0 }}>DOWNLOAD LOG</p>
@@ -10295,7 +10272,7 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>WISPACE MESSAGES</p>
               <h2 style={pageTitleStyle}>INBOX</h2>
-              <p style={pageLeadStyle}>{isBandAccount ? 'Pesan dari audience, band lain, promotor, kolaborator event, dan admin WiSpace masuk di sini. Band juga bisa kirim support ke admin.' : 'Pesan akun audience masuk di sini. Untuk kirim pesan ke band, buka halaman profile band lalu pakai form message di sana.'}</p>
+              <p style={pageLeadStyle}>{isBandAccount ? 'Inbox band dan support admin.' : 'Inbox audience.'}</p>
             </div>
           </div>
 
@@ -10350,7 +10327,7 @@ export default function App() {
                   <label style={{ display: 'block', padding: '10px', border: '1px dashed rgba(115,187,201,0.3)', borderRadius: '10px', backgroundColor: '#080202', cursor: 'pointer' }}>
                     <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleBandSupportAttachmentImport} style={{ display: 'none' }} />
                     <span style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900' }}>UPLOAD SCREENSHOT / PDF</span>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional buat bukti pembayaran, error upload, atau screenshot masalah.'}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0' }}>{bandSupportDraft.attachmentName ? `${bandSupportDraft.attachmentName} / ${formatFileSize(bandSupportDraft.attachmentSize || 0)}` : 'Opsional'}</p>
                   </label>
                   <button type="submit" style={{ ...glassButtonStyle, width: 'fit-content', padding: '10px 14px', fontSize: '11px' }}>KIRIM KE ADMIN</button>
                 </form>
@@ -10421,7 +10398,7 @@ export default function App() {
             <div>
               <p style={{ ...eyebrowStyle, color: 'rgba(255,255,255,0.72)' }}>BAND FINANCE DASHBOARD</p>
               <h2 style={pageTitleStyle}>PENGHASILAN & PENCAIRAN</h2>
-              <p style={pageLeadStyle}>Pantau saldo bersih band, riwayat transaksi paid, order merch, dan jadwal payout tiap tanggal 1. Ongkir merch dicatat terpisah sebagai dana ekspedisi.</p>
+              <p style={pageLeadStyle}>Saldo, transaksi, order merch, dan payout.</p>
             </div>
           </div>
 
@@ -10470,16 +10447,16 @@ export default function App() {
           <div style={{ display: 'grid', gridTemplateColumns: studioGridColumns, gap: '14px' }}>
             <section style={{ ...glassStyle('finance-rules'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
               <h3 style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ATURAN PENCAIRAN</h3>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Pencairan diproses setiap tanggal 1. Minimum saldo Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}. Nominal saldo yang tampil adalah dana bersih milik band dari harga produk setelah fee 20%; ongkir merch bukan bagian payout.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Tanggal 1 / minimum Rp {MINIMUM_PAYOUT_AMOUNT.toLocaleString('id-ID')}.</p>
               <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#080202', border: `1px solid ${hasBandPayoutAccount ? 'rgba(241,212,229,0.18)' : 'rgba(241,212,229,0.22)'}`, borderRadius: '10px' }}>
                 <p style={{ color: hasBandPayoutAccount ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>REKENING PAYOUT</p>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{hasBandPayoutAccount ? `${bandProfile.bankName} / ${bandProfile.bankAccountName} / ${bandProfile.bankAccountNumber}` : 'Belum lengkap. Isi di Edit Profile Band sebelum upload dan sebelum report payout.'}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{hasBandPayoutAccount ? `${bandProfile.bankName} / ${bandProfile.bankAccountName} / ${bandProfile.bankAccountNumber}` : 'BELUM LENGKAP'}</p>
               </div>
             </section>
             <section style={{ ...glassStyle('finance-history'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
               <h3 style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>RIWAYAT TRANSAKSI</h3>
               {financeTransactions.length === 0 ? (
-                <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi. Pembelian album, track, dan merch akan masuk sini setelah payment paid.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada transaksi.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {financeTransactions.slice(0, 10).map((transaction) => (
@@ -10500,7 +10477,7 @@ export default function App() {
             <section style={{ ...glassStyle('finance-merch-orders'), padding: isTinyLayout ? '14px' : '16px', backgroundColor: '#080202' }}>
               <h3 style={{ color: '#73BBC9', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ORDER MERCH MASUK</h3>
               {bandMerchOrders.length === 0 ? (
-                <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch fisik. Kalau audience checkout merch, alamat dan kurir akan tampil di sini.</p>
+                <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>Belum ada order merch.</p>
               ) : (
                 <div style={{ display: 'grid', gap: '7px' }}>
                   {bandMerchOrders.slice(0, 8).map((order) => {
@@ -10510,10 +10487,10 @@ export default function App() {
                     <div key={order.id} style={compactRowStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir pass-through Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
+                          <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{order.orderId || order.transactionId} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''} / {order.createdAt}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.1 }}>{order.itemName.toUpperCase()}</h4>
-                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
-                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{labelStatus.note}</span></p>
+                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()}</p>
+                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()}</p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', flexShrink: 0 }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -10525,7 +10502,7 @@ export default function App() {
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <p style={{ color: order.trackingNumber ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Resi: <strong>{order.trackingNumber || 'menunggu label'}</strong></p>
-                        <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Ongkir: <strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'ditahan WiSpace untuk ekspedisi' : order.shippingPaymentStatus || '-'}</strong></p>
+                        <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Ongkir: <strong>{order.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'DITAHAN WISPACE' : order.shippingPaymentStatus || '-'}</strong></p>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>Shipment: <strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
                         {order.fulfillmentMode === 'admin_consignment' ? (
                           <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: 0 }}>DIKELOLA WISPACE</p>
@@ -10558,7 +10535,6 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>BAND STUDIO</p>
               <h2 style={pageTitleStyle}>BAND PROFILE STUDIO</h2>
-              <p style={pageLeadStyle}>Page khusus musisi buat bangun halaman band publik, import foto, isi kontak, siapin album digital, dan kelola merchandise.</p>
             </div>
           </div>
 
@@ -10599,7 +10575,7 @@ export default function App() {
               </div>
               <p style={{ color: '#F8F7F8', fontSize: '14px', fontWeight: '900', lineHeight: 1.35, margin: '0 0 10px 0' }}>{bandProfile.headline || 'Headline singkat band akan tampil di sini.'}</p>
               <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', fontWeight: '700', margin: '0 0 14px 0' }}>{(bandProfile.city || 'KOTA').toUpperCase()} / {(bandProfile.genre || 'GENRE').toUpperCase()}{bandProfile.formedYear ? ` / SINCE ${bandProfile.formedYear}` : ''}</p>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band akan tampil di sini. Audience bisa lihat cerita singkat, karakter musik, dan info rilisan band.'}</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: '0 0 18px 0' }}>{bandProfile.bio || 'Bio band belum diisi.'}</p>
               <div style={{ display: 'grid', gap: '8px', marginBottom: '18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderTop: `1px solid ${flatLineColor}`, color: 'rgba(255,255,255,0.72)', fontSize: '12px' }}>
                   <span>CP</span><strong style={{ color: '#F8F7F8', textAlign: 'right' }}>{bandProfile.cp || '-'}</strong>
@@ -10615,7 +10591,7 @@ export default function App() {
               <div style={{ borderTop: `1px solid ${flatLineColor}`, paddingTop: '14px', marginBottom: '14px' }}>
                 <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>PROMO PLAYER</h4>
                 {bandPublicTracks.length === 0 ? (
-                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Maksimal 5 lagu promo tampil di public profile. Pilih 1 track free full saat upload album.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Belum ada promo track.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '8px' }}>
                     {bandPublicTracks.slice(0, 3).map((track) => (
@@ -10630,7 +10606,7 @@ export default function App() {
               <div style={{ borderTop: `1px solid ${flatLineColor}`, paddingTop: '14px' }}>
                 <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCHANDISE SHELF</h4>
                 {merchItems.length === 0 ? (
-                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Nanti bagian ini bisa jadi tempat jual kaos, CD, kaset, stiker, bundle album, dan item fisik lain milik band.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>Belum ada merch.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '10px' }}>
                     {merchItems.slice(0, 3).map((item) => (
@@ -10694,7 +10670,7 @@ export default function App() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <div>
                         <p style={{ color: hasBandShippingOrigin ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ALAMAT ASAL PENGIRIMAN</p>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch. Nanti dipakai sebagai lokasi pengirim untuk hitung ongkir, booking resi, dan cetak label ekspedisi.</p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Wajib sebelum jual merch.</p>
                       </div>
                       <strong style={{ color: hasBandShippingOrigin ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px' }}>{hasBandShippingOrigin ? 'READY' : 'BELUM LENGKAP'}</strong>
                     </div>
@@ -10757,7 +10733,7 @@ export default function App() {
                     <div style={{ backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '9px', padding: '12px', marginBottom: '14px' }}>
                       <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACK FILES</p>
                       <p style={{ color: hasFreeFullBandTrack ? '#F1D4E5' : '#73BBC9', fontSize: '11px', lineHeight: 1.45, margin: '0 0 10px 0' }}>
-                        {hasFreeFullBandTrack ? 'Band ini sudah punya 1 lagu free full. Track baru otomatis dibuatkan preview 30 detik.' : 'Opsional: pilih 1 lagu sebagai FREE FULL LISTEN. Track lain otomatis dibuatkan preview 30 detik.'}
+                        {hasFreeFullBandTrack ? '1 free full track aktif.' : 'Opsional: pilih 1 lagu free full.'}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(126px, 1fr))', gap: '8px', marginBottom: '12px' }}>
                         {[
@@ -10859,7 +10835,7 @@ export default function App() {
                   {!hasBandPayoutAccount && (
                     <div style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.28)', borderRadius: '9px', padding: '12px', marginBottom: '12px' }}>
                       <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>REKENING PAYOUT WAJIB</p>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Sebelum jual merch, isi rekening di Profile Band dulu biar saldo merch bisa masuk report pencairan.</p>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Isi rekening payout dulu.</p>
                     </div>
                   )}
                   {!merchUsesAdminConsignment && !hasBandShippingOrigin && (
@@ -10892,7 +10868,7 @@ export default function App() {
                     </div>
                     {merchUsesAdminConsignment && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Kalau mau stok merch ada di admin, silahkan hubungi admin untuk alamat kirim stok dan konfirmasi jumlah barang.</p>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Hubungi admin untuk titip stok.</p>
                         <button type="button" onClick={() => { setShowNotificationPopout(false); setShowBandAdminPopout(true); }} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px', borderRadius: '8px' }}>HUBUNGI ADMIN</button>
                       </div>
                     )}
@@ -10990,7 +10966,7 @@ export default function App() {
                 </article>
               ) : (
                 <div style={{ ...flatSurfaceStyle, padding: '18px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}` }}>
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada WiSpace Pick. Nanti video YouTube pilihan dan review singkat admin muncul di sini.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada WiSpace Pick.</p>
                 </div>
               )}
 
@@ -11057,7 +11033,7 @@ export default function App() {
             </div>
             {homeDiscoveryItems.length === 0 ? (
               <div style={{ ...flatSurfaceStyle, padding: '18px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live. Nanti pilihan kecil dari katalog WiSpace muncul di sini.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada rilisan atau merch live.</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(112px, 138px))', justifyContent: 'start', gap: isTinyLayout ? '8px' : '10px' }}>
@@ -11112,7 +11088,7 @@ export default function App() {
                   {[
                     ['BUYER', `${selectedMerchOrderDetail.buyerName || '-'} / ${selectedMerchOrderDetail.buyerEmail || '-'}`],
                     ['SELLER', selectedMerchOrderDetail.sellerBandName || 'Band WiSpace'],
-                    ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir pass-through Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
+                    ['KURIR', `${selectedMerchOrderDetail.courier || '-'} / Ongkir Rp ${Number(selectedMerchOrderDetail.shippingCost || 0).toLocaleString('id-ID')}`],
                     ['RESI', selectedMerchOrderDetail.trackingNumber || 'Belum ada resi'],
                     ['ONGKIR HELD', selectedMerchOrderDetail.shippingPaymentStatus === 'shipping_fee_held_by_wispace' ? 'Ditahan WiSpace untuk ekspedisi' : selectedMerchOrderDetail.shippingPaymentStatus || '-'],
                     ['SHIPMENT', getShipmentBookingLabel(selectedMerchOrderDetail.shipmentBookingStatus)],
@@ -11376,7 +11352,7 @@ export default function App() {
                 )}
 
                 <div style={{ ...compactSurfaceStyle, padding: '10px' }}>
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'Provider sudah mengirim status paid verified. Admin tinggal activate supaya Library/Order dan ledger WiSpace dibuat.' : 'Admin wajib cek nominal, Order ID, dan nama buyer di bukti bayar sebelum confirm. Kalau proof belum ada atau tidak cocok, reject/request ulang dari buyer.'}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: 0 }}>{isProviderPaidPendingActivation(selectedPaymentDetail) ? 'Provider paid verified.' : 'Cek nominal, Order ID, dan nama buyer.'}</p>
                 </div>
               </div>
             </div>
@@ -11446,7 +11422,7 @@ export default function App() {
                 <strong style={{ color: '#73BBC9', fontSize: '23px', fontWeight: '900' }}>Rp {checkoutTotal.toLocaleString('id-ID')}</strong>
                 <div style={{ display: 'grid', gap: '3px', marginTop: '7px', color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35 }}>
                   <span>Item: Rp {checkoutSubtotal.toLocaleString('id-ID')}</span>
-                  {activeCheckout.type === 'merch' && <span>Ongkir pass-through: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
+                  {activeCheckout.type === 'merch' && <span>Ongkir: Rp {checkoutShippingCost.toLocaleString('id-ID')} / {checkoutCourierOption?.estimate}</span>}
                 </div>
               </div>
               <div style={checkoutBlockStyle}>
@@ -11455,7 +11431,6 @@ export default function App() {
                   <span>Order ID: <strong style={{ color: '#73BBC9' }}>{checkoutReference}</strong></span>
                   <span>Item: <strong style={{ color: '#F8F7F8' }}>{activeCheckout.type === 'merch' ? 'Merch fisik' : 'Koleksi digital'}</strong>{activeCheckout.type === 'merch' ? ` / ${checkoutCourierOption?.label || checkoutDraft.courier}` : ''}</span>
                   <span>Provider: <strong style={{ color: checkoutProviderCheckoutUrl ? '#73BBC9' : 'rgba(255,255,255,0.72)' }}>{checkoutProviderLabel.toUpperCase()}</strong>{checkoutProviderStatus ? ` / ${checkoutProviderStatus.replaceAll('_', ' ').toUpperCase()}` : ''}</span>
-                  {checkoutProviderId === 'manual' && <span style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.35 }}>Mode manual aktif. Kalau mau Midtrans, cek `VITE_PAYMENT_PROVIDER=midtrans` lalu redeploy.</span>}
                   <span>Status: <strong style={{ color: checkoutAccentColor }}>{checkoutStatusCopy}</strong></span>
                   <span style={{ color: 'rgba(255,255,255,0.72)', lineHeight: 1.35 }}>{checkoutBuyerStatusText}</span>
                 </div>
@@ -11483,7 +11458,6 @@ export default function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <div>
                   <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Simpan Order ID dan nominal persis. Buyer cukup lihat total bayar; split fee internal dan ongkir pass-through dicatat di dashboard admin.</p>
                 </div>
                 <button type="button" onClick={handleCopyCheckoutReference} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY ORDER ID</button>
               </div>
@@ -11492,7 +11466,6 @@ export default function App() {
                   <div key={channel.title} style={{ padding: '8px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0 }}>
                     <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', margin: '0 0 5px 0' }}>{channel.title.toUpperCase()}</p>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0' }}>{channel.detail}</p>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', lineHeight: 1.35, margin: 0 }}>{channel.note}</p>
                   </div>
                 ))}
               </div>
@@ -11508,7 +11481,7 @@ export default function App() {
               )}
               {!checkoutProviderCheckoutUrl && checkoutProviderId !== 'manual' && checkoutIsAwaitingAdmin && (
                 <div style={{ marginTop: '10px', padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                  <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0', fontWeight: '800' }}>Gateway belum ngasih checkout URL. Request tetap masuk admin lewat fallback manual.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0', fontWeight: '800' }}>Gateway fallback manual.</p>
                   {activeCheckout.gatewayError && <p style={{ color: '#73BBC9', fontSize: '9px', lineHeight: 1.35, margin: 0, fontWeight: '900' }}>Detail: {activeCheckout.gatewayError}</p>}
                 </div>
               )}
@@ -11525,7 +11498,7 @@ export default function App() {
               </div>
               <div style={{ minWidth: 0 }}>
                 <p style={{ color: checkoutDraft.paymentProofPreview ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '11px', fontWeight: '900', margin: '0 0 5px 0' }}>{checkoutDraft.paymentProofPreview ? 'BUKTI BAYAR TERLAMPIR' : 'UPLOAD BUKTI BAYAR'}</p>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || (checkoutProofRequired ? 'PNG/JPG/WebP maksimal 2MB. Admin cek bukti ini sebelum confirm paid.' : 'Opsional kalau gateway aktif. Tetap bisa dipakai untuk fallback manual.')}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{checkoutDraft.paymentProofName || (checkoutProofRequired ? 'PNG/JPG/WebP max 2MB' : 'Opsional')}</p>
               </div>
               <span style={{ color: checkoutDraft.paymentProofStatus === 'stored' ? 'rgba(255,255,255,0.72)' : checkoutDraft.paymentProofPreview ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', justifySelf: isTinyLayout ? 'start' : 'end' }}>{checkoutDraft.paymentProofStatus ? checkoutDraft.paymentProofStatus.toUpperCase() : checkoutProofRequired ? 'REQUIRED' : 'OPTIONAL'}</span>
             </label>
@@ -11533,7 +11506,7 @@ export default function App() {
             {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
               <div style={{ padding: '10px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${checkoutIsPaid ? 'rgba(241,212,229,0.42)' : checkoutIsAwaitingAdmin ? 'rgba(115,187,201,0.42)' : 'rgba(241,212,229,0.42)'}`, borderRadius: 0, marginBottom: '12px' }}>
                 <p style={{ color: checkoutIsPaid ? 'rgba(255,255,255,0.72)' : checkoutIsAwaitingAdmin ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : checkoutIsAwaitingAdmin ? 'WAITING ADMIN CONFIRM' : 'CHECKOUT CANCELLED'}</p>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Pembayaran berhasil dan akses/order sudah aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Request pembayaran sudah masuk ke admin. Akses/order aktif setelah admin confirm paid.' : 'Checkout dibatalkan. Tidak ada transaksi, saldo, order, atau library yang dibuat.'}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Menunggu admin.' : 'Checkout dibatalkan.'}</p>
               </div>
             )}
 
@@ -11599,13 +11572,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <p style={{ color: checkoutShippingStatus.mode === 'error' ? '#F1D4E5' : 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>{checkoutShippingStatus.message || 'Ongkir bisa dicek dari API serverless. Mode awal masih fallback estimasi manual WiSpace.'}</p>
-              </div>
-            )}
-
-            {activeCheckout.type !== 'merch' && (
-              <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Setelah bayar, item masuk Library terenkripsi. File bisa diputar dari player WiSpace dan tidak untuk distribusi ulang.</p>
+                {checkoutShippingStatus.message && <p style={{ color: checkoutShippingStatus.mode === 'error' ? '#F1D4E5' : 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: '10px 0 0 0' }}>{checkoutShippingStatus.message}</p>}
               </div>
             )}
 
