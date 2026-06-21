@@ -8228,7 +8228,6 @@ export default function App() {
                 <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>ADMIN SHIPMENT MONITOR</p>
                 <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>ORDER MERCH & RESI</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '430px' }}>Pantau order fisik dari payment paid sampai label/resi siap, dikirim, dan selesai. Ongkir tetap dicatat sebagai dana ekspedisi, bukan payout band.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(116px, 1fr))', gap: '8px', marginBottom: '10px' }}>
@@ -8277,8 +8276,8 @@ export default function App() {
                           <p style={{ color: isAdminShipOrder ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>{isAdminShipOrder ? 'WISPACE SHIP' : 'BAND SHIP'} / {order.orderId || order.id}</p>
                           <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{order.sellerBandName || 'Band WiSpace'} {'->'} {order.recipientName || 'Buyer'} / {order.city || '-'} / {order.courier || '-'}</p>
-                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
-                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{labelStatus.note}</span></p>
+                          <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()}</p>
+                          <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()}</p>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>Resi: <strong style={{ color: order.trackingNumber ? '#F8F7F8' : '#F1D4E5' }}>{order.trackingNumber || 'menunggu label'}</strong> / Shipment: <strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
@@ -10180,7 +10179,6 @@ export default function App() {
             <div>
               <p style={eyebrowStyle}>AUDIENCE ORDERS</p>
               <h2 style={pageTitleStyle}>MY MERCH ORDERS</h2>
-              <p style={pageLeadStyle}>Pantau merchandise yang sudah dibeli, status proses band, kurir, dan nomor resi. Tracking ekspedisi real-time bisa disambung setelah API kurir siap.</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '14px' }}>
                 {[
                   ['TOTAL', audienceMerchOrders.length],
@@ -10243,7 +10241,7 @@ export default function App() {
                           <h4 style={{ color: '#F8F7F8', fontSize: '14px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, overflowWrap: 'anywhere' }}>{String(order.itemName || 'Merch WiSpace').toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{(order.sellerBandName || 'Band WiSpace').toUpperCase()} / {order.courier}{order.shippingCost ? ` / Ongkir Rp ${Number(order.shippingCost || 0).toLocaleString('id-ID')}` : ''}</p>
                           <p style={{ color: labelStatus.color, fontSize: '10px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()}</p>
-                          <p style={{ color: stage.color, fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.62)', fontWeight: '700' }}>{stage.note}</span></p>
+                          <p style={{ color: stage.color, fontSize: '10px', lineHeight: 1.35, margin: '6px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()}</p>
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', fontWeight: '900', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -10273,14 +10271,13 @@ export default function App() {
                 <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
                 <div style={flatListStyle}>
                   {[
-                    ['Paid, tunggu label', 'Pembayaran tercatat. Ongkir ditahan WiSpace sambil menunggu label/resi.', 'rgba(255,255,255,0.72)'],
-                    ['Label manual', 'Resi masih perlu input manual sampai provider ekspedisi aktif.', 'rgba(255,255,255,0.72)'],
-                    ['Label siap', 'Band/admin bisa cetak label dan lanjut kirim paket.', '#73BBC9'],
-                    ['Paket dikirim', 'Resi sudah ada dan paket masuk tahap pengiriman.', '#73BBC9']
-                  ].map(([status, description, color]) => (
+                    ['Paid, tunggu label', 'rgba(255,255,255,0.72)'],
+                    ['Label manual', 'rgba(255,255,255,0.72)'],
+                    ['Label siap', '#73BBC9'],
+                    ['Paket dikirim', '#73BBC9']
+                  ].map(([status, color]) => (
                     <div key={status} style={{ ...flatItemStyle, display: 'block', cursor: 'default' }}>
                       <strong style={{ color, fontSize: '10px', fontWeight: '900' }}>{status.toUpperCase()}</strong>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0' }}>{description}</p>
                     </div>
                   ))}
                 </div>
@@ -11105,7 +11102,6 @@ export default function App() {
                   {renderMerchOrderStepper(selectedMerchOrderDetail.trackingStatus)}
                   <div style={{ padding: '10px 0', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, marginTop: '10px' }}>
                     <p style={{ color: selectedMerchOrderLabelStatus?.color || '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{selectedMerchOrderLabelStatus?.title?.toUpperCase() || 'STATUS SHIPMENT'}</p>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{selectedMerchOrderLabelStatus?.note || 'Order sedang diproses.'}</p>
                     {selectedMerchOrderDetail.trackingNumber && (
                       <button type="button" onClick={() => navigator.clipboard?.writeText(selectedMerchOrderDetail.trackingNumber)} style={{ ...glassButtonStyle, marginTop: '9px', padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY RESI {selectedMerchOrderDetail.trackingNumber}</button>
                     )}
@@ -11166,9 +11162,7 @@ export default function App() {
                       </>
                     )}
                   </div>
-                ) : (
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>Detail order ini read-only buat buyer. Update status dilakukan oleh band atau admin WiSpace.</p>
-                )}
+                ) : null}
               </aside>
             </div>
           </div>
