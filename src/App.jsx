@@ -102,6 +102,24 @@ const formatDisplayDate = (value, options = { day: 'numeric', month: 'long', yea
   const parsedDate = parseDisplayDate(value);
   return parsedDate ? new Intl.DateTimeFormat('id-ID', options).format(parsedDate) : '';
 };
+const formatDateInputValue = (date = new Date()) => {
+  const localDate = date instanceof Date ? date : parseDisplayDate(date) || new Date();
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, '0');
+  const day = String(localDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+const addDaysDateValue = (days = 10, baseDate = new Date()) => {
+  const nextDate = new Date(baseDate);
+  nextDate.setDate(nextDate.getDate() + days);
+  return formatDateInputValue(nextDate);
+};
+const normalizeDateInputValue = (value) => {
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return String(value);
+  const parsedDate = parseDisplayDate(value);
+  return parsedDate ? formatDateInputValue(parsedDate) : '';
+};
 const getGigDate = (gig) => {
   const rawDate = gig?.date || getGigMeta(gig, 'date', '');
   return formatDisplayDate(rawDate) || rawDate || 'Tanggal menyusul';
@@ -109,6 +127,13 @@ const getGigDate = (gig) => {
 const getGigApprovedUntil = (gig) => gig?.approved_until ? formatDisplayDate(gig.approved_until) : '';
 const getGigApprovedAt = (gig) => formatDisplayDate(gig?.approved_at || gig?.updated_at || gig?.created_at);
 const isApprovedHomepageGig = (gig) => ['approved', 'approved_free', 'approved_exclusive'].includes(gig?.status);
+const isGigExpired = (gig) => {
+  const parsedDate = parseDisplayDate(gig?.approved_until);
+  if (!parsedDate) return false;
+  parsedDate.setHours(23, 59, 59, 999);
+  return parsedDate < new Date();
+};
+const isVisibleApprovedHomepageGig = (gig) => isApprovedHomepageGig(gig) && !isGigExpired(gig);
 const getGigStatusLabel = (status = 'pending') => ({
   pending: 'PENDING REVIEW',
   approved: 'FREE LIVE',
@@ -1471,6 +1496,7 @@ export default function App() {
 
   // DATA REAL DARI CLOUD
   const [gigs, setGigs] = useState([]);
+  const [gigExpiryDrafts, setGigExpiryDrafts] = useState({});
   const [loading, setLoading] = useState(true);
 
   const audioRef = useRef(new Audio());
@@ -1906,7 +1932,7 @@ export default function App() {
 
   const exclusiveEventBanners = [
     ...gigs
-      .filter((gig) => gig.status === 'approved_exclusive')
+      .filter((gig) => gig.status === 'approved_exclusive' && isVisibleApprovedHomepageGig(gig))
       .slice(0, 15)
       .map((gig, index) => ({
         id: `exclusive-${gig.id}`,
@@ -2911,7 +2937,7 @@ export default function App() {
 
   const updateGigStatus = async (id, updatePayload) => {
     const { error: firstError } = await supabase.from('gigs').update(updatePayload).eq('id', id);
-    const error = isMissingColumnError(firstError)
+    const error = isMissingColumnError(firstError) && updatePayload.status
       ? (await supabase.from('gigs').update({ status: updatePayload.status }).eq('id', id)).error
       : firstError;
     if (!error) {
@@ -2922,14 +2948,23 @@ export default function App() {
     return error;
   };
 
-  const handleGigModeration = async (id, status) => {
-    const approvedUntil = new Date();
-    approvedUntil.setDate(approvedUntil.getDate() + 10);
-    const approvedAt = new Date().toISOString().slice(0, 10);
+  const getGigExpiryDraftValue = (gigOrId) => {
+    const gig = typeof gigOrId === 'object' ? gigOrId : gigs.find((item) => item.id === gigOrId);
+    const id = typeof gigOrId === 'object' ? gigOrId.id : gigOrId;
+    return gigExpiryDrafts[id] || normalizeDateInputValue(gig?.approved_until) || addDaysDateValue(10);
+  };
+
+  const updateGigExpiryDraft = (id, value) => {
+    setGigExpiryDrafts((current) => ({ ...current, [id]: value }));
+  };
+
+  const handleGigModeration = async (id, status, approvedUntilOverride = '') => {
+    const approvedUntilValue = approvedUntilOverride || addDaysDateValue(10);
+    const approvedAt = formatDateInputValue(new Date());
     const updatePayload = status === 'approved_exclusive'
-      ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10), payment_status: 'paid', activated_at: new Date().toISOString() }
+      ? { status, approved_at: approvedAt, approved_until: approvedUntilValue, payment_status: 'paid', activated_at: new Date().toISOString() }
       : status === 'approved_free'
-        ? { status, approved_at: approvedAt, approved_until: approvedUntil.toISOString().slice(0, 10), payment_status: 'not_required' }
+        ? { status, approved_at: approvedAt, approved_until: approvedUntilValue, payment_status: 'not_required' }
         : status === 'approved_waiting_payment'
           ? { status, payment_status: 'awaiting_payment', exclusive_fee: EXCLUSIVE_POSTER_SLOT_FEE }
           : status === 'rejected'
@@ -2939,11 +2974,11 @@ export default function App() {
     if (error) alert("Gagal update status pamflet: " + error.message);
     else {
       const message = status === 'approved_free'
-        ? 'Pamflet disetujui sebagai event free dan tampil di bulletin homepage selama 10 hari.'
+        ? `Pamflet free live sampai ${formatDisplayDate(approvedUntilValue)}.`
         : status === 'approved_waiting_payment'
           ? `Konten exclusive disetujui. Pamflet belum tayang sampai user menyelesaikan pembayaran Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}.`
         : status === 'approved_exclusive'
-          ? 'Pamflet disetujui sebagai exclusive event dan masuk slot slide besar homepage selama 10 hari.'
+          ? `Pamflet exclusive live sampai ${formatDisplayDate(approvedUntilValue)}.`
           : 'Pamflet ditolak dan tidak akan tampil.';
       alert(message);
       fetchData();
@@ -2975,20 +3010,30 @@ export default function App() {
     }
   };
 
-  const handleGigActivateExclusive = async (id) => {
-    const approvedUntil = new Date();
-    approvedUntil.setDate(approvedUntil.getDate() + 10);
-    const approvedAt = new Date().toISOString().slice(0, 10);
+  const handleGigActivateExclusive = async (id, approvedUntilOverride = '') => {
+    const approvedUntilValue = approvedUntilOverride || addDaysDateValue(10);
+    const approvedAt = formatDateInputValue(new Date());
     const error = await updateGigStatus(id, {
       status: 'approved_exclusive',
       approved_at: approvedAt,
-      approved_until: approvedUntil.toISOString().slice(0, 10),
+      approved_until: approvedUntilValue,
       payment_status: 'paid',
       activated_at: new Date().toISOString()
     });
     if (error) alert('Gagal activate pamflet exclusive: ' + error.message);
     else {
-      alert('Pamflet exclusive aktif dan tampil selama 10 hari.');
+      alert(`Pamflet exclusive aktif sampai ${formatDisplayDate(approvedUntilValue)}.`);
+      fetchData();
+    }
+  };
+
+  const handleGigExpiryUpdate = async (gig) => {
+    const approvedUntilValue = getGigExpiryDraftValue(gig);
+    if (!approvedUntilValue) return alert('Isi tanggal habis tayang dulu bro.');
+    const error = await updateGigStatus(gig.id, { approved_until: approvedUntilValue });
+    if (error) alert('Gagal update tanggal habis pamflet: ' + error.message);
+    else {
+      alert(`Tanggal habis pamflet diset ke ${formatDisplayDate(approvedUntilValue)}.`);
       fetchData();
     }
   };
@@ -5939,8 +5984,8 @@ export default function App() {
     handlePlayTrack(nextTrack, playerQueue);
   };
 
-  const approvedFreeGigs = gigs.filter((gig) => gig.status === 'approved' || gig.status === 'approved_free');
-  const approvedExclusiveGigs = gigs.filter((gig) => gig.status === 'approved_exclusive');
+  const approvedFreeGigs = gigs.filter((gig) => (gig.status === 'approved' || gig.status === 'approved_free') && isVisibleApprovedHomepageGig(gig));
+  const approvedExclusiveGigs = gigs.filter((gig) => gig.status === 'approved_exclusive' && isVisibleApprovedHomepageGig(gig));
   const exclusiveWaitingPaymentGigs = gigs.filter((gig) => gig.status === 'approved_waiting_payment');
   const exclusivePaidWaitingActivationGigs = gigs.filter((gig) => gig.status === 'paid_waiting_activation');
   const paidExclusivePosterGigs = [...exclusivePaidWaitingActivationGigs, ...approvedExclusiveGigs];
@@ -8992,8 +9037,17 @@ export default function App() {
                       <div>Tayang sampai: <span style={{ color: '#73BBC9' }}>{getGigApprovedUntil(gig) || 'Belum ada, approve ulang setelah SQL upgrade'}</span></div>
                     )}
                   </div>
+                  <label style={{ display: 'grid', gap: '6px', marginBottom: '10px' }}>
+                    <span style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px' }}>HABIS TAYANG</span>
+                    <input
+                      type="date"
+                      value={getGigExpiryDraftValue(gig)}
+                      onChange={(event) => updateGigExpiryDraft(gig.id, event.target.value)}
+                      style={{ ...formInputStyle, padding: '9px 10px', fontSize: '11px' }}
+                    />
+                  </label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                    <button onClick={() => handleGigModeration(gig.id, 'approved_free')} style={{ padding: '10px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE</button>
+                    <button onClick={() => handleGigModeration(gig.id, 'approved_free', getGigExpiryDraftValue(gig))} style={{ padding: '10px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>FREE</button>
                     <button onClick={() => handleGigModeration(gig.id, 'approved_waiting_payment')} style={{ padding: '10px', backgroundColor: 'rgba(241,212,229,0.06)', color: '#F8F7F8', border: '1px solid rgba(115,187,201,0.45)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>APPROVE PAY</button>
                     <button onClick={() => handleGigModeration(gig.id, 'rejected')} style={{ padding: '10px', backgroundColor: 'rgba(241,212,229,0.1)', color: '#F8F7F8', border: '1px solid rgba(241,212,229,0.35)', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REJECT</button>
                   </div>
@@ -9024,9 +9078,20 @@ export default function App() {
                           <p style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{gig.city} / {getGigDate(gig)}</p>
                           <p style={{ color: group.color, fontSize: '11px', fontWeight: '900', lineHeight: 1.45, margin: '4px 0 0 0' }}>{group.mode === 'waiting' ? `Menunggu user bayar Rp ${EXCLUSIVE_POSTER_SLOT_FEE.toLocaleString('id-ID')}` : 'Payment received, siap diaktifkan'}</p>
+                          {group.mode === 'activate' && (
+                            <label style={{ display: 'grid', gap: '5px', marginTop: '8px', maxWidth: '170px' }}>
+                              <span style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '0.8px' }}>HABIS TAYANG</span>
+                              <input
+                                type="date"
+                                value={getGigExpiryDraftValue(gig)}
+                                onChange={(event) => updateGigExpiryDraft(gig.id, event.target.value)}
+                                style={{ ...formInputStyle, padding: '7px 8px', fontSize: '10px', borderRadius: '8px' }}
+                              />
+                            </label>
+                          )}
                         </div>
                         {group.mode === 'activate' ? (
-                          <button onClick={() => handleGigActivateExclusive(gig.id)} style={{ padding: '9px 11px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>ACTIVATE</button>
+                          <button onClick={() => handleGigActivateExclusive(gig.id, getGigExpiryDraftValue(gig))} style={{ padding: '9px 11px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>ACTIVATE</button>
                         ) : (
                           <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', whiteSpace: 'nowrap' }}>WAIT PAY</span>
                         )}
@@ -9058,8 +9123,20 @@ export default function App() {
                           <p style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 6px 0' }}>{gig.title?.toUpperCase()}</p>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>APPROVE: <span style={{ color: '#F8F7F8' }}>{getGigApprovedAt(gig) || '-'}</span></p>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>HABIS: <span style={{ color: 'rgba(255,255,255,0.72)' }}>{getGigApprovedUntil(gig) || 'APPROVE ULANG SETELAH SQL UPGRADE'}</span></p>
+                          <label style={{ display: 'grid', gap: '5px', marginTop: '8px', maxWidth: '170px' }}>
+                            <span style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '0.8px' }}>UBAH HABIS TAYANG</span>
+                            <input
+                              type="date"
+                              value={getGigExpiryDraftValue(gig)}
+                              onChange={(event) => updateGigExpiryDraft(gig.id, event.target.value)}
+                              style={{ ...formInputStyle, padding: '7px 8px', fontSize: '10px', borderRadius: '8px' }}
+                            />
+                          </label>
                         </div>
-                        <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '9px 11px', backgroundColor: 'rgba(241,212,229,0.1)', color: '#F8F7F8', border: '1px solid rgba(241,212,229,0.35)', borderRadius: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                        <div style={{ display: 'grid', gap: '6px' }}>
+                          <button onClick={() => handleGigExpiryUpdate(gig)} style={{ padding: '8px 10px', backgroundColor: 'rgba(115,187,201,0.12)', color: '#73BBC9', border: '1px solid rgba(115,187,201,0.35)', borderRadius: '10px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>SAVE</button>
+                          <button onClick={() => handleGigRemove(gig.id)} style={{ padding: '8px 10px', backgroundColor: 'rgba(241,212,229,0.1)', color: '#F8F7F8', border: '1px solid rgba(241,212,229,0.35)', borderRadius: '10px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>REMOVE</button>
+                        </div>
                       </div>
                     ))}
                   </div>
