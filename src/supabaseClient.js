@@ -5,6 +5,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const missingConfigError = { message: 'Supabase env belum diset di Vercel: VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY.' };
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl).origin : '';
 
 const createEmptyBuilder = () => {
   const builder = {

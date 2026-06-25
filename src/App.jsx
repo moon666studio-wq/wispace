@@ -1,48 +1,60 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { supabase, isSupabaseConfigured, supabaseOrigin } from './supabaseClient';
 import { createEmptyWispacePick, getYoutubeThumbnail, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
 const fetchCloudData = async (user = null) => {
-  const { data: gigsData } = await supabase.from('gigs').select('*').order('created_at', { ascending: false });
-  const { data: tracksData } = await supabase.from('tracks').select('*').order('created_at', { ascending: false }).limit(10);
-  const { data: bandProfilesData, error: bandProfilesError } = await supabase.from('band_profiles').select('*').order('updated_at', { ascending: false });
-  const { data: releasesData, error: releasesError } = await supabase.from('releases').select('*, release_tracks(*)').order('created_at', { ascending: false });
-  const { data: articlesData, error: articlesError } = await supabase.from('band_articles').select('*').order('created_at', { ascending: false });
-  const { data: merchData, error: merchError } = await supabase.from('merch_items').select('*').order('created_at', { ascending: false });
-  const { data: commentsData, error: commentsError } = await supabase.from('article_comments').select('*').order('created_at', { ascending: false });
-  const { data: transactionsData, error: transactionsError } = user?.id
-    ? await supabase.from('sales_transactions').select('*').order('created_at', { ascending: false })
-    : { data: null, error: null };
-  const { data: audienceLibraryData, error: audienceLibraryError } = user?.id
-    ? await supabase.from('audience_library').select('*, releases(*, release_tracks(*)), release_tracks(*)').eq('audience_user_id', user.id).order('purchased_at', { ascending: false })
-    : { data: null, error: null };
-  const { data: merchOrdersData, error: merchOrdersError } = user?.id
-    ? await supabase.from('merch_orders').select('*, merch_items(name, band_name, band_slug, fulfillment_mode, consignment_status, admin_stock_on_hand, origin_shipping)').order('created_at', { ascending: false })
-    : { data: null, error: null };
-  const { data: subscriptionsData, error: subscriptionsError } = user?.id
-    ? await supabase.from('band_subscriptions').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
-    : { data: null, error: null };
-  const { data: notificationReadsData, error: notificationReadsError } = user?.id
-    ? await supabase.from('audience_notification_reads').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
-    : { data: null, error: null };
-  const { data: updateNotificationsData, error: updateNotificationsError } = await supabase.from('band_update_notifications').select('*').order('created_at', { ascending: false }).limit(100);
-  const { data: releaseAgreementsData, error: releaseAgreementsError } = user?.id
-    ? await supabase.from('release_agreements').select('*').order('signed_at', { ascending: false })
-    : { data: null, error: null };
-  const { data: messagesData, error: messagesError } = user?.id
-    ? await supabase.from('wispace_messages').select('*').order('created_at', { ascending: false }).limit(200)
-    : { data: null, error: null };
-  const { data: wispacePickData, error: wispacePickError } = await supabase
-    .from('wispace_picks')
-    .select('*')
-    .eq('id', 'homepage')
-    .maybeSingle();
+  const [
+    { data: gigsData },
+    { data: bandProfilesData, error: bandProfilesError },
+    { data: releasesData, error: releasesError },
+    { data: articlesData, error: articlesError },
+    { data: merchData, error: merchError },
+    { data: commentsData, error: commentsError },
+    { data: transactionsData, error: transactionsError },
+    { data: audienceLibraryData, error: audienceLibraryError },
+    { data: merchOrdersData, error: merchOrdersError },
+    { data: subscriptionsData, error: subscriptionsError },
+    { data: notificationReadsData, error: notificationReadsError },
+    { data: updateNotificationsData, error: updateNotificationsError },
+    { data: releaseAgreementsData, error: releaseAgreementsError },
+    { data: messagesData, error: messagesError },
+    { data: wispacePickData, error: wispacePickError }
+  ] = await Promise.all([
+    supabase.from('gigs').select('*').order('created_at', { ascending: false }),
+    supabase.from('band_profiles').select('*').order('updated_at', { ascending: false }),
+    supabase.from('releases').select('*, release_tracks(*)').order('created_at', { ascending: false }),
+    supabase.from('band_articles').select('*').order('created_at', { ascending: false }),
+    supabase.from('merch_items').select('*').order('created_at', { ascending: false }),
+    supabase.from('article_comments').select('*').order('created_at', { ascending: false }),
+    user?.id
+      ? supabase.from('sales_transactions').select('*').order('created_at', { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
+    user?.id
+      ? supabase.from('audience_library').select('*, releases(*, release_tracks(*)), release_tracks(*)').eq('audience_user_id', user.id).order('purchased_at', { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
+    user?.id
+      ? supabase.from('merch_orders').select('*, merch_items(name, band_name, band_slug, fulfillment_mode, consignment_status, admin_stock_on_hand, origin_shipping)').order('created_at', { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
+    user?.id
+      ? supabase.from('band_subscriptions').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
+    user?.id
+      ? supabase.from('audience_notification_reads').select('*').eq('audience_user_id', user.id).order('created_at', { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
+    supabase.from('band_update_notifications').select('*').order('created_at', { ascending: false }).limit(100),
+    user?.id
+      ? supabase.from('release_agreements').select('*').order('signed_at', { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
+    user?.id
+      ? supabase.from('wispace_messages').select('*').order('created_at', { ascending: false }).limit(200)
+      : Promise.resolve({ data: null, error: null }),
+    supabase.from('wispace_picks').select('*').eq('id', 'homepage').maybeSingle()
+  ]);
 
   return {
     gigsData: gigsData || [],
-    tracksData: tracksData || [],
     bandProfilesData: bandProfilesError ? loadPublicBandRegistry() : (bandProfilesData || []).map(mapBandProfileFromRow),
     releasesData: releasesError
       ? loadPublicReleaseRegistry()
@@ -113,6 +125,32 @@ const addDaysDateValue = (days = 10, baseDate = new Date()) => {
   const nextDate = new Date(baseDate);
   nextDate.setDate(nextDate.getDate() + days);
   return formatDateInputValue(nextDate);
+};
+const getPublicRoutePath = (page, options = {}) => {
+  if (page === 'explore') {
+    const nextTab = options.exploreTab || 'rilisan';
+    return `/explore?tab=${encodeURIComponent(nextTab)}`;
+  }
+  if (page === 'articles') return '/articles';
+  if (page === 'merch_market') return '/merch';
+  return '/';
+};
+const ensureHeadElement = (selector, tagName, attributes = {}) => {
+  let element = document.head.querySelector(selector);
+  if (!element) {
+    element = document.createElement(tagName);
+    document.head.appendChild(element);
+  }
+  Object.entries(attributes).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    element.setAttribute(key, value);
+  });
+  return element;
+};
+const setHeadMeta = (selector, attributes = {}, content = '') => {
+  const element = ensureHeadElement(selector, 'meta', attributes);
+  element.setAttribute('content', content);
+  return element;
 };
 const normalizeDateInputValue = (value) => {
   if (!value) return '';
@@ -477,6 +515,8 @@ const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const MINIMUM_PAYOUT_AMOUNT = 100000;
 const RELEASE_AGREEMENT_VERSION = 'wispace-release-agreement-v1';
 const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
+const WISPACE_SITE_URL = 'https://wispace.my.id';
+const WISPACE_DEFAULT_IMAGE = `${WISPACE_SITE_URL}/og-wispace.png`;
 const PUBLIC_ASSET_BUCKET = 'band-assets';
 const PUBLIC_PREVIEW_BUCKET = 'release-previews';
 const PRIVATE_AUDIO_BUCKET = 'release-audio';
@@ -2601,8 +2641,11 @@ export default function App() {
   };
 
   const navigateInternalPage = (page, options = {}) => {
-    if (window.location.pathname.startsWith('/band/')) {
-      window.history.pushState({ page }, '', '/');
+    const nextPath = getPublicRoutePath(page, options);
+    const nextUrl = `${nextPath}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+    if (currentUrl !== nextUrl) {
+      window.history.pushState({ page, exploreTab: options.exploreTab || null }, '', nextUrl);
     }
     setSelectedGigDetail(null);
     setSelectedPosterPreview(null);
@@ -7097,6 +7140,156 @@ export default function App() {
     return () => window.removeEventListener('popstate', syncBandRoute);
   }, [activePage, bandProfile.name, bandProfile.slug, isBandAccount, signatureName]);
 
+  useEffect(() => {
+    const syncPublicRoute = () => {
+      if (window.location.pathname.startsWith('/band/')) return;
+
+      if (window.location.pathname === '/explore') {
+        const routeTab = new URLSearchParams(window.location.search).get('tab') || 'rilisan';
+        setExploreTab(['rilisan', 'band', 'artikel', 'merch'].includes(routeTab) ? routeTab : 'rilisan');
+        setActivePage('explore');
+        return;
+      }
+
+      if (window.location.pathname === '/articles') {
+        setActivePage('articles');
+        return;
+      }
+
+      if (window.location.pathname === '/merch') {
+        setActivePage('merch_market');
+        return;
+      }
+
+      if (window.location.pathname === '/') {
+        setActivePage('home');
+      }
+    };
+
+    syncPublicRoute();
+    window.addEventListener('popstate', syncPublicRoute);
+    return () => window.removeEventListener('popstate', syncPublicRoute);
+  }, []);
+
+  useEffect(() => {
+    if (!supabaseOrigin || typeof document === 'undefined') return;
+    const origin = supabaseOrigin.replace(/\/$/, '');
+    ensureHeadElement(`link[rel="preconnect"][href="${origin}"]`, 'link', { rel: 'preconnect', href: origin, crossorigin: '' });
+    ensureHeadElement(`link[rel="dns-prefetch"][href="${origin}"]`, 'link', { rel: 'dns-prefetch', href: origin });
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const pagePath = window.location.pathname.startsWith('/band/')
+      ? window.location.pathname
+      : getPublicRoutePath(activePage, { exploreTab });
+    const pageUrl = `${WISPACE_SITE_URL}${pagePath}`;
+
+    let nextTitle = 'WiSpace - Rilisan Digital, Gigs, dan Merch Band Indie';
+    let nextDescription = 'WiSpace adalah wadah musisi indie untuk menjual album digital, menampilkan profile band, gigs, artikel skena, dan merchandise.';
+    let nextImage = WISPACE_DEFAULT_IMAGE;
+    let structuredData = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          name: 'WiSpace',
+          url: WISPACE_SITE_URL,
+          logo: `${WISPACE_SITE_URL}/favicon.svg`
+        },
+        {
+          '@type': 'WebSite',
+          name: 'WiSpace',
+          url: WISPACE_SITE_URL,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${WISPACE_SITE_URL}/explore?tab=rilisan&q={search_term_string}`,
+            'query-input': 'required name=search_term_string'
+          }
+        }
+      ]
+    };
+
+    if (isBandPublicPage && displayBandProfile?.name) {
+      nextTitle = `${displayBandProfile.name} | WiSpace`;
+      nextDescription = `${displayBandProfile.name} di WiSpace. ${displayBandProfile.genre || 'Band indie'} dari ${displayBandProfile.city || 'Indonesia'} dengan rilisan digital, promo track, jadwal manggung, dan merchandise.`;
+      nextImage = displayBandProfile.coverPreview || displayBandProfile.photoPreview || WISPACE_DEFAULT_IMAGE;
+      structuredData = {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'ProfilePage',
+            name: `${displayBandProfile.name} | WiSpace`,
+            url: pageUrl,
+            mainEntity: {
+              '@type': 'MusicGroup',
+              name: displayBandProfile.name,
+              genre: displayBandProfile.genre || 'Indie',
+              description: displayBandProfile.bio || nextDescription,
+              image: displayBandProfile.coverPreview || displayBandProfile.photoPreview || WISPACE_DEFAULT_IMAGE
+            }
+          }
+        ]
+      };
+    } else if (activePage === 'explore') {
+      nextTitle = `Explore ${String(exploreTab || 'rilisan').toUpperCase()} | WiSpace`;
+      nextDescription = 'Jelajahi rilisan digital, direktori band, artikel skena, dan merchandise musisi indie di WiSpace.';
+    } else if (activePage === 'articles') {
+      nextTitle = selectedArticle?.title ? `${selectedArticle.title} | WiSpace NewsSpace` : 'NewsSpace | WiSpace';
+      nextDescription = selectedArticle?.excerpt || selectedArticle?.body?.slice(0, 180) || 'NewsSpace berisi artikel, catatan rilisan, dan cerita skena band indie di WiSpace.';
+    } else if (activePage === 'merch_market') {
+      nextTitle = 'Merch Band Indie | WiSpace';
+      nextDescription = 'Etalase merchandise band indie di WiSpace. Temukan kaos, rilisan fisik, dan item resmi langsung dari musisi.';
+    } else if (selectedRelease?.title) {
+      nextTitle = `${selectedRelease.title} | WiSpace`;
+      nextDescription = `${selectedRelease.bandName || 'Band WiSpace'} merilis ${selectedRelease.title} di WiSpace. Dengarkan preview, beli album digital, dan cek detail track.`;
+      nextImage = selectedRelease.coverPreview || WISPACE_DEFAULT_IMAGE;
+    } else if (selectedMerchDetail?.name) {
+      nextTitle = `${selectedMerchDetail.name} | WiSpace`;
+      nextDescription = `${selectedMerchDetail.bandName || 'Band WiSpace'} menjual ${selectedMerchDetail.name} di WiSpace. Cek detail merch dan ketersediaan stock.`;
+      nextImage = selectedMerchDetail.imagePreview || WISPACE_DEFAULT_IMAGE;
+    }
+
+    const titleElement = ensureHeadElement('title', 'title');
+    titleElement.textContent = nextTitle;
+    setHeadMeta('meta[name="description"]', { name: 'description' }, nextDescription);
+    setHeadMeta('meta[name="robots"]', { name: 'robots' }, 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    setHeadMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, 'WiSpace');
+    setHeadMeta('meta[property="og:type"]', { property: 'og:type' }, 'website');
+    setHeadMeta('meta[property="og:title"]', { property: 'og:title' }, nextTitle);
+    setHeadMeta('meta[property="og:description"]', { property: 'og:description' }, nextDescription);
+    setHeadMeta('meta[property="og:url"]', { property: 'og:url' }, pageUrl);
+    setHeadMeta('meta[property="og:image"]', { property: 'og:image' }, nextImage);
+    setHeadMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'summary_large_image');
+    setHeadMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, nextTitle);
+    setHeadMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, nextDescription);
+    setHeadMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, nextImage);
+    ensureHeadElement('link[rel="canonical"]', 'link', { rel: 'canonical', href: pageUrl });
+
+    const structuredDataTag = ensureHeadElement('script#wispace-structured-data', 'script', { id: 'wispace-structured-data', type: 'application/ld+json' });
+    structuredDataTag.textContent = JSON.stringify(structuredData);
+  }, [
+    activePage,
+    exploreTab,
+    isBandPublicPage,
+    displayBandProfile?.name,
+    displayBandProfile?.genre,
+    displayBandProfile?.city,
+    displayBandProfile?.bio,
+    displayBandProfile?.coverPreview,
+    displayBandProfile?.photoPreview,
+    selectedArticle?.title,
+    selectedArticle?.excerpt,
+    selectedArticle?.body,
+    selectedRelease?.title,
+    selectedRelease?.bandName,
+    selectedRelease?.coverPreview,
+    selectedMerchDetail?.name,
+    selectedMerchDetail?.bandName,
+    selectedMerchDetail?.imagePreview
+  ]);
+
   const accountDisplayName = isBandAccount
     ? (bandProfile.name || signatureName || 'BAND')
     : (audienceProfile.displayName || userSession?.email?.split('@')[0] || 'USER');
@@ -7123,7 +7316,7 @@ export default function App() {
   );
   const renderGigPosterImage = (gig, style, label = 'NO PAMFLET') => (
     gig?.image ? (
-      <img src={gig.image} alt="" style={style} />
+      <img src={gig.image} alt="" loading="lazy" decoding="async" style={style} />
     ) : (
       <div style={{ ...style, display: 'grid', placeItems: 'center', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', textAlign: 'center' }}>
         {label}
@@ -7555,6 +7748,16 @@ export default function App() {
       `}</style>
       <div style={ambientLayerStyle} />
       <div style={ambientLineStyle} />
+      {loading && (
+        <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '24px' : '40px', boxSizing: 'border-box' }}>
+          <div style={{ display: 'grid', gap: '14px', justifyItems: 'center', textAlign: 'center', maxWidth: '420px' }}>
+            <img src={WISPACE_LOGO_SRC} alt="WiSpace" width="150" height="40" decoding="async" style={{ width: isTinyLayout ? '120px' : '150px', height: 'auto', display: 'block' }} />
+            <div style={{ width: '56px', height: '2px', borderRadius: '9999px', background: 'linear-gradient(90deg, rgba(115,187,201,0.1), rgba(115,187,201,0.92), rgba(241,212,229,0.1))' }} />
+            <p style={{ margin: 0, color: '#F8F7F8', fontSize: isTinyLayout ? '14px' : '15px', fontWeight: '900', letterSpacing: '0.4px' }}>LOADING WISPACE</p>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55 }}>Sedang ambil rilisan, band, gigs, dan update skena.</p>
+          </div>
+        </div>
+      )}
       {!isSupabaseConfigured && (
         <div style={{ position: 'fixed', left: '20px', right: '20px', bottom: '20px', zIndex: 2000, padding: '14px 16px', backgroundColor: 'rgba(241,212,229,0.12)', border: '1px solid rgba(241,212,229,0.45)', borderRadius: '14px', color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.4, boxShadow: '0 18px 45px rgba(8,2,2,0.45)' }}>
           SUPABASE ENV BELUM DISET DI HOSTING. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu redeploy.
