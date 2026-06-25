@@ -134,6 +134,24 @@ const isGigExpired = (gig) => {
   return parsedDate < new Date();
 };
 const isVisibleApprovedHomepageGig = (gig) => isApprovedHomepageGig(gig) && !isGigExpired(gig);
+const isGigEventPast = (gig) => {
+  const parsedDate = parseDisplayDate(gig?.date || getGigMeta(gig, 'date', ''));
+  if (!parsedDate) return false;
+  parsedDate.setHours(23, 59, 59, 999);
+  return parsedDate < new Date();
+};
+const extractPublicAssetPath = (publicUrl = '', bucket = PUBLIC_ASSET_BUCKET) => {
+  if (!publicUrl || typeof publicUrl !== 'string') return '';
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const markerIndex = publicUrl.indexOf(marker);
+  if (markerIndex === -1) return '';
+  const rawPath = publicUrl.slice(markerIndex + marker.length).split('?')[0];
+  try {
+    return decodeURIComponent(rawPath);
+  } catch {
+    return rawPath;
+  }
+};
 const getGigStatusLabel = (status = 'pending') => ({
   pending: 'PENDING REVIEW',
   approved: 'FREE LIVE',
@@ -153,6 +171,52 @@ const getGigStatusColor = (status = 'pending') => ({
   rejected: '#F1D4E5',
   removed: 'rgba(255,255,255,0.72)'
 }[status] || 'rgba(255,255,255,0.72)');
+const cleanupExpiredGigRecord = async (gig) => {
+  const storagePath = gig?.image_path || extractPublicAssetPath(gig?.image);
+  if (storagePath && isSupabaseConfigured) {
+    const { error: removeAssetError } = await supabase.storage.from(PUBLIC_ASSET_BUCKET).remove([storagePath]);
+    if (removeAssetError) {
+      console.warn(`Gagal hapus asset pamflet ${gig?.id || ''}:`, removeAssetError.message);
+    }
+  }
+
+  const richUpdatePayload = {
+    status: 'removed',
+    image: null,
+    image_path: null,
+    removed_at: new Date().toISOString(),
+    removal_reason: 'event_date_passed'
+  };
+  const { error: richError } = await supabase.from('gigs').update(richUpdatePayload).eq('id', gig.id);
+  if (!richError) return;
+  if (!isMissingColumnError(richError)) {
+    console.warn(`Gagal cleanup pamflet ${gig?.id || ''}:`, richError.message);
+    return;
+  }
+
+  const { error: lightError } = await supabase
+    .from('gigs')
+    .update({ status: 'removed', image: null })
+    .eq('id', gig.id);
+  if (!lightError) return;
+  if (!isMissingColumnError(lightError)) {
+    console.warn(`Gagal cleanup ringan pamflet ${gig?.id || ''}:`, lightError.message);
+    return;
+  }
+
+  const { error: fallbackError } = await supabase.from('gigs').update({ status: 'removed' }).eq('id', gig.id);
+  if (fallbackError && !isMissingColumnError(fallbackError)) {
+    console.warn(`Gagal fallback cleanup pamflet ${gig?.id || ''}:`, fallbackError.message);
+  }
+};
+const normalizeFetchedGigs = async (rawGigs = []) => {
+  const staleGigs = rawGigs.filter((gig) => gig?.status !== 'removed' && isGigEventPast(gig));
+  if (!staleGigs.length) return rawGigs;
+
+  await Promise.all(staleGigs.map((gig) => cleanupExpiredGigRecord(gig)));
+  const staleGigIds = new Set(staleGigs.map((gig) => String(gig.id)));
+  return rawGigs.filter((gig) => !staleGigIds.has(String(gig.id)));
+};
 const getMerchOrderStatusLabel = (status = 'order_paid_waiting_band') => ({
   order_paid_waiting_band: 'PAID - WAIT BAND',
   order_paid_waiting_admin: 'PAID - WAIT ADMIN',
@@ -1382,6 +1446,7 @@ export default function App() {
   const [newCp, setNewCp] = useState('');
   const [newGigRequestType, setNewGigRequestType] = useState('free');
   const [newPosterImage, setNewPosterImage] = useState('');
+  const [newPosterImagePath, setNewPosterImagePath] = useState('');
   const [newPosterName, setNewPosterName] = useState('');
   const [newPosterNotice, setNewPosterNotice] = useState('');
   const [scheduleDraft, setScheduleDraft] = useState({
@@ -2323,7 +2388,8 @@ export default function App() {
   // FETCH DATABASE CLOUD
   const fetchData = async () => {
     const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, audienceLibraryData, merchOrdersData, subscribedBandsData, notificationReadsData, updateNotificationsData, releaseAgreementsData, messagesData, wispacePickData } = await fetchCloudData(userSession);
-    setGigs(gigsData);
+    const normalizedGigs = await normalizeFetchedGigs(gigsData);
+    setGigs(normalizedGigs);
     setPublicBandProfiles(bandProfilesData);
     setAlbumItems(releasesData);
     setPublicArticleItems(articlesData);
@@ -2363,7 +2429,10 @@ export default function App() {
       const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData, wispacePickData } = await fetchCloudData();
       if (!isActive) return;
 
-      setGigs(gigsData);
+      const normalizedGigs = await normalizeFetchedGigs(gigsData);
+      if (!isActive) return;
+
+      setGigs(normalizedGigs);
       setPublicBandProfiles(bandProfilesData);
       setAlbumItems(releasesData);
       setPublicArticleItems(articlesData);
@@ -2736,6 +2805,7 @@ export default function App() {
       htm: newHtm,
       cp: newCp,
       request_type: newGigRequestType,
+      image_path: newPosterImagePath || null,
       image: newPosterImage,
       status: 'pending' 
     };
@@ -2748,6 +2818,7 @@ export default function App() {
       setNewTitle(''); setNewCity(''); setNewGenre(''); setNewDate(''); setNewHtm(''); setNewCp('');
       setNewGigRequestType('free');
       setNewPosterImage('');
+      setNewPosterImagePath('');
       setNewPosterName('');
       setNewPosterNotice('');
       setShowAuthModal(false); 
@@ -2773,6 +2844,7 @@ export default function App() {
     try {
       const uploadResult = await uploadPublicAsset(file, newGigRequestType === 'exclusive' ? 'gigs/exclusive' : 'gigs/free', userSession);
       setNewPosterImage(uploadResult.publicUrl);
+      setNewPosterImagePath(uploadResult.path || '');
       setNewPosterName(file.name);
 
       const dimensions = await loadImageDimensions(uploadResult.fallbackPreview);
