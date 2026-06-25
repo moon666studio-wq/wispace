@@ -6060,6 +6060,11 @@ export default function App() {
   const approvedExclusiveGigs = gigs.filter((gig) => gig.status === 'approved_exclusive' && isVisibleApprovedHomepageGig(gig));
   const exclusiveWaitingPaymentGigs = gigs.filter((gig) => gig.status === 'approved_waiting_payment');
   const exclusivePaidWaitingActivationGigs = gigs.filter((gig) => gig.status === 'paid_waiting_activation');
+  const archivedGigs = [...gigs.filter((gig) => gig.status === 'removed')].sort((leftGig, rightGig) => {
+    const leftTime = Date.parse(leftGig.updatedAt || leftGig.approvedUntil || leftGig.date || leftGig.createdAt || 0) || 0;
+    const rightTime = Date.parse(rightGig.updatedAt || rightGig.approvedUntil || rightGig.date || rightGig.createdAt || 0) || 0;
+    return rightTime - leftTime;
+  });
   const paidExclusivePosterGigs = [...exclusivePaidWaitingActivationGigs, ...approvedExclusiveGigs];
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const matchesSearch = (...values) => !normalizedSearchTerm || values.some((value) => String(value || '').toLowerCase().includes(normalizedSearchTerm));
@@ -9217,6 +9222,57 @@ export default function App() {
             ))}
           </div>
           )}
+
+          {adminActiveSection === 'pamflet' && (
+          <section style={{ ...flatSurfaceStyle, padding: isTinyLayout ? '12px 10px' : '14px 12px', marginTop: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: '12px' }}>
+              <div>
+                <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>POSTER ARCHIVE</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: 0 }}>ARSIP PAMFLET NONAKTIF</h3>
+              </div>
+              <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900' }}>{archivedGigs.length} ITEM</span>
+            </div>
+            {archivedGigs.length === 0 ? (
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada pamflet yang masuk arsip.</p>
+            ) : (
+              <div style={flatListStyle}>
+                {archivedGigs.slice(0, 24).map((gig) => (
+                  <div
+                    key={`archived-${gig.id}`}
+                    style={{
+                      ...flatItemStyle,
+                      gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1.25fr) minmax(130px, 0.55fr) minmax(140px, 0.65fr) auto',
+                      cursor: 'default',
+                      padding: isTinyLayout ? '8px 0' : '9px 0'
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: getGigRequestType(gig) === 'exclusive' ? '#73BBC9' : 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>
+                        {getGigRequestType(gig) === 'exclusive' ? 'EXCLUSIVE SLIDE' : 'FREE BULLETIN'}
+                      </p>
+                      <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(gig.title || 'Pamflet WiSpace').toUpperCase()}</h4>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.35, margin: 0 }}>{gig.city || '-'} / {getGigDate(gig)} / {getGigGenre(gig)}</p>
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>APPROVE</p>
+                      <p style={{ color: '#F8F7F8', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{getGigApprovedAt(gig) || '-'}</p>
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', margin: '0 0 4px 0' }}>ARSIP SEJAK</p>
+                      <p style={{ color: '#F8F7F8', fontSize: '11px', lineHeight: 1.35, margin: 0 }}>{getGigApprovedUntil(gig) || getGigDate(gig)}</p>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: isCompactLayout ? 'flex-start' : 'flex-end', gap: '6px', flexWrap: 'wrap' }}>
+                      {gig.image ? (
+                        <button type="button" onClick={() => setSelectedPosterPreview(gig)} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>PREVIEW</button>
+                      ) : null}
+                      <span style={{ color: '#F1D4E5', fontSize: '9px', fontWeight: '900', alignSelf: 'center', whiteSpace: 'nowrap' }}>REMOVED</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+          )}
             </>
           )}
         </section>
@@ -10170,7 +10226,7 @@ export default function App() {
                   ['ACCESS', 'ENCRYPTED'],
                   ['REDISTRIBUTION', 'DILARANG']
                 ].map(([label, value]) => (
-                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#080202', border: `1px solid ${label === 'REDISTRIBUTION' ? 'rgba(241,212,229,0.22)' : 'rgba(115,187,201,0.18)'}`, borderRadius: '9999px', color: label === 'REDISTRIBUTION' ? '#F1D4E5' : '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
+                  <span key={label} style={{ padding: '7px 10px', background: softRowBackground, border: `1px solid ${label === 'REDISTRIBUTION' ? 'rgba(241,212,229,0.22)' : 'rgba(115,187,201,0.18)'}`, borderRadius: '9999px', color: label === 'REDISTRIBUTION' ? '#F1D4E5' : '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
                     {label}: <strong style={{ color: label === 'REDISTRIBUTION' ? '#F1D4E5' : '#F1D4E5' }}>{value}</strong>
                   </span>
                 ))}
@@ -10179,7 +10235,7 @@ export default function App() {
           </div>
 
           {purchasedAlbums.length === 0 ? (
-            <div style={{ ...glassStyle('library-empty'), padding: '28px', backgroundColor: '#080202' }}>
+            <div style={{ ...flatSurfaceStyle, padding: '24px 18px' }}>
               <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>LIBRARY MASIH KOSONG</h3>
               <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada rilisan digital.</p>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
@@ -10229,7 +10285,7 @@ export default function App() {
               <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '12px' : '14px', paddingBottom: isTinyLayout ? '12px' : '14px' }}>
                 <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '96px 1fr' : '118px 1fr', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.08)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', background: softRowBackground, border: `1px solid ${flatLineColor}`, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
                     {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900' }}>PLAYER</span>}
                   </div>
                   <div style={{ minWidth: 0 }}>
@@ -10238,10 +10294,10 @@ export default function App() {
                         <h4 style={{ color: '#F8F7F8', fontSize: '17px', fontWeight: '900', margin: '0 0 6px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
                         <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
                       </div>
-                      <span style={{ flexShrink: 0, padding: '6px 8px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: '#F8F7F8', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
+                      <span style={{ flexShrink: 0, padding: '6px 8px', background: softRowBackground, border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: '#F8F7F8', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', color: '#73BBC9', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
+                      <span style={{ padding: '5px 7px', borderRadius: '9999px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.18)', color: '#73BBC9', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
                     </div>
                   </div>
                 </div>
@@ -10269,7 +10325,7 @@ export default function App() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
-                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
+                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: softRowBackground, border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
                 <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(241,212,229,0.08)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
@@ -10312,7 +10368,7 @@ export default function App() {
                   ['PAYMENT WAIT', activeAudiencePaymentRequests.length],
                   ['SELESAI', audienceMerchOrders.filter((order) => order.trackingStatus === 'completed').length]
                 ].map(([label, value]) => (
-                  <span key={label} style={{ padding: '7px 10px', backgroundColor: '#080202', border: '1px solid rgba(115,187,201,0.18)', borderRadius: '9999px', color: label === 'AKTIF' && value ? 'rgba(255,255,255,0.72)' : '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
+                  <span key={label} style={{ padding: '7px 10px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.18)', borderRadius: '9999px', color: label === 'AKTIF' && value ? 'rgba(255,255,255,0.72)' : '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.6px' }}>
                     {label}: <strong style={{ color: '#F8F7F8' }}>{value}</strong>
                   </span>
                 ))}
@@ -10346,7 +10402,7 @@ export default function App() {
           )}
 
           {audienceMerchOrders.length === 0 ? (
-            <div style={{ ...glassStyle('orders-empty'), padding: '28px', backgroundColor: '#080202' }}>
+            <div style={{ ...flatSurfaceStyle, padding: '24px 18px' }}>
               <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>BELUM ADA ORDER MERCH</h3>
               <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, masuk tab Merch, lalu checkout item fisik dari band. Status order akan tampil di sini.</p>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
