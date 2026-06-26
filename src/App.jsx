@@ -404,6 +404,16 @@ const getMerchShipmentLabelSummary = (order = {}) => {
   }
   return { title: 'Menunggu label', note: 'Setelah payment paid, sistem mencoba booking shipment ke ekspedisi.', color: 'rgba(255,255,255,0.72)' };
 };
+const getMerchTrackingLiveSummary = (order = {}) => {
+  if (!order.trackingProviderLabel && !order.trackingProviderSummary && !order.trackingLastCheckedAt) return null;
+  return {
+    title: order.trackingProviderLabel || 'Tracking tersedia',
+    note: order.trackingProviderSummary || 'Tracking live sudah kebaca dari provider.',
+    status: order.trackingProviderStatus || '',
+    checkedAt: order.trackingLastCheckedAt || '',
+    source: order.trackingSource || ''
+  };
+};
 const getReadinessColor = (status = 'todo') => ({
   ready: 'rgba(255,255,255,0.72)',
   scaffold: '#73BBC9',
@@ -499,6 +509,7 @@ const PAYMENT_GATEWAY_API_ENDPOINT = import.meta.env.VITE_PAYMENT_API_ENDPOINT |
 const ORDER_NOTIFICATION_API_ENDPOINT = import.meta.env.VITE_ORDER_NOTIFICATION_API_ENDPOINT || '/api/notify-order';
 const SHIPPING_RATES_API_ENDPOINT = import.meta.env.VITE_SHIPPING_RATES_API_ENDPOINT || '/api/shipping-rates';
 const SHIPMENT_CREATE_API_ENDPOINT = import.meta.env.VITE_SHIPMENT_CREATE_API_ENDPOINT || '/api/create-shipment';
+const SHIPMENT_TRACK_API_ENDPOINT = import.meta.env.VITE_SHIPMENT_TRACK_API_ENDPOINT || '/api/shipping-track';
 const PAYMENT_GATEWAY_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || '';
 const PAYMENT_GATEWAY_WEBHOOK_PATH = '/api/payment-webhook';
 const PAYMENT_GATEWAY_PROVIDER_OPTIONS = [
@@ -1190,6 +1201,12 @@ const mapMerchOrderFromRow = (row = {}) => ({
   shipmentLabelUrl: row.shipment_label_url || '',
   shipmentBookingStatus: row.shipment_booking_status || '',
   shippingPaymentStatus: row.shipping_payment_status || '',
+  trackingProviderStatus: '',
+  trackingProviderLabel: '',
+  trackingProviderSummary: '',
+  trackingEvents: [],
+  trackingLastCheckedAt: '',
+  trackingSource: '',
   createdAt: row.created_at
     ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.created_at))
     : ''
@@ -1528,6 +1545,7 @@ export default function App() {
   const [selectedMerchDetail, setSelectedMerchDetail] = useState(null);
   const [selectedMerchOrderDetail, setSelectedMerchOrderDetail] = useState(null);
   const [shipmentBookingOrderId, setShipmentBookingOrderId] = useState('');
+  const [shipmentTrackingOrderId, setShipmentTrackingOrderId] = useState('');
   const [selectedWispacePickDetail, setSelectedWispacePickDetail] = useState(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
@@ -4549,6 +4567,34 @@ export default function App() {
     }
   };
 
+  const requestShipmentTracking = async (order) => {
+    if (!SHIPMENT_TRACK_API_ENDPOINT || !order?.trackingNumber) return null;
+    try {
+      const response = await fetch(SHIPMENT_TRACK_API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingNumber: order.trackingNumber,
+          courierCode: order.courierCode || order.courier
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      return {
+        ok: response.ok && Boolean(data?.tracking),
+        status: response.status,
+        data,
+        error: data?.error || data?.message || ''
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        status: 0,
+        data: {},
+        error: error?.message || 'tracking_api_unreachable'
+      };
+    }
+  };
+
   const markPendingPayment = (payment) => {
     setPendingPayments((current) => {
       const nextPayments = [
@@ -5335,6 +5381,40 @@ export default function App() {
       }
     } finally {
       setShipmentBookingOrderId('');
+    }
+  };
+
+  const syncShipmentTrackingForOrder = async (order, { notify = false } = {}) => {
+    if (!order?.id || !order?.trackingNumber) {
+      if (notify) alert('Resi belum ada bro. Input nomor resi dulu baru tracking bisa dicek.');
+      return;
+    }
+    if (shipmentTrackingOrderId && String(shipmentTrackingOrderId) === String(order.id)) return;
+    setShipmentTrackingOrderId(order.id);
+    try {
+      const trackingResult = await requestShipmentTracking(order);
+      if (!trackingResult?.data?.tracking) {
+        if (notify) alert(trackingResult?.error || 'Tracking belum bisa dibaca dari provider.');
+        return;
+      }
+      const tracking = trackingResult.data.tracking || {};
+      const updatePayload = {
+        trackingProviderStatus: tracking.status || '',
+        trackingProviderLabel: tracking.statusLabel || '',
+        trackingProviderSummary: tracking.summary || trackingResult.data.message || '',
+        trackingEvents: Array.isArray(tracking.events) ? tracking.events : [],
+        trackingLastCheckedAt: new Date().toISOString(),
+        trackingSource: tracking.source || trackingResult.data.provider || ''
+      };
+      updateMerchOrderLocal(order.id, updatePayload);
+      if (notify) {
+        alert(updatePayload.trackingProviderLabel
+          ? `Tracking update: ${updatePayload.trackingProviderLabel}`
+          : 'Tracking berhasil dicek bro.'
+        );
+      }
+    } finally {
+      setShipmentTrackingOrderId('');
     }
   };
 
@@ -6442,6 +6522,7 @@ export default function App() {
       : 'rgba(255,255,255,0.72)';
   const selectedMerchOrderStage = selectedMerchOrderDetail ? getMerchOrderStageSummary(selectedMerchOrderDetail) : null;
   const selectedMerchOrderLabelStatus = selectedMerchOrderDetail ? getMerchShipmentLabelSummary(selectedMerchOrderDetail) : null;
+  const selectedMerchOrderTrackingLive = selectedMerchOrderDetail ? getMerchTrackingLiveSummary(selectedMerchOrderDetail) : null;
   const checkoutReviewLabel = checkoutIsPaid
     ? 'PAID'
     : checkoutIsCancelled
@@ -8696,6 +8777,7 @@ export default function App() {
                           <p style={{ color: stage.color, fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0', fontWeight: '900' }}>{stage.title.toUpperCase()}</p>
                           <p style={{ color: labelStatus.color, fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>{labelStatus.title.toUpperCase()}</p>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '9px', lineHeight: 1.35, margin: '5px 0 0 0' }}>Resi: <strong style={{ color: order.trackingNumber ? '#F8F7F8' : '#F1D4E5' }}>{order.trackingNumber || 'menunggu label'}</strong> / Shipment: <strong>{getShipmentBookingLabel(order.shipmentBookingStatus)}</strong></p>
+                          {order.trackingProviderLabel && <p style={{ color: '#73BBC9', fontSize: '9px', lineHeight: 1.35, margin: '4px 0 0 0', fontWeight: '900' }}>TRACKING: {String(order.trackingProviderLabel).toUpperCase()}</p>}
                         </div>
                         <strong style={{ color: getMerchOrderStatusColor(order.trackingStatus), fontSize: '9px', whiteSpace: 'nowrap' }}>{getMerchOrderStatusLabel(order.trackingStatus)}</strong>
                       </div>
@@ -8704,6 +8786,7 @@ export default function App() {
                         <button type="button" onClick={() => setSelectedMerchOrderDetail(order)} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>DETAIL</button>
                         {order.shipmentLabelUrl && <button type="button" onClick={() => window.open(order.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL</button>}
                         <button type="button" onClick={() => syncShipmentBookingForOrder(order, { notify: true })} disabled={shipmentBookingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === order.id ? 0.55 : 1 }}>{shipmentBookingOrderId === order.id ? 'BOOKING...' : 'BOOK SHIP'}</button>
+                        <button type="button" onClick={() => syncShipmentTrackingForOrder(order, { notify: true })} disabled={!order.trackingNumber || shipmentTrackingOrderId === order.id} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', opacity: !order.trackingNumber || shipmentTrackingOrderId === order.id ? 0.55 : 1 }}>{shipmentTrackingOrderId === order.id ? 'TRACKING...' : 'CEK TRACK'}</button>
                         <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, isAdminShipOrder ? 'processing_admin' : 'processing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PROSES</button>
                         <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'packing')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>PACKING</button>
                         <button type="button" onClick={() => handleMerchOrderStatusUpdate(order, 'ready_to_ship')} style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px' }}>READY</button>
@@ -11572,6 +11655,7 @@ export default function App() {
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{selectedMerchOrderDetail.orderId || selectedMerchOrderDetail.transactionId || selectedMerchOrderDetail.id} / {selectedMerchOrderDetail.createdAt || '-'}</p>
                 {selectedMerchOrderStage && <p style={{ color: selectedMerchOrderStage.color, fontSize: '10px', lineHeight: 1.4, margin: '7px 0 0 0', fontWeight: '900' }}>{selectedMerchOrderStage.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.64)', fontWeight: '700' }}>{selectedMerchOrderStage.note}</span></p>}
                 {selectedMerchOrderLabelStatus && <p style={{ color: selectedMerchOrderLabelStatus.color, fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0', fontWeight: '900' }}>{selectedMerchOrderLabelStatus.title.toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.64)', fontWeight: '700' }}>{selectedMerchOrderLabelStatus.note}</span></p>}
+                {selectedMerchOrderTrackingLive && <p style={{ color: '#73BBC9', fontSize: '10px', lineHeight: 1.4, margin: '5px 0 0 0', fontWeight: '900' }}>{String(selectedMerchOrderTrackingLive.title || 'TRACKING LIVE').toUpperCase()} / <span style={{ color: 'rgba(255,255,255,0.64)', fontWeight: '700' }}>{selectedMerchOrderTrackingLive.note}</span></p>}
               </div>
               <button type="button" onClick={() => setSelectedMerchOrderDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
@@ -11588,6 +11672,15 @@ export default function App() {
                     <p style={{ color: selectedMerchOrderLabelStatus?.color || '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{selectedMerchOrderLabelStatus?.title?.toUpperCase() || 'STATUS SHIPMENT'}</p>
                     {selectedMerchOrderDetail.trackingNumber && (
                       <button type="button" onClick={() => navigator.clipboard?.writeText(selectedMerchOrderDetail.trackingNumber)} style={{ ...glassButtonStyle, marginTop: '9px', padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY RESI {selectedMerchOrderDetail.trackingNumber}</button>
+                    )}
+                    {selectedMerchOrderDetail.trackingNumber && (
+                      <button type="button" onClick={() => syncShipmentTrackingForOrder(selectedMerchOrderDetail, { notify: true })} disabled={shipmentTrackingOrderId === selectedMerchOrderDetail.id} style={{ ...glassButtonStyle, marginTop: '9px', marginLeft: '8px', padding: '7px 9px', fontSize: '9px', borderRadius: '8px', opacity: shipmentTrackingOrderId === selectedMerchOrderDetail.id ? 0.55 : 1 }}>{shipmentTrackingOrderId === selectedMerchOrderDetail.id ? 'CHECKING...' : 'CEK TRACKING'}</button>
+                    )}
+                    {selectedMerchOrderTrackingLive && (
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: '9px 0 0 0' }}>
+                        Provider: <strong style={{ color: '#F8F7F8' }}>{selectedMerchOrderTrackingLive.title}</strong>
+                        {selectedMerchOrderTrackingLive.checkedAt ? ` / Last check ${new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(selectedMerchOrderTrackingLive.checkedAt))}` : ''}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -11622,6 +11715,23 @@ export default function App() {
                     <button type="button" onClick={() => window.open(selectedMerchOrderDetail.shipmentLabelUrl, '_blank', 'noopener,noreferrer')} style={{ ...glassButtonStyle, marginTop: '10px', padding: '8px 10px', fontSize: '9px', borderRadius: '8px' }}>CETAK LABEL EKSPEDISI</button>
                   )}
                   <button type="button" onClick={() => syncShipmentBookingForOrder(selectedMerchOrderDetail, { notify: true })} disabled={shipmentBookingOrderId === selectedMerchOrderDetail.id} style={{ ...glassButtonStyle, marginTop: '10px', marginLeft: selectedMerchOrderDetail.shipmentLabelUrl ? '8px' : 0, padding: '8px 10px', fontSize: '9px', borderRadius: '8px', opacity: shipmentBookingOrderId === selectedMerchOrderDetail.id ? 0.55 : 1 }}>{shipmentBookingOrderId === selectedMerchOrderDetail.id ? 'BOOKING...' : 'BOOKING SHIPMENT ULANG'}</button>
+                  {selectedMerchOrderTrackingLive?.note && (
+                    <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: `1.5px solid ${flatLineColor}` }}>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>TRACKING LIVE</p>
+                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: '0 0 8px 0' }}>{selectedMerchOrderTrackingLive.note}</p>
+                      {(selectedMerchOrderDetail.trackingEvents || []).length > 0 && (
+                        <div style={{ display: 'grid', gap: '7px' }}>
+                          {selectedMerchOrderDetail.trackingEvents.slice(0, 5).map((eventItem, index) => (
+                            <div key={`${eventItem.status || 'event'}-${eventItem.timestamp || index}`} style={{ padding: '8px 0', borderTop: `1px solid ${flatLineColor}` }}>
+                              <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', margin: '0 0 4px 0' }}>{eventItem.label || eventItem.status || 'Tracking update'}</p>
+                              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.45, margin: '0 0 3px 0' }}>{eventItem.description || 'Provider mengirim update tracking baru.'}</p>
+                              {eventItem.timestamp && <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '9px', margin: 0 }}>{eventItem.timestamp}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -11637,6 +11747,7 @@ export default function App() {
                       <button key={status} type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, status)} disabled={selectedMerchOrderDetail.trackingStatus === status} style={{ ...glassButtonStyle, padding: '9px 10px', fontSize: '10px', borderRadius: '9px', opacity: selectedMerchOrderDetail.trackingStatus === status ? 0.55 : 1 }}>{label}</button>
                     ))}
                     <button type="button" onClick={() => handleMerchTrackingNumberUpdate(selectedMerchOrderDetail)} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.24)', color: 'rgba(241,212,229,0.72)', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>INPUT / UPDATE RESI</button>
+                    <button type="button" onClick={() => syncShipmentTrackingForOrder(selectedMerchOrderDetail, { notify: true })} disabled={!selectedMerchOrderDetail.trackingNumber || shipmentTrackingOrderId === selectedMerchOrderDetail.id} style={{ ...glassButtonStyle, padding: '9px 10px', fontSize: '10px', borderRadius: '9px', opacity: !selectedMerchOrderDetail.trackingNumber || shipmentTrackingOrderId === selectedMerchOrderDetail.id ? 0.55 : 1 }}>{shipmentTrackingOrderId === selectedMerchOrderDetail.id ? 'TRACKING...' : 'CEK TRACKING LIVE'}</button>
                     <button type="button" onClick={() => handleMerchOrderStatusUpdate(selectedMerchOrderDetail, 'completed')} disabled={selectedMerchOrderDetail.trackingStatus === 'completed'} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '9px', padding: '9px 10px', fontSize: '10px', fontWeight: '900', cursor: selectedMerchOrderDetail.trackingStatus === 'completed' ? 'default' : 'pointer', opacity: selectedMerchOrderDetail.trackingStatus === 'completed' ? 0.55 : 1, fontFamily: FONT_STACK }}>SELESAI</button>
                     {isAdminUnlocked && (
                       <>
