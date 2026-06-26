@@ -3,6 +3,29 @@ import { compact, getFallbackRates, getServerShipperOrigin, getShippingProvider,
 
 const BITESHIP_COURIERS = 'jne,jnt,sicepat';
 
+const normalizeFallbackMessage = ({ provider = 'shipping', message = '', error = '' } = {}) => {
+  const rawText = compact(message || error);
+  const normalized = rawText.toLowerCase();
+
+  if (normalized.includes('no sufficient balance') || normalized.includes('insufficient balance')) {
+    return 'Ongkir live dari provider lagi tidak tersedia. WiSpace pakai estimasi sementara dulu.';
+  }
+
+  if (normalized.includes('area') && normalized.includes('not found')) {
+    return 'Lokasi pengiriman belum kebaca penuh. Isi kecamatan, kota, dan kode pos lebih lengkap dulu ya.';
+  }
+
+  if (normalized.includes('unauthorized') || normalized.includes('forbidden')) {
+    return 'Ongkir live belum bisa dibaca dari provider. WiSpace pakai estimasi sementara dulu.';
+  }
+
+  if (provider === 'biteship') {
+    return 'Ongkir live dari Biteship belum bisa dibaca. WiSpace pakai estimasi sementara dulu.';
+  }
+
+  return rawText || 'Ongkir live belum bisa dibaca. WiSpace pakai estimasi sementara dulu.';
+};
+
 const getBiteshipAreaQuery = (address = {}) => [
   address.district,
   address.city,
@@ -183,7 +206,13 @@ export default async function handler(req, res) {
         destinationProvince,
         weightGram,
         rates: fallbackRates,
-        message: biteshipResult.message || 'Biteship belum berhasil membaca ongkir. Menggunakan estimasi manual WiSpace dulu.'
+        message: normalizeFallbackMessage({
+          provider,
+          message: biteshipResult.message,
+          error: biteshipResult.error
+        }),
+        providerError: biteshipResult.error || '',
+        providerMessage: biteshipResult.message || ''
       });
     }
 

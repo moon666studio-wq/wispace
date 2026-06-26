@@ -4265,7 +4265,7 @@ export default function App() {
       setCheckoutShippingStatus({
         loading: false,
         message: isManualFallbackRate
-          ? `${data?.message || 'Biteship belum kebaca, pakai estimasi manual WiSpace dulu.'} Tarif bisa beda dari final provider.`
+          ? `${data?.message || 'Ongkir live belum kebaca. WiSpace pakai estimasi sementara dulu.'} Final ongkir provider bisa menyesuaikan saat live aktif lagi.`
           : 'Ongkir live dari ekspedisi sudah diperbarui.',
         mode: data?.mode || 'api'
       });
