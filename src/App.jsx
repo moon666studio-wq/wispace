@@ -4529,10 +4529,7 @@ export default function App() {
           alert(result?.status_message || 'Pembayaran belum bisa diproses bro.');
         },
         onClose: () => {
-          setActiveCheckout((current) => current ? {
-            ...current,
-            successMessage: current.successMessage || 'Sesi pembayaran ditutup. Kamu bisa membukanya lagi kapan saja.'
-          } : current);
+          setActiveCheckout((current) => current ? { ...current } : current);
         }
       });
     } catch (error) {
@@ -4874,13 +4871,6 @@ export default function App() {
       manualFallback: pendingPayment.manualFallback,
       successMessage: checkoutMessage
     } : current);
-    alert(
-      pendingPayment.provider === 'midtrans' && pendingPayment.providerInvoiceId
-        ? `Sesi pembayaran untuk ${pendingPayment.checkoutRef} sudah siap. Lanjutkan dari tombol pembayaran di bawah ya bro.`
-        : providerCheckoutUrl
-          ? `Sesi pembayaran untuk ${pendingPayment.checkoutRef} sudah siap.`
-          : checkoutMessage
-    );
   };
 
   const handleConfirmPendingPayment = (payment) => {
@@ -6667,7 +6657,7 @@ export default function App() {
         : 'Menunggu pembayaran';
   const checkoutSubmitLabel = PAYMENT_GATEWAY_PROVIDER === 'manual'
     ? 'KIRIM KONFIRMASI PEMBAYARAN'
-    : `SIAPKAN PEMBAYARAN ${checkoutProviderLabel.toUpperCase()}`;
+    : `LANJUT KE ${checkoutProviderLabel.toUpperCase()}`;
   const isAdminPage = searchTerm.toLowerCase() === 'admin_wsu';
   const isCloudAdmin = Boolean(cloudAdminAccount?.user_id);
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
