@@ -4484,7 +4484,7 @@ export default function App() {
   const handleMidtransPopupPayment = async () => {
     const snapToken = activeCheckout?.providerInvoiceId;
     if (!snapToken) {
-      alert('Token Midtrans belum tersedia bro. Bikin session payment dulu.');
+      alert('Sesi pembayaran belum siap bro. Coba buat payment sekali lagi.');
       return;
     }
 
@@ -4502,7 +4502,7 @@ export default function App() {
           setActiveCheckout((current) => current ? {
             ...current,
             providerStatus: nextProviderStatus,
-            successMessage: 'Payment berhasil dikirim ke Midtrans. Tunggu verifikasi webhook/admin WiSpace ya bro.'
+            successMessage: 'Pembayaran sudah diterima. Status order akan diperbarui otomatis.'
           } : current);
         },
         onPending: (result) => {
@@ -4513,7 +4513,7 @@ export default function App() {
           setActiveCheckout((current) => current ? {
             ...current,
             providerStatus: nextProviderStatus,
-            successMessage: 'Transaksi Midtrans masih pending. Selesaikan QRIS / e-wallet dulu ya bro.'
+            successMessage: 'Pembayaran masih menunggu penyelesaian.'
           } : current);
         },
         onError: (result) => {
@@ -4524,19 +4524,19 @@ export default function App() {
           setActiveCheckout((current) => current ? {
             ...current,
             providerStatus: nextProviderStatus,
-            gatewayError: result?.status_message || 'Payment Midtrans gagal diproses.'
+            gatewayError: result?.status_message || 'Pembayaran belum bisa diproses.'
           } : current);
-          alert(result?.status_message || 'Payment Midtrans gagal diproses bro.');
+          alert(result?.status_message || 'Pembayaran belum bisa diproses bro.');
         },
         onClose: () => {
           setActiveCheckout((current) => current ? {
             ...current,
-            successMessage: current.successMessage || 'Popup payment ditutup. Order tetap tersimpan dan bisa dibayar lagi kapan saja.'
+            successMessage: current.successMessage || 'Sesi pembayaran ditutup. Kamu bisa membukanya lagi kapan saja.'
           } : current);
         }
       });
     } catch (error) {
-      alert(error?.message || 'Popup Midtrans belum bisa dibuka bro.');
+      alert(error?.message || 'Jendela pembayaran belum bisa dibuka bro.');
     } finally {
       setMidtransSnapLoading(false);
     }
@@ -4876,9 +4876,9 @@ export default function App() {
     } : current);
     alert(
       pendingPayment.provider === 'midtrans' && pendingPayment.providerInvoiceId
-        ? `Midtrans siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar di popup checkout ini ya bro.`
+        ? `Sesi pembayaran untuk ${pendingPayment.checkoutRef} sudah siap. Lanjutkan dari tombol pembayaran di bawah ya bro.`
         : providerCheckoutUrl
-          ? `Payment gateway siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar via gateway.`
+          ? `Sesi pembayaran untuk ${pendingPayment.checkoutRef} sudah siap.`
           : checkoutMessage
     );
   };
@@ -6631,43 +6631,43 @@ export default function App() {
   const selectedMerchOrderLabelStatus = selectedMerchOrderDetail ? getMerchShipmentLabelSummary(selectedMerchOrderDetail) : null;
   const selectedMerchOrderTrackingLive = selectedMerchOrderDetail ? getMerchTrackingLiveSummary(selectedMerchOrderDetail) : null;
   const checkoutReviewLabel = checkoutIsPaid
-    ? 'PAID'
+    ? 'DIBAYAR'
     : checkoutIsCancelled
-      ? 'CANCELLED'
+      ? 'DITUTUP'
       : checkoutProviderCheckoutUrl
-        ? 'GATEWAY READY'
+        ? 'SIAP BAYAR'
         : checkoutIsAwaitingAdmin
-          ? 'ADMIN REVIEW'
+          ? 'MENUNGGU CEK'
           : checkoutIsProcessing
-            ? 'PROCESSING'
-            : 'PENDING PAYMENT';
+            ? 'MENYIAPKAN'
+            : 'MENUNGGU BAYAR';
   const checkoutBuyerStatusText = checkoutIsPaid
     ? activeCheckout?.type === 'merch'
-      ? 'Pembayaran sudah confirmed. Order masuk antrean proses.'
-      : 'Pembayaran sudah confirmed. File masuk Library WiSpace.'
+      ? 'Pembayaran sudah diterima. Pesanan masuk ke proses pengiriman.'
+      : 'Pembayaran sudah diterima. Koleksi otomatis aktif di Library WiSpace.'
     : checkoutIsCancelled
-      ? 'Checkout dibatalkan. Tidak ada akses/order yang dibuat.'
+      ? 'Sesi pembayaran ditutup. Order belum diaktifkan.'
       : checkoutIsMidtransPopupReady
-        ? 'Popup Midtrans sudah siap. QRIS, e-wallet, dan metode lain bisa dibuka tanpa pindah tab.'
+        ? 'Pembayaran siap dibuka di halaman ini.'
       : checkoutProviderCheckoutUrl
-        ? 'Link gateway sudah siap. Setelah provider confirm paid, admin akan activate akses/order.'
+        ? 'Sesi pembayaran sudah siap dibuka.'
         : checkoutIsAwaitingAdmin
-          ? 'Request masuk admin. Akses/order aktif setelah payment confirmed.'
-          : 'Selesaikan pembayaran sesuai instruksi, lalu kirim request konfirmasi.';
+          ? 'Pembayaran sedang menunggu verifikasi akhir.'
+          : 'Lengkapi detail pembayaran untuk melanjutkan.';
   const checkoutStatusCopy = checkoutIsPaid
     ? activeCheckout?.type === 'merch'
-      ? 'Payment paid - order masuk ke band'
-      : 'Payment paid - library aktif'
+      ? 'Pembayaran diterima / pesanan diproses'
+      : 'Pembayaran diterima / koleksi aktif'
     : checkoutIsCancelled
-      ? 'Checkout dibatalkan'
+      ? 'Sesi ditutup'
       : checkoutIsAwaitingAdmin
-        ? 'Menunggu admin confirm paid'
+        ? 'Menunggu verifikasi'
       : checkoutIsProcessing
-        ? 'Memproses payment'
-        : 'Menunggu konfirmasi pembayaran';
+        ? 'Menyiapkan pembayaran'
+        : 'Menunggu pembayaran';
   const checkoutSubmitLabel = PAYMENT_GATEWAY_PROVIDER === 'manual'
-    ? 'KIRIM REQUEST KONFIRMASI PAYMENT'
-    : `BUAT LINK PAYMENT ${checkoutProviderLabel.toUpperCase()}`;
+    ? 'KIRIM KONFIRMASI PEMBAYARAN'
+    : `SIAPKAN PEMBAYARAN ${checkoutProviderLabel.toUpperCase()}`;
   const isAdminPage = searchTerm.toLowerCase() === 'admin_wsu';
   const isCloudAdmin = Boolean(cloudAdminAccount?.user_id);
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
@@ -12167,8 +12167,8 @@ export default function App() {
             <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
               {[
                 ['1', 'ORDER', checkoutIsCancelled ? 'cancelled' : 'ready'],
-                ['2', 'PAYMENT CHECK', checkoutIsPaid ? 'paid' : checkoutIsAwaitingAdmin ? 'waiting' : checkoutIsCancelled ? 'cancelled' : 'upload proof'],
-                ['3', activeCheckout.type === 'merch' ? 'ORDER AKTIF' : 'LIBRARY AKTIF', checkoutIsPaid ? 'active' : 'locked']
+                ['2', 'PEMBAYARAN', checkoutIsPaid ? 'paid' : checkoutIsAwaitingAdmin ? 'waiting' : checkoutIsCancelled ? 'cancelled' : 'upload proof'],
+                ['3', activeCheckout.type === 'merch' ? 'PESANAN AKTIF' : 'KOLEKSI AKTIF', checkoutIsPaid ? 'active' : 'locked']
               ].map(([number, label, status]) => {
                 const isGood = ['ready', 'paid', 'active'].includes(status);
                 const isWarn = ['waiting', 'upload proof'].includes(status);
@@ -12185,7 +12185,7 @@ export default function App() {
             <div style={{ ...checkoutBlockStyle, marginBottom: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                 <div>
-                  <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>INSTRUKSI PEMBAYARAN</p>
+                  <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 4px 0' }}>DETAIL PEMBAYARAN</p>
                 </div>
                 <button type="button" onClick={handleCopyCheckoutReference} style={{ ...glassButtonStyle, padding: '7px 9px', fontSize: '9px', borderRadius: '8px' }}>COPY ORDER ID</button>
               </div>
@@ -12204,7 +12204,7 @@ export default function App() {
                   disabled={midtransSnapLoading}
                   style={{ display: 'block', width: '100%', marginTop: '10px', padding: '12px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textAlign: 'center', textDecoration: 'none', fontFamily: FONT_STACK, cursor: midtransSnapLoading ? 'wait' : 'pointer', opacity: midtransSnapLoading ? 0.72 : 1 }}
                 >
-                  {midtransSnapLoading ? 'MEMBUKA POPUP MIDTRANS...' : 'BAYAR VIA POPUP MIDTRANS'}
+                  {midtransSnapLoading ? 'MEMBUKA PEMBAYARAN...' : 'LANJUT PEMBAYARAN'}
                 </button>
               )}
               {checkoutProviderCheckoutUrl && !checkoutIsMidtransPopupReady && (
@@ -12214,12 +12214,12 @@ export default function App() {
                   rel="noreferrer"
                   style={{ display: 'block', marginTop: '10px', padding: '12px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textAlign: 'center', textDecoration: 'none', fontFamily: FONT_STACK }}
                 >
-                  BAYAR VIA GATEWAY
+                  BUKA HALAMAN PEMBAYARAN
                 </a>
               )}
               {!checkoutProviderCheckoutUrl && checkoutProviderId !== 'manual' && checkoutIsAwaitingAdmin && (
                 <div style={{ marginTop: '10px', padding: '9px 0', borderTop: `1.5px solid ${flatLineColor}` }}>
-                  <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0', fontWeight: '800' }}>Gateway fallback manual.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.4, margin: '0 0 5px 0', fontWeight: '800' }}>Pembayaran manual aktif.</p>
                   {activeCheckout.gatewayError && <p style={{ color: '#73BBC9', fontSize: '9px', lineHeight: 1.35, margin: 0, fontWeight: '900' }}>Detail: {activeCheckout.gatewayError}</p>}
                 </div>
               )}
@@ -12243,8 +12243,8 @@ export default function App() {
 
             {(checkoutIsPaid || checkoutIsCancelled || checkoutIsAwaitingAdmin) && (
               <div style={{ padding: '10px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${checkoutIsPaid ? 'rgba(241,212,229,0.42)' : checkoutIsAwaitingAdmin ? 'rgba(115,187,201,0.42)' : 'rgba(241,212,229,0.42)'}`, borderRadius: 0, marginBottom: '12px' }}>
-                <p style={{ color: checkoutIsPaid ? 'rgba(255,255,255,0.72)' : checkoutIsAwaitingAdmin ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PAYMENT CONFIRMED' : checkoutIsAwaitingAdmin ? 'WAITING ADMIN CONFIRM' : 'CHECKOUT CANCELLED'}</p>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Menunggu admin.' : 'Checkout dibatalkan.'}</p>
+                <p style={{ color: checkoutIsPaid ? 'rgba(255,255,255,0.72)' : checkoutIsAwaitingAdmin ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', margin: '0 0 6px 0' }}>{checkoutIsPaid ? 'PEMBAYARAN DITERIMA' : checkoutIsAwaitingAdmin ? 'MENUNGGU VERIFIKASI' : 'SESI DITUTUP'}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{checkoutIsPaid ? activeCheckout.successMessage || 'Akses sudah aktif.' : checkoutIsAwaitingAdmin ? activeCheckout.successMessage || 'Sedang menunggu verifikasi.' : 'Sesi checkout ditutup.'}</p>
               </div>
             )}
 
