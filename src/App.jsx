@@ -2426,7 +2426,6 @@ export default function App() {
       window.history.pushState({ page: 'home' }, '', '/');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    alert('Data testing lokal sudah dibersihkan. Reload atau login ulang untuk ambil data cloud dari Supabase.');
   };
 
   const handleResetLocalTestingBucket = (bucket) => {
@@ -2445,7 +2444,6 @@ export default function App() {
       setActiveCheckout(null);
       setSelectedPaymentDetail(null);
       setSelectedPaymentProofPreview(null);
-      alert('Payment request lokal sudah dibersihkan. Data cloud Supabase tidak ikut terhapus.');
       return;
     }
 
@@ -2457,7 +2455,6 @@ export default function App() {
       setMerchOrders([]);
       setMonthlyFinanceReports([]);
       setSelectedPaymentDetail(null);
-      alert('Ledger transaksi, order merch, dan report finance lokal sudah dibersihkan.');
       return;
     }
 
@@ -2469,7 +2466,6 @@ export default function App() {
       setSelectedLibraryItemId(null);
       setSelectedLibraryTrackId(null);
       stopAudioPlayback();
-      alert('Library audience dan download log lokal akun ini sudah dibersihkan.');
       return;
     }
 
@@ -2482,7 +2478,6 @@ export default function App() {
       setReadSubscribedUpdateIds([]);
       setBandNotifications([]);
       setShowNotificationPopout(false);
-      alert('Message/notifikasi/report lokal sudah dibersihkan.');
     }
   };
 
@@ -2727,7 +2722,7 @@ export default function App() {
   const handleAudienceProfileSave = (event) => {
     event.preventDefault();
     persistAudienceProfileLocal(audienceProfile);
-    alert('Profile audience tersimpan sebagai draft privat. Nanti ini kita sambungkan ke table audience_profiles di Supabase.');
+    alert('Profil audience sudah diperbarui.');
   };
 
   const getBandProfileSlug = (profile = bandProfile) => (
@@ -3005,15 +3000,9 @@ export default function App() {
       const isExclusiveFit = ratio >= 1.6 && ratio <= 1.85;
       const isPosterFit = ratio >= 0.72 && ratio <= 0.85;
       const isCurrentFit = newGigRequestType === 'exclusive' ? isExclusiveFit : isPosterFit;
-      const storageNote = uploadResult.stored
-        ? ' Tersimpan ke Supabase Storage.'
-        : uploadResult.error
-          ? ` Storage gagal, preview lokal dipakai dulu: ${uploadResult.error.message}`
-          : ' Preview lokal dipakai dulu sampai login/storage siap.';
-
       setNewPosterNotice(isCurrentFit
-        ? `Ukuran file kebaca ${dimensions.width} x ${dimensions.height}px. Rasio sudah cocok buat ${newGigRequestType === 'exclusive' ? 'exclusive slide' : 'free bulletin'}.${storageNote}`
-        : `Ukuran file kebaca ${dimensions.width} x ${dimensions.height}px. Ideal ${newGigRequestType === 'exclusive' ? 'exclusive slide: 1920 x 1080 px / 16:9 landscape' : 'free bulletin: 1080 x 1440 px / 3:4 poster'}.${storageNote}`);
+        ? `Ukuran file kebaca ${dimensions.width} x ${dimensions.height}px. Rasio sudah cocok buat ${newGigRequestType === 'exclusive' ? 'exclusive slide' : 'free bulletin'}.`
+        : `Ukuran file kebaca ${dimensions.width} x ${dimensions.height}px. Ideal ${newGigRequestType === 'exclusive' ? 'exclusive slide: 1920 x 1080 px / 16:9 landscape' : 'free bulletin: 1080 x 1440 px / 3:4 poster'}.`);
     } catch (error) {
       alert(`Gagal baca pamflet: ${error.message}`);
       clearFileInput(event);
@@ -3046,7 +3035,7 @@ export default function App() {
       targetType: 'schedule'
     });
     setScheduleDraft({ title: '', venue: '', date: '', htm: '', cp: '' });
-    alert('Jadwal manggung masuk ke profile band. Ini tidak tampil di homepage dan tidak masuk kurasi pamflet.');
+    alert('Jadwal manggung sudah masuk ke profil band.');
   };
 
   const handleTrackSubmit = async (e) => {
@@ -3089,7 +3078,7 @@ export default function App() {
       setTrackTitle('');
       setTrackUrl('');
       setShowAuthModal(false);
-      alert('Lagu beres mengudara dan sudah masuk ke rilisan single.');
+      alert('Single sudah masuk ke rilisan.');
     }
   };
 
@@ -3643,7 +3632,7 @@ export default function App() {
       publishPublicBandProfile(nextProfile);
       return nextProfile;
     });
-    alert('Profile band tersimpan dan aman saat refresh di browser ini. Foto/banner akan pakai Supabase Storage kalau bucket band-assets sudah aktif.');
+    alert('Profil band sudah diperbarui.');
   };
 
   const updateBandProfileField = (field, value) => {
@@ -3960,7 +3949,7 @@ export default function App() {
       accepted: false
     });
     setBandProfileTab('album');
-    alert('Album masuk draft rilisan dan sudah muncul di Explore. Master audio private untuk buyer; preview publik otomatis 30 detik kalau tersedia.');
+    alert('Album sudah tayang di Explore.');
   };
 
   const handleDeleteAlbum = (album) => {
@@ -5605,7 +5594,7 @@ export default function App() {
       imageName: '',
       imagePreview: ''
     });
-    alert('Merch masuk etalase draft. Nanti step berikutnya kita sambungkan ke Supabase + order flow.');
+    alert('Merch sudah masuk etalase band.');
   };
 
   const handleDeleteMerch = (item) => {
@@ -5740,7 +5729,7 @@ export default function App() {
     });
     setArticleDraft({ title: '', category: '', excerpt: '', body: '' });
     setBandProfileTab('artikel');
-    alert('Artikel masuk draft publish dan sudah tampil di page Artikel.');
+    alert('Artikel sudah tayang di halaman artikel.');
   };
 
   const handleAdminArticleSubmit = (event) => {
@@ -5759,7 +5748,7 @@ export default function App() {
 
     publishPublicArticle(nextArticle);
     setAdminArticleDraft({ title: '', category: '', excerpt: '', body: '' });
-    alert('Artikel admin WiSpace sudah publish ke halaman Artikel.');
+    alert('Artikel admin sudah tayang.');
   };
 
   const handleWispacePickSubmit = async (event) => {
@@ -5779,16 +5768,16 @@ export default function App() {
         .from('wispace_picks')
         .upsert(mapWispacePickToRow(nextPick, userSession?.id), { onConflict: 'id' });
       if (error && isMissingColumnError(error)) {
-        alert('Pick lokal sudah disimpan. Supabase belum punya tabel wispace_picks, run SQL upgrade dulu ya bro.');
+        alert('WiSpace Pick tersimpan, tapi sinkron cloud belum aktif.');
         return;
       }
       if (error) {
-        alert('Pick lokal sudah disimpan, tapi sync cloud gagal: ' + error.message);
+        alert('WiSpace Pick tersimpan, tapi sinkron cloud lagi bermasalah.');
         return;
       }
     }
 
-    alert(nextPick.youtubeUrl ? 'WiSpace Pick manual sudah disimpan dan tampil di homepage.' : 'WiSpace Pick manual dikosongkan. Homepage balik pakai random pick.');
+    alert(nextPick.youtubeUrl ? 'WiSpace Pick sudah diperbarui.' : 'WiSpace Pick kembali ke mode random.');
   };
 
   const handleWispacePickClear = async () => {
@@ -5800,12 +5789,12 @@ export default function App() {
         .from('wispace_picks')
         .upsert(mapWispacePickToRow(nextPick, userSession?.id), { onConflict: 'id' });
       if (error && !isMissingColumnError(error)) {
-        alert('Pick lokal direset, tapi sync cloud gagal: ' + error.message);
+        alert('WiSpace Pick direset, tapi sinkron cloud lagi bermasalah.');
         return;
       }
     }
 
-    alert('WiSpace Pick manual direset. Homepage balik random pick otomatis.');
+    alert('WiSpace Pick kembali ke mode random.');
   };
 
   const handleArticleCommentSubmit = (event, article) => {
@@ -5903,7 +5892,7 @@ export default function App() {
         }
       });
     }
-    alert('Laporan masuk ke dashboard admin WiSpace.');
+    alert('Laporan sudah dikirim.');
   };
 
   const handleResolveContentReport = (reportId) => {
