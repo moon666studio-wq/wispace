@@ -4,13 +4,59 @@ import { createEmptyWispacePick, getYoutubeThumbnail, loadWispacePick, mapWispac
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
-const fetchCloudData = async (user = null) => {
+const fetchCloudData = async (user = null, options = {}) => {
+  const { bootstrapOnly = false } = options;
+  const baseRequests = [
+    supabase.from('gigs').select('*').order('created_at', { ascending: false }),
+    supabase.from('band_profiles').select('*').order('updated_at', { ascending: false }),
+    supabase.from('releases').select('*, release_tracks(*)').order('created_at', { ascending: false }),
+    supabase.from('band_articles').select('*').order('created_at', { ascending: false }),
+    supabase.from('merch_items').select('*').order('created_at', { ascending: false }),
+    supabase.from('wispace_picks').select('*').eq('id', 'homepage').maybeSingle()
+  ];
+
+  if (bootstrapOnly) {
+    const [
+      { data: gigsData },
+      { data: bandProfilesData, error: bandProfilesError },
+      { data: releasesData, error: releasesError },
+      { data: articlesData, error: articlesError },
+      { data: merchData, error: merchError },
+      { data: wispacePickData, error: wispacePickError }
+    ] = await Promise.all(baseRequests);
+
+    return {
+      gigsData: gigsData || loadPublicGigRegistry(),
+      bandProfilesData: bandProfilesError ? loadPublicBandRegistry() : (bandProfilesData || []).map(mapBandProfileFromRow),
+      releasesData: releasesError
+        ? loadPublicReleaseRegistry()
+        : (releasesData || []).filter((row) => row.is_active !== false).map(mapReleaseFromRow).filter((release) => release.trackCount > 0),
+      articlesData: articlesError
+        ? loadPublicArticleRegistry()
+        : (articlesData || []).filter((row) => row.is_published !== false).map(mapArticleFromRow),
+      merchData: merchError
+        ? loadPublicMerchRegistry()
+        : (merchData || []).filter((row) => row.is_active !== false).map(mapMerchFromRow),
+      articleCommentsData: loadArticleComments(),
+      saleTransactionsData: loadTransactionLedger(),
+      audienceLibraryData: null,
+      merchOrdersData: loadMerchOrders(),
+      subscribedBandsData: [],
+      notificationReadsData: [],
+      updateNotificationsData: [],
+      releaseAgreementsData: loadReleaseAgreementLedger(),
+      messagesData: loadMessageLedger(),
+      wispacePickData: wispacePickError ? loadWispacePick() : mapWispacePickFromRow(wispacePickData),
+    };
+  }
+
   const [
     { data: gigsData },
     { data: bandProfilesData, error: bandProfilesError },
     { data: releasesData, error: releasesError },
     { data: articlesData, error: articlesError },
     { data: merchData, error: merchError },
+    { data: wispacePickData, error: wispacePickError },
     { data: commentsData, error: commentsError },
     { data: transactionsData, error: transactionsError },
     { data: audienceLibraryData, error: audienceLibraryError },
@@ -19,14 +65,9 @@ const fetchCloudData = async (user = null) => {
     { data: notificationReadsData, error: notificationReadsError },
     { data: updateNotificationsData, error: updateNotificationsError },
     { data: releaseAgreementsData, error: releaseAgreementsError },
-    { data: messagesData, error: messagesError },
-    { data: wispacePickData, error: wispacePickError }
+    { data: messagesData, error: messagesError }
   ] = await Promise.all([
-    supabase.from('gigs').select('*').order('created_at', { ascending: false }),
-    supabase.from('band_profiles').select('*').order('updated_at', { ascending: false }),
-    supabase.from('releases').select('*, release_tracks(*)').order('created_at', { ascending: false }),
-    supabase.from('band_articles').select('*').order('created_at', { ascending: false }),
-    supabase.from('merch_items').select('*').order('created_at', { ascending: false }),
+    ...baseRequests,
     supabase.from('article_comments').select('*').order('created_at', { ascending: false }),
     user?.id
       ? supabase.from('sales_transactions').select('*').order('created_at', { ascending: false })
@@ -49,12 +90,11 @@ const fetchCloudData = async (user = null) => {
       : Promise.resolve({ data: null, error: null }),
     user?.id
       ? supabase.from('wispace_messages').select('*').order('created_at', { ascending: false }).limit(200)
-      : Promise.resolve({ data: null, error: null }),
-    supabase.from('wispace_picks').select('*').eq('id', 'homepage').maybeSingle()
+      : Promise.resolve({ data: null, error: null })
   ]);
 
   return {
-    gigsData: gigsData || [],
+    gigsData: gigsData || loadPublicGigRegistry(),
     bandProfilesData: bandProfilesError ? loadPublicBandRegistry() : (bandProfilesData || []).map(mapBandProfileFromRow),
     releasesData: releasesError
       ? loadPublicReleaseRegistry()
@@ -396,6 +436,7 @@ const BAND_SUBSCRIBER_COUNT_PREFIX = 'wispace_band_subscriber_count';
 const BAND_NOTIFICATIONS_STORAGE_PREFIX = 'wispace_band_notifications';
 const BAND_UPDATE_FEED_STORAGE_PREFIX = 'wispace_band_update_feed';
 const PUBLIC_BAND_REGISTRY_STORAGE_KEY = 'wispace_public_band_registry';
+const PUBLIC_GIG_REGISTRY_STORAGE_KEY = 'wispace_public_gig_registry';
 const PUBLIC_RELEASE_REGISTRY_STORAGE_KEY = 'wispace_public_release_registry';
 const PUBLIC_ARTICLE_REGISTRY_STORAGE_KEY = 'wispace_public_article_registry';
 const PUBLIC_MERCH_REGISTRY_STORAGE_KEY = 'wispace_public_merch_registry';
@@ -658,6 +699,15 @@ const loadPublicBandRegistry = () => {
 
 const savePublicBandRegistry = (profiles) => {
   window.localStorage.setItem(PUBLIC_BAND_REGISTRY_STORAGE_KEY, JSON.stringify(profiles));
+};
+
+const loadPublicGigRegistry = () => {
+  const registry = readLocalJson(PUBLIC_GIG_REGISTRY_STORAGE_KEY);
+  return Array.isArray(registry) ? registry : [];
+};
+
+const savePublicGigRegistry = (gigs) => {
+  window.localStorage.setItem(PUBLIC_GIG_REGISTRY_STORAGE_KEY, JSON.stringify(gigs));
 };
 
 const loadPublicReleaseRegistry = () => {
@@ -1511,7 +1561,7 @@ export default function App() {
     signature: '',
     accepted: false
   });
-  const [albumItems, setAlbumItems] = useState([]);
+  const [albumItems, setAlbumItems] = useState(loadPublicReleaseRegistry);
   const [purchasedAlbums, setPurchasedAlbums] = useState([]);
   const [merchDraft, setMerchDraft] = useState({
     name: '',
@@ -1600,9 +1650,16 @@ export default function App() {
   const [messages, setMessages] = useState(loadMessageLedger);
 
   // DATA REAL DARI CLOUD
-  const [gigs, setGigs] = useState([]);
+  const [gigs, setGigs] = useState(loadPublicGigRegistry);
   const [gigExpiryDrafts, setGigExpiryDrafts] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    const hasPublicCache = loadPublicGigRegistry().length
+      || loadPublicReleaseRegistry().length
+      || loadPublicBandRegistry().length
+      || loadPublicArticleRegistry().length
+      || loadPublicMerchRegistry().length;
+    return !hasPublicCache;
+  });
 
   const audioRef = useRef(new Audio());
   const timerRef = useRef(null);
@@ -2448,6 +2505,7 @@ export default function App() {
       setSubscribedBands((current) => subscribedBandsData.length ? subscribedBandsData : current);
       setReadSubscribedUpdateIds((current) => notificationReadsData.length ? notificationReadsData : current);
     }
+    savePublicGigRegistry(normalizedGigs);
     cacheBandUpdateNotifications(updateNotificationsData);
     savePublicBandRegistry(bandProfilesData);
     savePublicReleaseRegistry(releasesData);
@@ -2466,7 +2524,7 @@ export default function App() {
     let isActive = true;
 
     const loadInitialData = async () => {
-      const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData, wispacePickData } = await fetchCloudData();
+      const { gigsData, bandProfilesData, releasesData, articlesData, merchData, articleCommentsData, saleTransactionsData, merchOrdersData, updateNotificationsData, messagesData, wispacePickData } = await fetchCloudData(null, { bootstrapOnly: true });
       if (!isActive) return;
 
       const normalizedGigs = await normalizeFetchedGigs(gigsData);
@@ -2483,6 +2541,7 @@ export default function App() {
       setMessages(messagesData);
       setWispacePickDraft(wispacePickData);
       cacheBandUpdateNotifications(updateNotificationsData);
+      savePublicGigRegistry(normalizedGigs);
       savePublicBandRegistry(bandProfilesData);
       savePublicReleaseRegistry(releasesData);
       savePublicArticleRegistry(articlesData);
@@ -2493,6 +2552,37 @@ export default function App() {
       saveMessageLedger(messagesData);
       saveWispacePick(wispacePickData);
       setLoading(false);
+
+      window.setTimeout(async () => {
+        if (!isActive) return;
+        const deferredCloudData = await fetchCloudData();
+        if (!isActive) return;
+
+        const deferredNormalizedGigs = await normalizeFetchedGigs(deferredCloudData.gigsData);
+        if (!isActive) return;
+
+        setGigs(deferredNormalizedGigs);
+        setPublicBandProfiles(deferredCloudData.bandProfilesData);
+        setAlbumItems(deferredCloudData.releasesData);
+        setPublicArticleItems(deferredCloudData.articlesData);
+        setPublicMerchItems(deferredCloudData.merchData);
+        setArticleComments(deferredCloudData.articleCommentsData);
+        setSaleTransactions(deferredCloudData.saleTransactionsData);
+        setMerchOrders(deferredCloudData.merchOrdersData);
+        setMessages(deferredCloudData.messagesData);
+        setWispacePickDraft(deferredCloudData.wispacePickData);
+        cacheBandUpdateNotifications(deferredCloudData.updateNotificationsData);
+        savePublicGigRegistry(deferredNormalizedGigs);
+        savePublicBandRegistry(deferredCloudData.bandProfilesData);
+        savePublicReleaseRegistry(deferredCloudData.releasesData);
+        savePublicArticleRegistry(deferredCloudData.articlesData);
+        savePublicMerchRegistry(deferredCloudData.merchData);
+        saveArticleComments(deferredCloudData.articleCommentsData);
+        saveTransactionLedger(deferredCloudData.saleTransactionsData);
+        saveMerchOrders(deferredCloudData.merchOrdersData);
+        saveMessageLedger(deferredCloudData.messagesData);
+        saveWispacePick(deferredCloudData.wispacePickData);
+      }, 0);
     };
 
     loadInitialData();
