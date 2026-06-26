@@ -4452,6 +4452,8 @@ export default function App() {
             provider: payment.provider,
             providerStatus: payment.providerStatus,
             providerCheckoutUrl: payment.providerCheckoutUrl,
+            rejectionReason: payment.rejectionReason,
+            shipmentMessage: payment.shipmentMessage,
             shipping: payment.shipping || null
           }
         })
@@ -5110,6 +5112,12 @@ export default function App() {
       rejectedBy: userSession?.email || 'admin_wsu',
       rejectionReason: reason.trim()
     });
+    void requestOrderNotification({
+      ...payment,
+      status: 'rejected',
+      paymentStatus: 'rejected',
+      rejectionReason: reason.trim()
+    });
     setActiveCheckout((current) => current?.pendingPaymentId === payment.id ? {
       ...current,
       status: 'cancelled',
@@ -5374,6 +5382,7 @@ export default function App() {
       updateMerchTransactionFulfillmentLocal(order.transactionId, nextStatus);
     }
     syncMerchOrderUpdate(order, updatePayload);
+    void requestShipmentOrderNotification(order, updatePayload);
   };
 
   const handleMerchTrackingNumberUpdate = (order) => {
@@ -5388,6 +5397,7 @@ export default function App() {
     updateMerchOrderLocal(order.id, updatePayload);
     updateMerchTransactionFulfillmentLocal(order.transactionId, updatePayload.trackingStatus);
     syncMerchOrderUpdate(order, updatePayload);
+    void requestShipmentOrderNotification(order, updatePayload);
   };
 
   const handleMerchDraftSubmit = (event) => {

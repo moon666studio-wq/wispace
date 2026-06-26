@@ -171,6 +171,7 @@ const notifyPaymentWebhookStatus = async ({ checkoutRef, provider, providerStatu
     text: lines.join('\n')
   });
   const sellerBandEmail = compact(orderPayload.sellerBandEmail || orderPayload.bandEmail || orderPayload.sellerEmail);
+  const buyerEmail = compact(orderPayload.buyerEmail);
   const bandResult = sellerBandEmail
     ? await sendEmailNotification({
       to: sellerBandEmail,
@@ -186,12 +187,29 @@ const notifyPaymentWebhookStatus = async ({ checkoutRef, provider, providerStatu
       ].join('\n')
     })
     : { channel: 'email_band', skipped: true, reason: 'missing sellerBandEmail' };
+  const buyerResult = buyerEmail
+    ? await sendEmailNotification({
+      to: buyerEmail,
+      channel: 'email_buyer',
+      subject: `${subjectLabel} WiSpace - ${compact(orderPayload.productTitle) || checkoutRef}`,
+      text: [
+        lines.join('\n'),
+        '',
+        'Catatan untuk buyer:',
+        wispaceStatus === 'paid'
+          ? 'Payment dari gateway sudah kami terima. Admin WiSpace akan verifikasi final sebelum akses digital aktif atau merch diproses.'
+          : wispaceStatus === 'refunded'
+            ? 'Refund dari payment gateway sudah terdeteksi. Cek dashboard/order history untuk status terbaru.'
+            : 'Payment dari gateway berubah status. Kalau ini tidak sesuai, hubungi admin WiSpace.'
+      ].join('\n')
+    })
+    : { channel: 'email_buyer', skipped: true, reason: 'missing buyerEmail' };
 
   return {
     channel: 'payment_webhook_email',
-    ok: Boolean(adminResult.ok || bandResult.ok),
-    skipped: Boolean(adminResult.skipped && bandResult.skipped),
-    results: [adminResult, bandResult]
+    ok: Boolean(adminResult.ok || bandResult.ok || buyerResult.ok),
+    skipped: Boolean(adminResult.skipped && bandResult.skipped && buyerResult.skipped),
+    results: [adminResult, bandResult, buyerResult]
   };
 };
 
