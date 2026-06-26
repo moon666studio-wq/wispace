@@ -1546,7 +1546,9 @@ export default function App() {
   const [selectedMerchOrderDetail, setSelectedMerchOrderDetail] = useState(null);
   const [shipmentBookingOrderId, setShipmentBookingOrderId] = useState('');
   const [shipmentTrackingOrderId, setShipmentTrackingOrderId] = useState('');
+  const [midtransSnapLoading, setMidtransSnapLoading] = useState(false);
   const [selectedWispacePickDetail, setSelectedWispacePickDetail] = useState(null);
+  const midtransSnapLoaderRef = useRef(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
   const [newDate, setNewDate] = useState('');
@@ -4442,6 +4444,104 @@ export default function App() {
     }
   };
 
+  const getMidtransSnapScriptUrl = (checkoutUrl = '') => (
+    String(checkoutUrl || '').includes('sandbox.midtrans.com')
+      ? 'https://app.sandbox.midtrans.com/snap/snap.js'
+      : 'https://app.midtrans.com/snap/snap.js'
+  );
+
+  const loadMidtransSnapScript = async (checkoutUrl = '') => {
+    if (typeof window === 'undefined') return null;
+    if (window.snap?.pay) return window.snap;
+    if (!PAYMENT_GATEWAY_CLIENT_KEY) throw new Error('Midtrans client key belum diset di frontend.');
+
+    if (!midtransSnapLoaderRef.current) {
+      midtransSnapLoaderRef.current = new Promise((resolve, reject) => {
+        const existingScript = document.querySelector('script[data-wispace-midtrans="true"]');
+        if (existingScript) {
+          existingScript.addEventListener('load', () => resolve(window.snap), { once: true });
+          existingScript.addEventListener('error', () => reject(new Error('Snap script gagal dimuat.')), { once: true });
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = getMidtransSnapScriptUrl(checkoutUrl);
+        script.async = true;
+        script.dataset.clientKey = PAYMENT_GATEWAY_CLIENT_KEY;
+        script.dataset.wispaceMidtrans = 'true';
+        script.onload = () => resolve(window.snap);
+        script.onerror = () => reject(new Error('Snap script gagal dimuat.'));
+        document.body.appendChild(script);
+      }).catch((error) => {
+        midtransSnapLoaderRef.current = null;
+        throw error;
+      });
+    }
+
+    return midtransSnapLoaderRef.current;
+  };
+
+  const handleMidtransPopupPayment = async () => {
+    const snapToken = activeCheckout?.providerInvoiceId;
+    if (!snapToken) {
+      alert('Token Midtrans belum tersedia bro. Bikin session payment dulu.');
+      return;
+    }
+
+    setMidtransSnapLoading(true);
+    try {
+      const snap = await loadMidtransSnapScript(activeCheckout?.providerCheckoutUrl || '');
+      if (!snap?.pay) throw new Error('Snap Midtrans belum siap.');
+
+      snap.pay(snapToken, {
+        onSuccess: (result) => {
+          const nextProviderStatus = result?.transaction_status || result?.status_code || 'provider_paid_pending_activation';
+          updatePendingPaymentRecord(activeCheckout.pendingPaymentId, {
+            providerStatus: nextProviderStatus
+          });
+          setActiveCheckout((current) => current ? {
+            ...current,
+            providerStatus: nextProviderStatus,
+            successMessage: 'Payment berhasil dikirim ke Midtrans. Tunggu verifikasi webhook/admin WiSpace ya bro.'
+          } : current);
+        },
+        onPending: (result) => {
+          const nextProviderStatus = result?.transaction_status || 'pending';
+          updatePendingPaymentRecord(activeCheckout.pendingPaymentId, {
+            providerStatus: nextProviderStatus
+          });
+          setActiveCheckout((current) => current ? {
+            ...current,
+            providerStatus: nextProviderStatus,
+            successMessage: 'Transaksi Midtrans masih pending. Selesaikan QRIS / e-wallet dulu ya bro.'
+          } : current);
+        },
+        onError: (result) => {
+          const nextProviderStatus = result?.transaction_status || result?.status_message || 'gateway_error';
+          updatePendingPaymentRecord(activeCheckout.pendingPaymentId, {
+            providerStatus: nextProviderStatus
+          });
+          setActiveCheckout((current) => current ? {
+            ...current,
+            providerStatus: nextProviderStatus,
+            gatewayError: result?.status_message || 'Payment Midtrans gagal diproses.'
+          } : current);
+          alert(result?.status_message || 'Payment Midtrans gagal diproses bro.');
+        },
+        onClose: () => {
+          setActiveCheckout((current) => current ? {
+            ...current,
+            successMessage: current.successMessage || 'Popup payment ditutup. Order tetap tersimpan dan bisa dibayar lagi kapan saja.'
+          } : current);
+        }
+      });
+    } catch (error) {
+      alert(error?.message || 'Popup Midtrans belum bisa dibuka bro.');
+    } finally {
+      setMidtransSnapLoading(false);
+    }
+  };
+
   const requestOrderNotification = async (payment) => {
     if (!ORDER_NOTIFICATION_API_ENDPOINT || !payment?.checkoutRef) return;
     try {
@@ -4774,7 +4874,13 @@ export default function App() {
       manualFallback: pendingPayment.manualFallback,
       successMessage: checkoutMessage
     } : current);
-    alert(providerCheckoutUrl ? `Payment gateway siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar via gateway.` : checkoutMessage);
+    alert(
+      pendingPayment.provider === 'midtrans' && pendingPayment.providerInvoiceId
+        ? `Midtrans siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar di popup checkout ini ya bro.`
+        : providerCheckoutUrl
+          ? `Payment gateway siap untuk ${pendingPayment.checkoutRef}. Klik tombol bayar via gateway.`
+          : checkoutMessage
+    );
   };
 
   const handleConfirmPendingPayment = (payment) => {
@@ -6506,6 +6612,7 @@ export default function App() {
   const checkoutProviderLabel = PAYMENT_GATEWAY_PROVIDER_OPTIONS.find((provider) => provider.id === checkoutProviderId)?.title || checkoutProviderId;
   const checkoutProviderStatus = activeCheckout?.providerStatus || '';
   const checkoutProviderCheckoutUrl = activeCheckout?.providerCheckoutUrl || '';
+  const checkoutIsMidtransPopupReady = checkoutProviderId === 'midtrans' && Boolean(activeCheckout?.providerInvoiceId) && Boolean(PAYMENT_GATEWAY_CLIENT_KEY);
   const checkoutProofRequired = PAYMENT_GATEWAY_PROVIDER === 'manual';
   const checkoutIsProcessing = checkoutPaymentStatus === 'processing_payment';
   const checkoutIsAwaitingAdmin = checkoutPaymentStatus === 'waiting_admin_confirmation';
@@ -6540,6 +6647,8 @@ export default function App() {
       : 'Pembayaran sudah confirmed. File masuk Library WiSpace.'
     : checkoutIsCancelled
       ? 'Checkout dibatalkan. Tidak ada akses/order yang dibuat.'
+      : checkoutIsMidtransPopupReady
+        ? 'Popup Midtrans sudah siap. QRIS, e-wallet, dan metode lain bisa dibuka tanpa pindah tab.'
       : checkoutProviderCheckoutUrl
         ? 'Link gateway sudah siap. Setelah provider confirm paid, admin akan activate akses/order.'
         : checkoutIsAwaitingAdmin
@@ -12088,7 +12197,17 @@ export default function App() {
                   </div>
                 ))}
               </div>
-              {checkoutProviderCheckoutUrl && (
+              {checkoutProviderCheckoutUrl && checkoutIsMidtransPopupReady && (
+                <button
+                  type="button"
+                  onClick={handleMidtransPopupPayment}
+                  disabled={midtransSnapLoading}
+                  style={{ display: 'block', width: '100%', marginTop: '10px', padding: '12px', backgroundColor: '#73BBC9', color: '#080202', border: 'none', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textAlign: 'center', textDecoration: 'none', fontFamily: FONT_STACK, cursor: midtransSnapLoading ? 'wait' : 'pointer', opacity: midtransSnapLoading ? 0.72 : 1 }}
+                >
+                  {midtransSnapLoading ? 'MEMBUKA POPUP MIDTRANS...' : 'BAYAR VIA POPUP MIDTRANS'}
+                </button>
+              )}
+              {checkoutProviderCheckoutUrl && !checkoutIsMidtransPopupReady && (
                 <a
                   href={checkoutProviderCheckoutUrl}
                   target="_blank"
