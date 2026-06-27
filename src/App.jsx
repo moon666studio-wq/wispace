@@ -173,6 +173,16 @@ const getPublicRoutePath = (page, options = {}) => {
   }
   if (page === 'articles') return '/articles';
   if (page === 'merch_market') return '/merch';
+  if (page === 'audience_profile') return '/me';
+  if (page === 'audience_library') return '/library';
+  if (page === 'audience_orders') return '/orders';
+  if (page === 'message_center') return '/inbox';
+  if (page === 'band_profile') {
+    const nextTab = options.bandTab || 'profile';
+    return `/studio?tab=${encodeURIComponent(nextTab)}`;
+  }
+  if (page === 'gig_manager') return '/studio/gigs';
+  if (page === 'finance_dashboard') return '/studio/finance';
   return '/';
 };
 const ensureHeadElement = (selector, tagName, attributes = {}) => {
@@ -2336,7 +2346,7 @@ export default function App() {
     setSelectedReleaseId(null);
     setSelectedMerchId(null);
     setSelectedArticleId(null);
-    if (window.location.pathname.startsWith('/band/')) {
+    if (`${window.location.pathname}${window.location.search}` !== '/') {
       window.history.pushState({ page: 'home' }, '', '/');
     }
     setActivePage('home');
@@ -2677,7 +2687,7 @@ export default function App() {
         persistUserRole('audience', data.user);
         setHasSignedContract(false);
         setSignatureName('');
-        setActivePage('audience_profile');
+        navigateInternalPage('audience_profile');
         return;
       }
       // Picu popup pemilihan takdir peran (Musisi / Audience) setelah login berhasil
@@ -2716,7 +2726,7 @@ export default function App() {
     setShowAuthModal(false);
     setHasSignedContract(false);
     setSignatureName('');
-    setActivePage('audience_profile');
+    navigateInternalPage('audience_profile');
     alert('Selamat! Akun kasta Audience lu siap berburu rilisan!');
   };
 
@@ -2746,6 +2756,15 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openBandWorkspace = (tab = 'profile') => {
+    setBandProfileTab(tab);
+    navigateInternalPage('band_profile', { bandTab: tab });
+  };
+
+  const openAudienceWorkspace = (page = 'audience_profile') => {
+    navigateInternalPage(page);
+  };
+
   const navigateInternalPage = (page, options = {}) => {
     const nextPath = getPublicRoutePath(page, options);
     const nextUrl = `${nextPath}`;
@@ -2763,6 +2782,7 @@ export default function App() {
     if (page !== 'articles') setSelectedArticleId(null);
     setActivePage(page);
     if (options.exploreTab) setExploreTab(options.exploreTab);
+    if (options.bandTab) setBandProfileTab(options.bandTab);
     if (options.clearSearch) setSearchTerm('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -4126,8 +4146,7 @@ export default function App() {
 
     const alreadyOwned = purchasedAlbums.some((item) => item.id === album.id);
     if (alreadyOwned) {
-      setActivePage('audience_library');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigateInternalPage('audience_library');
       return;
     }
 
@@ -4150,8 +4169,7 @@ export default function App() {
     const trackPurchaseId = `${album.id}-${track.id}`;
     const alreadyOwned = purchasedAlbums.some((item) => item.id === trackPurchaseId);
     if (alreadyOwned) {
-      setActivePage('audience_library');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigateInternalPage('audience_library');
       return;
     }
 
@@ -4301,8 +4319,7 @@ export default function App() {
     if (!activeCheckout) return;
     const targetPage = activeCheckout.type === 'merch' ? 'audience_orders' : 'audience_library';
     setActiveCheckout(null);
-    setActivePage(targetPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateInternalPage(targetPage);
   };
 
   const getSellerBandEmail = (product = {}, albumContext = null) => {
@@ -6758,6 +6775,8 @@ export default function App() {
   const isMerchMarketPage = activePage === 'merch_market';
   const isArticlesPage = activePage === 'articles';
   const isBandAccount = userRole === 'musisi';
+  const isAudienceAccount = userRole === 'audience';
+  const showAudienceCommerceNav = Boolean(userSession && isAudienceAccount);
   const showBandOwnerControls = isBandAccount && isViewingOwnBandProfile;
   const showBandContactForm = !showBandOwnerControls;
   const selectedPublicBandProfile = publicBandProfiles.find((profile) => profile.slug === viewedBandSlug);
@@ -7567,6 +7586,43 @@ export default function App() {
         return;
       }
 
+      if (window.location.pathname === '/me') {
+        setActivePage('audience_profile');
+        return;
+      }
+
+      if (window.location.pathname === '/library') {
+        setActivePage('audience_library');
+        return;
+      }
+
+      if (window.location.pathname === '/orders') {
+        setActivePage('audience_orders');
+        return;
+      }
+
+      if (window.location.pathname === '/inbox') {
+        setActivePage('message_center');
+        return;
+      }
+
+      if (window.location.pathname === '/studio') {
+        const routeTab = new URLSearchParams(window.location.search).get('tab') || 'profile';
+        setBandProfileTab(['profile', 'album', 'merch', 'artikel'].includes(routeTab) ? routeTab : 'profile');
+        setActivePage('band_profile');
+        return;
+      }
+
+      if (window.location.pathname === '/studio/gigs') {
+        setActivePage('gig_manager');
+        return;
+      }
+
+      if (window.location.pathname === '/studio/finance') {
+        setActivePage('finance_dashboard');
+        return;
+      }
+
       if (window.location.pathname === '/') {
         setActivePage('home');
       }
@@ -7589,7 +7645,7 @@ export default function App() {
 
     const pagePath = window.location.pathname.startsWith('/band/')
       ? window.location.pathname
-      : getPublicRoutePath(activePage, { exploreTab });
+      : getPublicRoutePath(activePage, { exploreTab, bandTab: bandProfileTab });
     const pageUrl = `${WISPACE_SITE_URL}${pagePath}`;
 
     let nextTitle = 'WiSpace - Rilisan Digital, Gigs, dan Merch Band Indie';
@@ -7678,6 +7734,7 @@ export default function App() {
   }, [
     activePage,
     exploreTab,
+    bandProfileTab,
     isBandPublicPage,
     displayBandProfile?.name,
     displayBandProfile?.genre,
@@ -7793,8 +7850,7 @@ export default function App() {
     }
 
     setShowAuthModal(false);
-    setActivePage('audience_profile');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    openAudienceWorkspace('audience_profile');
   };
 
   // STYLING INTERFACE ASYMMETRIC ROUNDED `16PX`
@@ -8255,7 +8311,7 @@ export default function App() {
               {label}
             </button>
           ))}
-          {userSession && (
+          {showAudienceCommerceNav && (
             <>
               <button onClick={() => navigateInternalPage('audience_library')} style={{ background: activePage === 'audience_library' ? 'linear-gradient(180deg, rgba(115,187,201,0.12), rgba(115,187,201,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'audience_library' ? '1px solid rgba(115,187,201,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_library' ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'audience_library' ? '0 8px 22px rgba(115,187,201,0.08)' : 'none' }}>LIBRARY</button>
               <button onClick={() => navigateInternalPage('audience_orders')} style={{ background: activePage === 'audience_orders' ? 'linear-gradient(180deg, rgba(115,187,201,0.12), rgba(115,187,201,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'audience_orders' ? '1px solid rgba(115,187,201,0.85)' : '1px solid transparent', borderRadius: 0, color: activePage === 'audience_orders' ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'audience_orders' ? '0 8px 22px rgba(115,187,201,0.08)' : 'none' }}>ORDERS</button>
@@ -10017,7 +10073,7 @@ export default function App() {
                   <div style={{ ...glassStyle('explore-empty-albums'), padding: '24px', backgroundColor: '#080202' }}>
                     <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA RILISAN</h4>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 16px 0', lineHeight: 1.5 }}>Upload album dulu, nanti rilisan muncul di sini.</p>
-                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); }} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>UPLOAD ALBUM</button>
+                    <button onClick={() => openBandWorkspace('album')} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>UPLOAD ALBUM</button>
                   </div>
                 ) : (
                   <div style={compactVisualGridStyle}>
@@ -10155,7 +10211,7 @@ export default function App() {
             <section style={{ padding: isTinyLayout ? '14px 0' : '18px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
                 <h3 style={{ ...sectionHeadingStyle, margin: 0 }}>MERCH BAND</h3>
-                {isBandAccount && <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>UPLOAD MERCH</button>}
+                {isBandAccount && <button onClick={() => openBandWorkspace('merch')} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '11px' }}>UPLOAD MERCH</button>}
               </div>
               {filteredMerchItems.length === 0 ? (
                 <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada merch yang cocok.</p>
@@ -10195,7 +10251,7 @@ export default function App() {
               <h2 style={pageTitleStyle}>DISTRO BAND MERCHANDISE</h2>
             </div>
             {isBandAccount && (
-              <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>UPLOAD MERCH</button>
+              <button onClick={() => openBandWorkspace('merch')} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>UPLOAD MERCH</button>
             )}
           </div>
 
@@ -10215,7 +10271,7 @@ export default function App() {
                 <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCH MARKET MASIH KOSONG</h3>
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada merch live.</p>
                 {isBandAccount ? (
-                  <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TAMBAH MERCH PERTAMA</button>
+                  <button onClick={() => openBandWorkspace('merch')} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TAMBAH MERCH PERTAMA</button>
                 ) : (
                   <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE BAND DULU</button>
                 )}
@@ -10255,7 +10311,7 @@ export default function App() {
               <h2 style={pageTitleStyle}>ARTIKEL BAND & SKENA</h2>
             </div>
             {isBandAccount && (
-              <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL</button>
+              <button onClick={() => openBandWorkspace('artikel')} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL</button>
             )}
           </div>
 
@@ -10275,7 +10331,7 @@ export default function App() {
                 <h3 style={{ color: '#F8F7F8', fontSize: '19px', fontWeight: '900', margin: '0 0 10px 0' }}>ARSIP ARTIKEL MASIH KOSONG</h3>
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada artikel live.</p>
                 {isBandAccount ? (
-                  <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL PERTAMA</button>
+                  <button onClick={() => openBandWorkspace('artikel')} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL PERTAMA</button>
                 ) : (
                   <button onClick={() => { setAuthType('join'); setShowAuthModal(true); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>JOIN UNTUK IKUT SKENA</button>
                 )}
@@ -10405,10 +10461,10 @@ export default function App() {
                 <div style={ownerActionsPanelStyle}>
                   <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '1px' }}>OWNER ACTIONS</p>
                   <div style={ownerActionsGridStyle}>
-                    <button onClick={() => { setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={ownerActionButtonStyle}>EDIT PROFILE</button>
-                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>UPLOAD ALBUM</button>
-                    <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>MERCH</button>
-                    <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>ARTIKEL</button>
+                    <button onClick={() => openBandWorkspace('profile')} style={ownerActionButtonStyle}>EDIT PROFILE</button>
+                    <button onClick={() => openBandWorkspace('album')} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>UPLOAD ALBUM</button>
+                    <button onClick={() => openBandWorkspace('merch')} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>MERCH</button>
+                    <button onClick={() => openBandWorkspace('artikel')} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>ARTIKEL</button>
                     <button onClick={() => navigateInternalPage('gig_manager')} style={ownerActionButtonStyle}>PAMFLET</button>
                     <button onClick={() => navigateInternalPage('gig_manager')} style={{ ...ownerActionButtonStyle, color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>JADWAL</button>
                     <button onClick={() => navigateInternalPage('finance_dashboard')} style={{ ...ownerActionButtonStyle, background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.25)', color: 'rgba(255,255,255,0.72)' }}>KEUANGAN</button>
@@ -10756,7 +10812,7 @@ export default function App() {
               <h2 style={pageTitleStyle}>MY WISPACE ACCOUNT</h2>
               <p style={pageLeadStyle}>Profile audience.</p>
             </div>
-            <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BUKA LIBRARY</button>
+            <button onClick={() => openAudienceWorkspace('audience_library')} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>BUKA LIBRARY</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: splitGridColumns, gap: '24px', alignItems: 'start' }}>
@@ -10820,7 +10876,7 @@ export default function App() {
                 <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 14px 0' }}>QUICK ACTIONS</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
                   <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>EXPLORE RILISAN</button>
-                  <button onClick={() => { setActivePage('audience_library'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY LIBRARY</button>
+                  <button onClick={() => openAudienceWorkspace('audience_library')} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY LIBRARY</button>
                   <button onClick={() => navigateInternalPage('audience_orders')} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MY ORDERS</button>
                   <button onClick={() => { markMessagesAsRead(); navigateInternalPage('message_center'); }} style={{ ...glassButtonStyle, padding: '13px', fontSize: '12px' }}>MESSAGES</button>
                 </div>
@@ -12649,9 +12705,9 @@ export default function App() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('profile'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center' }}>EDIT PROFILE BAND</button>
-                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('album'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>UPLOAD ALBUM DIGITAL</button>
-                  <button onClick={() => { setShowAuthModal(false); setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>KELOLA MERCHANDISE</button>
+                  <button onClick={() => { setShowAuthModal(false); openBandWorkspace('profile'); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center' }}>EDIT PROFILE BAND</button>
+                  <button onClick={() => { setShowAuthModal(false); openBandWorkspace('album'); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>UPLOAD ALBUM DIGITAL</button>
+                  <button onClick={() => { setShowAuthModal(false); openBandWorkspace('merch'); }} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center', color: '#F8F7F8', borderColor: 'rgba(115,187,201,0.3)' }}>KELOLA MERCHANDISE</button>
                   <button onClick={() => setAuthType('band')} style={{ ...glassButtonStyle, padding: '14px', textAlign: 'center' }}>📌 UPLOAD PAMFLET EVENT</button>
                 </div>
               </div>
