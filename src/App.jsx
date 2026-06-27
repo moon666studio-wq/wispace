@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured, supabaseOrigin } from './supabaseClient';
-import { createEmptyWispacePick, getYoutubeThumbnail, getYoutubeVideoId, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
+import { WISPACE_PICK_LABEL_OPTIONS, createEmptyWispacePick, getYoutubeThumbnail, getYoutubeVideoId, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
@@ -5756,6 +5756,9 @@ export default function App() {
     event.preventDefault();
     const nextPick = saveWispacePick({
       ...wispacePickDraft,
+      contentLabel: WISPACE_PICK_LABEL_OPTIONS.includes(String(wispacePickDraft.contentLabel || '').toUpperCase())
+        ? String(wispacePickDraft.contentLabel).toUpperCase()
+        : createEmptyWispacePick().contentLabel,
       youtubeUrl: wispacePickDraft.youtubeUrl.trim(),
       title: wispacePickDraft.title.trim() || 'WiSpace Video Review',
       bandName: wispacePickDraft.bandName.trim() || 'WiSpace',
@@ -6535,6 +6538,22 @@ export default function App() {
     if (autoplay) params.set('autoplay', '1');
     return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
   };
+  const getWispacePickLabel = (pick) => {
+    const fallbackType = String(pick?.type || '').trim().toUpperCase();
+    const requestedLabel = String(pick?.contentLabel || '').trim().toUpperCase();
+    return WISPACE_PICK_LABEL_OPTIONS.includes(requestedLabel) ? requestedLabel : (fallbackType || 'PICK');
+  };
+  const getWispacePickActionLabel = (pick) => {
+    if (!pick?.youtubeUrl) return 'LIHAT PICK';
+    switch (getWispacePickLabel(pick)) {
+      case 'PODCAST':
+        return 'PLAY PODCAST';
+      case 'LIVE SESSION':
+        return 'PLAY LIVE SESSION';
+      default:
+        return 'PLAY REVIEW';
+    }
+  };
   const closeWispacePickDetail = () => {
     setSelectedWispacePickDetail(null);
     setWispacePickShouldAutoplay(false);
@@ -6579,14 +6598,16 @@ export default function App() {
   ].sort((a, b) => getHomeDiscoveryScore(`${b.id}-${homePickSeed}`) - getHomeDiscoveryScore(`${a.id}-${homePickSeed}`))[0] || null;
   const homeWispacePick = wispacePickDraft.youtubeUrl.trim()
     ? {
-        type: 'YOUTUBE REVIEW',
+        type: wispacePickDraft.contentLabel || createEmptyWispacePick().contentLabel,
+        contentLabel: wispacePickDraft.contentLabel || createEmptyWispacePick().contentLabel,
         title: wispacePickDraft.title || 'WiSpace Video Review',
         bandName: wispacePickDraft.bandName || 'WiSpace',
         thumbnail: wispacePickDraft.thumbnail || manualYoutubeThumbnail,
         youtubeUrl: wispacePickDraft.youtubeUrl,
         review: wispacePickDraft.review,
         action: () => openWispacePickDetail({
-          type: 'YOUTUBE REVIEW',
+          type: wispacePickDraft.contentLabel || createEmptyWispacePick().contentLabel,
+          contentLabel: wispacePickDraft.contentLabel || createEmptyWispacePick().contentLabel,
           title: wispacePickDraft.title || 'WiSpace Video Review',
           bandName: wispacePickDraft.bandName || 'WiSpace',
           thumbnail: wispacePickDraft.thumbnail || manualYoutubeThumbnail,
@@ -7045,6 +7066,50 @@ export default function App() {
       note: 'Generate report bulanan, cek cash collected, ongkir, fee WiSpace, dan payout band.',
       actionLabel: 'FINANCE',
       action: () => setAdminActiveSection('finance')
+    }
+  ];
+  const liveCatalogCount = publicBandProfiles.length + albumItems.length + publicMerchList.length + publicArticleList.length + gigs.length;
+  const liveCatalogSummary = `${publicBandProfiles.length} band / ${albumItems.length} rilisan / ${publicMerchList.length} merch / ${gigs.length} event / ${publicArticleList.length} artikel`;
+  const hasRealCommerceData = saleTransactions.length > 0 || merchOrders.length > 0 || purchasedAlbums.length > 0 || waitingAdminPaymentRequests.length > 0;
+  const preLaunchCleanupChecklist = [
+    {
+      title: 'Bersihkan data demo sebelum isi katalog real',
+      status: liveCatalogCount === 0 && !hasRealCommerceData ? 'ready' : 'scaffold',
+      note: liveCatalogCount === 0 && !hasRealCommerceData
+        ? 'Katalog, order, dan transaksi sudah kosong. Aman mulai isi data real.'
+        : `Masih ada data aktif: ${liveCatalogSummary}. Order/transaksi ${hasRealCommerceData ? 'sudah pernah dipakai buat test' : 'belum ada'}.`
+    },
+    {
+      title: 'Gateway checkout live',
+      status: !isManualPaymentMode && paymentGatewayEndpointReady && paymentGatewayClientReady
+        ? 'ready'
+        : (paymentGatewayEndpointReady || paymentGatewayClientReady ? 'scaffold' : 'todo'),
+      note: !isManualPaymentMode && paymentGatewayEndpointReady && paymentGatewayClientReady
+        ? `${activePaymentGatewayProvider.title} sudah kebaca, popup checkout siap dipakai.`
+        : `Masih pakai ${activePaymentGatewayProvider.title}. Cek endpoint payment dan client key sebelum launch publik.`
+    },
+    {
+      title: 'Notif order + email admin',
+      status: recentPaymentWebhookEvents.length > 0 ? 'ready' : 'scaffold',
+      note: recentPaymentWebhookEvents.length > 0
+        ? `${recentPaymentWebhookEvents.length} event webhook sudah masuk. Jalur notif pembayaran sudah pernah nembak backend.`
+        : `Endpoint notif order aktif di ${ORDER_NOTIFICATION_API_ENDPOINT}. Tes 1 order real lagi buat pastiin email admin/band tetap masuk.`
+    },
+    {
+      title: 'Shipment label + resi',
+      status: adminShipmentLabelReady.length > 0
+        ? 'ready'
+        : (merchOrders.length > 0 || Boolean(SHIPMENT_CREATE_API_ENDPOINT) ? 'scaffold' : 'todo'),
+      note: adminShipmentLabelReady.length > 0
+        ? `${adminShipmentLabelReady.length} order sudah punya label/resi.`
+        : `Booking shipment pakai ${SHIPMENT_CREATE_API_ENDPOINT}. Jalankan 1 order merch real sampai label dan tracking kebaca.`
+    },
+    {
+      title: 'Finance report awal bulan',
+      status: monthlyFinanceReports.length > 0 ? 'ready' : (paidSaleTransactions.length > 0 ? 'scaffold' : 'todo'),
+      note: monthlyFinanceReports.length > 0
+        ? `${monthlyFinanceReports.length} report sudah pernah dibuat. Tinggal lanjut ritme tanggal 1 setiap bulan.`
+        : 'Belum ada report final. Setelah test transaksi real, generate 1 report bulanan biar payout flow aman.'
     }
   ];
   const productionReadinessItems = [
@@ -7777,7 +7842,7 @@ export default function App() {
   const releaseExploreGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(220px, 300px)';
   const publicBandHeroColumns = isTinyLayout ? '1fr' : '136px minmax(0, 1fr)';
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
-  const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(280px, 1.1fr) minmax(280px, 0.9fr)';
+  const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(248px, 0.72fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
   const flatLineColor = 'rgba(115,187,201,0.18)';
   const softSurfaceBackground = 'linear-gradient(135deg, rgba(241,212,229,0.03), rgba(115,187,201,0.07) 36%, rgba(241,212,229,0.055) 68%, rgba(8,2,2,0.78) 100%)';
@@ -7828,6 +7893,18 @@ export default function App() {
     cursor: 'pointer',
     minWidth: 0,
     boxShadow: 'inset 0 1px 0 rgba(241,212,229,0.035)'
+  };
+  const articleCardGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(auto-fit, minmax(248px, 1fr))',
+    gap: isTinyLayout ? '10px' : '12px'
+  };
+  const articleCardStyle = {
+    ...compactVisualCardStyle,
+    padding: isTinyLayout ? '9px' : '10px',
+    display: 'grid',
+    gap: isTinyLayout ? '9px' : '10px',
+    alignContent: 'start'
   };
   const flatThumbStyle = {
     overflow: 'hidden',
@@ -9241,6 +9318,27 @@ export default function App() {
 
           {adminActiveSection === 'setup' && (
           <>
+          <section style={{ ...glassStyle('admin-prelaunch-cleanup'), ...compactPanelStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 5px 0' }}>PRE-LAUNCH CLEANUP</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: '16px', fontWeight: '900', margin: 0 }}>CHECKLIST MENUJU DATA REAL</h3>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0, maxWidth: '420px' }}>Biar sebelum reset isi demo, kita bisa lihat cepat mana yang sudah aman dan mana yang masih perlu 1 kali test lagi.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+              {preLaunchCleanupChecklist.map((item) => (
+                <div key={item.title} style={compactRowStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '6px' }}>
+                    <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: 0 }}>{item.title.toUpperCase()}</h4>
+                    <span style={{ color: getReadinessColor(item.status), border: `1px solid ${getReadinessBorder(item.status)}`, backgroundColor: getReadinessTint(item.status), borderRadius: '9999px', padding: '4px 7px', fontSize: '8px', fontWeight: '900' }}>{item.status.toUpperCase()}</span>
+                  </div>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', lineHeight: 1.42, margin: 0 }}>{item.note}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section style={{ ...glassStyle('admin-real-flow-checklist'), ...compactPanelStyle }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap' }}>
               <div>
@@ -9551,19 +9649,25 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap' }}>
               <div>
                 <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 6px 0' }}>WISPACE PICKS</p>
-                <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: 0 }}>YOUTUBE REVIEW HOMEPAGE</h3>
+                <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: 0 }}>HOMEPAGE PICK CURATION</h3>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Isi link YouTube dan review manual. Kalau URL dikosongkan, homepage otomatis random harian dari rilisan dan gigs.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0, maxWidth: '420px' }}>Isi link YouTube, pilih label kontennya, lalu kasih judul dan catatan singkat. Kalau URL dikosongkan, homepage otomatis random harian dari rilisan dan gigs.</p>
             </div>
             <form onSubmit={handleWispacePickSubmit} style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) minmax(260px, 0.55fr)', gap: '14px', alignItems: 'start' }}>
               <div style={{ display: 'grid', gap: '12px' }}>
                 <input type="url" placeholder="YOUTUBE URL (opsional)" value={wispacePickDraft.youtubeUrl} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, youtubeUrl: event.target.value })} style={formInputStyle} />
-                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
+                  <select value={wispacePickDraft.contentLabel || createEmptyWispacePick().contentLabel} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, contentLabel: event.target.value })} style={formInputStyle}>
+                    {WISPACE_PICK_LABEL_OPTIONS.map((label) => (
+                      <option key={label} value={label}>{label}</option>
+                    ))}
+                  </select>
                   <input type="text" placeholder="JUDUL PICK" value={wispacePickDraft.title} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, title: event.target.value })} style={formInputStyle} />
                   <input type="text" placeholder="NAMA BAND / CHANNEL" value={wispacePickDraft.bandName} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, bandName: event.target.value })} style={formInputStyle} />
                 </div>
                 <input type="url" placeholder="THUMBNAIL URL CUSTOM (opsional)" value={wispacePickDraft.thumbnail} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, thumbnail: event.target.value })} style={formInputStyle} />
                 <textarea placeholder="REVIEW SINGKAT WISPACE" value={wispacePickDraft.review} onChange={(event) => setWispacePickDraft({ ...wispacePickDraft, review: event.target.value })} rows={5} style={{ ...formInputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+                <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: '10px', lineHeight: 1.4, margin: '-2px 0 0 0' }}>Label ini nanti tampil di homepage sebagai penanda konten seperti podcast, review, atau live session.</p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button type="submit" style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px', width: 'fit-content' }}>SAVE WISPACE PICK</button>
                   <button type="button" onClick={handleWispacePickClear} style={{ background: 'rgba(241,212,229,0.08)', border: '1px solid rgba(241,212,229,0.28)', color: '#F8F7F8', borderRadius: '10px', padding: '12px 14px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>RESET RANDOM</button>
@@ -9574,7 +9678,7 @@ export default function App() {
                 <div style={{ borderRadius: '10px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: '#080202', display: 'grid', placeItems: 'center', marginBottom: '10px' }}>
                   {(wispacePickDraft.thumbnail || getYoutubeThumbnail(wispacePickDraft.youtubeUrl)) ? <img src={wispacePickDraft.thumbnail || getYoutubeThumbnail(wispacePickDraft.youtubeUrl)} alt="" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }} /> : <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900', padding: '42px 0' }}>AUTO RANDOM ACTIVE</span>}
                 </div>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{wispacePickDraft.youtubeUrl ? `Manual pick aktif${wispacePickDraft.updatedAt ? ` / update ${new Date(wispacePickDraft.updatedAt).toLocaleDateString('id-ID')}` : ''}.` : 'URL kosong: homepage pakai random pick otomatis.'}</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.45, margin: 0 }}>{wispacePickDraft.youtubeUrl ? `${wispacePickDraft.contentLabel || createEmptyWispacePick().contentLabel} aktif${wispacePickDraft.updatedAt ? ` / update ${new Date(wispacePickDraft.updatedAt).toLocaleDateString('id-ID')}` : ''}.` : 'URL kosong: homepage pakai random pick otomatis.'}</p>
               </aside>
             </form>
           </section>
@@ -10227,17 +10331,26 @@ export default function App() {
               </aside>
             </div>
           ) : (
-            <div style={flatListStyle}>
-              {publicArticleList.map((article, index) => (
-                <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...flatItemStyle, display: 'block' }}>
-                  <div>
-                    <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                    <h3 style={{ color: '#F8F7F8', fontSize: index === 0 && !isCompactLayout ? '26px' : '18px', fontWeight: '900', lineHeight: 1.04, margin: '0 0 10px 0' }}>{article.title.toUpperCase()}</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '820px' }}>{article.excerpt}</p>
+            <div style={articleCardGridStyle}>
+              {publicArticleList.map((article) => (
+                <article key={article.id} onClick={() => openArticleReader(article)} style={articleCardStyle}>
+                  <div style={{ width: '100%', aspectRatio: isTinyLayout ? '16/10' : '6/5', borderRadius: '8px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: 'linear-gradient(160deg, rgba(115,187,201,0.22), rgba(8,2,2,0.96) 62%)', display: 'grid', alignContent: 'space-between', padding: isTinyLayout ? '10px' : '12px', boxSizing: 'border-box' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'flex-start' }}>
+                      <p style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>{String(article.category || 'NEWSSPACE').toUpperCase()}</p>
+                      <FileText size={16} color="#F8F7F8" />
+                    </div>
+                    <div>
+                      <p style={{ color: 'rgba(255,255,255,0.68)', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>{String(article.createdAt || '').toUpperCase()}</p>
+                      <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', lineHeight: 1.25, margin: 0 }}>{String(article.bandName || 'WiSpace Editorial').toUpperCase()}</p>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginTop: '12px' }}>
-                    <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', margin: 0 }}>{(article.bandName || 'BAND WISPACE').toUpperCase()}</p>
-                    <span style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900' }}>BACA</span>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '15px' : '16px', fontWeight: '900', lineHeight: 1.08, margin: '0 0 7px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{String(article.title || '').toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.48, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.excerpt}</p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
+                    <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: '9px', fontWeight: '900', margin: 0 }}>{String(article.category || 'Newsspace').toUpperCase()}</p>
+                    <span style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px' }}>BACA ARTIKEL</span>
                   </div>
                 </article>
               ))}
@@ -10810,7 +10923,7 @@ export default function App() {
             <div style={{ display: 'grid', gridTemplateColumns: libraryDetailGridColumns, gap: '24px', alignItems: 'start' }}>
               <section style={{ padding: isTinyLayout ? '8px 0' : '10px 0' }}>
                 <h3 style={sectionHeadingStyle}>PURCHASED RELEASES</h3>
-                <div style={{ ...flatListStyle, gap: isTinyLayout ? '5px' : '6px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(168px, 1fr))', gap: isTinyLayout ? '8px' : '9px' }}>
                   {purchasedAlbums.map((album) => {
                     const isSelectedLibraryItem = selectedLibraryItem?.id === album.id;
                     const firstTrack = album.tracks?.[0] || null;
@@ -10822,26 +10935,30 @@ export default function App() {
                         setSelectedLibraryItemId(album.id);
                         setSelectedLibraryTrackId(null);
                       }}
-                      style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '44px minmax(0, 1fr)' : '52px minmax(0, 1fr) auto', gap: isTinyLayout ? '7px' : '9px', padding: isTinyLayout ? '6px 0' : '7px 0', borderTopColor: isSelectedLibraryItem ? 'rgba(115,187,201,0.55)' : flatLineColor }}
+                      style={{ ...compactVisualCardStyle, padding: isTinyLayout ? '7px' : '8px', borderColor: isSelectedLibraryItem ? 'rgba(115,187,201,0.48)' : flatLineColor, display: 'grid', gap: '8px' }}
                     >
-                      <div style={{ ...flatThumbStyle, width: isTinyLayout ? '44px' : '52px', height: isTinyLayout ? '44px' : '52px', borderRadius: '7px' }}>
+                      <div style={{ ...flatThumbStyle, width: '100%', aspectRatio: '1/1', borderRadius: '7px' }}>
                         {album.coverPreview ? <img src={album.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900' }}>COVER</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <h4 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '11px' : '12px', fontWeight: '900', margin: '0 0 3px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.12 }}>{album.title.toUpperCase()}</h4>
-                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isTinyLayout ? '9px' : '10px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.25 }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
+                        <p style={{ color: isSelectedLibraryItem ? '#73BBC9' : 'rgba(255,255,255,0.6)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.8px', margin: '0 0 5px 0' }}>{album.purchaseType === 'track' ? 'TRACK ACCESS' : 'ALBUM ACCESS'}</p>
+                        <h4 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '10px' : '11px', fontWeight: '900', margin: '0 0 5px 0', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{album.title.toUpperCase()}</h4>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '8.5px', margin: 0, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{album.bandName.toUpperCase()} / {album.purchaseType === 'track' ? `TRACK SINGLE FROM ${album.parentAlbumTitle?.toUpperCase()}` : `${album.trackCount} TRACK`} / {album.purchasedAt}</p>
                       </div>
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setSelectedLibraryItemId(album.id);
-                          setSelectedLibraryTrackId(firstTrack?.id || null);
-                          if (firstTrack) handlePlayLibraryTrack(firstTrack, album, album.tracks || [firstTrack]);
-                        }}
-                        style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '9px', borderRadius: '8px', gridColumn: isTinyLayout ? '1 / -1' : 'auto', width: isTinyLayout ? 'fit-content' : 'auto' }}
-                      >
-                        {activeTrack?.id === `library-${album.id}-${firstTrack?.id}` && isPlaying ? 'PAUSE' : 'PLAY'}
-                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ color: isSelectedLibraryItem ? '#73BBC9' : 'rgba(255,255,255,0.44)', fontSize: '8px', fontWeight: '900', letterSpacing: '0.8px' }}>{isSelectedLibraryItem ? 'ACTIVE' : 'OPEN'}</span>
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedLibraryItemId(album.id);
+                            setSelectedLibraryTrackId(firstTrack?.id || null);
+                            if (firstTrack) handlePlayLibraryTrack(firstTrack, album, album.tracks || [firstTrack]);
+                          }}
+                          style={{ ...glassButtonStyle, padding: '6px 8px', fontSize: '8px', borderRadius: '8px' }}
+                        >
+                          {activeTrack?.id === `library-${album.id}-${firstTrack?.id}` && isPlaying ? 'PAUSE' : 'PLAY'}
+                        </button>
+                      </div>
                     </article>
                     );
                   })}
@@ -10850,24 +10967,24 @@ export default function App() {
 
               <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '12px' : '14px', paddingBottom: isTinyLayout ? '12px' : '14px' }}>
                 <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 16px 0' }}>SECURE PLAYER</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '96px 1fr' : '118px 1fr', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ width: isTinyLayout ? '96px' : '118px', aspectRatio: '1/1', borderRadius: '10px', background: softRowBackground, border: `1px solid ${flatLineColor}`, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '82px 1fr' : '96px 1fr', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
+                  <div style={{ width: isTinyLayout ? '82px' : '96px', aspectRatio: '1/1', borderRadius: '9px', background: softRowBackground, border: `1px solid ${flatLineColor}`, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
                     {selectedLibraryItem?.coverPreview ? <img src={selectedLibraryItem.coverPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900' }}>PLAYER</span>}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'flex-start', marginBottom: '7px' }}>
                       <div style={{ minWidth: 0 }}>
-                        <h4 style={{ color: '#F8F7F8', fontSize: '17px', fontWeight: '900', margin: '0 0 6px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
-                        <p style={{ color: '#73BBC9', fontSize: '11px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
+                        <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 5px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedLibraryItem?.title?.toUpperCase() || 'NO TRACK SELECTED'}</h4>
+                        <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: 0 }}>{selectedLibraryItem?.bandName?.toUpperCase() || 'WISPACE'}</p>
                       </div>
-                      <span style={{ flexShrink: 0, padding: '6px 8px', background: softRowBackground, border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: '#F8F7F8', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
+                      <span style={{ flexShrink: 0, padding: '5px 7px', background: softRowBackground, border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', color: '#F8F7F8', fontSize: '8px', fontWeight: '900' }}>{selectedLibraryItem?.purchaseType === 'track' ? 'TRACK' : 'ALBUM'}</span>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
-                      <span style={{ padding: '5px 7px', borderRadius: '9999px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.18)', color: '#73BBC9', fontSize: '9px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                      <span style={{ padding: '4px 7px', borderRadius: '9999px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.18)', color: '#73BBC9', fontSize: '8px', fontWeight: '900' }}>{selectedLibraryTrack?.title ? `SELECTED: ${selectedLibraryTrack.title.toUpperCase()}` : 'SELECT A TRACK'}</span>
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gap: '9px', marginBottom: '16px' }}>
+                <div style={{ display: 'grid', gap: '8px', marginBottom: '14px' }}>
                   {selectedLibraryTracks.map((track, index) => {
                     const libraryTrackId = `library-${selectedLibraryItem?.id || 'item'}-${track.id}`;
                     const isLibraryTrackActive = activeTrack?.id === libraryTrackId && isPlaying;
@@ -10877,21 +10994,21 @@ export default function App() {
                       <div
                         key={track.id}
                         onClick={() => setSelectedLibraryTrackId(track.id)}
-                        style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', borderTopColor: isSelectedLibraryTrack ? 'rgba(115,187,201,0.38)' : 'rgba(241,212,229,0.08)' }}
+                        style={{ ...flatItemStyle, gridTemplateColumns: isTinyLayout ? '1fr auto' : '1fr auto auto', borderTopColor: isSelectedLibraryTrack ? 'rgba(115,187,201,0.38)' : 'rgba(241,212,229,0.08)', padding: isTinyLayout ? '6px 7px' : '7px 8px' }}
                       >
                         <div>
-                          <p style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
-                          <p style={{ color: track.audioPath ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '11px', margin: 0 }}>{track.audioPath ? 'PRIVATE' : 'LOCAL'}</p>
+                          <p style={{ color: '#F8F7F8', fontSize: '11px', fontWeight: '900', margin: '0 0 4px 0' }}>{String(index + 1).padStart(2, '0')} / {track.title?.toUpperCase() || 'UNTITLED TRACK'}</p>
+                          <p style={{ color: track.audioPath ? 'rgba(255,255,255,0.72)' : '#F1D4E5', fontSize: '10px', margin: 0 }}>{track.audioPath ? 'PRIVATE' : 'LOCAL'}</p>
                         </div>
-                        {!isTinyLayout && <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handleSecureLibraryDownload(track); }} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD</button>}
-                        <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handlePlayLibraryTrack(track); }} style={{ ...glassButtonStyle, padding: '8px 11px', fontSize: '10px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
+                        {!isTinyLayout && <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handleSecureLibraryDownload(track); }} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '9px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD</button>}
+                        <button onClick={(event) => { event.stopPropagation(); setSelectedLibraryTrackId(track.id); handlePlayLibraryTrack(track); }} style={{ ...glassButtonStyle, padding: '7px 10px', fontSize: '9px' }}>{isLibraryTrackActive ? 'PAUSE' : 'PLAY'}</button>
                       </div>
                     );
                   })}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '12px', fontSize: '11px' }}>PLAY SELECTED</button>
-                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: softRowBackground, border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '12px', padding: '12px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
+                  <button onClick={() => selectedLibraryTrack && handlePlayLibraryTrack(selectedLibraryTrack)} style={{ ...glassButtonStyle, padding: '10px', fontSize: '10px' }}>PLAY SELECTED</button>
+                  <button onClick={() => handleSecureLibraryDownload(selectedLibraryTrack)} style={{ background: softRowBackground, border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '10px', padding: '10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>DOWNLOAD SELECTED</button>
                 </div>
                 <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(241,212,229,0.08)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
@@ -11721,18 +11838,18 @@ export default function App() {
                 <article onClick={() => openWispacePickDetail(homeWispacePick, { autoplay: Boolean(homeWispacePick.youtubeUrl) })} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(210px, 0.62fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch', padding: isTinyLayout ? '10px 0 14px' : '12px 0 18px', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, cursor: 'pointer' }}>
                   <div style={{ position: 'relative', minWidth: 0, overflow: 'hidden', borderRadius: '10px', background: '#080202' }}>
                     {homeWispacePick.thumbnail ? <img src={homeWispacePick.thumbnail} alt="" style={{ width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', objectFit: 'cover', borderRadius: '10px', display: 'block' }} /> : <div style={{ width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', display: 'grid', placeItems: 'center', borderRadius: '10px', border: `1.5px solid ${flatLineColor}` }}><Play size={26} color="#73BBC9" /></div>}
-                    <span style={{ position: 'absolute', left: '12px', top: '12px', padding: '5px 8px', borderRadius: '9999px', background: 'rgba(8,2,2,0.72)', border: '1px solid rgba(115,187,201,0.28)', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', letterSpacing: '1px' }}>{homeWispacePick.youtubeUrl ? 'YOUTUBE' : 'PICK'}</span>
+                    <span style={{ position: 'absolute', left: '12px', top: '12px', padding: '5px 8px', borderRadius: '9999px', background: 'rgba(8,2,2,0.72)', border: '1px solid rgba(115,187,201,0.28)', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', letterSpacing: '1px' }}>{getWispacePickLabel(homeWispacePick)}</span>
                     <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}>
                       <span style={{ width: isTinyLayout ? '42px' : '52px', height: isTinyLayout ? '42px' : '52px', borderRadius: '9999px', display: 'grid', placeItems: 'center', background: 'rgba(8,2,2,0.62)', border: '1px solid rgba(115,187,201,0.34)', boxShadow: '0 18px 46px rgba(0,0,0,0.34)' }}><Play size={isTinyLayout ? 18 : 22} color="#F8F7F8" /></span>
                     </span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '14px', minWidth: 0 }}>
                     <div>
-                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.6px', margin: '0 0 9px 0' }}>{homeWispacePick.type} / {String(homeWispacePick.bandName || 'WiSpace').toUpperCase()}</p>
+                      <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.6px', margin: '0 0 9px 0' }}>{getWispacePickLabel(homeWispacePick)} / {String(homeWispacePick.bandName || 'WiSpace').toUpperCase()}</p>
                       <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '22px' : 'clamp(24px, 2.45vw, 36px)', fontWeight: '900', lineHeight: 0.98, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{String(homeWispacePick.title || 'WiSpace Pick').toUpperCase()}</h3>
                       <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{homeWispacePick.review}</p>
                     </div>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); openWispacePickDetail(homeWispacePick, { autoplay: Boolean(homeWispacePick.youtubeUrl) }); }} style={{ alignSelf: 'flex-start', background: homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.14)' : 'rgba(241,212,229,0.05)', border: `1px solid ${homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.32)' : 'rgba(241,212,229,0.12)'}`, color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{homeWispacePick.youtubeUrl ? 'PLAY VIDEO' : 'BACA REVIEW'}</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); openWispacePickDetail(homeWispacePick, { autoplay: Boolean(homeWispacePick.youtubeUrl) }); }} style={{ alignSelf: 'flex-start', background: homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.14)' : 'rgba(241,212,229,0.05)', border: `1px solid ${homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.32)' : 'rgba(241,212,229,0.12)'}`, color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{getWispacePickActionLabel(homeWispacePick)}</button>
                   </div>
                 </article>
               ) : (
