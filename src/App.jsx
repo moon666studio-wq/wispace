@@ -7952,14 +7952,15 @@ export default function App() {
   };
   const articleCardGridStyle = {
     display: 'grid',
-    gridTemplateColumns: isTinyLayout ? '1fr' : 'repeat(auto-fit, minmax(248px, 1fr))',
-    gap: isTinyLayout ? '10px' : '12px'
+    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(186px, 224px))',
+    gap: isTinyLayout ? '8px' : '10px',
+    justifyContent: isTinyLayout ? 'stretch' : 'start'
   };
   const articleCardStyle = {
     ...compactVisualCardStyle,
-    padding: isTinyLayout ? '9px' : '10px',
+    padding: isTinyLayout ? '8px' : '9px',
     display: 'grid',
-    gap: isTinyLayout ? '9px' : '10px',
+    gap: isTinyLayout ? '8px' : '9px',
     alignContent: 'start'
   };
   const flatThumbStyle = {
@@ -8155,15 +8156,15 @@ export default function App() {
 
   const eyebrowStyle = {
     color: '#73BBC9',
-    fontSize: '10px',
+    fontSize: '9px',
     fontWeight: '900',
-    letterSpacing: '1.2px',
-    margin: '0 0 6px 0'
+    letterSpacing: '1px',
+    margin: '0 0 5px 0'
   };
 
   const pageTitleStyle = {
     color: '#F8F7F8',
-    fontSize: 'clamp(23px, 3.8vw, 36px)',
+    fontSize: 'clamp(20px, 3.1vw, 31px)',
     fontWeight: '900',
     margin: 0,
     lineHeight: 0.95
@@ -8179,10 +8180,10 @@ export default function App() {
 
   const sectionHeadingStyle = {
     color: '#F8F7F8',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '900',
-    margin: '0 0 10px 0',
-    letterSpacing: '1px'
+    margin: '0 0 9px 0',
+    letterSpacing: '0.9px'
   };
   const compactSurfaceStyle = {
     background: softSurfaceBackground,
@@ -10343,8 +10344,8 @@ export default function App() {
                 <article style={{ padding: isTinyLayout ? '10px 0 18px' : '14px 0 22px' }}>
                   <button onClick={() => setSelectedArticleId(null)} style={{ background: 'transparent', border: '1px solid rgba(241,212,229,0.12)', color: 'rgba(255,255,255,0.72)', borderRadius: '9999px', padding: '7px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, marginBottom: '18px' }}>KEMBALI KE ETALASE</button>
                   <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 12px 0' }}>{selectedArticle.category.toUpperCase()} / {selectedArticle.createdAt}</p>
-                  <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '30px' : 'clamp(38px, 5vw, 64px)', fontWeight: '900', lineHeight: 0.95, margin: '0 0 16px 0' }}>{selectedArticle.title.toUpperCase()}</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isTinyLayout ? '15px' : '17px', lineHeight: 1.55, margin: '0 0 18px 0', maxWidth: '840px' }}>{selectedArticle.excerpt}</p>
+                  <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '24px' : 'clamp(30px, 4.1vw, 48px)', fontWeight: '900', lineHeight: 0.96, margin: '0 0 14px 0' }}>{selectedArticle.title.toUpperCase()}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isTinyLayout ? '14px' : '15px', lineHeight: 1.55, margin: '0 0 18px 0', maxWidth: '840px' }}>{selectedArticle.excerpt}</p>
                   {selectedArticle.body && <p style={{ color: '#d0d0d0', fontSize: '14px', lineHeight: 1.75, margin: '0 0 20px 0', whiteSpace: 'pre-line' }}>{selectedArticle.body}</p>}
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid rgba(115,187,201,0.18)' }}>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', fontWeight: '900', margin: 0 }}>PENULIS: {(selectedArticle.bandName || 'BAND WISPACE').toUpperCase()}</p>
@@ -10390,23 +10391,23 @@ export default function App() {
             <div style={articleCardGridStyle}>
               {publicArticleList.map((article) => (
                 <article key={article.id} onClick={() => openArticleReader(article)} style={articleCardStyle}>
-                  <div style={{ width: '100%', aspectRatio: isTinyLayout ? '16/10' : '6/5', borderRadius: '8px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: 'linear-gradient(160deg, rgba(115,187,201,0.22), rgba(8,2,2,0.96) 62%)', display: 'grid', alignContent: 'space-between', padding: isTinyLayout ? '10px' : '12px', boxSizing: 'border-box' }}>
+                  <div style={{ width: '100%', aspectRatio: isTinyLayout ? '1/1' : '6/5', borderRadius: '8px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: 'linear-gradient(160deg, rgba(115,187,201,0.22), rgba(8,2,2,0.96) 62%)', display: 'grid', alignContent: 'space-between', padding: isTinyLayout ? '8px' : '11px', boxSizing: 'border-box' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'flex-start' }}>
                       <p style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>{String(article.category || 'NEWSSPACE').toUpperCase()}</p>
                       <FileText size={16} color="#F8F7F8" />
                     </div>
                     <div>
-                      <p style={{ color: 'rgba(255,255,255,0.68)', fontSize: '9px', fontWeight: '900', margin: '0 0 6px 0' }}>{String(article.createdAt || '').toUpperCase()}</p>
-                      <p style={{ color: '#F8F7F8', fontSize: '10px', fontWeight: '900', lineHeight: 1.25, margin: 0 }}>{String(article.bandName || 'WiSpace Editorial').toUpperCase()}</p>
+                      <p style={{ color: 'rgba(255,255,255,0.68)', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(article.createdAt || '').toUpperCase()}</p>
+                      <p style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '9px' : '10px', fontWeight: '900', lineHeight: 1.25, margin: 0 }}>{String(article.bandName || 'WiSpace Editorial').toUpperCase()}</p>
                     </div>
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '15px' : '16px', fontWeight: '900', lineHeight: 1.08, margin: '0 0 7px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{String(article.title || '').toUpperCase()}</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.48, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.excerpt}</p>
+                    <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '12px' : '14px', fontWeight: '900', lineHeight: 1.1, margin: '0 0 6px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{String(article.title || '').toUpperCase()}</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isTinyLayout ? '9.5px' : '10.5px', lineHeight: 1.45, margin: 0, display: '-webkit-box', WebkitLineClamp: isTinyLayout ? 2 : 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.excerpt}</p>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
-                    <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: '9px', fontWeight: '900', margin: 0 }}>{String(article.category || 'Newsspace').toUpperCase()}</p>
-                    <span style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '0.8px' }}>BACA ARTIKEL</span>
+                    <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', margin: 0 }}>{String(article.category || 'Newsspace').toUpperCase()}</p>
+                    <span style={{ color: '#73BBC9', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', letterSpacing: '0.8px' }}>BACA</span>
                   </div>
                 </article>
               ))}
