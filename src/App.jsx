@@ -10971,10 +10971,13 @@ export default function App() {
           </div>
 
           {purchasedAlbums.length === 0 ? (
-            <div style={{ ...flatSurfaceStyle, padding: '24px 18px' }}>
-              <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>LIBRARY MASIH KOSONG</h3>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada rilisan digital.</p>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE RILISAN</button>
+            <div style={{ display: 'grid', justifyContent: 'center' }}>
+              <div style={{ ...flatSurfaceStyle, width: 'min(440px, 100%)', padding: isTinyLayout ? '18px 14px' : '20px 18px', textAlign: 'center' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>AUDIENCE LIBRARY</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '16px' : '17px', fontWeight: '900', margin: '0 0 8px 0' }}>LIBRARY MASIH KOSONG</h3>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', margin: '0 0 16px 0', lineHeight: 1.45 }}>Belum ada rilisan digital yang masuk ke arsip akun ini.</p>
+                <button onClick={() => navigateInternalPage('explore', { exploreTab: 'rilisan' })} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '10px' }}>EXPLORE RILISAN</button>
+              </div>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: libraryDetailGridColumns, gap: '24px', alignItems: 'start' }}>
@@ -11142,10 +11145,13 @@ export default function App() {
           )}
 
           {audienceMerchOrders.length === 0 ? (
-            <div style={{ ...flatSurfaceStyle, padding: '24px 18px' }}>
-              <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>BELUM ADA ORDER MERCH</h3>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada pesanan merch.</p>
-              <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
+            <div style={{ display: 'grid', justifyContent: 'center' }}>
+              <div style={{ ...flatSurfaceStyle, width: 'min(440px, 100%)', padding: isTinyLayout ? '18px 14px' : '20px 18px', textAlign: 'center' }}>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 7px 0' }}>AUDIENCE ORDERS</p>
+                <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '16px' : '17px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ORDER MERCH</h3>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', margin: '0 0 16px 0', lineHeight: 1.45 }}>Belum ada pesanan merch yang masuk ke akun ini.</p>
+                <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '10px 14px', fontSize: '10px' }}>EXPLORE MERCH</button>
+              </div>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : 'minmax(0, 1fr) 280px', gap: '18px', alignItems: 'start' }}>
