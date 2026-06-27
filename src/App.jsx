@@ -10391,22 +10391,20 @@ export default function App() {
             <div style={articleCardGridStyle}>
               {publicArticleList.map((article) => (
                 <article key={article.id} onClick={() => openArticleReader(article)} style={articleCardStyle}>
-                  <div style={{ width: '100%', aspectRatio: isTinyLayout ? '1/1' : '6/5', borderRadius: '8px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: 'linear-gradient(160deg, rgba(115,187,201,0.22), rgba(8,2,2,0.96) 62%)', display: 'grid', alignContent: 'space-between', padding: isTinyLayout ? '8px' : '11px', boxSizing: 'border-box' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'flex-start' }}>
-                      <p style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>{String(article.category || 'NEWSSPACE').toUpperCase()}</p>
-                      <FileText size={16} color="#F8F7F8" />
-                    </div>
-                    <div>
-                      <p style={{ color: 'rgba(255,255,255,0.68)', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', margin: '0 0 5px 0' }}>{String(article.createdAt || '').toUpperCase()}</p>
-                      <p style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '9px' : '10px', fontWeight: '900', lineHeight: 1.25, margin: 0 }}>{String(article.bandName || 'WiSpace Editorial').toUpperCase()}</p>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', paddingBottom: '7px', borderBottom: `1px solid ${flatLineColor}` }}>
+                    <p style={{ color: '#73BBC9', fontSize: isTinyLayout ? '8px' : '8.5px', fontWeight: '900', letterSpacing: '0.9px', margin: 0 }}>{String(article.category || 'NEWSSPACE').toUpperCase()}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.58)', fontSize: isTinyLayout ? '7.5px' : '8px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap' }}>{String(article.createdAt || '').toUpperCase()}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                    <FileText size={isTinyLayout ? 11 : 12} color="rgba(255,255,255,0.58)" />
+                    <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: isTinyLayout ? '8px' : '8.5px', fontWeight: '900', lineHeight: 1.2, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(article.bandName || 'WiSpace Editorial').toUpperCase()}</p>
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '12px' : '14px', fontWeight: '900', lineHeight: 1.1, margin: '0 0 6px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{String(article.title || '').toUpperCase()}</h3>
                     <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isTinyLayout ? '9.5px' : '10.5px', lineHeight: 1.45, margin: 0, display: '-webkit-box', WebkitLineClamp: isTinyLayout ? 2 : 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.excerpt}</p>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
-                    <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', margin: 0 }}>{String(article.category || 'Newsspace').toUpperCase()}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', paddingTop: '6px', borderTop: `1px solid rgba(241,212,229,0.06)` }}>
+                    <p style={{ color: 'rgba(255,255,255,0.52)', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', margin: 0 }}>{String(article.category || 'Newsspace').toUpperCase()}</p>
                     <span style={{ color: '#73BBC9', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', letterSpacing: '0.8px' }}>BACA</span>
                   </div>
                 </article>
