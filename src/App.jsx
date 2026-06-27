@@ -7788,8 +7788,40 @@ export default function App() {
   );
   const renderCompactSearchResults = (placement = 'inline') => {
     const isFixedPlacement = placement === 'fixed';
+    const fixedSearchResultStyle = isFixedPlacement
+      ? {
+          position: 'fixed',
+          top: isTinyLayout ? '72px' : '76px',
+          right: isTinyLayout ? '12px' : '28px',
+          left: isTinyLayout ? '12px' : 'auto',
+          transform: 'none',
+          zIndex: 1605,
+          width: isTinyLayout ? 'auto' : 'min(360px, calc(100vw - 56px))',
+          padding: '10px',
+          backgroundColor: 'rgba(8,2,2,0.98)',
+          border: '1px solid rgba(115,187,201,0.24)',
+          borderRadius: '12px',
+          boxShadow: '0 14px 34px rgba(8,2,2,0.38)',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+          boxSizing: 'border-box'
+        }
+      : {
+          position: 'absolute',
+          top: 'calc(100% + 8px)',
+          left: 0,
+          right: 0,
+          zIndex: 1200,
+          padding: '10px',
+          backgroundColor: 'rgba(8,2,2,0.96)',
+          border: '1px solid rgba(115,187,201,0.22)',
+          borderRadius: '12px',
+          boxShadow: '0 12px 28px rgba(8,2,2,0.24)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)'
+        };
     return (
-    <div style={isFixedPlacement ? { position: 'fixed', top: isTinyLayout ? '64px' : '74px', left: '50%', transform: 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(360px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(8,2,2,0.98)', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(8,2,2,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' } : { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(8,2,2,0.96)', border: '1px solid rgba(115,187,201,0.22)', borderRadius: '12px', boxShadow: 'none', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
+    <div style={fixedSearchResultStyle}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
         <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS / {totalSearchMatches}</p>
         <button type="button" onClick={closeSearchUi} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
@@ -8289,7 +8321,7 @@ export default function App() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px', width: isTinyLayout ? '100%' : 'auto', justifyContent: isTinyLayout ? 'flex-end' : 'flex-start' }}>
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchSubmit} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(8, 2, 2, 0.95)', border: '1px solid rgba(241,212,229,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#F8F7F8', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
             <div onClick={() => { if (normalizedSearchTerm && !isAdminPage) { openSearchExplore(searchPrimaryCategory?.id || 'rilisan'); return; } setIsSearchExpanded(!isSearchExpanded); }} style={{ padding: '6px 10px', backgroundColor: 'rgba(115,187,201,0.12)', color: '#F8F7F8', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '9999px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: 'none' }}><Search size={12}/> FIND</div>
-            {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults()}
+            {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults('fixed')}
           </div>
         </div>
       )}
