@@ -6443,13 +6443,40 @@ export default function App() {
   const selectedMerch = selectedMerchId
     ? publicMerchList.find((item) => String(item.id) === String(selectedMerchId))
     : null;
-  const quickSearchResults = normalizedSearchTerm ? [
+  const isAdminUnlockSearch = normalizedSearchTerm === 'admin_wsu';
+  const closeSearchUi = () => {
+    setSearchTerm('');
+    setIsSearchExpanded(false);
+  };
+  const searchCategorySummaries = [
+    { id: 'rilisan', label: 'RILISAN', count: filteredAlbums.length + filteredAlbumTracks.length },
+    { id: 'band', label: 'BAND', count: filteredBandProfiles.length },
+    { id: 'artikel', label: 'ARTIKEL', count: filteredArticles.length },
+    { id: 'merch', label: 'MERCH', count: filteredMerchItems.length }
+  ];
+  const totalSearchMatches = searchCategorySummaries.reduce((total, item) => total + item.count, 0);
+  const searchPrimaryCategory = [...searchCategorySummaries].sort((leftItem, rightItem) => rightItem.count - leftItem.count)[0] || searchCategorySummaries[0];
+  const openSearchExplore = (tab = searchPrimaryCategory?.id || 'rilisan') => {
+    setIsSearchExpanded(false);
+    setShowNotificationPopout(false);
+    navigateInternalPage('explore', { exploreTab: tab });
+  };
+  const handleSearchSubmit = (event) => {
+    if (event?.key && event.key !== 'Enter') return;
+    if (event?.preventDefault) event.preventDefault();
+    if (!normalizedSearchTerm || isAdminUnlockSearch) return;
+    openSearchExplore(searchPrimaryCategory?.id || 'rilisan');
+  };
+  const quickSearchResults = normalizedSearchTerm && !isAdminUnlockSearch ? [
     ...filteredAlbums.slice(0, 3).map((album) => ({
       id: `album-${album.id}`,
       type: 'RILISAN',
       title: album.title,
       meta: `${album.bandName || 'Band WiSpace'} / ${album.genre || 'Indie'} / ${album.trackCount || 0} track`,
-      onSelect: () => openReleaseDetail(album)
+      onSelect: () => {
+        closeSearchUi();
+        openReleaseDetail(album);
+      }
     })),
     ...filteredAlbumTracks.slice(0, 3).map((track) => ({
       id: `track-${track.albumId}-${track.id}`,
@@ -6457,6 +6484,7 @@ export default function App() {
       title: track.title,
       meta: `${track.bandName || 'Band WiSpace'} / ${track.albumTitle || 'Rilisan'} / ${track.freeFull ? 'free full' : 'preview'}`,
       onSelect: () => {
+        closeSearchUi();
         navigateInternalPage('explore', { exploreTab: 'rilisan' });
         if (track.url || track.previewUrl || track.freeFull) handlePlayTrack(track, filteredAlbumTracks);
       }
@@ -6466,21 +6494,30 @@ export default function App() {
       type: 'BAND',
       title: profile.name,
       meta: `${profile.city || 'Indonesia'} / ${profile.genre || 'Indie'} / ${profile.slug || createSlug(profile.name)}`,
-      onSelect: () => openBandPublicProfile(false, profile)
+      onSelect: () => {
+        closeSearchUi();
+        openBandPublicProfile(false, profile);
+      }
     })),
     ...filteredArticles.slice(0, 3).map((article) => ({
       id: `article-${article.id}`,
       type: 'ARTIKEL',
       title: article.title,
       meta: `${article.category || 'Update Band'} / ${article.bandName || 'Band WiSpace'}`,
-      onSelect: () => openArticleReader(article)
+      onSelect: () => {
+        closeSearchUi();
+        openArticleReader(article);
+      }
     })),
     ...filteredMerchItems.slice(0, 2).map((item) => ({
       id: `merch-${item.id}`,
       type: 'MERCH',
       title: item.name,
       meta: `${item.bandName || 'Band WiSpace'} / Rp ${Number(item.price || 0).toLocaleString('id-ID')}`,
-      onSelect: () => openMerchDetail(item)
+      onSelect: () => {
+        closeSearchUi();
+        openMerchDetail(item);
+      }
     }))
   ].slice(0, 10) : [];
   const getHomeDiscoveryScore = (value = '') => (
@@ -6647,7 +6684,7 @@ export default function App() {
   const checkoutSubmitLabel = PAYMENT_GATEWAY_PROVIDER === 'manual'
     ? 'KIRIM KONFIRMASI PEMBAYARAN'
     : `LANJUT KE ${checkoutProviderLabel.toUpperCase()}`;
-  const isAdminPage = searchTerm.toLowerCase() === 'admin_wsu';
+  const isAdminPage = isAdminUnlockSearch;
   const isCloudAdmin = Boolean(cloudAdminAccount?.user_id);
   const pendingGigs = gigs.filter(gig => gig.status === 'pending');
   const posterUploadGuide = newGigRequestType === 'exclusive'
@@ -7597,26 +7634,47 @@ export default function App() {
     return (
     <div style={isFixedPlacement ? { position: 'fixed', top: isTinyLayout ? '64px' : '74px', left: '50%', transform: 'translateX(-50%)', zIndex: 1450, width: isTinyLayout ? 'calc(100vw - 24px)' : 'min(360px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(8,2,2,0.98)', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(8,2,2,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' } : { position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 260, padding: '10px', backgroundColor: 'rgba(8,2,2,0.96)', border: '1px solid rgba(115,187,201,0.22)', borderRadius: '12px', boxShadow: 'none', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
-        <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS</p>
-        <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
+        <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1px', margin: 0 }}>FIND RESULTS / {totalSearchMatches}</p>
+        <button type="button" onClick={closeSearchUi} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.72)', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLEAR</button>
       </div>
       {quickSearchResults.length === 0 ? (
         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>Belum ketemu. Coba nama band, genre, judul lagu, artikel, atau merch.</p>
       ) : (
-        <div style={{ display: 'grid', gap: '6px', maxHeight: isTinyLayout ? '220px' : '260px', overflowY: 'auto' }}>
-          {quickSearchResults.slice(0, 6).map((result) => (
-            <button
-              key={result.id}
-              type="button"
-              onClick={result.onSelect}
-              style={{ textAlign: 'left', padding: '7px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0, cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '3px' }}
-            >
-              <span style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
-              <span style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(result.title || '').toUpperCase()}</span>
-              <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '700', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.meta}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+            {searchCategorySummaries.filter((item) => item.count > 0).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => openSearchExplore(item.id)}
+                style={{ background: 'rgba(115,187,201,0.08)', border: '1px solid rgba(115,187,201,0.18)', color: '#F8F7F8', borderRadius: '9999px', padding: '5px 8px', fontSize: '8px', fontWeight: '900', letterSpacing: '0.7px', cursor: 'pointer', fontFamily: FONT_STACK }}
+              >
+                {item.label} / {item.count}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gap: '6px', maxHeight: isTinyLayout ? '220px' : '260px', overflowY: 'auto' }}>
+            {quickSearchResults.slice(0, 6).map((result) => (
+              <button
+                key={result.id}
+                type="button"
+                onClick={result.onSelect}
+                style={{ textAlign: 'left', padding: '7px 0', backgroundColor: 'transparent', border: 'none', borderTop: `1.5px solid ${flatLineColor}`, borderRadius: 0, cursor: 'pointer', fontFamily: FONT_STACK, display: 'grid', gap: '3px' }}
+              >
+                <span style={{ color: '#73BBC9', fontSize: '8px', fontWeight: '900', letterSpacing: '1px' }}>{result.type}</span>
+                <span style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(result.title || '').toUpperCase()}</span>
+                <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '700', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.meta}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => openSearchExplore(searchPrimaryCategory?.id || 'rilisan')}
+            style={{ width: '100%', marginTop: '9px', background: 'rgba(241,212,229,0.05)', border: '1px solid rgba(241,212,229,0.12)', color: '#F8F7F8', borderRadius: '9px', padding: '8px 10px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}
+          >
+            BUKA HASIL DI {String(searchPrimaryCategory?.label || 'EXPLORE').toUpperCase()}
+          </button>
+        </>
       )}
     </div>
   );
@@ -8059,9 +8117,10 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: isTinyLayout ? '100%' : 'auto', justifyContent: isTinyLayout ? 'flex-end' : 'flex-start' }}>
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(8, 2, 2, 0.95)', border: '1px solid rgba(241,212,229,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#F8F7F8', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
-            <div onClick={() => setIsSearchExpanded(!isSearchExpanded)} style={{ padding: '6px 10px', backgroundColor: 'rgba(115,187,201,0.12)', color: '#F8F7F8', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '9999px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: 'none' }}><Search size={12}/> FIND</div>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px', width: isTinyLayout ? '100%' : 'auto', justifyContent: isTinyLayout ? 'flex-end' : 'flex-start' }}>
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchSubmit} onFocus={() => setIsSearchExpanded(true)} onBlur={() => { if(!searchTerm) setIsSearchExpanded(false); }} style={{ backgroundColor: 'rgba(8, 2, 2, 0.95)', border: '1px solid rgba(241,212,229,0.15)', borderRadius: '9999px', padding: isSearchExpanded ? '6px 12px' : '0px', width: isSearchExpanded ? (isTinyLayout ? 'calc(100% - 78px)' : '180px') : '0px', opacity: isSearchExpanded ? 1 : 0, fontSize: '11px', color: '#F8F7F8', outline: 'none', fontFamily: FONT_STACK, transition: 'all 0.3s ease', boxSizing: 'border-box' }} />
+            <div onClick={() => { if (normalizedSearchTerm && !isAdminPage) { openSearchExplore(searchPrimaryCategory?.id || 'rilisan'); return; } setIsSearchExpanded(!isSearchExpanded); }} style={{ padding: '6px 10px', backgroundColor: 'rgba(115,187,201,0.12)', color: '#F8F7F8', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '9999px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: 'none' }}><Search size={12}/> FIND</div>
+            {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults()}
           </div>
         </div>
       )}
@@ -8096,7 +8155,8 @@ export default function App() {
           )}
           <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
             <Search size={12} color="rgba(241,212,229,0.62)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#F8F7F8', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+            <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchSubmit} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#F8F7F8', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+            {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults()}
           </div>
           {!userSession ? (
             <>
@@ -8111,8 +8171,6 @@ export default function App() {
           )}
         </div>
       )}
-
-      {normalizedSearchTerm && !isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && renderCompactSearchResults('fixed')}
 
       {userSession && showNotificationPopout && !isAdminPage && !loading && (
         <div style={{ position: 'fixed', top: isTinyLayout ? '58px' : activePage === 'home' ? '78px' : '70px', left: isTinyLayout ? '12px' : activePage === 'home' ? 'auto' : '50%', right: isTinyLayout ? '12px' : activePage === 'home' ? '30px' : 'auto', transform: isTinyLayout || activePage === 'home' ? 'none' : 'translateX(-50%)', zIndex: 1400, width: isTinyLayout ? 'auto' : 'min(300px, calc(100vw - 40px))', padding: '10px', backgroundColor: 'rgba(8,2,2,0.96)', border: '1px solid rgba(115,187,201,0.24)', borderRadius: '12px', boxShadow: '0 14px 34px rgba(8,2,2,0.38)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxSizing: 'border-box' }}>
@@ -8252,11 +8310,11 @@ export default function App() {
             {/* CYBER SEARCH BAR INTEGRATION */}
             <div style={homeSearchWrapStyle}>
               <Search size={14} color="rgba(241,212,229,0.62)" style={{ position: 'absolute', left: '16px' }} />
-              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: isTinyLayout ? 'auto' : '100%', flex: isTinyLayout ? '1 1 0' : undefined, minWidth: 0, backgroundColor: 'rgba(8, 2, 2, 0.4)', border: '1px solid rgba(241,212,229,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#F8F7F8', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
+              <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchSubmit} style={{ width: isTinyLayout ? 'auto' : '100%', flex: isTinyLayout ? '1 1 0' : undefined, minWidth: 0, backgroundColor: 'rgba(8, 2, 2, 0.4)', border: '1px solid rgba(241,212,229,0.1)', borderRadius: '9999px', padding: '10px 16px 10px 42px', fontSize: '12px', fontWeight: '700', color: '#F8F7F8', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box', textAlign: 'center' }} />
               {userSession && isTinyLayout && (
                 <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '44%', flex: '0 0 auto' }}>{renderProfileChip(22, '94px')}</button>
               )}
-              {normalizedSearchTerm && renderCompactSearchResults()}
+              {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults()}
             </div>
 
             <div style={homeNavStyle}>
