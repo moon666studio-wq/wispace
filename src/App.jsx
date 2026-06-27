@@ -7783,7 +7783,7 @@ export default function App() {
   const compactVisualGridStyle = {
     display: 'grid',
     gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(142px, 1fr))',
-    gap: isTinyLayout ? '9px' : '11px'
+    gap: isTinyLayout ? '8px' : '9px'
   };
   const compactVisualCardStyle = {
     background: softSurfaceBackground,
@@ -7979,7 +7979,7 @@ export default function App() {
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     gap: '14px',
-    marginBottom: isTinyLayout ? '16px' : '20px',
+    marginBottom: isTinyLayout ? '14px' : '16px',
     flexWrap: 'wrap',
     borderBottom: 'none',
     paddingBottom: 0
@@ -8003,17 +8003,17 @@ export default function App() {
 
   const pageLeadStyle = {
     color: 'rgba(255,255,255,0.72)',
-    fontSize: '12px',
-    margin: '7px 0 0 0',
-    maxWidth: '640px',
+    fontSize: '11px',
+    margin: '6px 0 0 0',
+    maxWidth: '520px',
     lineHeight: 1.42
   };
 
   const sectionHeadingStyle = {
     color: '#F8F7F8',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '900',
-    margin: '0 0 12px 0',
+    margin: '0 0 10px 0',
     letterSpacing: '1px'
   };
   const compactSurfaceStyle = {
@@ -8043,22 +8043,22 @@ export default function App() {
     rilisan: {
       eyebrow: 'WISPACE RELEASES',
       title: 'RILISAN DIGITAL',
-      lead: 'Rilisan digital dan preview terbaru.'
+      lead: 'Rilisan digital terbaru.'
     },
     band: {
       eyebrow: 'WISPACE BAND INDEX',
       title: 'BAND DIRECTORY',
-      lead: 'Direktori band WiSpace.'
+      lead: 'Profil band di WiSpace.'
     },
     artikel: {
       eyebrow: 'WISPACE ARTICLES',
       title: 'ARTIKEL SKENA',
-      lead: 'Arsip cerita dan catatan skena.'
+      lead: 'Cerita, rilisan, dan catatan skena.'
     },
     merch: {
       eyebrow: 'WISPACE DISTRO',
       title: 'MERCH BAND',
-      lead: 'Etalase merchandise band.'
+      lead: 'Etalase merch band.'
     }
   };
 
@@ -8081,7 +8081,7 @@ export default function App() {
             <img src={WISPACE_LOGO_SRC} alt="WiSpace" width="150" height="40" decoding="async" style={{ width: isTinyLayout ? '120px' : '150px', height: 'auto', display: 'block' }} />
             <div style={{ width: '56px', height: '2px', borderRadius: '9999px', background: 'linear-gradient(90deg, rgba(115,187,201,0.1), rgba(115,187,201,0.92), rgba(241,212,229,0.1))' }} />
             <p style={{ margin: 0, color: '#F8F7F8', fontSize: isTinyLayout ? '14px' : '15px', fontWeight: '900', letterSpacing: '0.4px' }}>LOADING WISPACE</p>
-            <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55 }}>Sedang ambil rilisan, band, gigs, dan update skena.</p>
+            <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55 }}>Sedang menyiapkan WiSpace.</p>
           </div>
         </div>
       )}
@@ -9873,12 +9873,12 @@ export default function App() {
           <div style={{ display: exploreTab === 'rilisan' ? 'grid' : 'none', gridTemplateColumns: releaseExploreGridColumns, gap: isTinyLayout ? '18px' : '20px', alignItems: 'start' }}>
             <div>
               <section style={{ marginBottom: '26px' }}>
-                <h3 style={sectionHeadingStyle}>LATEST DIGITAL RELEASES</h3>
+                <h3 style={sectionHeadingStyle}>DIGITAL RELEASES</h3>
                 {filteredAlbums.length === 0 ? (
                   <div style={{ ...glassStyle('explore-empty-albums'), padding: '24px', backgroundColor: '#080202' }}>
-                    <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ALBUM DRAFT</h4>
-                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 16px 0', lineHeight: 1.5 }}>Masuk ke Backstage Musisi, buka Upload Album Digital, lalu submit draft. Rilisannya akan muncul di sini.</p>
-                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); }} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>BUKA BAND STUDIO</button>
+                    <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA RILISAN</h4>
+                    <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 16px 0', lineHeight: 1.5 }}>Upload album dulu, nanti rilisan muncul di sini.</p>
+                    <button onClick={() => { setBandProfileTab('album'); setActivePage('band_profile'); }} style={{ ...glassButtonStyle, padding: '11px 18px', fontSize: '12px' }}>UPLOAD ALBUM</button>
                   </div>
                 ) : (
                   <div style={compactVisualGridStyle}>
@@ -9916,7 +9916,7 @@ export default function App() {
               <section style={{ padding: '2px 0 0 0' }}>
                 <h3 style={sectionHeadingStyle}>BAND DIRECTORY</h3>
                 {filteredBandProfiles.length === 0 ? (
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band publish yang cocok. Simpan profile band dulu dari Band Studio.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada band yang cocok.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredBandProfiles.slice(0, 3).map((profile) => (
@@ -9946,7 +9946,7 @@ export default function App() {
                   <button onClick={() => setExploreTab('merch')} style={{ background: 'transparent', border: 'none', color: '#F8F7F8', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>LIHAT SEMUA</button>
                 </div>
                 {filteredMerchItems.length === 0 ? (
-                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0, lineHeight: 1.5 }}>Belum ada merch live.</p>
                 ) : (
                   <div style={flatListStyle}>
                     {filteredMerchItems.slice(0, 4).map(item => (
@@ -9977,9 +9977,8 @@ export default function App() {
                         {profile.photoPreview ? <img src={profile.photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900' }}>BAND</span>}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap', marginBottom: '5px' }}>
-                          <h4 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isTinyLayout ? '100%' : 'min(420px, 62vw)' }}>{profile.name.toUpperCase()}</h4>
-                          <button onClick={() => openBandPublicProfile(false, profile)} style={{ ...glassButtonStyle, padding: '6px 9px', fontSize: '9px', borderRadius: '8px' }}>LIHAT PROFILE</button>
+                        <div style={{ marginBottom: '5px' }}>
+                          <button onClick={() => openBandPublicProfile(false, profile)} style={{ background: 'transparent', border: 'none', color: '#F8F7F8', fontSize: isTinyLayout ? '14px' : '16px', fontWeight: '900', margin: 0, padding: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', cursor: 'pointer', fontFamily: FONT_STACK, textAlign: 'left', textDecoration: 'underline', textDecorationColor: 'rgba(115,187,201,0.65)', textUnderlineOffset: '4px' }}>{profile.name.toUpperCase()}</button>
                         </div>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', margin: '0 0 5px 0' }}>{(profile.genre || 'INDIE').toUpperCase()} / {(profile.city || 'INDONESIA').toUpperCase()}</p>
                         <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.4, margin: 0 }}>{profile.headline || 'Profile band belum lengkap.'}</p>
@@ -9988,7 +9987,7 @@ export default function App() {
                   ))}
                 </div>
               ) : (
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok dengan pencarian ini.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: 0 }}>Belum ada band yang cocok.</p>
               )}
             </section>
           )}
@@ -10070,12 +10069,12 @@ export default function App() {
                   </div>
                   <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>MERCH SLOT {String(slot).padStart(2, '0')}</p>
                   <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>BELUM ADA ITEM</h4>
-                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada item.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Kosong.</p>
                 </div>
               ))}
               <div style={{ ...glassStyle('merch-market-empty-action'), padding: '22px', backgroundColor: '#080202', display: 'grid', alignContent: 'center' }}>
                 <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>MERCH MARKET MASIH KOSONG</h3>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada item merch.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada merch live.</p>
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('merch'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TAMBAH MERCH PERTAMA</button>
                 ) : (
@@ -10128,14 +10127,14 @@ export default function App() {
                   <div>
                     <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 14px 0' }}>ARTICLE SLOT {String(slot).padStart(2, '0')}</p>
                     <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', lineHeight: 1.05, margin: '0 0 12px 0' }}>BELUM ADA ARTIKEL</h3>
-                    <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Belum ada artikel.</p>
+                    <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>Kosong.</p>
                   </div>
                   <FileText size={26} color="#12323a" />
                 </article>
               ))}
               <div style={{ ...glassStyle('articles-empty-action'), padding: '22px', backgroundColor: '#080202', display: 'grid', alignContent: 'center' }}>
                 <h3 style={{ color: '#F8F7F8', fontSize: '19px', fontWeight: '900', margin: '0 0 10px 0' }}>ARSIP ARTIKEL MASIH KOSONG</h3>
-                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada arsip artikel.</p>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada artikel live.</p>
                 {isBandAccount ? (
                   <button onClick={() => { setBandProfileTab('artikel'); setActivePage('band_profile'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>TULIS ARTIKEL PERTAMA</button>
                 ) : (
@@ -10936,7 +10935,7 @@ export default function App() {
           {audienceMerchOrders.length === 0 ? (
             <div style={{ ...flatSurfaceStyle, padding: '24px 18px' }}>
               <h3 style={{ color: '#F8F7F8', fontSize: '18px', fontWeight: '900', margin: '0 0 10px 0' }}>BELUM ADA ORDER MERCH</h3>
-              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Buka Explore, masuk tab Merch, lalu checkout item fisik dari band. Status order akan tampil di sini.</p>
+              <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', margin: '0 0 18px 0', lineHeight: 1.5 }}>Belum ada pesanan merch.</p>
               <button onClick={() => navigateInternalPage('explore', { exploreTab: 'merch' })} style={{ ...glassButtonStyle, padding: '12px 18px', fontSize: '12px' }}>EXPLORE MERCH</button>
             </div>
           ) : (
@@ -10982,7 +10981,7 @@ export default function App() {
               </section>
 
               <aside style={{ ...railPanelStyle, paddingTop: isTinyLayout ? '10px' : '12px', paddingBottom: isTinyLayout ? '10px' : '12px' }}>
-                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 12px 0' }}>STATUS GUIDE</h3>
+                <h3 style={{ color: '#73BBC9', fontSize: '13px', fontWeight: '900', margin: '0 0 10px 0' }}>ORDER FLOW</h3>
                 <div style={flatListStyle}>
                   {[
                     ['Paid, tunggu label', 'rgba(255,255,255,0.72)'],
@@ -11026,7 +11025,7 @@ export default function App() {
                   <span style={{ color: unreadBandNotifications ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.72)', fontSize: '10px', fontWeight: '900' }}>{unreadBandNotifications} NEW</span>
                 </div>
                 {bandNotifications.length === 0 ? (
-                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada notif band. Subscriber baru dan update aktivitas band akan tampil di sini.</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.5, margin: 0 }}>Belum ada notif band.</p>
                 ) : (
                   <div style={{ display: 'grid', gap: '7px' }}>
                     {bandNotifications.slice(0, 6).map((notification) => (
@@ -11079,7 +11078,7 @@ export default function App() {
               {visibleMessages.length === 0 ? (
                 <div style={{ padding: '24px', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '14px' }}>
                   <h4 style={{ color: '#F8F7F8', fontSize: '15px', fontWeight: '900', margin: '0 0 8px 0' }}>INBOX MASIH KOSONG</h4>
-                  <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px 0' }}>{isBandAccount ? 'Belum ada pesan baru dari audience, promotor, atau band lain.' : 'Belum ada pesan masuk untuk akun audience ini.'}</p>
+                  <p style={{ color: '#F8F7F8', fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px 0' }}>{isBandAccount ? 'Belum ada pesan baru.' : 'Belum ada pesan masuk.'}</p>
                   {!isBandAccount && (
                     <button onClick={() => navigateInternalPage('explore', { exploreTab: 'band' })} style={{ ...glassButtonStyle, padding: '11px 16px', fontSize: '12px' }}>CARI BAND DI EXPLORE</button>
                   )}
@@ -11751,7 +11750,7 @@ export default function App() {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: '11px' }}>
-                  <p style={{ color: 'rgba(255,255,255,0.74)', fontSize: '13px', lineHeight: 1.55, margin: 0 }}>Interviews, release notes, scene reports, and independent music stories.</p>
+                  <p style={{ color: 'rgba(255,255,255,0.74)', fontSize: '13px', lineHeight: 1.55, margin: 0 }}>Interview, release notes, dan cerita skena.</p>
                   {['Scene report coming soon', 'Band interview archive', 'Release notes from WiSpace'].map((line) => (
                     <div key={line} style={{ paddingTop: '9px', borderTop: `1.5px solid ${flatLineColor}`, color: 'rgba(255,255,255,0.58)', fontSize: '10px', fontWeight: '900', letterSpacing: '0.8px' }}>{line.toUpperCase()}</div>
                   ))}
