@@ -7932,6 +7932,7 @@ export default function App() {
   const publicBandAvatarSize = isTinyLayout ? 104 : 136;
   const libraryDetailGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(248px, 0.72fr)';
   const articleGridColumns = isCompactLayout ? '1fr' : 'minmax(0, 1.4fr) minmax(260px, 0.6fr)';
+  const isArticleExploreActive = activePage === 'articles' || (activePage === 'explore' && exploreTab === 'artikel');
   const flatLineColor = 'rgba(115,187,201,0.18)';
   const softSurfaceBackground = 'linear-gradient(135deg, rgba(241,212,229,0.03), rgba(115,187,201,0.07) 36%, rgba(241,212,229,0.055) 68%, rgba(8,2,2,0.78) 100%)';
   const softRowBackground = 'linear-gradient(90deg, rgba(115,187,201,0.07), rgba(241,212,229,0.045) 48%, rgba(8,2,2,0.24) 100%)';
@@ -7984,15 +7985,15 @@ export default function App() {
   };
   const articleCardGridStyle = {
     display: 'grid',
-    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(186px, 224px))',
+    gridTemplateColumns: isTinyLayout ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(168px, 196px))',
     gap: isTinyLayout ? '8px' : '10px',
     justifyContent: isTinyLayout ? 'stretch' : 'start'
   };
   const articleCardStyle = {
     ...compactVisualCardStyle,
-    padding: isTinyLayout ? '8px' : '9px',
+    padding: isTinyLayout ? '8px' : '8px',
     display: 'grid',
-    gap: isTinyLayout ? '8px' : '9px',
+    gap: isTinyLayout ? '7px' : '8px',
     alignContent: 'start'
   };
   const flatThumbStyle = {
@@ -8339,7 +8340,7 @@ export default function App() {
             <button
               key={tab}
               onClick={() => navigateInternalPage('explore', { exploreTab: tab, clearSearch: true })}
-              style={{ background: activePage === 'explore' && exploreTab === tab ? 'linear-gradient(180deg, rgba(115,187,201,0.12), rgba(115,187,201,0.035))' : 'transparent', border: 'none', borderBottom: activePage === 'explore' && exploreTab === tab ? '1px solid rgba(115,187,201,0.95)' : '1px solid transparent', borderRadius: 0, color: activePage === 'explore' && exploreTab === tab ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: activePage === 'explore' && exploreTab === tab ? '0 8px 22px rgba(115,187,201,0.08)' : 'none' }}
+              style={{ background: 'transparent', border: 'none', borderBottom: (activePage === 'explore' && exploreTab === tab) || (tab === 'artikel' && isArticleExploreActive) ? '1px solid rgba(115,187,201,0.95)' : '1px solid transparent', borderRadius: 0, color: ((activePage === 'explore' && exploreTab === tab) || (tab === 'artikel' && isArticleExploreActive)) ? '#73BBC9' : '#F1D4E5', fontSize: '11px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap', padding: '8px 7px 7px', boxShadow: 'none' }}
             >
               {label}
             </button>
