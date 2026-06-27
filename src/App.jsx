@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, isSupabaseConfigured, supabaseOrigin } from './supabaseClient';
-import { createEmptyWispacePick, getYoutubeThumbnail, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
+import { createEmptyWispacePick, getYoutubeThumbnail, getYoutubeVideoId, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
 
@@ -1548,6 +1548,7 @@ export default function App() {
   const [shipmentTrackingOrderId, setShipmentTrackingOrderId] = useState('');
   const [midtransSnapLoading, setMidtransSnapLoading] = useState(false);
   const [selectedWispacePickDetail, setSelectedWispacePickDetail] = useState(null);
+  const [wispacePickShouldAutoplay, setWispacePickShouldAutoplay] = useState(false);
   const midtransSnapLoaderRef = useRef(null);
 
   // UPDATE STATE FORM SUNTIK POSTER
@@ -6523,6 +6524,32 @@ export default function App() {
   const getHomeDiscoveryScore = (value = '') => (
     String(value).split('').reduce((total, char, index) => total + (char.charCodeAt(0) * (index + 7)), 0)
   );
+  const getYoutubeEmbedUrl = (url = '', autoplay = false) => {
+    const videoId = getYoutubeVideoId(url);
+    if (!videoId) return '';
+    const params = new URLSearchParams({
+      rel: '0',
+      modestbranding: '1',
+      playsinline: '1'
+    });
+    if (autoplay) params.set('autoplay', '1');
+    return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+  };
+  const closeWispacePickDetail = () => {
+    setSelectedWispacePickDetail(null);
+    setWispacePickShouldAutoplay(false);
+  };
+  const openWispacePickDetail = (pick, options = {}) => {
+    if (!pick) return;
+    if (pick.youtubeUrl && !userSession) {
+      setAuthType('login');
+      setShowAuthModal(true);
+      setAuthError('Login atau join dulu buat play WiSpace Pick dan podcast di homepage.');
+      return;
+    }
+    setSelectedWispacePickDetail(pick);
+    setWispacePickShouldAutoplay(Boolean(options.autoplay && pick.youtubeUrl));
+  };
   const homeGigCards = filteredGigs.slice(0, 10);
   const homeSupportingGigs = homeGigCards.slice(0, 10);
   const homeFeaturedArticle = publicArticleList[0] || null;
@@ -6558,9 +6585,17 @@ export default function App() {
         thumbnail: wispacePickDraft.thumbnail || manualYoutubeThumbnail,
         youtubeUrl: wispacePickDraft.youtubeUrl,
         review: wispacePickDraft.review,
-        action: () => window.open(wispacePickDraft.youtubeUrl, '_blank', 'noopener,noreferrer')
+        action: () => openWispacePickDetail({
+          type: 'YOUTUBE REVIEW',
+          title: wispacePickDraft.title || 'WiSpace Video Review',
+          bandName: wispacePickDraft.bandName || 'WiSpace',
+          thumbnail: wispacePickDraft.thumbnail || manualYoutubeThumbnail,
+          youtubeUrl: wispacePickDraft.youtubeUrl,
+          review: wispacePickDraft.review
+        }, { autoplay: true })
       }
     : homeRandomPick;
+  const selectedWispacePickEmbedUrl = getYoutubeEmbedUrl(selectedWispacePickDetail?.youtubeUrl || '', wispacePickShouldAutoplay);
   const homeDiscoveryItems = [
     ...albumItems.map((album) => ({
       id: `release-${album.id}`,
@@ -11683,7 +11718,7 @@ export default function App() {
               </div>
 
               {homeWispacePick ? (
-                <article onClick={() => setSelectedWispacePickDetail(homeWispacePick)} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(210px, 0.62fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch', padding: isTinyLayout ? '10px 0 14px' : '12px 0 18px', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, cursor: 'pointer' }}>
+                <article onClick={() => openWispacePickDetail(homeWispacePick, { autoplay: Boolean(homeWispacePick.youtubeUrl) })} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1.08fr) minmax(210px, 0.62fr)', gap: isTinyLayout ? '14px' : '18px', alignItems: 'stretch', padding: isTinyLayout ? '10px 0 14px' : '12px 0 18px', borderTop: `1.5px solid ${flatLineColor}`, borderBottom: `1.5px solid ${flatLineColor}`, cursor: 'pointer' }}>
                   <div style={{ position: 'relative', minWidth: 0, overflow: 'hidden', borderRadius: '10px', background: '#080202' }}>
                     {homeWispacePick.thumbnail ? <img src={homeWispacePick.thumbnail} alt="" style={{ width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', objectFit: 'cover', borderRadius: '10px', display: 'block' }} /> : <div style={{ width: '100%', aspectRatio: isTinyLayout ? '16/11' : '16/9', display: 'grid', placeItems: 'center', borderRadius: '10px', border: `1.5px solid ${flatLineColor}` }}><Play size={26} color="#73BBC9" /></div>}
                     <span style={{ position: 'absolute', left: '12px', top: '12px', padding: '5px 8px', borderRadius: '9999px', background: 'rgba(8,2,2,0.72)', border: '1px solid rgba(115,187,201,0.28)', color: '#F8F7F8', fontSize: '9px', fontWeight: '900', letterSpacing: '1px' }}>{homeWispacePick.youtubeUrl ? 'YOUTUBE' : 'PICK'}</span>
@@ -11697,7 +11732,7 @@ export default function App() {
                       <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '22px' : 'clamp(24px, 2.45vw, 36px)', fontWeight: '900', lineHeight: 0.98, margin: '0 0 12px 0', overflowWrap: 'anywhere' }}>{String(homeWispacePick.title || 'WiSpace Pick').toUpperCase()}</h3>
                       <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55, margin: 0 }}>{homeWispacePick.review}</p>
                     </div>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); homeWispacePick.youtubeUrl ? window.open(homeWispacePick.youtubeUrl, '_blank', 'noopener,noreferrer') : setSelectedWispacePickDetail(homeWispacePick); }} style={{ alignSelf: 'flex-start', background: homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.14)' : 'rgba(241,212,229,0.05)', border: `1px solid ${homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.32)' : 'rgba(241,212,229,0.12)'}`, color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{homeWispacePick.youtubeUrl ? 'PLAY VIDEO' : 'BACA REVIEW'}</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); openWispacePickDetail(homeWispacePick, { autoplay: Boolean(homeWispacePick.youtubeUrl) }); }} style={{ alignSelf: 'flex-start', background: homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.14)' : 'rgba(241,212,229,0.05)', border: `1px solid ${homeWispacePick.youtubeUrl ? 'rgba(115,187,201,0.32)' : 'rgba(241,212,229,0.12)'}`, color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>{homeWispacePick.youtubeUrl ? 'PLAY VIDEO' : 'BACA REVIEW'}</button>
                   </div>
                 </article>
               ) : (
@@ -11910,7 +11945,7 @@ export default function App() {
       )}
 
       {selectedWispacePickDetail && !loading && (
-        <div onClick={() => setSelectedWispacePickDetail(null)} style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: 'rgba(8,2,2,0.88)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}>
+        <div onClick={closeWispacePickDetail} style={{ position: 'fixed', inset: 0, zIndex: 1500, backgroundColor: 'rgba(8,2,2,0.88)', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '14px' : '24px', boxSizing: 'border-box' }}>
           <div onClick={(event) => event.stopPropagation()} style={{ width: 'min(880px, 96vw)', maxHeight: '90vh', overflowY: 'auto', backgroundColor: 'rgba(8,2,2,0.98)', border: '1.5px solid rgba(115,187,201,0.22)', borderRadius: '12px', padding: isTinyLayout ? '14px' : '18px', boxSizing: 'border-box', boxShadow: '0 24px 60px rgba(0,0,0,0.42)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
@@ -11918,18 +11953,33 @@ export default function App() {
                 <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '22px' : 'clamp(28px, 4vw, 48px)', fontWeight: '900', margin: '0 0 7px 0', lineHeight: 0.98, overflowWrap: 'anywhere' }}>{String(selectedWispacePickDetail.title || 'WiSpace Pick').toUpperCase()}</h3>
                 <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{String(selectedWispacePickDetail.bandName || 'WiSpace').toUpperCase()}</p>
               </div>
-              <button type="button" onClick={() => setSelectedWispacePickDetail(null)} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
+              <button type="button" onClick={closeWispacePickDetail} style={{ background: 'rgba(241,212,229,0.04)', border: '1px solid rgba(241,212,229,0.16)', color: '#F8F7F8', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>CLOSE</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: isCompactLayout ? '1fr' : '1.1fr 0.9fr', gap: '14px', alignItems: 'start' }}>
               <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: `1.5px solid ${flatLineColor}`, background: '#080202' }}>
-                {selectedWispacePickDetail.thumbnail ? <img src={selectedWispacePickDetail.thumbnail} alt="" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }} /> : <div style={{ width: '100%', aspectRatio: '16/9', display: 'grid', placeItems: 'center' }}><Play size={28} color="#73BBC9" /></div>}
+                {selectedWispacePickEmbedUrl ? (
+                  <iframe
+                    src={selectedWispacePickEmbedUrl}
+                    title={selectedWispacePickDetail.title || 'WiSpace Pick'}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block', background: '#080202' }}
+                  />
+                ) : selectedWispacePickDetail.thumbnail ? <img src={selectedWispacePickDetail.thumbnail} alt="" style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }} /> : <div style={{ width: '100%', aspectRatio: '16/9', display: 'grid', placeItems: 'center' }}><Play size={28} color="#73BBC9" /></div>}
               </div>
               <section style={{ borderTop: `1.5px solid ${flatLineColor}`, paddingTop: '12px' }}>
-                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 10px 0' }}>WISPACE REVIEW</p>
+                <p style={{ color: '#73BBC9', fontSize: '9px', fontWeight: '900', letterSpacing: '1.4px', margin: '0 0 10px 0' }}>{selectedWispacePickDetail.youtubeUrl ? 'WISPACE PLAYBACK' : 'WISPACE REVIEW'}</p>
                 <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: '13px', lineHeight: 1.65, margin: '0 0 14px 0' }}>{selectedWispacePickDetail.review}</p>
                 {selectedWispacePickDetail.youtubeUrl && (
-                  <button type="button" onClick={() => window.open(selectedWispacePickDetail.youtubeUrl, '_blank', 'noopener,noreferrer')} style={{ background: 'rgba(115,187,201,0.14)', border: '1px solid rgba(115,187,201,0.32)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PLAY VIDEO</button>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {!selectedWispacePickEmbedUrl && (
+                      <button type="button" onClick={() => setWispacePickShouldAutoplay(true)} style={{ background: 'rgba(115,187,201,0.14)', border: '1px solid rgba(115,187,201,0.32)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>PLAY DI WISPACE</button>
+                    )}
+                    <button type="button" onClick={() => window.open(selectedWispacePickDetail.youtubeUrl, '_blank', 'noopener,noreferrer')} style={{ background: 'rgba(241,212,229,0.05)', border: '1px solid rgba(241,212,229,0.14)', color: '#F8F7F8', borderRadius: '9999px', padding: '9px 13px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK }}>BUKA YOUTUBE</button>
+                  </div>
                 )}
+                {selectedWispacePickDetail.youtubeUrl && <p style={{ color: 'rgba(255,255,255,0.58)', fontSize: '10px', lineHeight: 1.45, margin: '12px 0 0 0' }}>Player podcast dan video bisa diputar langsung di WiSpace setelah login.</p>}
               </section>
             </div>
           </div>
