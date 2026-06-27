@@ -8358,7 +8358,7 @@ export default function App() {
           <div style={{ position: 'relative', width: isTinyLayout ? '132px' : '190px', maxWidth: isTinyLayout ? '132px' : '30vw', flexShrink: 0 }}>
             <Search size={12} color="rgba(241,212,229,0.62)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
             <input type="text" placeholder="FIND..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchSubmit} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.12)', borderRadius: '9999px', padding: '7px 10px 7px 28px', color: '#F8F7F8', fontSize: '11px', fontWeight: '700', outline: 'none', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
-            {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults()}
+            {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults('fixed')}
           </div>
           {!userSession ? (
             <>
@@ -8516,7 +8516,7 @@ export default function App() {
               {userSession && isTinyLayout && (
                 <button onClick={openProfileModal} style={{ ...glassButtonStyle, padding: '8px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '44%', flex: '0 0 auto' }}>{renderProfileChip(22, '94px')}</button>
               )}
-              {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults()}
+              {normalizedSearchTerm && !isAdminPage && renderCompactSearchResults('fixed')}
             </div>
 
             <div style={homeNavStyle}>
@@ -10227,13 +10227,21 @@ export default function App() {
               {filteredArticles.length === 0 ? (
                 <p style={{ color: '#F8F7F8', fontSize: '13px', margin: 0 }}>Belum ada artikel yang cocok.</p>
               ) : (
-                <div style={flatListStyle}>
+                <div style={articleCardGridStyle}>
                   {filteredArticles.map((article) => (
-                    <article key={article.id} onClick={() => openArticleReader(article)} style={{ ...flatItemStyle, display: 'block' }}>
-                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '0 0 8px 0' }}>{article.category.toUpperCase()} / {article.createdAt}</p>
-                      <h4 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '15px' : '17px', fontWeight: '900', lineHeight: 1.08, margin: '0 0 8px 0' }}>{article.title.toUpperCase()}</h4>
-                      <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
-                      <p style={{ color: '#73BBC9', fontSize: '10px', fontWeight: '900', margin: '10px 0 0 0' }}>BACA ARTIKEL</p>
+                    <article key={article.id} onClick={() => openArticleReader(article)} style={articleCardStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center', paddingBottom: '7px', borderBottom: `1px solid ${flatLineColor}` }}>
+                        <p style={{ color: '#73BBC9', fontSize: isTinyLayout ? '8px' : '8.5px', fontWeight: '900', letterSpacing: '0.9px', margin: 0 }}>{String(article.category || 'NEWSSPACE').toUpperCase()}</p>
+                        <p style={{ color: 'rgba(255,255,255,0.58)', fontSize: isTinyLayout ? '7.5px' : '8px', fontWeight: '900', margin: 0, whiteSpace: 'nowrap' }}>{String(article.createdAt || '').toUpperCase()}</p>
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <h3 style={{ color: '#F8F7F8', fontSize: isTinyLayout ? '12px' : '13px', fontWeight: '900', lineHeight: 1.1, margin: '0 0 6px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{String(article.title || '').toUpperCase()}</h3>
+                        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isTinyLayout ? '9.5px' : '10px', lineHeight: 1.45, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.excerpt}</p>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', paddingTop: '6px', borderTop: `1px solid rgba(241,212,229,0.06)` }}>
+                        <p style={{ color: 'rgba(255,255,255,0.52)', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', margin: 0 }}>{String(article.bandName || 'Newsspace').toUpperCase()}</p>
+                        <span style={{ color: '#73BBC9', fontSize: isTinyLayout ? '8px' : '9px', fontWeight: '900', letterSpacing: '0.8px' }}>BACA</span>
+                      </div>
                     </article>
                   ))}
                 </div>
