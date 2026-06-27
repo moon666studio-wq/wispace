@@ -721,13 +721,47 @@ const savePublicBandRegistry = (profiles) => {
   window.localStorage.setItem(PUBLIC_BAND_REGISTRY_STORAGE_KEY, JSON.stringify(profiles));
 };
 
+const safeLocalStorageSet = (key, value) => {
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    if (!String(error?.name || '').includes('QuotaExceeded') && !String(error?.message || '').includes('quota')) {
+      throw error;
+    }
+    return false;
+  }
+};
+
+const trimGigRegistryForCache = (gigs = []) => gigs.map((gig = {}) => ({
+  id: gig.id || createClientId(),
+  title: gig.title || '',
+  genre: gig.genre || '',
+  date: gig.date || '',
+  request_type: gig.request_type || '',
+  status: gig.status || '',
+  city: gig.city || '',
+  approved_until: gig.approved_until || '',
+  approved_at: gig.approved_at || '',
+  created_at: gig.created_at || '',
+  updated_at: gig.updated_at || '',
+  image: gig.image && String(gig.image).length < 1600 ? gig.image : '',
+  image_path: gig.image_path || '',
+  image_name: gig.image_name || '',
+  image_type: gig.image_type || ''
+}));
+
+const savePublicGigRegistry = (gigs) => {
+  const payload = JSON.stringify(gigs);
+  if (!safeLocalStorageSet(PUBLIC_GIG_REGISTRY_STORAGE_KEY, payload)) {
+    const trimmedPayload = JSON.stringify(trimGigRegistryForCache(gigs).slice(0, 40));
+    safeLocalStorageSet(PUBLIC_GIG_REGISTRY_STORAGE_KEY, trimmedPayload);
+  }
+};
+
 const loadPublicGigRegistry = () => {
   const registry = readLocalJson(PUBLIC_GIG_REGISTRY_STORAGE_KEY);
   return Array.isArray(registry) ? registry : [];
-};
-
-const savePublicGigRegistry = (gigs) => {
-  window.localStorage.setItem(PUBLIC_GIG_REGISTRY_STORAGE_KEY, JSON.stringify(gigs));
 };
 
 const loadPublicReleaseRegistry = () => {
@@ -8279,7 +8313,7 @@ export default function App() {
       {loading && (
         <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: isTinyLayout ? '24px' : '40px', boxSizing: 'border-box' }}>
           <div style={{ display: 'grid', gap: '14px', justifyItems: 'center', textAlign: 'center', maxWidth: '420px' }}>
-            <img src={WISPACE_LOGO_SRC} alt="WiSpace" width="150" height="40" decoding="async" style={{ width: isTinyLayout ? '120px' : '150px', height: 'auto', display: 'block' }} />
+            <img src={WISPACE_LOGO_SRC} alt="WiSpace" width="150" height="40" decoding="async" style={{ width: isTinyLayout ? '122px' : '160px', height: 'auto', display: 'block', objectFit: 'contain' }} />
             <div style={{ width: '56px', height: '2px', borderRadius: '9999px', background: 'linear-gradient(90deg, rgba(115,187,201,0.1), rgba(115,187,201,0.92), rgba(241,212,229,0.1))' }} />
             <p style={{ margin: 0, color: '#F8F7F8', fontSize: isTinyLayout ? '14px' : '15px', fontWeight: '900', letterSpacing: '0.4px' }}>LOADING WISPACE</p>
             <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.55 }}>Sedang menyiapkan WiSpace.</p>
@@ -8330,7 +8364,7 @@ export default function App() {
       {!isAdminPage && (isBandProfilePage || isBandPublicPage || isFinancePage || isGigManagerPage || isMessagePage || isAudienceProfilePage || isAudienceLibraryPage || isAudienceOrdersPage || isExplorePage || isMerchMarketPage || isArticlesPage) && !loading && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: isTinyLayout ? 'flex-start' : 'center', gap: isTinyLayout ? '8px' : '14px', padding: isTinyLayout ? '10px 12px' : '12px 28px', opacity: 1, pointerEvents: 'auto', transition: 'all 0.35s ease', background: 'linear-gradient(90deg, rgba(8,2,2,0.94), rgba(8,2,2,0.88) 48%, rgba(8,2,2,0.94) 100%)', border: 'none', borderBottom: '1px solid rgba(115,187,201,0.18)', borderRadius: 0, backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', boxShadow: '0 12px 34px rgba(0,0,0,0.24), 0 1px 0 rgba(241,212,229,0.035), inset 0 -1px 0 rgba(115,187,201,0.05)', width: '100vw', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'auto', scrollbarWidth: 'none' }}>
           <button onClick={() => navigateInternalPage('home', { clearSearch: true })} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '96px' : '118px', height: 'auto', display: 'block' }} />
+            <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '110px' : '132px', height: 'auto', display: 'block', objectFit: 'contain' }} />
           </button>
           {[
             ['rilisan', 'RILISAN'],
@@ -8506,7 +8540,7 @@ export default function App() {
           <header style={homeHeaderStyle}>
             <div style={homeBrandWrapStyle}>
               <button type="button" onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', padding: 0, margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '118px' : '142px', maxWidth: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 0 18px rgba(115,187,201,0.28))' }} />
+                <img src={WISPACE_LOGO_SRC} alt="WiSpace" style={{ width: isTinyLayout ? '126px' : '156px', maxWidth: '100%', height: 'auto', display: 'block', objectFit: 'contain' }} />
               </button>
             </div>
 
