@@ -3,7 +3,6 @@ import { supabase, isSupabaseConfigured, supabaseOrigin } from './supabaseClient
 import { WISPACE_PICK_LABEL_OPTIONS, createEmptyWispacePick, getYoutubeThumbnail, getYoutubeVideoId, loadWispacePick, mapWispacePickFromRow, mapWispacePickToRow, saveWispacePick } from './wispacePickStorage';
 // IMPOR IKON VEKTOR CYBER-LINE MINIMALIS (Poin 1)
 import { Search, ShoppingBag, Radio, User, LogOut, FileText, DollarSign, ShieldCheck, Play, Pause, SkipBack, SkipForward, Bell } from 'lucide-react';
-import logoWispace from './brand/logo-wispace-biru.svg';
 const fetchCloudData = async (user = null, options = {}) => {
   const { bootstrapOnly = false } = options;
   const baseRequests = [
@@ -576,7 +575,7 @@ const WISPACE_PLATFORM_RATE = 0.2;
 const EXCLUSIVE_POSTER_SLOT_FEE = 30000;
 const MINIMUM_PAYOUT_AMOUNT = 100000;
 const RELEASE_AGREEMENT_VERSION = 'wispace-release-agreement-v1';
-const WISPACE_LOGO_SRC = 'logoWispace';
+const WISPACE_LOGO_SRC = '/brand/logo-wispace-biru.svg';
 const WISPACE_SITE_URL = 'https://wispace.my.id';
 const WISPACE_DEFAULT_IMAGE = `${WISPACE_SITE_URL}/og-wispace.png`;
 const PUBLIC_ASSET_BUCKET = 'band-assets';
