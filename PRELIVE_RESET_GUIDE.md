@@ -33,19 +33,20 @@ The script will refuse to run if `keep_users` is empty.
 - audience library and notification reads
 - subscriptions and support messages
 - dummy band profiles/agreements except users in `keep_users`
-- uploaded files in WiSpace app buckets that do not belong to kept users
+- lists uploaded files in WiSpace app buckets that do not belong to kept users, so you can delete them from Supabase Storage UI/API
 
 ## What It Does Not Delete By Default
 
 - `auth.users`
 - kept users in `admin_users`
-- files whose first storage folder is a kept user UUID
+- any storage files; SQL only lists files to review because Supabase blocks direct storage table deletes
 
 ## Recommended Flow
 
 1. Backup Supabase first.
 2. Run `supabase-prelive-reset-test-data.sql` with your keep list filled.
 3. Confirm the result table shows expected row counts.
-4. Run `PRELIVE_CHECKLIST.md` manually.
-5. After the checklist passes, clean checklist test data again if needed.
-6. Add real launch content.
+4. If `storage_objects_to_review` is greater than 0, delete those files from Supabase Dashboard > Storage, or leave them if you still need them.
+5. Run `PRELIVE_CHECKLIST.md` manually.
+6. After the checklist passes, clean checklist test data again if needed.
+7. Add real launch content.

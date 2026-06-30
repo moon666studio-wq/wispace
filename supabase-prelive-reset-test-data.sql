@@ -103,21 +103,18 @@ delete from public.band_profiles
 where user_id not in (select user_id from keep_users);
 
 -- -----------------------------------------------------------------------------
--- 4. Storage cleanup.
--- This removes uploaded test files in app buckets. Keep only files whose first
--- folder segment is a kept auth UUID. If you want a fully empty storage reset,
--- remove the foldername keep condition below.
+-- 4. Storage cleanup note.
+-- Supabase blocks direct deletes from storage.objects. Clean these files from
+-- Storage UI or Storage API after this transaction commits.
 -- -----------------------------------------------------------------------------
-delete from storage.objects
+create temporary table storage_objects_to_review as
+select bucket_id, name
+from storage.objects
 where bucket_id in ('band-assets', 'release-previews', 'release-audio')
   and coalesce((storage.foldername(name))[1], '') not in (
     select user_id::text from keep_users
-  );
-
--- Optional full storage wipe for app buckets. Uncomment only if you want to
--- remove even files belonging to kept admin/band/audience test users.
--- delete from storage.objects
--- where bucket_id in ('band-assets', 'release-previews', 'release-audio');
+  )
+order by bucket_id, name;
 
 -- -----------------------------------------------------------------------------
 -- 5. Verification output.
@@ -136,7 +133,7 @@ union all select 'sales_transactions', count(*) from public.sales_transactions
 union all select 'merch_orders', count(*) from public.merch_orders
 union all select 'audience_library', count(*) from public.audience_library
 union all select 'wispace_messages', count(*) from public.wispace_messages
-union all select 'storage_app_objects', count(*) from storage.objects where bucket_id in ('band-assets', 'release-previews', 'release-audio')
+union all select 'storage_objects_to_review', count(*) from storage_objects_to_review
 order by table_name;
 
 commit;
