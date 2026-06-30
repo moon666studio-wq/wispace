@@ -3139,6 +3139,12 @@ export default function App() {
     setScheduleDraft({ title: '', venue: '', date: '', htm: '', cp: '' });
     alert('Jadwal manggung sudah masuk ke profil band.');
   };
+  const handleScheduleDelete = (scheduleId) => {
+    const selectedSchedule = bandScheduleItems.find((schedule) => String(schedule.id) === String(scheduleId));
+    if (!selectedSchedule) return;
+    if (!window.confirm(`Hapus jadwal "${selectedSchedule.title}" dari profile band?`)) return;
+    setBandScheduleItems((current) => current.filter((schedule) => String(schedule.id) !== String(scheduleId)));
+  };
 
   const handleTrackSubmit = async (e) => {
     e.preventDefault();
@@ -10719,13 +10725,16 @@ export default function App() {
                 ) : (
                   <div style={{ display: 'grid', gap: '12px' }}>
                     {bandScheduleItems.slice(0, 5).map((schedule) => (
-                      <div key={schedule.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: '64px 1fr', gap: '12px' }}>
+                      <div key={schedule.id} style={{ ...compactRowStyle, display: 'grid', gridTemplateColumns: showBandOwnerControls ? '64px minmax(0, 1fr) auto' : '64px 1fr', gap: '12px', alignItems: 'center' }}>
                         <div style={{ width: '64px', height: '64px', borderRadius: '8px', background: softRowBackground, border: '1px solid rgba(115,187,201,0.25)', display: 'grid', placeItems: 'center', color: '#73BBC9', fontSize: '10px', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>LIVE<br/>DATE</div>
                         <div>
                           <h4 style={{ color: '#F8F7F8', fontSize: '13px', fontWeight: '900', margin: '0 0 6px 0' }}>{schedule.title.toUpperCase()}</h4>
                           <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>{schedule.venue} / {schedule.date} / {schedule.htm}</p>
                           <p style={{ color: '#F8F7F8', fontSize: '11px', lineHeight: 1.4, margin: '5px 0 0 0' }}>CP: {schedule.cp}</p>
                         </div>
+                        {showBandOwnerControls && (
+                          <button type="button" onClick={() => handleScheduleDelete(schedule.id)} style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.22)', color: '#F1D4E5', borderRadius: '9px', padding: '7px 9px', fontSize: '9px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, whiteSpace: 'nowrap' }}>HAPUS</button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -10850,6 +10859,27 @@ export default function App() {
                   <input type="text" placeholder="CONTACT PERSON / LINK INFO" value={scheduleDraft.cp} onChange={(event) => setScheduleDraft({ ...scheduleDraft, cp: event.target.value })} required style={formInputStyle} />
                   <button type="submit" style={{ ...glassButtonStyle, width: '100%', padding: '12px', fontSize: '12px' }}>SIMPAN JADWAL PROFILE</button>
                 </form>
+              </section>
+
+              <section style={{ ...glassStyle('band-schedule-list'), padding: '20px', backgroundColor: '#080202' }}>
+                <h3 style={{ color: '#73BBC9', fontSize: '14px', fontWeight: '900', margin: '0 0 8px 0' }}>JADWAL AKTIF PROFILE</h3>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 14px 0' }}>Hapus jadwal yang sudah lewat supaya profile band tetap ringkas.</p>
+                {bandScheduleItems.length === 0 ? (
+                  <p style={{ color: '#F8F7F8', fontSize: '12px', lineHeight: 1.45, margin: 0 }}>Belum ada jadwal tersimpan.</p>
+                ) : (
+                  <div style={{ display: 'grid', gap: '10px' }}>
+                    {bandScheduleItems.map((schedule) => (
+                      <div key={schedule.id} style={{ display: 'grid', gridTemplateColumns: isTinyLayout ? '1fr' : 'minmax(0, 1fr) auto', gap: '10px', alignItems: 'center', padding: '10px 0', borderTop: '1px solid rgba(241,212,229,0.10)' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <h4 style={{ color: '#F8F7F8', fontSize: '12px', fontWeight: '900', margin: '0 0 5px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{schedule.title.toUpperCase()}</h4>
+                          <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '11px', lineHeight: 1.4, margin: 0 }}>{schedule.venue} / {schedule.date} / {schedule.htm}</p>
+                          <p style={{ color: '#F8F7F8', fontSize: '10px', lineHeight: 1.35, margin: '4px 0 0 0' }}>CP: {schedule.cp}</p>
+                        </div>
+                        <button type="button" onClick={() => handleScheduleDelete(schedule.id)} style={{ backgroundColor: 'rgba(241,212,229,0.06)', border: '1px solid rgba(241,212,229,0.22)', color: '#F1D4E5', borderRadius: '10px', padding: '8px 10px', fontSize: '10px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, width: isTinyLayout ? 'fit-content' : 'auto' }}>HAPUS</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section style={{ ...glassStyle('gig-status'), padding: '20px', backgroundColor: '#080202' }}>
