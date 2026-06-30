@@ -3009,11 +3009,12 @@ export default function App() {
       request_type: newGigRequestType,
       image_path: newPosterImagePath || null,
       image: newPosterImage,
+      band_id: userSession?.id || null,
       status: 'pending' 
     };
     const { error: firstError } = await supabase.from('gigs').insert([gigPayload]);
     const error = isMissingColumnError(firstError)
-      ? (await supabase.from('gigs').insert([{ title: gigPayload.title, city: gigPayload.city, genre: gigPayload.genre, date: gigPayload.date, image: gigPayload.image, status: gigPayload.status }])).error
+      ? (await supabase.from('gigs').insert([{ title: gigPayload.title, city: gigPayload.city, genre: gigPayload.genre, date: gigPayload.date, image: gigPayload.image, band_id: gigPayload.band_id, status: gigPayload.status }])).error
       : firstError;
     if (error) alert(error.message);
     else { 
@@ -3120,7 +3121,7 @@ export default function App() {
       signedBy: bandProfile.name || signatureName || trackBand || 'Band WiSpace'
     };
 
-    const { error } = await supabase.from('tracks').insert([{ band: trackBand, title: trackTitle, url: trackUrl }]);
+    const { error } = await supabase.from('tracks').insert([{ band: trackBand, title: trackTitle, url: trackUrl, owner_user_id: userSession?.id || null }]);
     if (error) alert(error.message);
     else {
       const publicRelease = publishPublicRelease(singleRelease);

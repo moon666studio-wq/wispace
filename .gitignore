@@ -24,3 +24,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Local media drafts / uploads should live in Supabase Storage, not Git.
+*.mp3
+*.wav
+*.flac
+*.aiff
+*.m4a
+*.ogg
