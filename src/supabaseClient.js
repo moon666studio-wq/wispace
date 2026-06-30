@@ -32,6 +32,7 @@ const fallbackSupabase = {
     signUp: async () => ({ data: null, error: missingConfigError }),
     signInWithPassword: async () => ({ data: null, error: missingConfigError }),
     resend: async () => ({ data: null, error: missingConfigError }),
+    resetPasswordForEmail: async () => ({ data: null, error: missingConfigError }),
     updateUser: async () => ({ data: null, error: missingConfigError })
   },
   storage: {

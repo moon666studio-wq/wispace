@@ -1569,6 +1569,7 @@ export default function App() {
   // STATE INPUT AUTH & FORM
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
+  const [authNewPassword, setAuthNewPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -2183,7 +2184,12 @@ export default function App() {
       });
       else setCloudAdminAccount(null);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthType('reset_password');
+        setShowAuthModal(true);
+        setAuthError('Masukkan password baru untuk akun WiSpace lu.');
+      }
       const sessionUser = session?.user || null;
       setUserSession(sessionUser);
       setUserRole(resolveUserRole(sessionUser));
@@ -2742,6 +2748,47 @@ export default function App() {
 
     if (error) setAuthError('Gagal kirim ulang verifikasi: ' + error.message);
     else setAuthError('Link verifikasi baru sudah dikirim. Cek inbox/spam email lu, bro.');
+  };
+  const handlePasswordResetRequest = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    const normalizedEmail = authEmail.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setAuthError('Isi email akun dulu supaya link reset password bisa dikirim.');
+      return;
+    }
+
+    setAuthLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: `${window.location.origin}/`
+    });
+    setAuthLoading(false);
+
+    if (error) setAuthError('Gagal kirim reset password: ' + error.message);
+    else setAuthError('Link reset password sudah dikirim. Cek inbox/spam email lu, lalu buka link itu dari device yang sama.');
+  };
+
+  const handlePasswordUpdate = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    if (authNewPassword.length < 6) {
+      setAuthError('Password baru minimal 6 karakter.');
+      return;
+    }
+
+    setAuthLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: authNewPassword });
+    setAuthLoading(false);
+
+    if (error) {
+      setAuthError('Gagal update password: ' + error.message);
+      return;
+    }
+
+    setAuthError('Password berhasil diupdate. Silakan login ulang kalau diminta.');
+    setAuthNewPassword('');
+    setAuthPassword('');
+    setAuthType('login');
   };
 
   const handleRoleSelection = async (role) => {
@@ -12673,7 +12720,7 @@ export default function App() {
       {showAuthModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(8,2,2,0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ ...glassStyle('modal'), padding: '36px', maxWidth: '420px', width: '100%', position: 'relative', backgroundColor: '#080202' }}>
-            <button onClick={() => { setShowAuthModal(false); setAuthType(''); setAuthError(''); }} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#F8F7F8', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+            <button onClick={() => { setShowAuthModal(false); setAuthType(''); setAuthError(''); setAuthNewPassword(''); }} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#F8F7F8', cursor: 'pointer', fontSize: '18px' }}>✕</button>
 
             {/* FORM LOGIN AKUN */}
             {authType === 'login' && (
@@ -12686,6 +12733,34 @@ export default function App() {
                 )}
                 <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: authLoading ? 'rgba(255,255,255,0.50)' : '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{authLoading ? 'MEMPROSES...' : 'LOG MASUK'}</button>
                 <button type="button" onClick={handleResendVerification} disabled={authLoading} style={{ width: '100%', marginTop: '10px', padding: '12px', backgroundColor: 'transparent', color: '#73BBC9', border: '1px solid rgba(115,187,201,0.35)', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK, fontSize: '12px' }}>KIRIM ULANG VERIFIKASI EMAIL</button>
+                <button type="button" onClick={() => { setAuthType('forgot_password'); setAuthError(''); setAuthPassword(''); }} disabled={authLoading} style={{ width: '100%', marginTop: '10px', padding: '10px', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.72)', border: 'none', borderRadius: '12px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK, fontSize: '11px' }}>LUPA PASSWORD?</button>
+              </form>
+            )}
+
+            {/* FORM RESET PASSWORD */}
+            {authType === 'forgot_password' && (
+              <form onSubmit={handlePasswordResetRequest}>
+                <h3 style={{ color: '#73BBC9', margin: '0 0 18px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>RESET PASSWORD</h3>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 16px 0', textAlign: 'center' }}>Masukkan email akun WiSpace. Link reset akan dikirim lewat Supabase Auth.</p>
+                <input type="email" placeholder="EMAIL AKUN" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                {authError && (
+                  <div style={{ backgroundColor: '#080202', border: `1px solid ${authError.startsWith('Link') ? 'rgba(115,187,201,0.35)' : 'rgba(241,212,229,0.35)'}`, color: authError.startsWith('Link') ? '#73BBC9' : '#F1D4E5', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
+                )}
+                <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: authLoading ? 'rgba(255,255,255,0.50)' : '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{authLoading ? 'MENGIRIM...' : 'KIRIM LINK RESET'}</button>
+                <button type="button" onClick={() => { setAuthType('login'); setAuthError(''); }} style={{ width: '100%', marginTop: '10px', padding: '10px', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.72)', border: 'none', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontFamily: FONT_STACK, fontSize: '11px' }}>KEMBALI LOGIN</button>
+              </form>
+            )}
+
+            {/* FORM PASSWORD BARU */}
+            {authType === 'reset_password' && (
+              <form onSubmit={handlePasswordUpdate}>
+                <h3 style={{ color: '#73BBC9', margin: '0 0 18px 0', fontSize: '18px', textAlign: 'center', fontWeight: '900' }}>PASSWORD BARU</h3>
+                <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '12px', lineHeight: 1.45, margin: '0 0 16px 0', textAlign: 'center' }}>Buat password baru untuk akun WiSpace lu.</p>
+                <input type="password" placeholder="PASSWORD BARU" value={authNewPassword} onChange={(e) => setAuthNewPassword(e.target.value)} required minLength={6} style={{ width: '100%', backgroundColor: '#080202', border: '1px solid rgba(241,212,229,0.14)', borderRadius: '16px', padding: '12px', fontSize: '13px', color: '#F8F7F8', marginBottom: '12px', fontFamily: FONT_STACK, boxSizing: 'border-box' }} />
+                {authError && (
+                  <div style={{ backgroundColor: '#080202', border: `1px solid ${authError.startsWith('Password berhasil') || authError.startsWith('Masukkan') ? 'rgba(115,187,201,0.35)' : 'rgba(241,212,229,0.35)'}`, color: authError.startsWith('Password berhasil') || authError.startsWith('Masukkan') ? '#73BBC9' : '#F1D4E5', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: '800', lineHeight: 1.4, marginBottom: '12px' }}>{authError}</div>
+                )}
+                <button type="submit" disabled={authLoading} style={{ width: '100%', padding: '14px', backgroundColor: authLoading ? 'rgba(241,212,229,0.1)' : '#73BBC9', color: authLoading ? 'rgba(255,255,255,0.50)' : '#080202', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: authLoading ? 'wait' : 'pointer', fontFamily: FONT_STACK }}>{authLoading ? 'MENYIMPAN...' : 'SIMPAN PASSWORD BARU'}</button>
               </form>
             )}
 
